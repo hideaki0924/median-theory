@@ -141,6 +141,7 @@ function calc(){
   })();
 
   const groups=[
+    ["単勝10倍以上20倍以内メジアン", winRows.filter(x=>x.odds>=10 && x.odds<=20)],
     ["単勝10倍以内メジアン", winRows.filter(x=>x.odds<=10)],
     ["単勝10倍以上メジアン", winRows.filter(x=>x.odds>=10)],
     ["単勝99倍以内メジアン", winRows.filter(x=>x.odds<=99)],
