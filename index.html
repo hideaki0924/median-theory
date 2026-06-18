@@ -1,1 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>メジアン理論</title>
+</head>
+<body>
+
 <h1>メジアン理論</h1>
+
+<p>単勝20倍以内を入力してください</p>
+
+<textarea id="odds" rows="10" cols="30"></textarea>
+
+<br><br>
+
+<button onclick="calc()">計算</button>
+
+<h2>結果</h2>
+
+<div id="result"></div>
+
+<script>
+function calc() {
+
+let txt = document.getElementById("odds").value;
+
+let arr = txt
+.split(/[\n\s]+/)
+.map(Number)
+.filter(x => !isNaN(x))
+.sort((a,b)=>a-b);
+
+if(arr.length===0){
+document.getElementById("result").innerHTML="データなし";
+return;
+}
+
+let mid = Math.floor(arr.length/2);
+
+let median;
+
+if(arr.length % 2 === 0){
+median = (arr[mid-1]+arr[mid])/2;
+}else{
+median = arr[mid];
+}
+
+document.getElementById("result").innerHTML =
+"メジアン値 = " + median;
+}
+</script>
+
+</body>
+</html>
