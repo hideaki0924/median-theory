@@ -9,6 +9,7 @@ textarea{width:100%;height:280px;font-size:18px}
 button{font-size:22px;padding:10px 20px;margin:15px 0}
 .box{background:#fff3cd;border:2px solid #f0c36d;padding:12px;margin:15px 0;font-size:24px}
 .wall{background:#e8f4ff;border:2px solid #5aa9e6;padding:12px;margin:15px 0;font-size:21px}
+.break{background:#ffe8e8;border:2px solid #e66;padding:12px;margin:15px 0;font-size:22px}
 .result{font-size:20px;line-height:1.7}
 b{font-size:22px}
 </style>
@@ -46,6 +47,10 @@ function addCount(count,horses){
   horses.forEach(h=>count[h.num]=(count[h.num]||0)+1);
 }
 
+function nums(list){
+  return list.map(x=>x.num).join("・");
+}
+
 function wallAround(list,wall){
   const s=list.slice().sort((a,b)=>a.odds-b.odds);
   const i=s.findIndex(x=>x.odds>=wall);
@@ -53,8 +58,15 @@ function wallAround(list,wall){
   return s.slice(Math.max(0,i-2),Math.min(s.length,i+2));
 }
 
-function nums(list){
-  return list.map(x=>x.num).join("・");
+function wallBreak(list,wall){
+  const s=list.slice().sort((a,b)=>a.odds-b.odds);
+  const i=s.findIndex(x=>x.odds>=wall);
+  if(i<0)return null;
+  return {
+    before:s[i-1]||null,
+    breakHorse:s[i],
+    after:s[i+1]||null
+  };
 }
 
 function calc(){
@@ -114,9 +126,21 @@ function calc(){
   const place12Wall=wallAround(placeRows,12);
   const place15Wall=wallAround(placeRows,15);
 
+  const p6=wallBreak(placeRows,6);
+  const p12=wallBreak(placeRows,12);
+  const p15=wallBreak(placeRows,15);
+  const w20=wallBreak(winRows,20);
+
   html=`<div class="box">★注目馬：${top.join("・")}<br>重複数：${topCount}回</div>`+html;
 
-  html+=`<div class="wall"><b>★境目・壁馬</b><br>
+  html+=`<div class="break"><b>★壁突破馬</b><br>
+単勝20倍突破馬：${w20 ? w20.breakHorse.num+"番（"+w20.breakHorse.odds+"）" : "該当なし"}<br>
+複勝6倍突破馬：${p6 ? p6.breakHorse.num+"番（"+p6.breakHorse.odds+"）" : "該当なし"}<br>
+複勝12倍突破馬：${p12 ? p12.breakHorse.num+"番（"+p12.breakHorse.odds+"）" : "該当なし"}<br>
+複勝15倍突破馬：${p15 ? p15.breakHorse.num+"番（"+p15.breakHorse.odds+"）" : "該当なし"}
+</div>`;
+
+  html+=`<div class="wall"><b>★境目・壁前後</b><br>
 単勝20倍壁前後：${nums(win20Wall)||"該当なし"}<br>
 複勝6倍壁前後：${nums(place6Wall)||"該当なし"}<br>
 複勝12倍壁前後：${nums(place12Wall)||"該当なし"}<br>
