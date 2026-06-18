@@ -12,6 +12,8 @@ button{font-size:22px;padding:10px 20px;margin:15px 0}
 .break{background:#ffe8e8;border:2px solid #e66;padding:12px;margin:15px 0;font-size:22px}
 .umaren{background:#eef9ee;border:2px solid #66aa66;padding:12px;margin:15px 0;font-size:21px}
 .arare{background:#f3e8ff;border:2px solid #8a5cf6;padding:12px;margin:15px 0;font-size:22px}
+.gap{background:#fff0e6;border:2px solid #ff9933;padding:12px;margin:15px 0;font-size:21px}
+.summary{background:#fff8dc;border:3px solid #d4a017;padding:14px;margin:15px 0;font-size:24px}
 .result{font-size:20px;line-height:1.7}
 b{font-size:22px}
 </style>
@@ -37,18 +39,23 @@ b{font-size:22px}
 <div id="result" class="result"></div>
 
 <script>
+function sorted(list){
+  return list.slice().sort((a,b)=>a.odds-b.odds);
+}
+
 function medianPick(list){
-  list=list.slice().sort((a,b)=>a.odds-b.odds);
-  const n=list.length;
+  const s=sorted(list);
+  const n=s.length;
   if(n===0)return null;
   const mid=Math.floor(n/2);
+
   if(n%2===1){
-    const v=list[mid].odds;
-    return {items:list.filter(x=>x.odds===v), value:v};
+    const v=s[mid].odds;
+    return {items:s.filter(x=>x.odds===v), value:v};
   }else{
     return {
-      items:[list[mid-1],list[mid]],
-      value:((list[mid-1].odds+list[mid].odds)/2).toFixed(2)
+      items:[s[mid-1],s[mid]],
+      value:((s[mid-1].odds+s[mid].odds)/2).toFixed(2)
     };
   }
 }
@@ -83,17 +90,30 @@ function pairNums(list){
 }
 
 function wallAround(list,wall){
-  const s=list.slice().sort((a,b)=>a.odds-b.odds);
+  const s=sorted(list);
   const i=s.findIndex(x=>x.odds>=wall);
   if(i<0)return [];
   return s.slice(Math.max(0,i-2),Math.min(s.length,i+2));
 }
 
 function wallBreak(list,wall){
-  const s=list.slice().sort((a,b)=>a.odds-b.odds);
+  const s=sorted(list);
   const i=s.findIndex(x=>x.odds>=wall);
   if(i<0)return null;
   return s[i];
+}
+
+function maxGap(list){
+  const s=sorted(list);
+  if(s.length<2)return null;
+  let best={gap:0,before:null,after:null};
+  for(let i=1;i<s.length;i++){
+    const gap=s[i].odds-s[i-1].odds;
+    if(gap>best.gap){
+      best={gap,before:s[i-1],after:s[i]};
+    }
+  }
+  return best;
 }
 
 function parsePairs(text){
@@ -105,11 +125,16 @@ function parsePairs(text){
   }).filter(x=>x.a && x.b && !isNaN(x.odds));
 }
 
+function ranking(count){
+  return Object.entries(count).sort((a,b)=>b[1]-a[1]);
+}
+
 function rankingHtml(title,count){
-  const ranking=Object.entries(count).sort((a,b)=>b[1]-a[1]);
+  const r=ranking(count);
   let html=`<h2>${title}</h2>`;
-  ranking.forEach(([num,c])=>{
-    html+=`<p>${num}番：${c}回</p>`;
+  r.forEach(([num,c],i)=>{
+    const star=i===0 ? "★★★★★" : i===1 ? "★★★★☆" : i===2 ? "★★★☆☆" : "";
+    html+=`<p>${star} ${num}番：${c}回</p>`;
   });
   return html;
 }
@@ -126,14 +151,14 @@ function calc(){
   const placeRows=rows.filter(x=>!isNaN(x.place)).map(x=>({num:x.num,odds:x.place}));
 
   const place6WallFromFavorite=(()=>{
-    const s=placeRows.slice().sort((a,b)=>a.odds-b.odds);
+    const s=sorted(placeRows);
     const i=s.findIndex(x=>x.odds>=6);
     if(i<0)return [];
     return s.slice(0,Math.max(0,i-2));
   })();
 
   const place15Before2To6Over=(()=>{
-    const s=placeRows.slice().sort((a,b)=>a.odds-b.odds);
+    const s=sorted(placeRows);
     const i=s.findIndex(x=>x.odds>=15);
     if(i<0)return [];
     const start=Math.max(0,i-2);
@@ -141,8 +166,8 @@ function calc(){
   })();
 
   const groups=[
-    ["単勝10倍以上20倍以内メジアン", winRows.filter(x=>x.odds>=10 && x.odds<=20)],
     ["単勝10倍以内メジアン", winRows.filter(x=>x.odds<=10)],
+    ["単勝10倍以上20倍以内メジアン", winRows.filter(x=>x.odds>=10 && x.odds<=20)],
     ["単勝10倍以上メジアン", winRows.filter(x=>x.odds>=10)],
     ["単勝99倍以内メジアン", winRows.filter(x=>x.odds<=99)],
     ["単勝100倍以上メジアン", winRows.filter(x=>x.odds>=100)],
@@ -154,23 +179,23 @@ function calc(){
   ];
 
   const pairGroups=[
-  ["馬連全体メジアン", pairRows],
-  ["馬連10倍以内メジアン", pairRows.filter(x=>x.odds<=10)],
-  ["馬連20倍以内メジアン", pairRows.filter(x=>x.odds<=20)]
-];
+    ["馬連全体メジアン", pairRows],
+    ["馬連10倍以内メジアン", pairRows.filter(x=>x.odds<=10)],
+    ["馬連20倍以内メジアン", pairRows.filter(x=>x.odds<=20)]
+  ];
 
   let totalCount={};
   let pairCount={};
-  let html="<h2>結果</h2>";
+  let medianDetailHtml="<h2>結果</h2>";
 
   groups.forEach(([name,list])=>{
     const r=medianPick(list);
     if(!r){
-      html+=`<p>${name}：該当なし</p>`;
+      medianDetailHtml+=`<p>${name}：該当なし</p>`;
       return;
     }
     addCount(totalCount,r.items);
-    html+=`<p><b>${name}</b><br>馬番：${nums(r.items)}<br>メジアン値：${r.value}</p>`;
+    medianDetailHtml+=`<p><b>${name}</b><br>馬番：${nums(r.items)}<br>メジアン値：${r.value}</p>`;
   });
 
   let pairHtml="";
@@ -185,9 +210,15 @@ function calc(){
     pairHtml+=`<p><b>${name}</b><br>組：${nums(r.items)}<br>構成馬：${pairNums(r.items)}<br>メジアン値：${r.value}</p>`;
   });
 
-  const totalRanking=Object.entries(totalCount).sort((a,b)=>b[1]-a[1]);
+  const totalRanking=ranking(totalCount);
   const topCount=totalRanking[0]?.[1]||0;
   const top=totalRanking.filter(x=>x[1]===topCount).map(x=>x[0]);
+
+  const secondCount=totalRanking.find(x=>x[1]<topCount)?.[1]||0;
+  const second=totalRanking.filter(x=>x[1]===secondCount).map(x=>x[0]);
+
+  const thirdCount=totalRanking.find(x=>x[1]<secondCount)?.[1]||0;
+  const third=totalRanking.filter(x=>x[1]===thirdCount).map(x=>x[0]);
 
   const w20=wallBreak(winRows,20);
   const p6=wallBreak(placeRows,6);
@@ -199,6 +230,10 @@ function calc(){
   const place12Wall=wallAround(placeRows,12);
   const place15Wall=wallAround(placeRows,15);
 
+  const winGap=maxGap(winRows);
+  const placeGap=maxGap(placeRows);
+  const pairGap=maxGap(pairRows);
+
   let rough=0;
   if(w20)rough++;
   if(p6)rough++;
@@ -206,6 +241,8 @@ function calc(){
   if(p15)rough++;
   if(pairRows.some(x=>x.odds>=30))rough++;
   if(winRows.some(x=>x.odds>=100))rough++;
+  if(winGap && winGap.gap>=10)rough++;
+  if(placeGap && placeGap.gap>=3)rough++;
 
   let roughText="★☆☆☆☆ 低め";
   if(rough>=2)roughText="★★☆☆☆ やや荒れ";
@@ -213,7 +250,37 @@ function calc(){
   if(rough>=4)roughText="★★★★☆ 波乱注意";
   if(rough>=5)roughText="★★★★★ 大荒れ警戒";
 
-  html=`<div class="box">★注目馬：${top.join("・")}<br>重複数：${topCount}回</div>`+html;
+  const gapHorse=[
+    winGap?.after?.num,
+    placeGap?.after?.num
+  ].filter(Boolean);
+
+  const wallHorse=[
+    w20?.num,
+    p6?.num,
+    p12?.num,
+    p15?.num
+  ].filter(Boolean);
+
+  let html="";
+
+  html+=`<div class="summary">
+<b>★総合判定</b><br>
+本命候補：${top.join("・")||"なし"}<br>
+対抗候補：${second.join("・")||"なし"}<br>
+穴候補：${[...new Set([...third,...wallHorse,...gapHorse])].join("・")||"なし"}<br>
+荒れ指数：${roughText}
+</div>`;
+
+  html+=`<div class="box">
+<b>★メジアン王</b><br>
+超注目馬：${top.join("・")||"なし"}<br>
+重複数：${topCount}回<br>
+対抗：${second.join("・")||"なし"}<br>
+3番手：${third.join("・")||"なし"}
+</div>`;
+
+  html+=medianDetailHtml;
 
   html+=`<div class="arare"><b>★荒れ指数</b><br>${roughText}</div>`;
 
@@ -229,6 +296,12 @@ function calc(){
 複勝6倍壁前後：${nums(place6Wall)||"該当なし"}<br>
 複勝12倍壁前後：${nums(place12Wall)||"該当なし"}<br>
 複勝15倍壁前後：${nums(place15Wall)||"該当なし"}
+</div>`;
+
+  html+=`<div class="gap"><b>★乖離差ポイント</b><br>
+単勝最大乖離：${winGap ? winGap.before.num+"番（"+winGap.before.odds+"） → "+winGap.after.num+"番（"+winGap.after.odds+"） / 差 "+winGap.gap.toFixed(1) : "なし"}<br>
+複勝最大乖離：${placeGap ? placeGap.before.num+"番（"+placeGap.before.odds+"） → "+placeGap.after.num+"番（"+placeGap.after.odds+"） / 差 "+placeGap.gap.toFixed(1) : "なし"}<br>
+馬連最大乖離：${pairGap ? pairGap.before.a+"-"+pairGap.before.b+"（"+pairGap.before.odds+"） → "+pairGap.after.a+"-"+pairGap.after.b+"（"+pairGap.after.odds+"） / 差 "+pairGap.gap.toFixed(1) : "なし"}
 </div>`;
 
   html+=`<div class="umaren"><b>★馬連メジアン</b><br>${pairHtml}</div>`;
