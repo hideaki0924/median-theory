@@ -66,7 +66,7 @@ function calc(){
     ["単勝100倍以上メジアン", winRows.filter(x=>x.odds>=100)],
     ["複勝全体メジアン", placeRows],
     ["複勝12倍以内メジアン", placeRows.filter(x=>x.odds<=12)],
-    ["複勝6倍以上メジアン", placeRows.filter(x=>x.odds>=6)],
+    ["複勝6倍以内メジアン", placeRows.filter(x=>x.odds<=6)],
     ["複勝15倍以内メジアン", placeRows.filter(x=>x.odds<=15)]
   ];
 
