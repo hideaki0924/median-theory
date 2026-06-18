@@ -8,6 +8,7 @@ body{font-family:sans-serif;padding:18px;font-size:18px}
 textarea{width:100%;height:280px;font-size:18px}
 button{font-size:22px;padding:10px 20px;margin:15px 0}
 .box{background:#fff3cd;border:2px solid #f0c36d;padding:12px;margin:15px 0;font-size:24px}
+.wall{background:#e8f4ff;border:2px solid #5aa9e6;padding:12px;margin:15px 0;font-size:21px}
 .result{font-size:20px;line-height:1.7}
 b{font-size:22px}
 </style>
@@ -31,7 +32,8 @@ function medianPick(list){
   if(n===0)return null;
   const mid=Math.floor(n/2);
   if(n%2===1){
-    return {horses:sameOdds(list,list[mid].odds), value:list[mid].odds};
+    const v=list[mid].odds;
+    return {horses:list.filter(x=>x.odds===v), value:v};
   }else{
     return {
       horses:[list[mid-1],list[mid]],
@@ -40,24 +42,25 @@ function medianPick(list){
   }
 }
 
-function sameOdds(list,odds){
-  return list.filter(x=>x.odds===odds);
+function addCount(count,horses){
+  horses.forEach(h=>count[h.num]=(count[h.num]||0)+1);
 }
 
-function addCount(count,horses){
-  horses.forEach(h=>{
-    count[h.num]=(count[h.num]||0)+1;
-  });
+function wallAround(list,wall){
+  const s=list.slice().sort((a,b)=>a.odds-b.odds);
+  const i=s.findIndex(x=>x.odds>=wall);
+  if(i<0)return [];
+  return s.slice(Math.max(0,i-2),Math.min(s.length,i+2));
+}
+
+function nums(list){
+  return list.map(x=>x.num).join("・");
 }
 
 function calc(){
   const rows=document.getElementById("data").value.trim().split(/\n+/).map(line=>{
     const p=line.trim().split(/\s+/);
-    return {
-      num:p[0],
-      win:parseFloat(p[1]),
-      place:parseFloat(p[2])
-    };
+    return {num:p[0],win:parseFloat(p[1]),place:parseFloat(p[2])};
   }).filter(x=>x.num && !isNaN(x.win));
 
   const winRows=rows.map(x=>({num:x.num,odds:x.win}));
@@ -99,14 +102,26 @@ function calc(){
       return;
     }
     addCount(count,r.horses);
-    html+=`<p><b>${name}</b><br>馬番：${r.horses.map(h=>h.num).join("・")}<br>メジアン値：${r.value}</p>`;
+    html+=`<p><b>${name}</b><br>馬番：${nums(r.horses)}<br>メジアン値：${r.value}</p>`;
   });
 
   const ranking=Object.entries(count).sort((a,b)=>b[1]-a[1]);
   const topCount=ranking[0]?.[1]||0;
   const top=ranking.filter(x=>x[1]===topCount).map(x=>x[0]);
 
+  const win20Wall=wallAround(winRows,20);
+  const place6Wall=wallAround(placeRows,6);
+  const place12Wall=wallAround(placeRows,12);
+  const place15Wall=wallAround(placeRows,15);
+
   html=`<div class="box">★注目馬：${top.join("・")}<br>重複数：${topCount}回</div>`+html;
+
+  html+=`<div class="wall"><b>★境目・壁馬</b><br>
+単勝20倍壁前後：${nums(win20Wall)||"該当なし"}<br>
+複勝6倍壁前後：${nums(place6Wall)||"該当なし"}<br>
+複勝12倍壁前後：${nums(place12Wall)||"該当なし"}<br>
+複勝15倍壁前後：${nums(place15Wall)||"該当なし"}
+</div>`;
 
   html+="<h2>重複ランキング</h2>";
   ranking.forEach(([num,c])=>{
