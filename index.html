@@ -5,11 +5,12 @@
 <title>メジアン理論</title>
 <style>
 body{font-family:sans-serif;padding:18px;font-size:18px}
-textarea{width:100%;height:280px;font-size:18px}
+textarea{width:100%;height:230px;font-size:18px}
 button{font-size:22px;padding:10px 20px;margin:15px 0}
 .box{background:#fff3cd;border:2px solid #f0c36d;padding:12px;margin:15px 0;font-size:24px}
 .wall{background:#e8f4ff;border:2px solid #5aa9e6;padding:12px;margin:15px 0;font-size:21px}
 .break{background:#ffe8e8;border:2px solid #e66;padding:12px;margin:15px 0;font-size:22px}
+.umaren{background:#eef9ee;border:2px solid #66aa66;padding:12px;margin:15px 0;font-size:21px}
 .result{font-size:20px;line-height:1.7}
 b{font-size:22px}
 </style>
@@ -18,10 +19,18 @@ b{font-size:22px}
 
 <h1>メジアン理論</h1>
 
-<p>入力形式：馬番 単勝 複勝上限</p>
-<p>例：<br>2 1.3 1.2<br>3 8.6 2.9<br>8 9.5 2.6</p>
+<p>単勝・複勝入力：馬番 単勝 複勝上限</p>
+<textarea id="data" placeholder="例
+7 2.7 1.7
+3 3.2 2.1
+4 4.7 1.8"></textarea>
 
-<textarea id="data"></textarea>
+<p>馬連・馬複入力：組み合わせ オッズ</p>
+<textarea id="umaren" placeholder="例
+3-7 4.5
+3-4 4.6
+4-7 6.1"></textarea>
+
 <button onclick="calc()">計算</button>
 
 <div id="result" class="result"></div>
@@ -34,21 +43,44 @@ function medianPick(list){
   const mid=Math.floor(n/2);
   if(n%2===1){
     const v=list[mid].odds;
-    return {horses:list.filter(x=>x.odds===v), value:v};
+    return {items:list.filter(x=>x.odds===v), value:v};
   }else{
     return {
-      horses:[list[mid-1],list[mid]],
+      items:[list[mid-1],list[mid]],
       value:((list[mid-1].odds+list[mid].odds)/2).toFixed(2)
     };
   }
 }
 
-function addCount(count,horses){
-  horses.forEach(h=>count[h.num]=(count[h.num]||0)+1);
+function addCount(count,items){
+  items.forEach(h=>{
+    if(h.num){
+      count[h.num]=(count[h.num]||0)+1;
+    }
+    if(h.a && h.b){
+      count[h.a]=(count[h.a]||0)+1;
+      count[h.b]=(count[h.b]||0)+1;
+    }
+  });
 }
 
 function nums(list){
-  return list.map(x=>x.num).join("・");
+  return list.map(x=>{
+    if(x.num)return x.num;
+    if(x.a && x.b)return x.a+"-"+x.b;
+    return "";
+  }).join("・");
+}
+
+function pairNums(list){
+  let arr=[];
+  list.forEach(x=>{
+    if(x.a && x.b){
+      arr.push(x.a);
+      arr.push(x.b);
+    }
+  });
+  return [...new Set(arr)].join("・");
 }
 
 function wallAround(list,wall){
@@ -69,11 +101,25 @@ function wallBreak(list,wall){
   };
 }
 
+function parsePairs(text){
+  return text.trim().split(/\n+/).map(line=>{
+    const p=line.trim().split(/\s+/);
+    const pair=p[0].split("-");
+    return {
+      a:pair[0],
+      b:pair[1],
+      odds:parseFloat(p[1])
+    };
+  }).filter(x=>x.a && x.b && !isNaN(x.odds));
+}
+
 function calc(){
   const rows=document.getElementById("data").value.trim().split(/\n+/).map(line=>{
     const p=line.trim().split(/\s+/);
     return {num:p[0],win:parseFloat(p[1]),place:parseFloat(p[2])};
   }).filter(x=>x.num && !isNaN(x.win));
+
+  const pairRows=parsePairs(document.getElementById("umaren").value);
 
   const winRows=rows.map(x=>({num:x.num,odds:x.win}));
   const placeRows=rows.filter(x=>!isNaN(x.place)).map(x=>({num:x.num,odds:x.place}));
@@ -104,6 +150,12 @@ function calc(){
     ["複勝全体メジアン", placeRows]
   ];
 
+  const pairGroups=[
+    ["馬連全体メジアン", pairRows],
+    ["馬連10倍以上メジアン", pairRows.filter(x=>x.odds>=10)],
+    ["馬連30倍以内メジアン", pairRows.filter(x=>x.odds<=30)]
+  ];
+
   let count={};
   let html="<h2>結果</h2>";
 
@@ -113,8 +165,19 @@ function calc(){
       html+=`<p>${name}：該当なし</p>`;
       return;
     }
-    addCount(count,r.horses);
-    html+=`<p><b>${name}</b><br>馬番：${nums(r.horses)}<br>メジアン値：${r.value}</p>`;
+    addCount(count,r.items);
+    html+=`<p><b>${name}</b><br>馬番：${nums(r.items)}<br>メジアン値：${r.value}</p>`;
+  });
+
+  let pairHtml="";
+  pairGroups.forEach(([name,list])=>{
+    const r=medianPick(list);
+    if(!r){
+      pairHtml+=`<p>${name}：該当なし</p>`;
+      return;
+    }
+    addCount(count,r.items);
+    pairHtml+=`<p><b>${name}</b><br>組：${nums(r.items)}<br>構成馬：${pairNums(r.items)}<br>メジアン値：${r.value}</p>`;
   });
 
   const ranking=Object.entries(count).sort((a,b)=>b[1]-a[1]);
@@ -146,6 +209,8 @@ function calc(){
 複勝12倍壁前後：${nums(place12Wall)||"該当なし"}<br>
 複勝15倍壁前後：${nums(place15Wall)||"該当なし"}
 </div>`;
+
+  html+=`<div class="umaren"><b>★馬連メジアン</b><br>${pairHtml}</div>`;
 
   html+="<h2>重複ランキング</h2>";
   ranking.forEach(([num,c])=>{
