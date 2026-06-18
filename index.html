@@ -154,10 +154,10 @@ function calc(){
   ];
 
   const pairGroups=[
-    ["馬連全体メジアン", pairRows],
-    ["馬連10倍以上メジアン", pairRows.filter(x=>x.odds>=10)],
-    ["馬連30倍以内メジアン", pairRows.filter(x=>x.odds<=30)]
-  ];
+  ["馬連全体メジアン", pairRows],
+  ["馬連10倍以内メジアン", pairRows.filter(x=>x.odds<=10)],
+  ["馬連20倍以内メジアン", pairRows.filter(x=>x.odds<=20)]
+];
 
   let totalCount={};
   let pairCount={};
