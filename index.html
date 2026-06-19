@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>チャッピー神予想 メジアン理論 完全版V4</title>
+<title>チャッピー神予想 メジアン理論 完全版V5</title>
 <style>
 body{font-family:sans-serif;padding:18px;font-size:18px;background:#f7f7f7}
-textarea{width:100%;height:300px;font-size:18px}
+textarea{width:100%;height:360px;font-size:18px}
 button{font-size:24px;padding:12px 20px;margin:15px 0;width:100%;background:#111;color:white;border-radius:10px}
 .box{background:#fff3cd;border:2px solid #f0c36d;padding:12px;margin:15px 0;font-size:22px}
 .wall{background:#e8f4ff;border:2px solid #5aa9e6;padding:12px;margin:15px 0;font-size:21px}
@@ -23,9 +23,9 @@ b{font-size:22px}
 </head>
 <body>
 
-<h1>チャッピー神予想 メジアン理論 完全版V4</h1>
+<h1>チャッピー神予想 メジアン理論 完全版V5</h1>
 
-<p>まとめ入力：</p>
+<p>まとめ入力</p>
 <textarea id="all" placeholder="[TANFUKU]
 4 3.4 1.4
 1 3.9 3.1
@@ -53,10 +53,10 @@ function parseAll(){
     line=line.trim();
     if(!line) continue;
 
-    const upper=line.toUpperCase();
-    if(upper==="[TANFUKU]"){mode="tanfuku";continue;}
-    if(upper==="[UMAREN]"){mode="umaren";continue;}
-    if(upper==="[SANPUKU]"){mode="sanpuku";continue;}
+    let u=line.toUpperCase();
+    if(u==="[TANFUKU]"){mode="tanfuku";continue;}
+    if(u==="[UMAREN]"){mode="umaren";continue;}
+    if(u==="[SANPUKU]"){mode="sanpuku";continue;}
 
     const p=line.split(/\s+/);
 
@@ -66,7 +66,7 @@ function parseAll(){
 
     if(mode==="umaren"){
       const pair=p[0].split("-");
-      pairRows.push({a:pair[0],b:pair[1],odds:parseFloat(p[1]),pair:p[0]});
+      pairRows.push({a:pair[0],b:pair[1],pair:p[0],odds:parseFloat(p[1])});
     }
 
     if(mode==="sanpuku"){
@@ -91,30 +91,40 @@ function medianPick(list){
   const mid=Math.floor(n/2);
   if(n%2===1){
     const v=list[mid].odds;
-    return {items:list.filter(x=>x.odds===v), value:v};
+    return {items:list.filter(x=>x.odds===v),value:v};
   }else{
-    return {items:[list[mid-1],list[mid]], value:((list[mid-1].odds+list[mid].odds)/2).toFixed(2)};
+    return {items:[list[mid-1],list[mid]],value:((list[mid-1].odds+list[mid].odds)/2).toFixed(2)};
   }
 }
 
 function nums(list){
   return list.map(x=>{
     if(x.num)return x.num;
-    if(x.a&&x.b)return x.a+"-"+x.b;
+    if(x.pair)return x.pair;
     if(x.combo)return x.combo;
     return "";
   }).join("・");
 }
 
+function horseNums(list){
+  let set=new Set();
+  list.forEach(x=>{
+    if(x.num)set.add(x.num);
+    if(x.a&&x.b){set.add(x.a);set.add(x.b);}
+    if(x.nums)x.nums.forEach(n=>set.add(n));
+  });
+  return [...set].join("・");
+}
+
 function addCount(count,items,point=1){
-  items.forEach(h=>{
-    if(h.num) count[h.num]=(count[h.num]||0)+point;
-    if(h.a&&h.b){
-      count[h.a]=(count[h.a]||0)+point;
-      count[h.b]=(count[h.b]||0)+point;
+  items.forEach(x=>{
+    if(x.num)count[x.num]=(count[x.num]||0)+point;
+    if(x.a&&x.b){
+      count[x.a]=(count[x.a]||0)+point;
+      count[x.b]=(count[x.b]||0)+point;
     }
-    if(h.nums){
-      h.nums.forEach(n=>count[n]=(count[n]||0)+point);
+    if(x.nums){
+      x.nums.forEach(n=>count[n]=(count[n]||0)+point);
     }
   });
 }
@@ -133,6 +143,14 @@ function wallAround(list,wall){
   return s.slice(Math.max(0,i-2),Math.min(s.length,i+2));
 }
 
+function centerPair(list){
+  const s=sorted(list);
+  if(s.length<2)return [];
+  const mid=Math.floor(s.length/2);
+  if(s.length%2===0)return [s[mid-1],s[mid]];
+  return [s[mid]];
+}
+
 function rankingHtml(title,count){
   const ranking=Object.entries(count).sort((a,b)=>b[1]-a[1]);
   let html=`<h2>${title}</h2>`;
@@ -142,12 +160,79 @@ function rankingHtml(title,count){
   return html;
 }
 
-function centerPair(list){
-  const s=sorted(list);
-  if(s.length<2)return [];
-  const mid=Math.floor(s.length/2);
-  if(s.length%2===0)return [s[mid-1],s[mid]];
-  return [s[mid]];
+function superFavoriteRisk(winRows,pairRows,tripleRows){
+  if(!winRows.length || !pairRows.length)return "";
+
+  const fav=sorted(winRows)[0];
+  const favNum=String(fav.num);
+  const pairs=sorted(pairRows);
+
+  const favPair=pairs.find(x=>x.a===favNum || x.b===favNum);
+  const noFavPair=pairs.find(x=>x.a!==favNum && x.b!==favNum);
+
+  let danger=0;
+  let pairText="判定不可";
+
+  if(favPair && noFavPair){
+    const ratio=noFavPair.odds/favPair.odds;
+    if(ratio<4)danger++;
+    pairText=`
+    馬連1人気側：${favPair.pair} ${favPair.odds}倍<br>
+    タテ目：${noFavPair.pair} ${noFavPair.odds}倍<br>
+    比率：${ratio.toFixed(2)}倍 → ${ratio<4?"危険":"信頼"}`;
+  }
+
+  let tripleText="3連複チェック：未入力";
+  if(tripleRows.length){
+    const noFavTriple=sorted(tripleRows).find(x=>!x.nums.includes(favNum));
+    if(noFavTriple){
+      if(noFavTriple.odds<40)danger++;
+      tripleText=`
+      3連複で1番人気を含まない最初：${noFavTriple.combo} ${noFavTriple.odds}倍<br>
+      判定：${noFavTriple.odds<40?"危険":"信頼"}`;
+    }
+  }
+
+  let judge="信頼",cls="safe";
+  if(danger===1){judge="やや危険";cls="risk";}
+  if(danger>=2){judge="危険信号";cls="risk";}
+
+  return `<div class="${cls}">
+  <b>🚨超1番人気危険信号</b><br>
+  単勝1番人気：${favNum}番（${fav.odds}倍）<br><br>
+  ${pairText}<br><br>
+  ${tripleText}<br><br>
+  総合判定：<b>${judge}</b>
+  </div>`;
+}
+
+function umarenWallMedian(pairRows){
+  if(!pairRows.length)return `<div class="umaren"><b>★馬連壁メジアン</b><br>馬連入力なし</div>`;
+
+  const s=sorted(pairRows).slice(0,9);
+  let walls=[];
+
+  for(let i=0;i<s.length-1;i++){
+    const ratio=s[i+1].odds/s[i].odds;
+    if(ratio>=2){
+      walls.push({index:i,before:s[i],after:s[i+1],ratio});
+    }
+  }
+
+  if(walls.length<2){
+    return `<div class="umaren"><b>★馬連壁メジアン</b><br>馬連9位以内で壁2箇所未満</div>`;
+  }
+
+  const w1=walls[0],w2=walls[1];
+  const zone=s.slice(w1.index+1,w2.index+1);
+  const m=medianPick(zone);
+
+  return `<div class="umaren"><b>★馬連壁メジアン</b><br>
+  壁①：${w1.before.odds} → ${w1.after.odds}（${w1.ratio.toFixed(2)}倍）<br>
+  壁②：${w2.before.odds} → ${w2.after.odds}（${w2.ratio.toFixed(2)}倍）<br>
+  壁と壁の間：${zone.map(x=>x.pair).join(" / ")}<br>
+  <b>馬連壁メジアン：${m?nums(m.items):"該当なし"}</b>
+  </div>`;
 }
 
 function calc(){
@@ -163,13 +248,14 @@ function calc(){
 
   let totalCount={};
   let pairCount={};
-  let html="<h2>結果</h2>";
+  let tripleCount={};
 
   const under10=sorted(winRows.filter(x=>x.odds<=10));
-  const over10=sorted(winRows.filter(x=>x.odds>=10));
   const under20=sorted(winRows.filter(x=>x.odds<=20));
+  const over10=sorted(winRows.filter(x=>x.odds>=10));
+  const black20=sorted(winRows.filter(x=>x.odds>=10 && x.odds<=20));
 
-  const exclude2Fav = under10.length===2
+  const exclude2Fav=under10.length===2
     ? winRows.filter(x=>!under10.map(y=>y.num).includes(x.num))
     : [];
 
@@ -187,21 +273,23 @@ function calc(){
     return s.slice(Math.max(0,i-2)).filter(x=>x.odds>=6);
   })();
 
+  let html="<h2>結果</h2>";
+
   const groups=[
-    ["単勝10倍以内メジアン", winRows.filter(x=>x.odds<=10)],
-    ["単勝10倍以上20倍以内メジアン", winRows.filter(x=>x.odds>=10&&x.odds<=20)],
-    ["単勝10倍以上メジアン", winRows.filter(x=>x.odds>=10)],
-    ["単勝20倍以内メジアン", winRows.filter(x=>x.odds<=20)],
-    ["単勝99倍以内メジアン", winRows.filter(x=>x.odds<=99)],
-    ["単勝100倍以上メジアン", winRows.filter(x=>x.odds>=100)],
-    ["単勝全体メジアン", winRows],
-    ["単勝10倍以下2頭除外メジアン", exclude2Fav],
-    ["複勝6倍壁前2頭1番人気からのメジアン", place6Zone],
-    ["複勝15倍前二頭から6倍以上メジアン", place15to6],
-    ["複勝12倍以内メジアン", placeRows.filter(x=>x.odds<=12)],
-    ["複勝10倍以上〜ビリメジアン", placeRows.filter(x=>x.odds>=10)],
-    ["複勝20倍以上〜ビリメジアン", placeRows.filter(x=>x.odds>=20)],
-    ["複勝全体メジアン", placeRows]
+    ["単勝10倍以内メジアン",winRows.filter(x=>x.odds<=10)],
+    ["単勝10倍以上20倍以内メジアン",black20],
+    ["単勝10倍以上メジアン",over10],
+    ["単勝20倍以内メジアン",under20],
+    ["単勝99倍以内メジアン",winRows.filter(x=>x.odds<=99)],
+    ["単勝100倍以上メジアン",winRows.filter(x=>x.odds>=100)],
+    ["単勝全体メジアン",winRows],
+    ["単勝10倍以下2頭除外メジアン",exclude2Fav],
+    ["複勝6倍壁前2頭1番人気からのメジアン",place6Zone],
+    ["複勝15倍前二頭から6倍以上メジアン",place15to6],
+    ["複勝12倍以内メジアン",placeRows.filter(x=>x.odds<=12)],
+    ["複勝10倍以上〜ビリメジアン",placeRows.filter(x=>x.odds>=10)],
+    ["複勝20倍以上〜ビリメジアン",placeRows.filter(x=>x.odds>=20)],
+    ["複勝全体メジアン",placeRows]
   ];
 
   groups.forEach(([name,list])=>{
@@ -211,47 +299,18 @@ function calc(){
     html+=`<p><b>${name}</b><br>馬番：${nums(r.items)}<br>メジアン値：${r.value}</p>`;
   });
 
-  let pairHtml="";
-  [
-    ["馬連全体メジアン",pairRows],
-    ["馬連10倍以内メジアン",pairRows.filter(x=>x.odds<=10)],
-    ["馬連20倍以内メジアン",pairRows.filter(x=>x.odds<=20)]
-  ].forEach(([name,list])=>{
-    const r=medianPick(list);
-    if(!r){pairHtml+=`<p>${name}：該当なし</p>`;return;}
-    addCount(totalCount,r.items);
-    addCount(pairCount,r.items);
-    pairHtml+=`<p><b>${name}</b><br>組：${nums(r.items)}<br>メジアン値：${r.value}</p>`;
-  });
+  html+=superFavoriteRisk(winRows,pairRows,tripleRows);
 
-  let tripleHtml="";
-  [
-    ["三連複全体メジアン",tripleRows],
-    ["三連複20倍以内メジアン",tripleRows.filter(x=>x.odds<=20)],
-    ["三連複30倍以内メジアン",tripleRows.filter(x=>x.odds<=30)],
-    ["三連複50倍以内メジアン",tripleRows.filter(x=>x.odds<=50)]
-  ].forEach(([name,list])=>{
-    const r=medianPick(list);
-    if(!r){tripleHtml+=`<p>${name}：該当なし</p>`;return;}
-    addCount(totalCount,r.items);
-    tripleHtml+=`<p><b>${name}</b><br>組：${nums(r.items)}<br>メジアン値：${r.value}</p>`;
-  });
+  const b20=centerPair(under20);
+  const b10=centerPair(under10);
+  const bBlack=centerPair(over10);
 
-  const ranking=Object.entries(totalCount).sort((a,b)=>b[1]-a[1]);
-  const topCount=ranking[0]?.[1]||0;
-  const top=ranking.filter(x=>x[1]===topCount).map(x=>x[0]);
-
-  html=`<div class="box">★注目馬：${top.join("・")}<br>重複数：${topCount}回</div>`+html;
-
-  if(top.length){
-    html+=`<div class="hot"><b>🔥単勝案件は ${top.join("・")}番 です！</b></div>`;
-  }
-
-  const boundary20=centerPair(under20);
-  html+=`<div class="wall"><b>★境目ペア警告</b><br>
-単勝20倍以内中央：${nums(boundary20)||"該当なし"}<br>
-この2頭が2-3着、1着が人気馬の形に注意。
-</div>`;
+  html+=`<div class="wall"><b>⚠境目ペア警告</b><br>
+  20倍以内中央：${nums(b20)||"該当なし"}<br>
+  10倍以内中央：${nums(b10)||"該当なし"}<br>
+  黒オッズ中央：${nums(bBlack)||"該当なし"}<br><br>
+  このペアが1-2着、または2-3着＋1着人気馬の形に注意。
+  </div>`;
 
   const w20=wallBreak(winRows,20);
   const p6=wallBreak(placeRows,6);
@@ -275,35 +334,86 @@ function calc(){
   html+=`<div class="arare"><b>★荒れ指数</b><br>${roughText}</div>`;
 
   html+=`<div class="break"><b>★壁突破馬</b><br>
-単勝20倍突破馬：${w20?w20.num+"番（"+w20.odds+"）":"該当なし"}<br>
-複勝6倍突破馬：${p6?p6.num+"番（"+p6.odds+"）":"該当なし"}<br>
-複勝12倍突破馬：${p12?p12.num+"番（"+p12.odds+"）":"該当なし"}<br>
-複勝15倍突破馬：${p15?p15.num+"番（"+p15.odds+"）":"該当なし"}
-</div>`;
+  単勝20倍突破馬：${w20?w20.num+"番（"+w20.odds+"）":"該当なし"}<br>
+  複勝6倍突破馬：${p6?p6.num+"番（"+p6.odds+"）":"該当なし"}<br>
+  複勝12倍突破馬：${p12?p12.num+"番（"+p12.odds+"）":"該当なし"}<br>
+  複勝15倍突破馬：${p15?p15.num+"番（"+p15.odds+"）":"該当なし"}
+  </div>`;
 
-  const seventh=sorted(winRows)[6];
-  const eighth=sorted(winRows)[7];
+  html+=`<div class="wall"><b>★境目・壁前後</b><br>
+  単勝20倍壁前後：${nums(wallAround(winRows,20))||"該当なし"}<br>
+  複勝6倍壁前後：${nums(wallAround(placeRows,6))||"該当なし"}<br>
+  複勝12倍壁前後：${nums(wallAround(placeRows,12))||"該当なし"}<br>
+  複勝15倍壁前後：${nums(wallAround(placeRows,15))||"該当なし"}
+  </div>`;
+
+  let pairHtml="";
+  [
+    ["馬連全体メジアン",pairRows],
+    ["馬連10倍以内メジアン",pairRows.filter(x=>x.odds<=10)],
+    ["馬連20倍以内メジアン",pairRows.filter(x=>x.odds<=20)]
+  ].forEach(([name,list])=>{
+    const r=medianPick(list);
+    if(!r){pairHtml+=`<p>${name}：該当なし</p>`;return;}
+    addCount(totalCount,r.items);
+    addCount(pairCount,r.items);
+    pairHtml+=`<p><b>${name}</b><br>組：${nums(r.items)}<br>構成馬：${horseNums(r.items)}<br>メジアン値：${r.value}</p>`;
+  });
+
+  html+=`<div class="umaren"><b>★馬連メジアン</b><br>${pairHtml}</div>`;
+  html+=umarenWallMedian(pairRows);
+
+  let tripleHtml="";
+  [
+    ["三連複全体メジアン",tripleRows],
+    ["三連複20倍以内メジアン",tripleRows.filter(x=>x.odds<=20)],
+    ["三連複30倍以内メジアン",tripleRows.filter(x=>x.odds<=30)],
+    ["三連複50倍以内メジアン",tripleRows.filter(x=>x.odds<=50)],
+    ["三連複9人気以内メジアン",sorted(tripleRows).slice(0,9)]
+  ].forEach(([name,list])=>{
+    const r=medianPick(list);
+    if(!r){tripleHtml+=`<p>${name}：該当なし</p>`;return;}
+    addCount(totalCount,r.items);
+    addCount(tripleCount,r.items);
+    tripleHtml+=`<p><b>${name}</b><br>組：${nums(r.items)}<br>構成馬：${horseNums(r.items)}<br>メジアン値：${r.value}</p>`;
+  });
+
+  html+=`<div class="trio"><b>★三連複メジアン</b><br>${tripleHtml}</div>`;
+
+  const winSorted=sorted(winRows);
+  const seventh=winSorted[6];
+  const eighth=winSorted[7];
+
   if(under10.length>=6 && seventh && eighth){
     const axes=[seventh.num,eighth.num];
     const opp=under10.map(x=>x.num);
     let buys=[];
     axes.forEach(a=>opp.forEach(b=>{if(a!==b)buys.push(a+"-"+b)}));
     buys=[...new Set(buys)];
+
     html+=`<div class="aim"><b>🎯狙い目買い目</b><br>
-10倍以内が${under10.length}頭。人気割れ注意。<br>
-軸：7人気 ${seventh.num}番・8人気 ${eighth.num}番<br>
-相手：${opp.join("・")}<br>
-馬連/ワイド候補：<br>${buys.join(" / ")}
-</div>`;
+    10倍以内が${under10.length}頭。人気割れ注意。<br>
+    軸：7人気 ${seventh.num}番・8人気 ${eighth.num}番<br>
+    相手：${opp.join("・")}<br>
+    馬連/ワイド候補：<br>${buys.join(" / ")}
+    </div>`;
   }else{
     html+=`<div class="aim"><b>🎯狙い目買い目</b><br>該当なし</div>`;
   }
 
-  html+=`<div class="umaren"><b>★馬連メジアン</b><br>${pairHtml}</div>`;
-  html+=`<div class="trio"><b>★三連複メジアン</b><br>${tripleHtml}</div>`;
+  const ranking=Object.entries(totalCount).sort((a,b)=>b[1]-a[1]);
+  const topCount=ranking[0]?.[1]||0;
+  const top=ranking.filter(x=>x[1]===topCount).map(x=>x[0]);
+
+  html=`<div class="box">★注目馬：${top.join("・")}<br>重複数：${topCount}回</div>`+html;
+
+  if(top.length){
+    html=`<div class="hot"><b>🔥単勝案件は ${top.join("・")}番 です！</b></div>`+html;
+  }
 
   html+=rankingHtml("総合重複ランキング",totalCount);
   html+=rankingHtml("馬連重複ランキング",pairCount);
+  html+=rankingHtml("三連複重複ランキング",tripleCount);
 
   document.getElementById("result").innerHTML=html;
 }
