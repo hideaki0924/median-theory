@@ -147,8 +147,13 @@ function centerPair(list){
   const s=sorted(list);
   if(s.length<2)return [];
   const mid=Math.floor(s.length/2);
-  if(s.length%2===0)return [s[mid-1],s[mid]];
-  return [s[mid]];
+
+  if(s.length%2===0){
+    return [s[mid-1],s[mid]];
+  }else{
+    if(s[mid+1]) return [s[mid],s[mid+1]];
+    return [s[mid-1],s[mid]].filter(Boolean);
+  }
 }
 
 function rankingHtml(title,count){
