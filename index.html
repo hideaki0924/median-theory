@@ -1,340 +1,455 @@
 <!DOCTYPE html>
-<html>
+
+<html lang="ja">
+
 <head>
+
 <meta charset="UTF-8">
-<title>メジアン理論</title>
+
+<title>チャッピーの神予想 メジアンアプリ</title>
+
 <style>
-body{font-family:sans-serif;padding:18px;font-size:18px}
-textarea{width:100%;height:210px;font-size:18px}
-button{font-size:22px;padding:10px 20px;margin:15px 0}
-.box{background:#fff3cd;border:2px solid #f0c36d;padding:12px;margin:15px 0;font-size:24px}
-.wall{background:#e8f4ff;border:2px solid #5aa9e6;padding:12px;margin:15px 0;font-size:21px}
-.break{background:#ffe8e8;border:2px solid #e66;padding:12px;margin:15px 0;font-size:21px}
-.umaren{background:#eef9ee;border:2px solid #66aa66;padding:12px;margin:15px 0;font-size:21px}
-.arare{background:#f3e8ff;border:2px solid #8a5cf6;padding:12px;margin:15px 0;font-size:22px}
-.risk{background:#ffe1e1;border:3px solid #e60000;padding:12px;margin:15px 0;font-size:22px}
-.safe{background:#e7ffe7;border:3px solid #33aa33;padding:12px;margin:15px 0;font-size:22px}
-.result{font-size:20px;line-height:1.7}
-b{font-size:22px}
+
+body{font-family:sans-serif;padding:15px;font-size:18px;background:#f7f7f7}
+
+textarea{width:100%;height:150px;font-size:16px}
+
+button{font-size:22px;padding:12px 20px;margin:15px 0;width:100%}
+
+.box{background:white;border-radius:10px;padding:12px;margin:12px 0;border-left:6px solid #555}
+
+.hot{border-left-color:red;background:#fff0f0}
+
+.wall{border-left-color:#8b5a2b;background:#fff8ed}
+
+.aim{border-left-color:#ff9900;background:#fff3cd}
+
+.good{border-left-color:green;background:#eefbea}
+
+h2,h3{margin:5px 0}
+
 </style>
+
 </head>
+
 <body>
 
-<h1>メジアン理論</h1>
+<h2>チャッピーの神予想 メジアンアプリ</h2>
 
-<p>単勝・複勝入力：馬番 単勝 複勝上限</p>
-<textarea id="data" placeholder="例
-7 1.6 1.5
-5 1.9 1.6
-3 10.3 2.8"></textarea>
+<p>単勝入力：馬番 単勝オッズ</p>
 
-<p>馬連・馬複入力：組み合わせ オッズ</p>
-<textarea id="umaren" placeholder="例
-7-5 3.0
-7-6 6.0
-5-6 9.4"></textarea>
+<textarea id="tansho" placeholder="例：
 
-<p>3連複入力：組み合わせ オッズ（任意）</p>
-<textarea id="sanrenpuku" placeholder="例
-7-5-3 8.5
-7-5-6 12.0
-5-3-6 34.5"></textarea>
+8 4.3
 
-<button onclick="calc()">計算</button>
+5 4.4
 
-<div id="result" class="result"></div>
+11 5.2
+
+7 5.7
+
+1 7.3
+
+10 8.0
+
+3 16.0
+
+12 22.2"></textarea>
+
+<p>複勝入力：馬番 複勝上限</p>
+
+<textarea id="fukusho" placeholder="例：
+
+8 2.2
+
+5 1.9
+
+11 2.7
+
+7 2.4
+
+1 2.7
+
+10 2.4
+
+3 5.4
+
+12 5.8"></textarea>
+
+<p>馬連入力：組み合わせ オッズ</p>
+
+<textarea id="umaren" placeholder="例：
+
+8-5 6.2
+
+8-11 8.5
+
+5-11 12.4"></textarea>
+
+<button onclick="run()">メジアン計算</button>
+
+<div id="result"></div>
 
 <script>
-function sorted(list){
-  return list.slice().sort((a,b)=>a.odds-b.odds);
+
+function parseHorseData(text){
+
+  return text.trim().split(/\n+/).map(line=>{
+
+    const p=line.trim().split(/\s+/);
+
+    return {num:p[0], odds:parseFloat(p[1])};
+
+  }).filter(x=>x.num && !isNaN(x.odds));
+
 }
 
-function medianPick(list){
-  list=sorted(list);
-  const n=list.length;
-  if(n===0)return null;
-  const mid=Math.floor(n/2);
-  if(n%2===1){
-    const v=list[mid].odds;
-    return {items:list.filter(x=>x.odds===v), value:v};
-  }else{
-    return {
-      items:[list[mid-1],list[mid]],
-      value:((list[mid-1].odds+list[mid].odds)/2).toFixed(2)
-    };
-  }
+function parsePairData(text){
+
+  return text.trim().split(/\n+/).map(line=>{
+
+    const p=line.trim().split(/\s+/);
+
+    return {pair:p[0], odds:parseFloat(p[1])};
+
+  }).filter(x=>x.pair && !isNaN(x.odds));
+
 }
 
-function addCount(count,items,point=1){
-  items.forEach(h=>{
-    if(h.num) count[h.num]=(count[h.num]||0)+point;
-    if(h.a && h.b){
-      count[h.a]=(count[h.a]||0)+point;
-      count[h.b]=(count[h.b]||0)+point;
-    }
+function median(data){
+
+  if(data.length===0)return null;
+
+  const s=[...data].sort((a,b)=>a.odds-b.odds);
+
+  return s[Math.floor(s.length/2)];
+
+}
+
+function makePairs(axes, opponents){
+
+  const arr=[];
+
+  axes.forEach(a=>{
+
+    opponents.forEach(b=>{
+
+      if(a!==b) arr.push(a+"-"+b);
+
+    });
+
   });
+
+  return [...new Set(arr)];
+
 }
 
 function nums(list){
-  return list.map(x=>{
-    if(x.num)return x.num;
-    if(x.a && x.b)return x.a+"-"+x.b;
-    return "";
-  }).join("・");
+
+  return list.map(x=>x.num).join("・");
+
 }
 
-function pairNums(list){
-  let arr=[];
-  list.forEach(x=>{
-    if(x.a && x.b){
-      arr.push(x.a);
-      arr.push(x.b);
-    }
-  });
-  return [...new Set(arr)].join("・");
-}
+function run(){
 
-function wallAround(list,wall){
-  const s=sorted(list);
-  const i=s.findIndex(x=>x.odds>=wall);
-  if(i<0)return [];
-  return s.slice(Math.max(0,i-2),Math.min(s.length,i+2));
-}
+  const tansho=parseHorseData(document.getElementById("tansho").value);
 
-function wallBreak(list,wall){
-  const s=sorted(list);
-  const i=s.findIndex(x=>x.odds>=wall);
-  if(i<0)return null;
-  return s[i];
-}
+  const fukusho=parseHorseData(document.getElementById("fukusho").value);
 
-function parsePairs(text){
-  if(!text.trim())return [];
-  return text.trim().split(/\n+/).map(line=>{
-    const p=line.trim().split(/\s+/);
-    const pair=p[0].split("-");
-    return {a:pair[0],b:pair[1],odds:parseFloat(p[1])};
-  }).filter(x=>x.a && x.b && !isNaN(x.odds));
-}
+  const umaren=parsePairData(document.getElementById("umaren").value);
 
-function parseTriples(text){
-  if(!text.trim())return [];
-  return text.trim().split(/\n+/).map(line=>{
-    const p=line.trim().split(/\s+/);
-    const combo=p[0].split("-");
-    return {combo:p[0], nums:combo, odds:parseFloat(p[1])};
-  }).filter(x=>x.nums.length===3 && !isNaN(x.odds));
-}
+  let html="";
 
-function rankingHtml(title,count){
-  const ranking=Object.entries(count).sort((a,b)=>b[1]-a[1]);
-  let html=`<h2>${title}</h2>`;
-  ranking.forEach(([num,c],i)=>{
-    const star=i===0 ? "★★★★★ " : "";
-    html+=`<p>${star}${num}番：${c}回</p>`;
-  });
-  return html;
-}
+  if(tansho.length===0){
 
-function superFavoriteRisk(winRows,pairRows,tripleRows){
-  if(!winRows.length || !pairRows.length)return "";
+    document.getElementById("result").innerHTML="単勝を入力してください";
 
-  const fav=sorted(winRows)[0];
-  const favNum=String(fav.num);
-  const sortedPairs=sorted(pairRows);
+    return;
 
-  const favPair=sortedPairs.find(x=>x.a===favNum || x.b===favNum);
-  const noFavPair=sortedPairs.find(x=>x.a!==favNum && x.b!==favNum);
-
-  let danger=0;
-  let pairText="判定不可";
-
-  if(favPair && noFavPair){
-    const ratio=noFavPair.odds / favPair.odds;
-    if(ratio < 4.0) danger++;
-    pairText=`
-      馬連1人気側：${favPair.a}-${favPair.b} ${favPair.odds}倍<br>
-      タテ目：${noFavPair.a}-${noFavPair.b} ${noFavPair.odds}倍<br>
-      比率：${ratio.toFixed(2)}倍 → ${ratio < 4.0 ? "危険" : "信頼"}
-    `;
   }
 
-  let tripleText="3連複チェック：未入力";
-  if(tripleRows.length){
-    const sortedTriples=sorted(tripleRows);
-    const noFavTriple=sortedTriples.find(x=>!x.nums.includes(favNum));
-    if(noFavTriple){
-      if(noFavTriple.odds < 40) danger++;
-      tripleText=`
-        3連複で1番人気を含まない最初：${noFavTriple.combo} ${noFavTriple.odds}倍<br>
-        判定：${noFavTriple.odds < 40 ? "危険" : "信頼"}
-      `;
-    }else{
-      tripleText="3連複チェック：1番人気を含まない組み合わせなし";
-    }
-  }
+  const tSorted=[...tansho].sort((a,b)=>a.odds-b.odds);
 
-  let judge="信頼";
-  let cls="safe";
-  if(danger===1){judge="やや危険";cls="risk";}
-  if(danger>=2){judge="危険信号";cls="risk";}
+  html += `<div class="box good"><h3>単勝人気順</h3><p>${tSorted.map((x,i)=>`${i+1}人気 ${x.num}番 ${x.odds}倍`).join("<br>")}</p></div>`;
 
-  return `
-  <div class="${cls}">
-    <b>🚨超1番人気危険信号</b><br>
-    単勝1番人気：${favNum}番（${fav.odds}倍）<br><br>
-    ${pairText}<br><br>
-    ${tripleText}<br><br>
-    総合判定：<b>${judge}</b>
-  </div>`;
-}
+  html += checkMedian(tansho, fukusho);
 
-function calc(){
-  const rows=document.getElementById("data").value.trim().split(/\n+/).map(line=>{
-    const p=line.trim().split(/\s+/);
-    return {num:p[0],win:parseFloat(p[1]),place:parseFloat(p[2])};
-  }).filter(x=>x.num && !isNaN(x.win));
+  html += checkNeraime(tSorted);
 
-  const pairRows=parsePairs(document.getElementById("umaren").value);
-  const tripleRows=parseTriples(document.getElementById("sanrenpuku").value);
+  html += checkTanshoWall(tSorted);
 
-  const winRows=rows.map(x=>({num:x.num,odds:x.win}));
-  const placeRows=rows.filter(x=>!isNaN(x.place)).map(x=>({num:x.num,odds:x.place}));
+  html += checkUmarenWallMedian(umaren);
 
-  const place6WallFromFavorite=(()=>{
-    const s=sorted(placeRows);
-    const i=s.findIndex(x=>x.odds>=6);
-    if(i<0)return [];
-    return s.slice(0,Math.max(0,i-2));
-  })();
-
-  const place15Before2To6Over=(()=>{
-    const s=sorted(placeRows);
-    const i=s.findIndex(x=>x.odds>=15);
-    if(i<0)return [];
-    const start=Math.max(0,i-2);
-    return s.slice(start).filter(x=>x.odds>=6);
-  })();
-
-  const groups=[
-    ["単勝10倍以内メジアン", winRows.filter(x=>x.odds<=10)],
-    ["単勝10倍以上20倍以内メジアン", winRows.filter(x=>x.odds>=10 && x.odds<=20)],
-    ["単勝10倍以上メジアン", winRows.filter(x=>x.odds>=10)],
-    ["単勝20倍以内メジアン", winRows.filter(x=>x.odds<=20)],
-    ["単勝99倍以内メジアン", winRows.filter(x=>x.odds<=99)],
-    ["単勝100倍以上メジアン", winRows.filter(x=>x.odds>=100)],
-    ["単勝全体メジアン", winRows],
-    ["複勝6倍壁前2頭1番人気からのメジアン", place6WallFromFavorite],
-    ["複勝15倍前二頭から6倍以上メジアン", place15Before2To6Over],
-    ["複勝12倍以内メジアン", placeRows.filter(x=>x.odds<=12)],
-    ["複勝全体メジアン", placeRows]
-  ];
-
-  const pairGroups=[
-    ["馬連全体メジアン", pairRows],
-    ["馬連10倍以内メジアン", pairRows.filter(x=>x.odds<=10)],
-    ["馬連20倍以内メジアン", pairRows.filter(x=>x.odds<=20)]
-  ];
-
-  let totalCount={};
-  let pairCount={};
-  let html="<h2>結果</h2>";
-
-  groups.forEach(([name,list])=>{
-    const r=medianPick(list);
-    if(!r){
-      html+=`<p>${name}：該当なし</p>`;
-      return;
-    }
-    addCount(totalCount,r.items);
-    html+=`<p><b>${name}</b><br>馬番：${nums(r.items)}<br>メジアン値：${r.value}</p>`;
-  });
-
-  let pairHtml="";
-  pairGroups.forEach(([name,list])=>{
-    const r=medianPick(list);
-    if(!r){
-      pairHtml+=`<p>${name}：該当なし</p>`;
-      return;
-    }
-    addCount(totalCount,r.items);
-    addCount(pairCount,r.items);
-    pairHtml+=`<p><b>${name}</b><br>組：${nums(r.items)}<br>構成馬：${pairNums(r.items)}<br>メジアン値：${r.value}</p>`;
-  });
-
-  const totalRanking=Object.entries(totalCount).sort((a,b)=>b[1]-a[1]);
-  const topCount=totalRanking[0]?.[1]||0;
-  const top=totalRanking.filter(x=>x[1]===topCount).map(x=>x[0]);
-
-  const under10=sorted(winRows.filter(x=>x.odds<10));
-  const over10=sorted(winRows.filter(x=>x.odds>=10));
-  const wall10Before=under10.length ? under10[under10.length-1] : null;
-  const wall10After=over10.length ? over10[0] : null;
-  const topUnder10=under10.slice(0,2);
-
-  const w20=wallBreak(winRows,20);
-  const p6=wallBreak(placeRows,6);
-  const p12=wallBreak(placeRows,12);
-  const p15=wallBreak(placeRows,15);
-
-  const win20Wall=wallAround(winRows,20);
-  const place6Wall=wallAround(placeRows,6);
-  const place12Wall=wallAround(placeRows,12);
-  const place15Wall=wallAround(placeRows,15);
-
-  let rough=0;
-  if(w20)rough++;
-  if(p6)rough++;
-  if(p12)rough++;
-  if(p15)rough++;
-  if(pairRows.some(x=>x.odds>=30))rough++;
-  if(winRows.some(x=>x.odds>=100))rough++;
-
-  let roughText="★☆☆☆☆ 低め";
-  if(rough>=2)roughText="★★☆☆☆ やや荒れ";
-  if(rough>=3)roughText="★★★☆☆ 荒れ注意";
-  if(rough>=4)roughText="★★★★☆ 波乱注意";
-  if(rough>=5)roughText="★★★★★ 大荒れ警戒";
-
-  html=`<div class="box">★注目馬：${top.join("・")}<br>重複数：${topCount}回</div>`+html;
-
-  html+=superFavoriteRisk(winRows,pairRows,tripleRows);
-
-  html+=`<div class="wall">
-<b>★10倍境目パターン</b><br>
-境目パターン：
-${wall10Before && wall10After && topUnder10.length>=2
-? wall10Before.num+"."+wall10After.num+"-"+topUnder10[0].num+"."+topUnder10[1].num
-: "該当なし"}<br>
-壁前馬：${wall10Before ? wall10Before.num+"番（"+wall10Before.odds+"）" : "該当なし"}<br>
-壁後馬：${wall10After ? wall10After.num+"番（"+wall10After.odds+"）" : "該当なし"}<br>
-10倍以内上位2頭：${topUnder10.map(x=>x.num).join("・") || "該当なし"}
-</div>`;
-
-  html+=`<div class="arare"><b>★荒れ指数</b><br>${roughText}</div>`;
-
-  html+=`<div class="break"><b>★壁突破馬</b><br>
-単勝20倍突破馬：${w20 ? w20.num+"番（"+w20.odds+"）" : "該当なし"}<br>
-複勝6倍突破馬：${p6 ? p6.num+"番（"+p6.odds+"）" : "該当なし"}<br>
-複勝12倍突破馬：${p12 ? p12.num+"番（"+p12.odds+"）" : "該当なし"}<br>
-複勝15倍突破馬：${p15 ? p15.num+"番（"+p15.odds+"）" : "該当なし"}
-</div>`;
-
-  html+=`<div class="wall"><b>★境目・壁前後</b><br>
-単勝20倍壁前後：${nums(win20Wall)||"該当なし"}<br>
-複勝6倍壁前後：${nums(place6Wall)||"該当なし"}<br>
-複勝12倍壁前後：${nums(place12Wall)||"該当なし"}<br>
-複勝15倍壁前後：${nums(place15Wall)||"該当なし"}
-</div>`;
-
-  html+=`<div class="umaren"><b>★馬連メジアン</b><br>${pairHtml}</div>`;
-
-  html+=rankingHtml("総合重複ランキング",totalCount);
-  html+=rankingHtml("馬連重複ランキング",pairCount);
+  html += checkOverlap(tansho, fukusho);
 
   document.getElementById("result").innerHTML=html;
+
 }
+
+function checkMedian(tansho, fukusho){
+
+  let html=`<div class="box"><h3>メジアン</h3>`;
+
+  const all=median(tansho);
+
+  const u10=median(tansho.filter(x=>x.odds<10));
+
+  const o10=median(tansho.filter(x=>x.odds>=10));
+
+  const u20=median(tansho.filter(x=>x.odds<=20));
+
+  const ten20=median(tansho.filter(x=>x.odds>=10 && x.odds<=20));
+
+  html += `<p>単勝全体：${all ? all.num+"番" : "-"}</p>`;
+
+  html += `<p>単勝10倍未満：${u10 ? u10.num+"番" : "-"}</p>`;
+
+  html += `<p>単勝10倍以上：${o10 ? o10.num+"番" : "-"}</p>`;
+
+  html += `<p>単勝20倍以内：${u20 ? u20.num+"番" : "-"}</p>`;
+
+  html += `<p>単勝10〜20倍：${ten20 ? ten20.num+"番" : "-"}</p>`;
+
+  if(fukusho.length){
+
+    const fAll=median(fukusho);
+
+    const f12=median(fukusho.filter(x=>x.odds<=12));
+
+    const f6=median(fukusho.filter(x=>x.odds<=6));
+
+    html += `<hr>`;
+
+    html += `<p>複勝全体：${fAll ? fAll.num+"番" : "-"}</p>`;
+
+    html += `<p>複勝12倍以内：${f12 ? f12.num+"番" : "-"}</p>`;
+
+    html += `<p>複勝6倍以内：${f6 ? f6.num+"番" : "-"}</p>`;
+
+  }
+
+  html += `</div>`;
+
+  return html;
+
+}
+
+function checkNeraime(sorted){
+
+  const under10=sorted.filter(x=>x.odds<10);
+
+  if(under10.length<6){
+
+    return `<div class="box aim"><h3>🎯狙い目買い目</h3><p>該当なし</p></div>`;
+
+  }
+
+  const seventh=sorted[6];
+
+  const eighth=sorted[7];
+
+  const axes=[seventh,eighth].filter(Boolean).map(x=>x.num);
+
+  const opponents=under10.map(x=>x.num);
+
+  const pairs=makePairs(axes, opponents);
+
+  return `
+
+  <div class="box aim">
+
+    <h3>🎯狙い目買い目</h3>
+
+    <p><b>単勝10倍未満が${under10.length}頭います。人気割れ注意。</b></p>
+
+    <p>10倍未満馬：${opponents.join("・")}</p>
+
+    <p>軸：7人気 ${seventh ? seventh.num+"番" : "-"}、8人気 ${eighth ? eighth.num+"番" : "-"}</p>
+
+    <p><b>馬連・ワイド候補</b></p>
+
+    <p>${pairs.join(" / ")}</p>
+
+  </div>`;
+
+}
+
+function checkTanshoWall(sorted){
+
+  let html=`<div class="box wall"><h3>🧱単勝オッズの壁</h3>`;
+
+  let found=false;
+
+  for(let i=0;i<sorted.length-1;i++){
+
+    const before=sorted[i];
+
+    const after=sorted[i+1];
+
+    const ratio=after.odds/before.odds;
+
+    if(ratio>=2){
+
+      found=true;
+
+      const front1=sorted[i-1];
+
+      const front2=sorted[i];
+
+      html += `
+
+      <p><b>${before.odds}倍 → ${after.odds}倍</b></p>
+
+      <p>乖離差：${ratio.toFixed(2)}倍</p>
+
+      <p><b>壁前2頭：${front1 ? front1.num+"番・" : ""}${front2.num}番</b></p>
+
+      <p>壁後ろ馬：${after.num}番</p>
+
+      <hr>`;
+
+    }
+
+  }
+
+  if(!found) html += `<p>該当なし</p>`;
+
+  html += `</div>`;
+
+  return html;
+
+}
+
+function checkUmarenWallMedian(umaren){
+
+  if(!umaren.length){
+
+    return `<div class="box wall"><h3>🧱馬連壁メジアン</h3><p>馬連入力なし</p></div>`;
+
+  }
+
+  const sorted=[...umaren].sort((a,b)=>a.odds-b.odds).slice(0,9);
+
+  let walls=[];
+
+  for(let i=0;i<sorted.length-1;i++){
+
+    const before=sorted[i];
+
+    const after=sorted[i+1];
+
+    const ratio=after.odds/before.odds;
+
+    if(ratio>=2){
+
+      walls.push({index:i,before,after,ratio});
+
+    }
+
+  }
+
+  let html=`<div class="box wall"><h3>🧱馬連壁メジアン</h3>`;
+
+  if(walls.length<2){
+
+    html += `<p>馬連9位以内で壁が2箇所未満のため該当なし</p></div>`;
+
+    return html;
+
+  }
+
+  const w1=walls[0];
+
+  const w2=walls[1];
+
+  const zone=sorted.slice(w1.index+1, w2.index+1);
+
+  const m=zone[Math.floor(zone.length/2)];
+
+  html += `
+
+  <p>馬連9位以内で壁が2箇所以上あります。</p>
+
+  <p>壁①：${w1.before.odds}倍 → ${w1.after.odds}倍（${w1.ratio.toFixed(2)}倍）</p>
+
+  <p>壁②：${w2.before.odds}倍 → ${w2.after.odds}倍（${w2.ratio.toFixed(2)}倍）</p>
+
+  <p>壁と壁の間：${zone.map(x=>x.pair).join(" / ")}</p>
+
+  <p><b>馬連壁メジアン：${m ? m.pair : "-"}</b></p>
+
+  </div>`;
+
+  return html;
+
+}
+
+function checkOverlap(tansho, fukusho){
+
+  const counts={};
+
+  function add(num){
+
+    if(!num)return;
+
+    counts[num]=(counts[num]||0)+1;
+
+  }
+
+  [
+
+    median(tansho),
+
+    median(tansho.filter(x=>x.odds<10)),
+
+    median(tansho.filter(x=>x.odds>=10)),
+
+    median(tansho.filter(x=>x.odds<=20))
+
+  ].forEach(x=>add(x && x.num));
+
+  if(fukusho.length){
+
+    [
+
+      median(fukusho),
+
+      median(fukusho.filter(x=>x.odds<=12)),
+
+      median(fukusho.filter(x=>x.odds<=6))
+
+    ].forEach(x=>add(x && x.num));
+
+  }
+
+  const rank=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+
+  let html=`<div class="box hot"><h3>🔥単勝案件・重複ランキング</h3>`;
+
+  rank.forEach(([num,c])=>{
+
+    html += `<p>${num}番：${c}回</p>`;
+
+  });
+
+  if(rank.length && rank[0][1]>=2){
+
+    html += `<p><b>🔥単勝案件は ${rank[0][0]}番 です！</b></p>`;
+
+  }else{
+
+    html += `<p>強い重複はなし</p>`;
+
+  }
+
+  html += `</div>`;
+
+  return html;
+
+}
+
 </script>
 
 </body>
+
 </html>
