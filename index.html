@@ -164,7 +164,50 @@ function rankingHtml(title,count){
   });
   return html;
 }
+function autoBuyHtml(count){
+  const rank=Object.entries(count).sort((a,b)=>b[1]-a[1]);
+  if(rank.length<3)return "";
 
+  const honmei=rank[0][0];
+  const taikou=rank[1][0];
+  const ana=rank[2][0];
+  const osa=rank[3] ? rank[3][0] : "";
+
+  const umaren=[
+    `${honmei}-${taikou}`,
+    `${honmei}-${ana}`,
+    osa ? `${honmei}-${osa}` : ""
+  ].filter(Boolean);
+
+  const wide=[
+    `${honmei}-${taikou}`,
+    `${honmei}-${ana}`
+  ];
+
+  const sanpuku=[
+    `${honmei}-${taikou}-${ana}`,
+    osa ? `${honmei}-${taikou}-${osa}` : "",
+    osa ? `${honmei}-${ana}-${osa}` : ""
+  ].filter(Boolean);
+
+  return `
+  <div class="aim">
+    <b>🎯自動買い目</b><br>
+    ◎ ${honmei}番<br>
+    ○ ${taikou}番<br>
+    ▲ ${ana}番<br>
+    ${osa ? `△ ${osa}番<br>` : ""}
+
+    <br><b>馬連</b><br>
+    ${umaren.join("<br>")}
+
+    <br><br><b>ワイド</b><br>
+    ${wide.join("<br>")}
+
+    <br><br><b>三連複</b><br>
+    ${sanpuku.join("<br>")}
+  </div>`;
+}
 function superFavoriteRisk(winRows,pairRows,tripleRows){
   if(!winRows.length || !pairRows.length)return "";
 
