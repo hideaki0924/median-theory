@@ -415,7 +415,7 @@ function calc(){
   if(top.length){
     html=`<div class="hot"><b>🔥単勝案件は ${top.join("・")}番 です！</b></div>`+html;
   }
-
+html+=autoBuyHtml(totalCount);
   html+=rankingHtml("総合重複ランキング",totalCount);
   html+=rankingHtml("馬連重複ランキング",pairCount);
   html+=rankingHtml("三連複重複ランキング",tripleCount);
