@@ -12,6 +12,8 @@ button{font-size:22px;padding:10px 20px;margin:15px 0}
 .break{background:#ffe8e8;border:2px solid #e66;padding:12px;margin:15px 0;font-size:21px}
 .umaren{background:#eef9ee;border:2px solid #66aa66;padding:12px;margin:15px 0;font-size:21px}
 .arare{background:#f3e8ff;border:2px solid #8a5cf6;padding:12px;margin:15px 0;font-size:22px}
+.risk{background:#ffe1e1;border:3px solid #e60000;padding:12px;margin:15px 0;font-size:22px}
+.safe{background:#e7ffe7;border:3px solid #33aa33;padding:12px;margin:15px 0;font-size:22px}
 .result{font-size:20px;line-height:1.7}
 b{font-size:22px}
 </style>
@@ -31,6 +33,12 @@ b{font-size:22px}
 7-5 3.0
 7-6 6.0
 5-6 9.4"></textarea>
+
+<p>3連複入力：組み合わせ オッズ（任意）</p>
+<textarea id="sanrenpuku" placeholder="例
+7-5-3 8.5
+7-5-6 12.0
+5-3-6 34.5"></textarea>
 
 <button onclick="calc()">計算</button>
 
@@ -109,6 +117,15 @@ function parsePairs(text){
   }).filter(x=>x.a && x.b && !isNaN(x.odds));
 }
 
+function parseTriples(text){
+  if(!text.trim())return [];
+  return text.trim().split(/\n+/).map(line=>{
+    const p=line.trim().split(/\s+/);
+    const combo=p[0].split("-");
+    return {combo:p[0], nums:combo, odds:parseFloat(p[1])};
+  }).filter(x=>x.nums.length===3 && !isNaN(x.odds));
+}
+
 function rankingHtml(title,count){
   const ranking=Object.entries(count).sort((a,b)=>b[1]-a[1]);
   let html=`<h2>${title}</h2>`;
@@ -119,6 +136,59 @@ function rankingHtml(title,count){
   return html;
 }
 
+function superFavoriteRisk(winRows,pairRows,tripleRows){
+  if(!winRows.length || !pairRows.length)return "";
+
+  const fav=sorted(winRows)[0];
+  const favNum=String(fav.num);
+  const sortedPairs=sorted(pairRows);
+
+  const favPair=sortedPairs.find(x=>x.a===favNum || x.b===favNum);
+  const noFavPair=sortedPairs.find(x=>x.a!==favNum && x.b!==favNum);
+
+  let danger=0;
+  let pairText="判定不可";
+
+  if(favPair && noFavPair){
+    const ratio=noFavPair.odds / favPair.odds;
+    if(ratio < 4.0) danger++;
+    pairText=`
+      馬連1人気側：${favPair.a}-${favPair.b} ${favPair.odds}倍<br>
+      タテ目：${noFavPair.a}-${noFavPair.b} ${noFavPair.odds}倍<br>
+      比率：${ratio.toFixed(2)}倍 → ${ratio < 4.0 ? "危険" : "信頼"}
+    `;
+  }
+
+  let tripleText="3連複チェック：未入力";
+  if(tripleRows.length){
+    const sortedTriples=sorted(tripleRows);
+    const noFavTriple=sortedTriples.find(x=>!x.nums.includes(favNum));
+    if(noFavTriple){
+      if(noFavTriple.odds < 40) danger++;
+      tripleText=`
+        3連複で1番人気を含まない最初：${noFavTriple.combo} ${noFavTriple.odds}倍<br>
+        判定：${noFavTriple.odds < 40 ? "危険" : "信頼"}
+      `;
+    }else{
+      tripleText="3連複チェック：1番人気を含まない組み合わせなし";
+    }
+  }
+
+  let judge="信頼";
+  let cls="safe";
+  if(danger===1){judge="やや危険";cls="risk";}
+  if(danger>=2){judge="危険信号";cls="risk";}
+
+  return `
+  <div class="${cls}">
+    <b>🚨超1番人気危険信号</b><br>
+    単勝1番人気：${favNum}番（${fav.odds}倍）<br><br>
+    ${pairText}<br><br>
+    ${tripleText}<br><br>
+    総合判定：<b>${judge}</b>
+  </div>`;
+}
+
 function calc(){
   const rows=document.getElementById("data").value.trim().split(/\n+/).map(line=>{
     const p=line.trim().split(/\s+/);
@@ -126,6 +196,7 @@ function calc(){
   }).filter(x=>x.num && !isNaN(x.win));
 
   const pairRows=parsePairs(document.getElementById("umaren").value);
+  const tripleRows=parseTriples(document.getElementById("sanrenpuku").value);
 
   const winRows=rows.map(x=>({num:x.num,odds:x.win}));
   const placeRows=rows.filter(x=>!isNaN(x.place)).map(x=>({num:x.num,odds:x.place}));
@@ -149,6 +220,7 @@ function calc(){
     ["単勝10倍以内メジアン", winRows.filter(x=>x.odds<=10)],
     ["単勝10倍以上20倍以内メジアン", winRows.filter(x=>x.odds>=10 && x.odds<=20)],
     ["単勝10倍以上メジアン", winRows.filter(x=>x.odds>=10)],
+    ["単勝20倍以内メジアン", winRows.filter(x=>x.odds<=20)],
     ["単勝99倍以内メジアン", winRows.filter(x=>x.odds<=99)],
     ["単勝100倍以上メジアン", winRows.filter(x=>x.odds>=100)],
     ["単勝全体メジアン", winRows],
@@ -225,6 +297,8 @@ function calc(){
   if(rough>=5)roughText="★★★★★ 大荒れ警戒";
 
   html=`<div class="box">★注目馬：${top.join("・")}<br>重複数：${topCount}回</div>`+html;
+
+  html+=superFavoriteRisk(winRows,pairRows,tripleRows);
 
   html+=`<div class="wall">
 <b>★10倍境目パターン</b><br>
