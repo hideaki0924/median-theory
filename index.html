@@ -420,11 +420,13 @@ function calc(){
     ["三連複30倍以内メジアン",tripleRows.filter(x=>x.odds<=30)],
     ["三連複50倍以内メジアン",tripleRows.filter(x=>x.odds<=50)],
     ["三連複9人気以内メジアン",sorted(tripleRows).slice(0,9),true]
-  ].forEach(([name,list])=>{
+ ].forEach(([name,list,noCount])=>{
     const r=medianPick(list);
     if(!r){tripleHtml+=`<p>${name}：該当なし</p>`;return;}
-    addCount(totalCount,r.items);
-    addCount(tripleCount,r.items);
+    if(!noCount){
+  addCount(totalCount,r.items);
+  addCount(tripleCount,r.items);
+}
     tripleHtml+=`<p><b>${name}</b><br>組：${nums(r.items)}<br>構成馬：${horseNums(r.items)}<br>メジアン値：${r.value}</p>`;
   });
 
