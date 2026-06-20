@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="ja"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>まっちゃん専用 チャッピー神予想 V14</title>
+<title>まっちゃん専用 チャッピー神予想 V15</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;background:#07101f;color:#fff;padding:16px;margin:0;font-size:18px}
 h1{font-size:30px;line-height:1.25}
@@ -19,7 +19,7 @@ th{background:#1b2740;color:#ffd66b}
 .rowhead{background:#152036;color:#ffd66b;font-weight:bold}
 </style></head><body>
 
-<h1>🏇 まっちゃん専用<br>チャッピー神予想 V14</h1>
+<h1>🏇 まっちゃん専用<br>チャッピー神予想 V15</h1>
 
 <div class="box">
 <label>レース名</label>
@@ -52,7 +52,10 @@ function parseData(){
   if(sec==='umaren')umaren.push({pair:p[0],odds,hs:splitHorses(p[0])});
   if(sec==='san')san.push({pair:p[0],odds,hs:splitHorses(p[0])});
  }
- tan.sort((a,b)=>a.odds-b.odds); fuku.sort((a,b)=>a.odds-b.odds); umaren.sort((a,b)=>a.odds-b.odds); san.sort((a,b)=>a.odds-b.odds);
+ tan.sort((a,b)=>a.odds-b.odds);
+ fuku.sort((a,b)=>a.odds-b.odds);
+ umaren.sort((a,b)=>a.odds-b.odds);
+ san.sort((a,b)=>a.odds-b.odds);
  return {tan,fuku,umaren,san};
 }
 function medianHorse(arr){if(!arr.length)return '-';const n=arr.length;return n%2?arr[Math.floor(n/2)].horse:arr[n/2-1].horse+'・'+arr[n/2].horse}
@@ -61,12 +64,18 @@ function wallList(arr,t){const r=[];for(let i=0;i<arr.length-1;i++){const d=arr[
 function countAppear(list){const c={};list.forEach(x=>x.hs.forEach(h=>c[h]=(c[h]||0)+1));return Object.entries(c).sort((a,b)=>b[1]-a[1])}
 function heat(n){if(n>=5)return '🔥激熱'; if(n>=4)return '⭕熱'; if(n>=3)return '△注意'; return ''}
 function stars(n){if(n>=85)return '★★★★★'; if(n>=70)return '★★★★'; if(n>=55)return '★★★'; if(n>=40)return '★★'; return '★'}
-function oddsOf(arr,h){const x=arr.find(a=>a.horse==h);return x?x.odds:'-'}
 function pairOdds(list,a,b){const x=list.find(p=>p.hs.includes(a)&&p.hs.includes(b));return x?x.odds:'-'}
-function horizontalTable(axis,tan,fuku,umaren){
- const axisPairs=umaren.filter(x=>x.hs.includes(axis));
+
+function ootaniOrder(axis,umaren){
  const order=[axis];
- axisPairs.forEach(x=>{const o=x.hs.find(h=>h!==axis); if(o&&!order.includes(o))order.push(o)});
+ umaren.filter(x=>x.hs.includes(axis)).forEach(x=>{
+   const o=x.hs.find(h=>h!==axis);
+   if(o&&!order.includes(o))order.push(o);
+ });
+ return order;
+}
+function horizontalTable(axis,tan,fuku,umaren){
+ const order=ootaniOrder(axis,umaren);
  let html='<div class="scroll"><table>';
  html+='<tr><th></th>'+order.map((h,i)=>`<th>${i+1}位</th>`).join('')+'</tr>';
  html+='<tr><td class="rowhead">馬連ランク</td>'+order.map(h=>`<td>${h}</td>`).join('')+'</tr>';
@@ -86,10 +95,12 @@ function analyze(){
  const race=document.getElementById('race').value||'レース名未入力';
  const {tan,fuku,umaren,san}=parseData();
  if(!tan.length){document.getElementById('out').innerHTML='単勝データがありません。';return}
+
  const axis=tan[0].horse;
  const tan30=tan.filter(x=>x.odds<30).length, tan10=tan.filter(x=>x.odds<10).length;
  const fuku3=fuku.filter(x=>x.odds<3).length, fuku6=fuku.filter(x=>x.odds<6).length;
  const um1=umaren[0]?umaren[0].odds:0;
+
  let type='中穴', reason=[];
  if(tan[0].odds<=3&&fuku[0]&&fuku[0].odds<=1.5){type='超1番人気型';reason.push('単勝1人気3倍以下＋複勝1.5倍以下')}
  if(um1>=9&&tan30>=10){type='大穴/準大穴';reason.push('馬連1人気9倍以上＋単勝30倍未満10頭以上')}
@@ -110,6 +121,7 @@ function analyze(){
  const score={}; function add(h,p){if(h&&h!=='-')score[h]=(score[h]||0)+p}
  [medianHorse(tan),medianHorse(tan.filter(x=>x.odds<=10)),medianHorse(tan.filter(x=>x.odds<=20)),medianHorse(fuku),medianHorse(fuku.filter(x=>x.odds<6)),f15to6med].join('・').split('・').forEach(h=>add(h,1));
  honmei.forEach(h=>add(h,1)); chuana.forEach(h=>add(h,1)); f6pre.forEach(h=>add(h,1)); f15pre.forEach(h=>add(h,1));
+
  const ranking=Object.entries(score).sort((a,b)=>b[1]-a[1]);
  const tansho=ranking.filter(x=>x[1]>=3).map(x=>x[0]);
  const appear=countAppear(umaren);
@@ -144,7 +156,9 @@ ${tansho.length?tansho.join('・'):'なし'}
 ${ranking.map((x,i)=>`${i+1}位 ${x[0]}：${x[1]}回 ${heat(x[1])}`).join('\n')||'なし'}
 
 【本家大谷式 馬連】
+※単勝1人気のみを軸にしています
 単勝1人気軸：${axis}
+
 ${ootaniAxisList(axis,umaren)}
 
 馬連ランク：
