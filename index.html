@@ -326,11 +326,11 @@ function calc(){
   const groups=[
     ["単勝10倍以内メジアン",winRows.filter(x=>x.odds<=10)],
     ["単勝10倍以上20倍以内メジアン",black20],
-    ["単勝10倍以上メジアン",over10],
+    ["単勝10倍以上メジアン",over10,true],
     ["単勝20倍以内メジアン",under20],
     ["単勝99倍以内メジアン",winRows.filter(x=>x.odds<=99)],
     ["単勝100倍以上メジアン",winRows.filter(x=>x.odds>=100),true],
-    ["単勝全体メジアン",winRows],
+    ["単勝全体メジアン",winRows,true],
     ["単勝10倍以下2頭除外メジアン",exclude2Fav],
     ["複勝6倍壁前2頭1番人気からのメジアン",place6Zone],
     ["複勝15倍前二頭から6倍以上メジアン",place15to6],
