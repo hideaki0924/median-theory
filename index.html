@@ -1,9 +1,6 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>まっちゃん専用 チャッピー神予想 V13</title>
+<!DOCTYPE html><html lang="ja"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>まっちゃん専用 チャッピー神予想 V14</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;background:#07101f;color:#fff;padding:16px;margin:0;font-size:18px}
 h1{font-size:30px;line-height:1.25}
@@ -11,24 +8,24 @@ label{color:#ffd66b;font-weight:bold;font-size:22px;display:block;margin-top:12p
 input,textarea{width:100%;box-sizing:border-box;background:#050912;color:#fff;border:2px solid #33415c;border-radius:14px;padding:14px;font-size:20px;margin:8px 0 18px}
 textarea{height:360px;font-family:monospace}
 button{width:100%;padding:18px;border:0;border-radius:18px;font-size:24px;font-weight:bold;margin:8px 0}
-.main{background:#ffd66b;color:#000}
-.sub{background:#2d3748;color:#fff}
+.main{background:#ffd66b;color:#000}.sub{background:#2d3748;color:#fff}
 .box{background:#111b2e;border:2px solid #33415c;border-radius:18px;padding:16px;margin:16px 0}
 .result{background:#0b1324;border:3px solid #ffd66b}
 pre{white-space:pre-wrap;line-height:1.6;font-size:18px}
-</style>
-</head>
-<body>
+.scroll{overflow-x:auto;margin:12px 0;border:2px solid #ffd66b;border-radius:12px}
+table{border-collapse:collapse;min-width:900px;background:#07101f}
+td,th{border:1px solid #33415c;padding:8px 12px;text-align:center;white-space:nowrap}
+th{background:#1b2740;color:#ffd66b}
+.rowhead{background:#152036;color:#ffd66b;font-weight:bold}
+</style></head><body>
 
-<h1>🏇 まっちゃん専用<br>チャッピー神予想 V13</h1>
+<h1>🏇 まっちゃん専用<br>チャッピー神予想 V14</h1>
 
 <div class="box">
 <label>レース名</label>
 <input id="race" placeholder="例：東京11R 安田記念">
-
 <label>オッズ入力</label>
 <textarea id="odds"></textarea>
-
 <button class="main" onclick="analyze()">分析する</button>
 <button class="sub" onclick="sample()">サンプル入力</button>
 <button class="sub" onclick="clearAll()">クリア</button>
@@ -37,158 +34,96 @@ pre{white-space:pre-wrap;line-height:1.6;font-size:18px}
 <div id="out" class="box result">ここに分析結果が出ます。</div>
 
 <script>
-function toNum(v){
-  return parseFloat(String(v).replace(/[０-９]/g,s=>String.fromCharCode(s.charCodeAt(0)-65248)).replace(/[．]/g,'.').replace(/[^\d.]/g,''));
-}
-function splitHorses(s){return String(s).replace(/－/g,'-').split('-').map(x=>x.trim()).filter(Boolean);}
+function toNum(v){return parseFloat(String(v).replace(/[０-９]/g,s=>String.fromCharCode(s.charCodeAt(0)-65248)).replace(/[．]/g,'.').replace(/[^\d.]/g,''))}
+function splitHorses(s){return String(s).replace(/－/g,'-').split('-').map(x=>x.trim()).filter(Boolean)}
 function parseData(){
-  const text=document.getElementById('odds').value.replace(/－/g,'-');
-  const lines=text.split(/\n/).map(x=>x.trim()).filter(Boolean);
-  let sec='';
-  const tan=[],fuku=[],umaren=[],san=[];
-  for(const line of lines){
-    if(line.includes('単勝')){sec='tan';continue;}
-    if(line.includes('複勝')){sec='fuku';continue;}
-    if(line.includes('馬連')||line.includes('馬複')){sec='umaren';continue;}
-    if(line.includes('三連複')){sec='san';continue;}
-    const p=line.split(/\s+/);
-    if(p.length<2)continue;
-    const odds=toNum(p[1]);
-    if(!odds)continue;
-    if(sec==='tan')tan.push({horse:p[0],odds});
-    if(sec==='fuku')fuku.push({horse:p[0],odds});
-    if(sec==='umaren')umaren.push({pair:p[0],odds,hs:splitHorses(p[0])});
-    if(sec==='san')san.push({pair:p[0],odds,hs:splitHorses(p[0])});
-  }
-  tan.sort((a,b)=>a.odds-b.odds);
-  fuku.sort((a,b)=>a.odds-b.odds);
-  umaren.sort((a,b)=>a.odds-b.odds);
-  san.sort((a,b)=>a.odds-b.odds);
-  return {tan,fuku,umaren,san};
+ const text=document.getElementById('odds').value.replace(/－/g,'-');
+ const lines=text.split(/\n/).map(x=>x.trim()).filter(Boolean);
+ let sec=''; const tan=[],fuku=[],umaren=[],san=[];
+ for(const line of lines){
+  if(line.includes('単勝')){sec='tan';continue}
+  if(line.includes('複勝')){sec='fuku';continue}
+  if(line.includes('馬連')||line.includes('馬複')){sec='umaren';continue}
+  if(line.includes('三連複')){sec='san';continue}
+  const p=line.split(/\s+/); if(p.length<2)continue;
+  const odds=toNum(p[1]); if(!odds)continue;
+  if(sec==='tan')tan.push({horse:p[0],odds});
+  if(sec==='fuku')fuku.push({horse:p[0],odds});
+  if(sec==='umaren')umaren.push({pair:p[0],odds,hs:splitHorses(p[0])});
+  if(sec==='san')san.push({pair:p[0],odds,hs:splitHorses(p[0])});
+ }
+ tan.sort((a,b)=>a.odds-b.odds); fuku.sort((a,b)=>a.odds-b.odds); umaren.sort((a,b)=>a.odds-b.odds); san.sort((a,b)=>a.odds-b.odds);
+ return {tan,fuku,umaren,san};
 }
-function medianHorse(arr){
-  if(!arr.length)return '-';
-  const n=arr.length;
-  if(n%2===1)return arr[Math.floor(n/2)].horse;
-  return arr[n/2-1].horse+'・'+arr[n/2].horse;
+function medianHorse(arr){if(!arr.length)return '-';const n=arr.length;return n%2?arr[Math.floor(n/2)].horse:arr[n/2-1].horse+'・'+arr[n/2].horse}
+function medianPair(arr){return arr.length?arr[Math.floor((arr.length-1)/2)].pair:'-'}
+function wallList(arr,t){const r=[];for(let i=0;i<arr.length-1;i++){const d=arr[i+1].odds-arr[i].odds;if(d>=t)r.push(`${arr[i].horse||arr[i].pair}(${arr[i].odds}) → ${arr[i+1].horse||arr[i+1].pair}(${arr[i+1].odds}) 差${d.toFixed(1)}`)}return r}
+function countAppear(list){const c={};list.forEach(x=>x.hs.forEach(h=>c[h]=(c[h]||0)+1));return Object.entries(c).sort((a,b)=>b[1]-a[1])}
+function heat(n){if(n>=5)return '🔥激熱'; if(n>=4)return '⭕熱'; if(n>=3)return '△注意'; return ''}
+function stars(n){if(n>=85)return '★★★★★'; if(n>=70)return '★★★★'; if(n>=55)return '★★★'; if(n>=40)return '★★'; return '★'}
+function oddsOf(arr,h){const x=arr.find(a=>a.horse==h);return x?x.odds:'-'}
+function pairOdds(list,a,b){const x=list.find(p=>p.hs.includes(a)&&p.hs.includes(b));return x?x.odds:'-'}
+function horizontalTable(axis,tan,fuku,umaren){
+ const axisPairs=umaren.filter(x=>x.hs.includes(axis));
+ const order=[axis];
+ axisPairs.forEach(x=>{const o=x.hs.find(h=>h!==axis); if(o&&!order.includes(o))order.push(o)});
+ let html='<div class="scroll"><table>';
+ html+='<tr><th></th>'+order.map((h,i)=>`<th>${i+1}位</th>`).join('')+'</tr>';
+ html+='<tr><td class="rowhead">馬連ランク</td>'+order.map(h=>`<td>${h}</td>`).join('')+'</tr>';
+ html+='<tr><td class="rowhead">馬連オッズ</td>'+order.map(h=>`<td>${h==axis?'―':pairOdds(umaren,axis,h)}</td>`).join('')+'</tr>';
+ html+='<tr><td class="rowhead">単勝ランク</td>'+tan.map(x=>`<td>${x.horse}</td>`).join('')+'</tr>';
+ html+='<tr><td class="rowhead">単勝オッズ</td>'+tan.map(x=>`<td>${x.odds}</td>`).join('')+'</tr>';
+ html+='<tr><td class="rowhead">複勝ランク</td>'+fuku.map(x=>`<td>${x.horse}</td>`).join('')+'</tr>';
+ html+='<tr><td class="rowhead">複勝オッズ</td>'+fuku.map(x=>`<td>${x.odds}</td>`).join('')+'</tr>';
+ html+='</table></div>';
+ return {html,order};
 }
-function medianPair(arr){
-  if(!arr.length)return '-';
-  return arr[Math.floor((arr.length-1)/2)].pair;
-}
-function wallList(arr,threshold){
-  const r=[];
-  for(let i=0;i<arr.length-1;i++){
-    const d=arr[i+1].odds-arr[i].odds;
-    if(d>=threshold)r.push(`${arr[i].horse||arr[i].pair}(${arr[i].odds}) → ${arr[i+1].horse||arr[i+1].pair}(${arr[i+1].odds}) 差${d.toFixed(1)}`);
-  }
-  return r;
-}
-function countAppear(list){
-  const c={};
-  list.forEach(x=>x.hs.forEach(h=>c[h]=(c[h]||0)+1));
-  return Object.entries(c).sort((a,b)=>b[1]-a[1]);
-}
-function ootaniFull(umaren){
-  const axes={};
-  umaren.forEach(x=>{
-    x.hs.forEach(h=>{
-      if(!axes[h])axes[h]=[];
-      const other=x.hs.find(y=>y!==h);
-      axes[h].push(`${other}(${x.odds})`);
-    });
-  });
-  return Object.entries(axes)
-    .sort((a,b)=>b[1].length-a[1].length)
-    .slice(0,5)
-    .map(([h,list])=>`${h}軸\n${list.join(' / ')}`)
-    .join('\n\n');
-}
-function heat(n){
-  if(n>=5)return '🔥激熱';
-  if(n>=4)return '⭕熱';
-  if(n>=3)return '△注意';
-  return '';
-}
-function stars(n){
-  if(n>=85)return '★★★★★';
-  if(n>=70)return '★★★★';
-  if(n>=55)return '★★★';
-  if(n>=40)return '★★';
-  return '★';
+function ootaniAxisList(axis,umaren){
+ return umaren.filter(x=>x.hs.includes(axis)).map(x=>`${x.pair} ${x.odds}`).join('\n')||'なし';
 }
 
 function analyze(){
-  const race=document.getElementById('race').value||'レース名未入力';
-  const {tan,fuku,umaren,san}=parseData();
-  if(!tan.length){document.getElementById('out').innerHTML='単勝データがありません。';return;}
+ const race=document.getElementById('race').value||'レース名未入力';
+ const {tan,fuku,umaren,san}=parseData();
+ if(!tan.length){document.getElementById('out').innerHTML='単勝データがありません。';return}
+ const axis=tan[0].horse;
+ const tan30=tan.filter(x=>x.odds<30).length, tan10=tan.filter(x=>x.odds<10).length;
+ const fuku3=fuku.filter(x=>x.odds<3).length, fuku6=fuku.filter(x=>x.odds<6).length;
+ const um1=umaren[0]?umaren[0].odds:0;
+ let type='中穴', reason=[];
+ if(tan[0].odds<=3&&fuku[0]&&fuku[0].odds<=1.5){type='超1番人気型';reason.push('単勝1人気3倍以下＋複勝1.5倍以下')}
+ if(um1>=9&&tan30>=10){type='大穴/準大穴';reason.push('馬連1人気9倍以上＋単勝30倍未満10頭以上')}
+ else if(um1>=6){type='中荒れ';reason.push('馬連1人気が6倍以上')}
+ if(!reason.length)reason.push('馬連1人気は低め');
 
-  const axis=tan[0].horse;
-  const tan30=tan.filter(x=>x.odds<30).length;
-  const tan10=tan.filter(x=>x.odds<10).length;
-  const fuku3=fuku.filter(x=>x.odds<3).length;
-  const fuku6=fuku.filter(x=>x.odds<6).length;
-  const um1=umaren[0]?umaren[0].odds:0;
+ const htab=horizontalTable(axis,tan,fuku,umaren);
+ const order=htab.order;
+ const honmei=order.slice(1,5), chuana=order.slice(5,9), ooana=order.slice(9);
 
-  let type='中穴';
-  let reason=[];
-  if(tan[0].odds<=3 && fuku[0] && fuku[0].odds<=1.5){type='超1番人気型';reason.push('単勝1人気3倍以下＋複勝1.5倍以下');}
-  if(um1>=9 && tan30>=10){type='大穴/準大穴';reason.push('馬連1人気9倍以上＋単勝30倍未満10頭以上');}
-  else if(um1>=6){type='中荒れ';reason.push('馬連1人気が6倍以上');}
-  if(!reason.length)reason.push('馬連1人気は低め');
+ const f6i=fuku.findIndex(x=>x.odds>=6), f15i=fuku.findIndex(x=>x.odds>=15);
+ const f6pre=f6i>=2?fuku.slice(f6i-2,f6i).map(x=>x.horse):[];
+ const f15pre=f15i>=2?fuku.slice(f15i-2,f15i).map(x=>x.horse):[];
+ const f15to6=fuku.filter(x=>x.odds>=6&&x.odds<15);
+ const f15to6med=medianHorse(f15to6);
+ const f6ToFav=[...f6pre,axis].filter((v,i,a)=>v&&a.indexOf(v)===i).join('・');
 
-  const axisPairs=umaren.filter(x=>x.hs.includes(axis));
-  const ootani=[axis];
-  axisPairs.forEach(x=>{const other=x.hs.find(h=>h!==axis);if(other&&!ootani.includes(other))ootani.push(other);});
+ const score={}; function add(h,p){if(h&&h!=='-')score[h]=(score[h]||0)+p}
+ [medianHorse(tan),medianHorse(tan.filter(x=>x.odds<=10)),medianHorse(tan.filter(x=>x.odds<=20)),medianHorse(fuku),medianHorse(fuku.filter(x=>x.odds<6)),f15to6med].join('・').split('・').forEach(h=>add(h,1));
+ honmei.forEach(h=>add(h,1)); chuana.forEach(h=>add(h,1)); f6pre.forEach(h=>add(h,1)); f15pre.forEach(h=>add(h,1));
+ const ranking=Object.entries(score).sort((a,b)=>b[1]-a[1]);
+ const tansho=ranking.filter(x=>x[1]>=3).map(x=>x[0]);
+ const appear=countAppear(umaren);
 
-  const honmei=ootani.slice(1,5);
-  const chuana=ootani.slice(5,9);
-  const ooana=ootani.slice(9);
+ const tan20=tan.filter(x=>x.odds<=20);
+ let border='-'; if(tan20.length>=2){const n=tan20.length;border=n%2===0?tan20[n/2-1].horse+'・'+tan20[n/2].horse:tan20[Math.floor(n/2)].horse}
 
-  const f6i=fuku.findIndex(x=>x.odds>=6);
-  const f15i=fuku.findIndex(x=>x.odds>=15);
-  const f6pre=f6i>=2?fuku.slice(f6i-2,f6i).map(x=>x.horse):[];
-  const f15pre=f15i>=2?fuku.slice(f15i-2,f15i).map(x=>x.horse):[];
+ let arere=30; if(um1>=9)arere+=25; if(tan30>=10)arere+=25; if(fuku6<=6)arere+=15; if(tan10>=6)arere+=10; if(arere>100)arere=100;
 
-  const f15to6=fuku.filter(x=>x.odds>=6 && x.odds<15);
-  const f15to6med=medianHorse(f15to6);
+ const main=tansho[0]||axis;
+ const subs=[...new Set([...honmei,...chuana,...f6pre,...f15pre].filter(h=>h!==main))].slice(0,6);
 
-  const firstFav=tan[0].horse;
-  const f6ToFav=[...f6pre,firstFav].filter((v,i,a)=>v&&a.indexOf(v)===i).join('・');
-
-  const score={};
-  function add(h,p){if(h&&h!=='-')score[h]=(score[h]||0)+p;}
-  [medianHorse(tan),medianHorse(tan.filter(x=>x.odds<=10)),medianHorse(tan.filter(x=>x.odds<=20)),medianHorse(fuku),medianHorse(fuku.filter(x=>x.odds<6)),f15to6med].join('・').split('・').forEach(h=>add(h,1));
-  honmei.forEach(h=>add(h,1));
-  chuana.forEach(h=>add(h,1));
-  f6pre.forEach(h=>add(h,1));
-  f15pre.forEach(h=>add(h,1));
-
-  const ranking=Object.entries(score).sort((a,b)=>b[1]-a[1]);
-  const tansho=ranking.filter(x=>x[1]>=3).map(x=>x[0]);
-
-  const appear=countAppear(umaren);
-  const sanMed=medianPair(san);
-  const umaMed=medianPair(umaren);
-
-  const tan20=tan.filter(x=>x.odds<=20);
-  let border='-';
-  if(tan20.length>=2){
-    const n=tan20.length;
-    border=n%2===0?tan20[n/2-1].horse+'・'+tan20[n/2].horse:tan20[Math.floor(n/2)].horse;
-  }
-
-  let arere=30;
-  if(um1>=9)arere+=25;
-  if(tan30>=10)arere+=25;
-  if(fuku6<=6)arere+=15;
-  if(tan10>=6)arere+=10;
-  if(arere>100)arere=100;
-
-  const main=tansho[0]||axis;
-  const subs=[...new Set([...honmei,...chuana,...f6pre,...f15pre].filter(h=>h!==main))].slice(0,6);
-
-  document.getElementById('out').innerHTML=`<pre>
+ document.getElementById('out').innerHTML=
+`${htab.html}<pre>
 ━━━━━━━━━━━━━━
 ${race}
 ━━━━━━━━━━━━━━
@@ -208,19 +143,18 @@ ${tansho.length?tansho.join('・'):'なし'}
 重複ランキング：
 ${ranking.map((x,i)=>`${i+1}位 ${x[0]}：${x[1]}回 ${heat(x[1])}`).join('\n')||'なし'}
 
-【本家大谷式】
+【本家大谷式 馬連】
 単勝1人気軸：${axis}
+${ootaniAxisList(axis,umaren)}
+
 馬連ランク：
-${ootani.join(' → ')}
+${order.join(' → ')}
 
 本命ゾーン：${honmei.join('・')||'-'}
 中穴ゾーン：${chuana.join('・')||'-'}
 大穴ゾーン：${ooana.join('・')||'-'}
 
-【完全大谷式 馬連】
-${ootaniFull(umaren)||'なし'}
-
-【馬連出現回数】
+【大谷式 馬連出現回数】
 ${appear.map((x,i)=>`${i+1}位 ${x[0]}：${x[1]}回`).join('\n')||'なし'}
 
 【メジアン】
@@ -229,8 +163,8 @@ ${appear.map((x,i)=>`${i+1}位 ${x[0]}：${x[1]}回`).join('\n')||'なし'}
 単勝20倍以内：${medianHorse(tan.filter(x=>x.odds<=20))}
 複勝全体：${medianHorse(fuku)}
 複勝6倍未満：${medianHorse(fuku.filter(x=>x.odds<6))}
-馬連メジアン：${umaMed}
-三連複メジアン：${sanMed}
+馬連メジアン：${medianPair(umaren)}
+三連複メジアン：${medianPair(san)}
 
 【境目ペア警告】
 単勝20倍以内中央：${border}
@@ -325,11 +259,5 @@ document.getElementById('odds').value=`【単勝】
 7-9-10 110.2`;
 analyze();
 }
-function clearAll(){
-document.getElementById('race').value='';
-document.getElementById('odds').value='';
-document.getElementById('out').innerHTML='ここに分析結果が出ます。';
-}
-</script>
-</body>
-</html>
+function clearAll(){document.getElementById('race').value='';document.getElementById('odds').value='';document.getElementById('out').innerHTML='ここに分析結果が出ます。'}
+</script></body></html>
