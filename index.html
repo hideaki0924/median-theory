@@ -329,21 +329,23 @@ function calc(){
     ["単勝10倍以上メジアン",over10],
     ["単勝20倍以内メジアン",under20],
     ["単勝99倍以内メジアン",winRows.filter(x=>x.odds<=99)],
-    ["単勝100倍以上メジアン",winRows.filter(x=>x.odds>=100)],
+    ["単勝100倍以上メジアン",winRows.filter(x=>x.odds>=100),true],
     ["単勝全体メジアン",winRows],
     ["単勝10倍以下2頭除外メジアン",exclude2Fav],
     ["複勝6倍壁前2頭1番人気からのメジアン",place6Zone],
     ["複勝15倍前二頭から6倍以上メジアン",place15to6],
     ["複勝12倍以内メジアン",placeRows.filter(x=>x.odds<=12)],
     ["複勝10倍以上〜ビリメジアン",placeRows.filter(x=>x.odds>=10)],
-    ["複勝20倍以上〜ビリメジアン",placeRows.filter(x=>x.odds>=20)],
+    ["複勝20倍以上〜ビリメジアン",placeRows.filter(x=>x.odds>=20),true],
     ["複勝全体メジアン",placeRows]
   ];
 
-  groups.forEach(([name,list])=>{
+  groups.forEach(([name,list,noCount])=>{
     const r=medianPick(list);
     if(!r){html+=`<p>${name}：該当なし</p>`;return;}
-    addCount(totalCount,r.items);
+    if(!noCount){
+  addCount(totalCount,r.items);
+}
     html+=`<p><b>${name}</b><br>馬番：${nums(r.items)}<br>メジアン値：${r.value}</p>`;
   });
 
