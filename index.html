@@ -415,11 +415,11 @@ function calc(){
 
   let tripleHtml="";
   [
-    ["三連複全体メジアン",tripleRows],
-    ["三連複20倍以内メジアン",tripleRows.filter(x=>x.odds<=20)],
-    ["三連複30倍以内メジアン",tripleRows.filter(x=>x.odds<=30)],
-    ["三連複50倍以内メジアン",tripleRows.filter(x=>x.odds<=50)],
-    ["三連複9人気以内メジアン",sorted(tripleRows).slice(0,9),true]
+   ["三連複全体メジアン",tripleRows],
+["三連複20倍以内メジアン",tripleRows.filter(x=>x.odds<=20)],
+["三連複30倍以内メジアン",tripleRows.filter(x=>x.odds<=30),true],
+["三連複50倍以内メジアン",tripleRows.filter(x=>x.odds<=50),true],
+["三連複9人気以内メジアン",sorted(tripleRows).slice(0,9),true]
  ].forEach(([name,list,noCount])=>{
     const r=medianPick(list);
     if(!r){tripleHtml+=`<p>${name}：該当なし</p>`;return;}
