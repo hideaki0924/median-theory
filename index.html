@@ -19,6 +19,10 @@ pre{white-space:pre-wrap;line-height:1.6;font-size:18px}
 table{border-collapse:collapse;min-width:1200px;background:#07101f}
 td,th{border:1px solid #33415c;padding:8px 12px;text-align:center;white-space:nowrap}
 .rowhead{background:#152036;color:#ffd66b;font-weight:bold;position:sticky;left:0}
+ .rank-red{
+ color:#ff4d4d;
+ font-weight:bold;
+}
 </style>
 </head>
 <body>
@@ -163,7 +167,7 @@ function tableBook(tan,fuku,umaren){
 
  html+='<tr><td class="rowhead">馬連ランク</td>';
  for(let i=0;i<max;i++){
-  html+='<td>'+(u.order[i]||'')+'</td>';
+  html+='<td class="rank-red">'+(u.order[i]||'')+'</td>';
  }
  html+='</tr>';
 
@@ -175,7 +179,7 @@ function tableBook(tan,fuku,umaren){
 
  html+='<tr><td class="rowhead">単勝ランク</td>';
  for(let i=0;i<max;i++){
-  html+='<td>'+(tan[i]?tan[i].horse:'')+'</td>';
+  html+='<td class="rank-red">'+(tan[i]?tan[i].horse:'')+'</td>';
  }
  html+='</tr>';
 
@@ -187,7 +191,7 @@ function tableBook(tan,fuku,umaren){
 
  html+='<tr><td class="rowhead">複勝ランク</td>';
  for(let i=0;i<max;i++){
-  html+='<td>'+(fuku[i]?fuku[i].horse:'')+'</td>';
+  html+='<td class="rank-red">'+(fuku[i]?fuku[i].horse:'')+'</td>';
  }
  html+='</tr>';
 
