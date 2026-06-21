@@ -118,9 +118,11 @@ function stars(n){
  if(n>=40)return '★★';
  return '★';
 }
-function cleanPairRank(x){
+function cleanPairRank(x, axis){
  if(!x)return '-';
- return x.hs ? x.hs.join('-') : x.pair;
+ if(!x.hs)return x.pair;
+ const other=x.hs.find(h=>h!==axis);
+ return axis + '-' + other;
 }
 function tableBook(tan,fuku,umaren){
  const max=Math.max(tan.length,fuku.length,umaren.length);
@@ -128,7 +130,7 @@ function tableBook(tan,fuku,umaren){
 
  html+='<tr><td class="rowhead">馬連ランク</td>';
  for(let i=0;i<max;i++){
-  const v=umaren[i]?cleanPairRank(umaren[i]):'';
+  const v=umaren[i]?cleanPairRank(umaren[i],tan[0].horse):'';
   html+=`<td>${v}</td>`;
  }
  html+='</tr>';
