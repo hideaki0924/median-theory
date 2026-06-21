@@ -301,6 +301,19 @@ if(tan20.length>=2){
   border=topValue;
  }
 }
+if(tan20.length>=2){
+ const n=tan20.length;
+
+ if(n%2===0){
+  topValue=tan20[n/2-1].horse;
+  bottomValue=tan20[n/2].horse;
+  border=topValue+'・'+bottomValue;
+ }else{
+  topValue=tan20[Math.floor(n/2)].horse;
+  bottomValue=topValue;
+  border=topValue;
+ }
+}
  let border='-';
  if(tan20.length>=2){
   const n=tan20.length;
