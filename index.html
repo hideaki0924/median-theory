@@ -287,11 +287,28 @@ function analyze(){
  if(tan10>=6)arere+=10;
  if(arere>100)arere=100;
 
- const main=tansho[0]||axis;
- const subs=[].concat(f6pre,f15pre,[medianHorse(tan).split('・')[0]],[medianHorse(fuku).split('・')[0]])
-  .filter(function(h){return h && h!==main && h!=='-'})
-  .filter(function(v,i,a){return a.indexOf(v)===i})
-  .slice(0,6);
+ const axisA=medianHorse(tan.filter(function(x){return x.odds<=10}));
+const axisB=f6ToFav;
+const targetA=medianHorse(tan.filter(function(x){return x.odds<=99}));
+const targetB=border;
+
+const buyPairs=[];
+
+function addBuyPair(a,b){
+ if(!a||!b||a==='-'||b==='-'||a===b)return;
+ const p=a+'-'+b;
+ if(!buyPairs.includes(p))buyPairs.push(p);
+}
+
+axisA.split('・').forEach(function(a){
+ targetA.split('・').forEach(function(b){addBuyPair(a,b)});
+ targetB.split('・').forEach(function(b){addBuyPair(a,b)});
+});
+
+axisB.split('・').forEach(function(a){
+ targetA.split('・').forEach(function(b){addBuyPair(a,b)});
+ targetB.split('・').forEach(function(b){addBuyPair(a,b)});
+});
 
  document.getElementById('out').innerHTML=
  tableBook(tan,fuku,umaren)+
@@ -339,11 +356,14 @@ type+'\n'+
 '【10倍未満6頭警報】\n'+
 (tan10>=6?'発動：7人気・8人気も注意':'なし')+'\n\n'+
 '【チャッピー推奨】\n'+
-'軸候補：'+main+'\n'+
-'相手候補：'+(subs.join('・')||'-')+'\n\n'+
-'馬連：\n'+(subs.map(function(h){return main+'-'+h}).join(' / ')||'-')+'\n\n'+
-'ワイド：\n'+(subs.slice(0,4).map(function(h){return main+'-'+h}).join(' / ')||'-')+'\n\n'+
-'三連複：\n'+(subs.length>=2?subs.slice(0,5).map(function(h,i){return main+'-'+h+'-'+subs[(i+1)%subs.length]}).join(' / '):'-')+
+'軸① 単勝10倍以内メジアン：'+axisA+'\n'+
+'軸② 複勝6倍壁前2頭→1人気：'+axisB+'\n'+
+'相手① 単勝99倍以内メジアン：'+targetA+'\n'+
+'相手② 境目ペア：'+targetB+'\n\n'+
+'【推奨 馬連】\n'+
+(buyPairs.join(' / ')||'-')+'\n\n'+
+'【推奨 ワイド】\n'+
+(buyPairs.join(' / ')||'-')+
 '</pre>';
 }
 
