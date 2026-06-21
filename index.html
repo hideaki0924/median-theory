@@ -231,22 +231,17 @@ function analyze(){
   type='超1番人気型';
   reason.push('単勝1人気3倍以下＋複勝1.5倍以下');
  }
- if(um1>=9 && tan30>=10){
-  type='大穴/準大穴';
-  reason.push('馬連1人気9倍以上＋単勝30倍未満10頭以上');
- }else if(um1>=6){
-  type='中荒れ';
-  reason.push('馬連1人気6倍以上');
- }
- if(!reason.length)reason.push('馬連1人気は低め');
-
  const f6i=fuku.findIndex(function(x){return x.odds>=6});
- const f15i=fuku.findIndex(function(x){return x.odds>=15});
- const f6pre=f6i>=2?fuku.slice(f6i-2,f6i).map(function(x){return x.horse}):[];
- const f15pre=f15i>=2?fuku.slice(f15i-2,f15i).map(function(x){return x.horse}):[];
- const f15to6=fuku.filter(function(x){return x.odds>=6 && x.odds<15});
- const f15to6med=medianHorse(f15to6);
- const f6ToFav=[].concat(f6pre,[axis]).filter(function(v,i,a){return v && a.indexOf(v)===i}).join('・');
+const f15i=fuku.findIndex(function(x){return x.odds>=15});
+
+const f6entry=f6i>=0?fuku[f6i]:null;
+const f6entryHorse=f6entry?f6entry.horse:'-';
+
+const f6pre=f6i>=2?fuku.slice(f6i-2,f6i).map(function(x){return x.horse}):[];
+const f15pre=f15i>=2?fuku.slice(f15i-2,f15i).map(function(x){return x.horse}):[];
+const f15to6=fuku.filter(function(x){return x.odds>=6 && x.odds<15});
+const f15to6med=medianHorse(f15to6);
+const f6ToFav=[].concat(f6pre,[axis]).filter(function(v,i,a){return v && a.indexOf(v)===i}).join('・');
 
  const score={};
  function add(h,p){
@@ -269,7 +264,9 @@ function analyze(){
 
  f6pre.forEach(function(h){add(h,1)});
  f15pre.forEach(function(h){add(h,1)});
-
+if(f6entryHorse && f6entryHorse!=='-'){
+ add(f6entryHorse,1);
+}
  const ranking=Object.entries(score).sort(function(a,b){return b[1]-a[1]});
  const tansho=ranking.filter(function(x){return x[1]>=3}).map(function(x){return x[0]});
 
@@ -348,6 +345,7 @@ type+'\n'+
 '【複勝壁】\n'+
 '複勝6倍壁前2頭：'+(f6pre.join('・')||'なし')+'\n'+
 '複勝15倍壁前2頭：'+(f15pre.join('・')||'なし')+'\n'+
+'6倍以上入口馬：'+f6entryHorse+'\n'+
 '15壁→6倍以上メジアン：'+f15to6med+'\n'+
 '6倍壁前2頭→1人気：'+(f6ToFav||'なし')+'\n\n'+
 '【壁】\n'+
