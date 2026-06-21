@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 V16 表方式</title>
+<title>チャッピー神予想 V17 本表方式</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;background:#07101f;color:#fff;padding:16px;margin:0;font-size:18px}
 h1{font-size:30px;line-height:1.25}
@@ -16,14 +16,15 @@ button{width:100%;padding:18px;border:0;border-radius:18px;font-size:24px;font-w
 .result{background:#0b1324;border:3px solid #ffd66b}
 pre{white-space:pre-wrap;line-height:1.6;font-size:18px}
 .scroll{overflow-x:auto;border:2px solid #ffd66b;border-radius:14px;margin:14px 0}
-table{border-collapse:collapse;min-width:1000px;background:#07101f}
+table{border-collapse:collapse;min-width:1200px;background:#07101f}
 td,th{border:1px solid #33415c;padding:8px 12px;text-align:center;white-space:nowrap}
-th,.rowhead{background:#152036;color:#ffd66b;font-weight:bold}
+.rowhead{background:#152036;color:#ffd66b;font-weight:bold;position:sticky;left:0}
+.mark{background:#3a2d15;color:#ffd66b}
 </style>
 </head>
 <body>
 
-<h1>🏇 チャッピー神予想<br>V16 表方式</h1>
+<h1>🏇 チャッピー神予想<br>V17 本表方式</h1>
 
 <div class="box">
 <label>レース名</label>
@@ -117,53 +118,54 @@ function stars(n){
  if(n>=40)return '★★';
  return '★';
 }
-function rankOf(arr,h){
- const i=arr.findIndex(x=>x.horse==h);
- return i>=0?i+1:'-';
+function cleanPairRank(x){
+ if(!x)return '-';
+ return x.hs ? x.hs.join('-') : x.pair;
 }
-function oddsOf(arr,h){
- const x=arr.find(x=>x.horse==h);
- return x?x.odds:'-';
-}
-function pairOdds(list,a,b){
- const x=list.find(p=>p.hs.includes(a)&&p.hs.includes(b));
- return x?x.odds:'-';
-}
-function tableStyle(tan,fuku,umaren){
- const horses=[];
- umaren.forEach(x=>{
-  x.hs.forEach(h=>{if(!horses.includes(h))horses.push(h)});
- });
- tan.forEach(x=>{if(!horses.includes(x.horse))horses.push(x.horse)});
-
+function tableBook(tan,fuku,umaren){
+ const max=Math.max(tan.length,fuku.length,umaren.length);
  let html='<div class="scroll"><table>';
- html+='<tr><th></th>'+horses.map((h,i)=>`<th>${i+1}位</th>`).join('')+'</tr>';
 
  html+='<tr><td class="rowhead">馬連ランク</td>';
- html+=horses.map(h=>`<td>${h}</td>`).join('');
+ for(let i=0;i<max;i++){
+  const v=umaren[i]?cleanPairRank(umaren[i]):'';
+  html+=`<td>${v}</td>`;
+ }
  html+='</tr>';
 
  html+='<tr><td class="rowhead">馬連オッズ</td>';
- html+=horses.map((h,i)=>{
-  if(i===0)return '<td>―</td>';
-  return `<td>${pairOdds(umaren,horses[0],h)}</td>`;
- }).join('');
+ for(let i=0;i<max;i++){
+  const v=umaren[i]?umaren[i].odds:'';
+  html+=`<td>${v}</td>`;
+ }
  html+='</tr>';
 
  html+='<tr><td class="rowhead">単勝ランク</td>';
- html+=horses.map(h=>`<td>${rankOf(tan,h)}</td>`).join('');
+ for(let i=0;i<max;i++){
+  const v=tan[i]?tan[i].horse:'';
+  html+=`<td>${v}</td>`;
+ }
  html+='</tr>';
 
  html+='<tr><td class="rowhead">単勝オッズ</td>';
- html+=horses.map(h=>`<td>${oddsOf(tan,h)}</td>`).join('');
+ for(let i=0;i<max;i++){
+  const v=tan[i]?tan[i].odds:'';
+  html+=`<td>${v}</td>`;
+ }
  html+='</tr>';
 
  html+='<tr><td class="rowhead">複勝ランク</td>';
- html+=horses.map(h=>`<td>${rankOf(fuku,h)}</td>`).join('');
+ for(let i=0;i<max;i++){
+  const v=fuku[i]?fuku[i].horse:'';
+  html+=`<td>${v}</td>`;
+ }
  html+='</tr>';
 
  html+='<tr><td class="rowhead">複勝オッズ</td>';
- html+=horses.map(h=>`<td>${oddsOf(fuku,h)}</td>`).join('');
+ for(let i=0;i<max;i++){
+  const v=fuku[i]?fuku[i].odds:'';
+  html+=`<td>${v}</td>`;
+ }
  html+='</tr>';
 
  html+='</table></div>';
@@ -239,7 +241,7 @@ function analyze(){
  const subs=[...new Set([...f6pre,...f15pre,medianHorse(tan).split('・')[0],medianHorse(fuku).split('・')[0]].filter(h=>h&&h!==main&&h!=='-'))].slice(0,6);
 
  document.getElementById('out').innerHTML=
-`${tableStyle(tan,fuku,umaren)}
+`${tableBook(tan,fuku,umaren)}
 <pre>
 ━━━━━━━━━━━━━━
 ${race}
@@ -312,44 +314,45 @@ ${subs.length>=2?subs.slice(0,5).map((h,i)=>main+'-'+h+'-'+subs[(i+1)%subs.lengt
 </pre>`;
 }
 function sample(){
-document.getElementById('race').value='表方式テスト';
+document.getElementById('race').value='本表方式テスト';
 document.getElementById('odds').value=`[TANFUKU]
-10 2.1 1.5
-9 2.3 1.6
-1 8.5 2.5
-5 11.9 2.5
-6 13.0 2.1
-4 24.2 6.3
-8 34.2 8.1
-3 73.7 9.0
-7 130.7 20.5
+4 3.0 2.9
+15 6.1 2.8
+10 8.5 2.9
+11 8.8 3.1
+16 10.8 2.3
+2 11.8 4.7
+6 14.1 5.1
+8 17.2 9.8
+9 18.4 4.3
+5 20.9 5.7
+3 29.7 7.0
+14 37.3 7.0
+12 51.0 8.7
+13 61.7 9.1
+1 81.4 12.9
+7 101 18.6
 
 [UMAREN]
-9-10 2.9
-1-9 8.2
-1-10 9.0
-5-9 11.3
-5-10 12.5
-6-9 15.8
-6-10 16.0
-4-10 19.4
-8-10 19.7
-8-9 30.1
-4-9 36.1
-3-10 37.9
-3-9 55.1
-7-10 81.4
+4-10 10.1
+4-11 13.4
+4-16 17.3
+4-2 17.4
+4-15 21.9
+4-5 29.9
+4-6 36.6
+4-9 36.8
+4-3 49.5
+4-12 63.3
+4-14 75.6
+4-8 101
+4-13 155
+4-1 178
+4-7 252
 
 [SANPUKU]
-1-9-10 8.8
-5-9-10 12.3
-6-9-10 15.7
-1-5-10 18.9
-1-5-9 22.4
-4-9-10 29.8
-8-9-10 33.5
-3-9-10 58.1
-7-9-10 110.2`;
+4-10-11 30.0
+4-10-16 35.0`;
 analyze();
 }
 function clearAll(){
