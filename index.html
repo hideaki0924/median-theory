@@ -280,20 +280,11 @@ if(f6entryHorse && f6entryHorse!=='-'){
  add(f6entryHorse,1); 
 }
  const ranking=Object.entries(score).sort(function(a,b){return b[1]-a[1]});
- const tansho=ranking.filter(function(x){return x[1]>=3}).map(function(x){return x[0]});
+ const tan20=tan.filter(function(x){return x.odds<=20});
+let border='-';
+let topValue='-';
+let bottomValue='-';
 
- 
-
- if(n%2===0){
-  topValue=tan20[n/2-1].horse;
-  bottomValue=tan20[n/2].horse;
-  border=topValue+'・'+bottomValue;
- }else{
-  topValue=tan20[Math.floor(n/2)].horse;
-  bottomValue=topValue;
-  border=topValue;
- }
-}
 if(tan20.length>=2){
  const n=tan20.length;
 
@@ -307,8 +298,6 @@ if(tan20.length>=2){
   border=topValue;
  }
 }
- 
-
  let arere=30;
  if(um1>=9)arere+=25;
  if(tan30>=10)arere+=25;
