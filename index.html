@@ -3,387 +3,230 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>まっちゃん専用 チャッピー神予想 V15 大谷式</title>
+<title>メジアン順位表</title>
 <style>
-body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;background:#07101f;color:#fff;padding:16px;margin:0;font-size:18px}
-h1{font-size:30px;line-height:1.25}
-label{color:#ffd66b;font-weight:bold;font-size:22px;display:block;margin-top:12px}
-input,textarea{width:100%;box-sizing:border-box;background:#050912;color:#fff;border:2px solid #33415c;border-radius:14px;padding:14px;font-size:20px;margin:8px 0 18px}
-textarea{height:360px;font-family:monospace}
-button{width:100%;padding:18px;border:0;border-radius:18px;font-size:24px;font-weight:bold;margin:8px 0}
-.main{background:#ffd66b;color:#000}.sub{background:#2d3748;color:#fff}
-.box{background:#111b2e;border:2px solid #33415c;border-radius:18px;padding:16px;margin:16px 0}
-.result{background:#0b1324;border:3px solid #ffd66b}
-pre{white-space:pre-wrap;line-height:1.6;font-size:18px}
+body{
+  margin:0;
+  padding:16px;
+  background:#07101f;
+  color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;
+  font-size:18px;
+}
+h1{font-size:26px;color:#ffd66b}
+h2{font-size:22px;color:#ffd66b;margin-top:24px}
+textarea{
+  width:100%;
+  height:170px;
+  font-size:18px;
+  border-radius:10px;
+  padding:10px;
+  box-sizing:border-box;
+}
+button{
+  width:100%;
+  font-size:22px;
+  padding:14px;
+  margin:16px 0;
+  border:0;
+  border-radius:12px;
+  background:#ffd66b;
+  color:#07101f;
+  font-weight:bold;
+}
+.box{
+  border-left:6px solid #ffd66b;
+  padding:12px;
+  margin-top:16px;
+  background:#0d1930;
+  border-radius:8px;
+}
+.scroll{
+  overflow-x:auto;
+  border:1px solid #ffd66b;
+  margin-top:8px;
+}
+table{
+  border-collapse:collapse;
+  min-width:900px;
+  background:#fff;
+  color:#111;
+}
+td,th{
+  border:1px solid #333;
+  padding:8px 12px;
+  text-align:center;
+  white-space:nowrap;
+  font-size:18px;
+}
+th{
+  background:#eee;
+}
+.med{
+  background:#ffb3d1!important;
+  font-weight:bold;
+}
+.note{
+  color:#ffd66b;
+  font-weight:bold;
+  margin-top:10px;
+}
+.small{font-size:15px;color:#ccc}
 </style>
 </head>
 <body>
 
-<h1>🏇 まっちゃん専用<br>チャッピー神予想 V15<br>大谷式対応版</h1>
+<h1>まっちゃん専用 メジアン順位表</h1>
 
-<div class="box">
-<label>レース名</label>
-<input id="race" placeholder="例：東京11R">
-<label>オッズ入力</label>
-<textarea id="odds" placeholder="[TANFUKU]
-12 4.0 1.9
-2 7.0 2.2
-
-[UMAREN]
-2-12 14.7
-
-[SANPUKU]
-2-6-12 36.1"></textarea>
-<button class="main" onclick="analyze()">分析する</button>
-<button class="sub" onclick="sample()">サンプル入力</button>
-<button class="sub" onclick="clearAll()">クリア</button>
+<div class="small">
+入力形式：馬番 オッズ<br>
+馬連だけは「2-12 14.7」の形でもOK
 </div>
 
-<div id="out" class="box result">ここに分析結果が出ます。</div>
+<h2>単勝</h2>
+<textarea id="tan" placeholder="例）
+4 3.0
+15 6.1
+10 8.5
+11 8.8"></textarea>
+
+<h2>複勝</h2>
+<textarea id="fuku" placeholder="例）
+16 2.3
+15 2.8
+10 2.9
+4 2.9"></textarea>
+
+<h2>馬連</h2>
+<textarea id="umaren" placeholder="例）
+4-10 10.1
+4-11 13.4
+4-16 17.3
+4-2 17.4"></textarea>
+
+<button onclick="run()">メジアン順位表を作る</button>
+
+<div id="out"></div>
 
 <script>
-function toNum(v){
- return parseFloat(String(v)
- .replace(/[０-９]/g,s=>String.fromCharCode(s.charCodeAt(0)-65248))
- .replace(/[．]/g,'.')
- .replace(/[^\d.]/g,''));
+function parseSingle(text){
+  return text.trim().split(/\n+/).map(line=>{
+    const p=line.trim().split(/\s+/);
+    if(p.length<2)return null;
+    return {horse:p[0], odds:parseFloat(p[1])};
+  }).filter(x=>x && !isNaN(x.odds)).sort((a,b)=>a.odds-b.odds);
 }
 
-function splitHorses(s){
- return String(s).replace(/－/g,'-').split('-').map(x=>x.trim()).filter(Boolean);
+function parseUmaren(text){
+  return text.trim().split(/\n+/).map(line=>{
+    const p=line.trim().split(/\s+/);
+    if(p.length<2)return null;
+
+    const pair=p[0];
+    const odds=parseFloat(p[1]);
+    if(isNaN(odds))return null;
+
+    let horses=pair.split("-");
+    let display=pair;
+
+    return {
+      horse: horses.length===2 ? horses[1] : pair,
+      pair: display,
+      odds: odds
+    };
+  }).filter(x=>x).sort((a,b)=>a.odds-b.odds);
 }
 
-function parseData(){
- const text=document.getElementById('odds').value.replace(/－/g,'-');
- const lines=text.split(/\n/).map(x=>x.trim()).filter(Boolean);
- let sec='tanfuku';
- const tan=[],fuku=[],umaren=[],san=[];
+function medianIndexes(n){
+  if(n===0)return [];
+  if(n%2===1)return [Math.floor(n/2)];
+  return [n/2-1,n/2];
+}
 
- for(const line of lines){
-  const u=line.toUpperCase();
+function rankTable(title, rows, type){
+  if(rows.length===0)return "";
 
-  if(u.includes('TANFUKU')||line.includes('単複')){sec='tanfuku';continue}
-  if(u.includes('TAN')||line.includes('単勝')){sec='tan';continue}
-  if(u.includes('FUKU')||line.includes('複勝')){sec='fuku';continue}
-  if(u.includes('UMAREN')||line.includes('馬連')||line.includes('馬複')){sec='umaren';continue}
-  if(u.includes('SANPUKU')||line.includes('三連複')){sec='san';continue}
+  const mids=medianIndexes(rows.length);
+  const medHorses=mids.map(i=> type==="umaren" ? rows[i].pair : rows[i].horse);
 
-  const p=line.split(/\s+/);
+  let html=`<div class="box"><h2>${title}</h2>`;
+  html+=`<div class="scroll"><table>`;
 
-  if(sec==='tanfuku' && p.length>=3){
-   tan.push({horse:p[0],odds:toNum(p[1])});
-   fuku.push({horse:p[0],odds:toNum(p[2])});
-   continue;
+  html+=`<tr><th>${title}</th>`;
+  rows.forEach((r,i)=>{
+    const cls=mids.includes(i)?"med":"";
+    html+=`<td class="${cls}">${type==="umaren" ? r.pair : r.horse}</td>`;
+  });
+  html+=`</tr>`;
+
+  html+=`<tr><th>オッズ</th>`;
+  rows.forEach((r,i)=>{
+    const cls=mids.includes(i)?"med":"";
+    html+=`<td class="${cls}">${r.odds}</td>`;
+  });
+  html+=`</tr>`;
+
+  html+=`</table></div>`;
+  html+=`<div class="note">メジアン：${medHorses.join("・")}</div>`;
+  html+=`</div>`;
+
+  return html;
+}
+
+function getMedianHorses(rows,type){
+  const mids=medianIndexes(rows.length);
+  let list=[];
+  mids.forEach(i=>{
+    if(type==="umaren"){
+      rows[i].pair.split("-").forEach(h=>list.push(h));
+    }else{
+      list.push(rows[i].horse);
+    }
+  });
+  return list;
+}
+
+function overlapBox(tan,fuku,uma){
+  const all=[
+    ...getMedianHorses(tan,"single"),
+    ...getMedianHorses(fuku,"single"),
+    ...getMedianHorses(uma,"umaren")
+  ];
+
+  const count={};
+  all.forEach(h=>count[h]=(count[h]||0)+1);
+
+  const ranked=Object.entries(count)
+    .filter(([h,c])=>c>=2)
+    .sort((a,b)=>b[1]-a[1]);
+
+  let html=`<div class="box"><h2>重複メジアン</h2>`;
+
+  if(ranked.length===0){
+    html+=`重複なし`;
+  }else{
+    ranked.forEach(([h,c])=>{
+      html+=`<div class="note">${h}：${c}回</div>`;
+    });
   }
 
-  if(p.length<2)continue;
-  const odds=toNum(p[1]);
-  if(!odds)continue;
-
-  if(sec==='tan')tan.push({horse:p[0],odds});
-  if(sec==='fuku')fuku.push({horse:p[0],odds});
-  if(sec==='umaren')umaren.push({pair:p[0],odds,hs:splitHorses(p[0])});
-  if(sec==='san')san.push({pair:p[0],odds,hs:splitHorses(p[0])});
- }
-
- tan.sort((a,b)=>a.odds-b.odds);
- fuku.sort((a,b)=>a.odds-b.odds);
- umaren.sort((a,b)=>a.odds-b.odds);
- san.sort((a,b)=>a.odds-b.odds);
- return {tan,fuku,umaren,san};
+  html+=`</div>`;
+  return html;
 }
 
-function medianHorse(arr){
- if(!arr.length)return '-';
- const n=arr.length;
- return n%2?arr[Math.floor(n/2)].horse:arr[n/2-1].horse+'・'+arr[n/2].horse;
-}
+function run(){
+  const tan=parseSingle(document.getElementById("tan").value);
+  const fuku=parseSingle(document.getElementById("fuku").value);
+  const uma=parseUmaren(document.getElementById("umaren").value);
 
-function medianPair(arr){
- if(!arr.length)return '-';
- const n=arr.length;
- return n%2?arr[Math.floor(n/2)].pair:arr[n/2-1].pair+'・'+arr[n/2].pair;
-}
+  let html="";
 
-function wallList(arr,t){
- const r=[];
- for(let i=0;i<arr.length-1;i++){
-  const d=arr[i+1].odds-arr[i].odds;
-  if(d>=t)r.push(`${arr[i].horse||arr[i].pair}(${arr[i].odds}) → ${arr[i+1].horse||arr[i+1].pair}(${arr[i+1].odds}) 差${d.toFixed(1)}`);
- }
- return r;
-}
+  html+=rankTable("馬連ランク",uma,"umaren");
+  html+=rankTable("単勝ランク",tan,"single");
+  html+=rankTable("複勝ランク",fuku,"single");
+  html+=overlapBox(tan,fuku,uma);
 
-function heat(n){
- if(n>=5)return '🔥激熱';
- if(n>=4)return '⭕熱';
- if(n>=3)return '△注意';
- return '';
-}
-
-function stars(n){
- if(n>=85)return '★★★★★';
- if(n>=70)return '★★★★';
- if(n>=55)return '★★★';
- if(n>=40)return '★★';
- return '★';
-}
-
-function countAppear(list){
- const c={};
- list.forEach((x,i)=>{
-  x.hs.forEach(h=>{
-   if(!c[h])c[h]={horse:h,count:0,pos:[],pairs:[]};
-   c[h].count++;
-   c[h].pos.push(i+1);
-   c[h].pairs.push(`${x.pair} ${x.odds}`);
-  });
- });
- return Object.values(c).sort((a,b)=>b.count-a.count || a.pos[0]-b.pos[0]);
-}
-
-function ootaniMark(n){
- if(n>=5)return '↑↑';
- if(n>=3)return '↑';
- if(n==2)return '→';
- return '↓';
-}
-
-function ootaniStyle(umaren){
- const a=countAppear(umaren);
- if(!a.length)return 'なし';
- return a.map((x,i)=>
-`${i+1}位 ${ootaniMark(x.count)}${x.horse}：${x.count}回
-出現順位：${x.pos.join('・')}位
-${x.pairs.map(p=>'  '+p).join('\n')}`
- ).join('\n\n');
-}
-
-function horsesFromText(s){
- return String(s).replace(/-/g,'・').split(/[・\s]+/).filter(x=>x&&x!=='-');
-}
-
-function analyze(){
- const race=document.getElementById('race').value||'レース名未入力';
- const {tan,fuku,umaren,san}=parseData();
-
- if(!tan.length){
-  document.getElementById('out').innerHTML='単勝データがありません。';
-  return;
- }
-
- const axis=tan[0].horse;
- const tan30=tan.filter(x=>x.odds<30).length;
- const tan10=tan.filter(x=>x.odds<10).length;
- const fuku3=fuku.filter(x=>x.odds<3).length;
- const fuku6=fuku.filter(x=>x.odds<6).length;
- const um1=umaren[0]?umaren[0].odds:0;
-
- let type='中穴';
- let reason=[];
- if(tan[0].odds<=3&&fuku[0]&&fuku[0].odds<=1.5){
-  type='超1番人気型';
-  reason.push('単勝1人気3倍以下＋複勝1.5倍以下');
- }
- if(um1>=9&&tan30>=10){
-  type='大穴/準大穴';
-  reason.push('馬連1人気9倍以上＋単勝30倍未満10頭以上');
- }else if(um1>=6){
-  type='中荒れ';
-  reason.push('馬連1人気6倍以上');
- }
- if(!reason.length)reason.push('馬連1人気は低め');
-
- const f6i=fuku.findIndex(x=>x.odds>=6);
- const f15i=fuku.findIndex(x=>x.odds>=15);
- const f6pre=f6i>=2?fuku.slice(f6i-2,f6i).map(x=>x.horse):[];
- const f15pre=f15i>=2?fuku.slice(f15i-2,f15i).map(x=>x.horse):[];
- const f15to6=fuku.filter(x=>x.odds>=6&&x.odds<15);
- const f15to6med=medianHorse(f15to6);
- const f6ToFav=[...f6pre,axis].filter((v,i,a)=>v&&a.indexOf(v)===i).join('・');
-
- const score={};
- function add(h,p){if(h&&h!=='-')score[h]=(score[h]||0)+p}
-
- [
-  medianHorse(tan),
-  medianHorse(tan.filter(x=>x.odds<=10)),
-  medianHorse(tan.filter(x=>x.odds>=10)),
-  medianHorse(tan.filter(x=>x.odds>=10&&x.odds<=20)),
-  medianHorse(tan.filter(x=>x.odds<=20)),
-  medianHorse(tan.filter(x=>x.odds<=99)),
-  medianHorse(tan.filter(x=>x.odds>=100)),
-  medianHorse(fuku),
-  medianHorse(fuku.filter(x=>x.odds<6)),
-  medianHorse(fuku.filter(x=>x.odds<=12)),
-  f15to6med
- ].join('・').split('・').forEach(h=>add(h,1));
-
- f6pre.forEach(h=>add(h,1));
- f15pre.forEach(h=>add(h,1));
-
- const ootani=countAppear(umaren);
- const ootaniAxis=ootani.length?ootani[0].horse:'-';
- const ootaniTop=ootani.filter(x=>x.count>=3).map(x=>x.horse);
- ootaniTop.forEach(h=>add(h,1));
-
- const ranking=Object.entries(score).sort((a,b)=>b[1]-a[1]);
- const tansho=ranking.filter(x=>x[1]>=3).map(x=>x[0]);
-
- const tan20=tan.filter(x=>x.odds<=20);
- let border='-';
- if(tan20.length>=2){
-  const n=tan20.length;
-  border=n%2===0?tan20[n/2-1].horse+'・'+tan20[n/2].horse:tan20[Math.floor(n/2)].horse;
- }
-
- let arere=30;
- if(um1>=9)arere+=25;
- if(tan30>=10)arere+=25;
- if(fuku6<=6)arere+=15;
- if(tan10>=6)arere+=10;
- if(arere>100)arere=100;
-
- const medianUmarenHorses=horsesFromText(medianPair(umaren));
- const umarenCase=[...new Set([...ootaniTop,...medianUmarenHorses])];
-
- const main=tansho[0]||ootaniAxis||axis;
- const subs=[...new Set([...ootaniTop,...f6pre,...f15pre,...medianUmarenHorses].filter(h=>h!==main))].slice(0,7);
-
- document.getElementById('out').innerHTML=
-`<pre>
-━━━━━━━━━━━━━━
-${race}
-━━━━━━━━━━━━━━
-
-【レース判定】
-${type}
-理由：${reason.join(' / ')}
-荒れ度：${arere}点 ${stars(arere)}
-馬連1人気：${um1||'-'}倍
-単勝30倍未満：${tan30}頭
-単勝10倍未満：${tan10}頭
-複勝3倍未満：${fuku3}頭
-複勝6倍未満：${fuku6}頭
-
-【単勝案件】
-${tansho.length?tansho.join('・'):'なし'}
-
-重複ランキング：
-${ranking.map((x,i)=>`${i+1}位 ${x[0]}：${x[1]}回 ${heat(x[1])}`).join('\n')||'なし'}
-
-【馬連 大谷式】
-大谷式本線軸：${ootaniAxis}
-
-${ootaniStyle(umaren)}
-
-【馬連案件】
-${umarenCase.length?umarenCase.join('・'):'なし'}
-※大谷式上位出現＋馬連メジアン重複を重視
-
-【メジアン】
-単勝全体：${medianHorse(tan)}
-単勝10倍以内：${medianHorse(tan.filter(x=>x.odds<=10))}
-単勝10倍以上：${medianHorse(tan.filter(x=>x.odds>=10))}
-単勝10〜20倍：${medianHorse(tan.filter(x=>x.odds>=10&&x.odds<=20))}
-単勝20倍以内：${medianHorse(tan.filter(x=>x.odds<=20))}
-単勝99倍以内：${medianHorse(tan.filter(x=>x.odds<=99))}
-単勝100倍以上：${medianHorse(tan.filter(x=>x.odds>=100))}
-
-複勝全体：${medianHorse(fuku)}
-複勝6倍未満：${medianHorse(fuku.filter(x=>x.odds<6))}
-複勝12倍以内：${medianHorse(fuku.filter(x=>x.odds<=12))}
-
-馬連メジアン：${medianPair(umaren)}
-三連複メジアン：${medianPair(san)}
-
-【境目ペア警告】
-単勝20倍以内中央：${border}
-※このペアの1-2着、2-3着に注意
-
-【複勝壁】
-複勝6倍壁前2頭：${f6pre.join('・')||'なし'}
-複勝15倍壁前2頭：${f15pre.join('・')||'なし'}
-15壁→6倍以上メジアン：${f15to6med}
-6倍壁前2頭→1人気：${f6ToFav||'なし'}
-
-【壁】
-単勝壁：
-${wallList(tan,8).join('\n')||'なし'}
-
-馬連壁：
-${wallList(umaren,8).join('\n')||'なし'}
-
-【10倍未満6頭警報】
-${tan10>=6?'発動：7人気・8人気も注意':'なし'}
-
-【チャッピー推奨】
-軸候補：${main}
-相手候補：${subs.join('・')||'-'}
-
-馬連 大谷式：
-${subs.map(h=>main+'-'+h).join(' / ')||'-'}
-
-ワイド：
-${subs.slice(0,4).map(h=>main+'-'+h).join(' / ')||'-'}
-
-馬単：
-${subs.slice(0,3).map(h=>main+'→'+h).join(' / ')||'-'}
-
-三連複：
-${subs.length>=2?subs.slice(0,5).map((h,i)=>main+'-'+h+'-'+subs[(i+1)%subs.length]).join(' / '):'-'}
-
-三連単：
-${subs.length>=2?subs.slice(0,3).map((h,i)=>main+'→'+h+'→'+subs[(i+1)%subs.length]).join(' / '):'-'}
-</pre>`;
-}
-
-function sample(){
-document.getElementById('race').value='大谷式テスト';
-document.getElementById('odds').value=`[TANFUKU]
-12 4.0 1.9
-2 7.0 2.2
-9 7.0 3.5
-6 7.4 2.8
-8 7.6 3.4
-10 8.2 4.0
-7 10.2 3.9
-3 11.5 4.3
-4 17.9 3.9
-1 27.0 7.1
-5 33.7 7.5
-11 40.0 5.0
-
-[UMAREN]
-2-12 14.7
-9-12 15.8
-2-6 19.6
-6-12 20.3
-3-12 21.6
-2-9 22.4
-8-12 22.8
-7-12 24.9
-2-8 25.1
-10-12 26.1
-
-[SANPUKU]
-2-6-12 36.1
-2-9-12 38.0
-2-8-12 44.3
-6-9-12 47.8
-2-6-8 49.4
-2-3-6 54.3
-2-6-9 55.0
-2-3-12 55.1
-2-10-12 59.5
-2-7-12 61.1`;
-analyze();
-}
-
-function clearAll(){
-document.getElementById('race').value='';
-document.getElementById('odds').value='';
-document.getElementById('out').innerHTML='ここに分析結果が出ます。';
+  document.getElementById("out").innerHTML=html;
 }
 </script>
 
