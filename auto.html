@@ -116,7 +116,7 @@ function scoreCars(cars,nisha,san){
 }
 
 function analyze(){
- const race=race=document.getElementById('race').value||'レース名未入力';
+ const raceName=document.getElementById('race').value||'レース名未入力';
  const {tan,nisha,san}=parseData();
  if(!tan.length){out.innerHTML='単勝データがありません';return}
 
@@ -230,7 +230,7 @@ function analyze(){
  }
 
  out.innerHTML=
- '<h2>'+race+'</h2>'+
+ '<h2>'+raceName+'</h2>'+
  '<div class="alert"><div class="yellow">📊 レース判定</div>'+raceType+'<br>単勝10倍以内：'+under10.length+'車<br>'+under10.join('・')+'<br>直後2車：'+(next2.join('・')||'なし')+'</div>'+
  '<div class="alert"><div class="green">🔥 V7完結モード判定</div>'+modeText+'<br>完結候補：'+(completeCars.join('・')||'なし')+'<br>最大移動数：'+maxMove+'<br>ボトム警戒：'+(bottomStrong?'あり':'なし')+'<br>メジアン外警戒：'+(medOutside?'あり':'なし')+'</div>'+
  '<div class="alert"><div class="blue">🔵 危険な1番人気診断</div>1番人気：'+axis+'<br>3連複15倍以内：'+san15.length+'組<br>初消滅：'+firstOut+'<br>判定：'+safe+'</div>'+
