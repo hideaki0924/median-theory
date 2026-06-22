@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 オート版V5</title>
+<title>チャッピー神予想 オート版V5.1</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;background:#07101f;color:#fff;padding:14px;margin:0;font-size:20px}
 h1{color:#ffd66b;font-size:32px}
@@ -20,28 +20,27 @@ td{border:1px solid #33415c;padding:12px;text-align:center;white-space:nowrap}
 .red{color:#ff4d4d;font-size:28px;font-weight:bold}
 .yellow{color:#ffd966;font-size:28px;font-weight:bold}
 .green{color:#53d769;font-size:28px;font-weight:bold}
-.purple{color:#d88cff;font-size:28px;font-weight:bold}
 pre{white-space:pre-wrap;line-height:1.75;font-size:22px;font-weight:bold}
 </style>
 </head>
 <body>
 
-<h1>🏍️ チャッピー神予想<br>オート版V5</h1>
+<h1>🏍️ チャッピー神予想<br>オート版V5.1</h1>
 
 <div class="box">
-<input id="race" placeholder="例：浜松3R">
+<input id="race" placeholder="例：浜松1R">
 <textarea id="odds" placeholder="[TAN]
-7 2.0
-6 2.9
-8 3.0
+6 1.6
+8 4.3
+5 4.9
 
 [NISHA]
-7-8 3.0
-6-7 3.3
+5-6 1.4
+6-8 4.4
 
 [SANREN]
-6-7-8 2.2
-4-7-8 5.4"></textarea>
+5-6-8 4.2
+3-5-6 5.1"></textarea>
 <button onclick="analyze()">分析する</button>
 <button onclick="sample()">サンプル</button>
 </div>
@@ -50,16 +49,19 @@ pre{white-space:pre-wrap;line-height:1.75;font-size:22px;font-weight:bold}
 
 <script>
 function norm(s){
-  return String(s).replace(/[０-９]/g,x=>String.fromCharCode(x.charCodeAt(0)-65248)).replace(/－/g,'-').replace(/=/g,'-');
+  return String(s)
+  .replace(/[０-９]/g,x=>String.fromCharCode(x.charCodeAt(0)-65248))
+  .replace(/－/g,'-')
+  .replace(/=/g,'-');
 }
 function toNum(v){return parseFloat(norm(v).replace(/[^\d.]/g,''));}
 function splitH(s){return norm(s).split('-').map(x=>x.trim()).filter(Boolean);}
+function uniq(arr){return arr.filter((v,i,a)=>v&&a.indexOf(v)===i);}
 function med(arr){
   if(!arr.length)return '-';
   const n=arr.length;
   return n%2 ? arr[Math.floor(n/2)] : arr[n/2-1]+'・'+arr[n/2];
 }
-function uniq(arr){return arr.filter((v,i,a)=>v&&a.indexOf(v)===i);}
 
 function parseData(){
   const lines=norm(document.getElementById('odds').value).split(/\n/).map(x=>x.trim()).filter(Boolean);
@@ -86,10 +88,13 @@ function parseData(){
 
 function otani(tan,nisha){
   const axis=tan[0]?.car||'';
-  const cars=[axis], odds=['-'];
+  const cars=[axis],odds=['-'];
   nisha.filter(x=>x.hs.includes(axis)).forEach(x=>{
     const other=x.hs.find(h=>h!==axis);
-    if(other&&!cars.includes(other)){cars.push(other);odds.push(x.odds);}
+    if(other&&!cars.includes(other)){
+      cars.push(other);
+      odds.push(x.odds);
+    }
   });
   return {axis,cars,odds};
 }
@@ -125,7 +130,10 @@ function analyze(){
   const san15=san.filter(x=>x.odds<=15);
   let firstOut='15倍以内すべて入り';
   for(let i=0;i<san15.length;i++){
-    if(!san15[i].hs.includes(axis)){firstOut=(i+1)+'位で消滅';break;}
+    if(!san15[i].hs.includes(axis)){
+      firstOut=(i+1)+'位で消滅';
+      break;
+    }
   }
 
   let safe='🔵超有力';
@@ -134,8 +142,9 @@ function analyze(){
     safe=n<=5?'🔴危険':n<=10?'🟡注意':'🟢有力';
   }
 
-  const isDangerAxis=safe.includes('危険');
-  const isCautionAxis=safe.includes('注意');
+  const isSuper=safe.includes('超有力');
+  const isDanger=safe.includes('危険');
+  const isCaution=safe.includes('注意');
 
   const tanRank={}; tan.forEach((x,i)=>tanRank[x.car]=i+1);
   const niRank={}; o.cars.forEach((c,i)=>niRank[c]=i+1);
@@ -177,12 +186,18 @@ function analyze(){
   }).map(x=>x.car);
 
   let A=dupCars.slice(0,2);
+
+  if(isSuper){
+    A=[axis,...A.filter(c=>c!==axis)];
+  }
+
   if(A.length<2){
     under10.forEach(c=>{if(!A.includes(c)&&A.length<2)A.push(c);});
   }
   if(A.length<2){
     moves.forEach(x=>{if(!A.includes(x.car)&&A.length<2)A.push(x.car);});
   }
+  A=uniq(A).slice(0,3);
 
   let C=bottomCars.filter(c=>!A.includes(c)).slice(0,2);
   if(!C.length){
@@ -191,37 +206,55 @@ function analyze(){
     });
   }
 
-  let firstA=A.slice();
-  if(isDangerAxis||isCautionAxis){
-    firstA=firstA.filter(c=>c!==axis);
-  }
-  if(!firstA.length){
-    moves.forEach(x=>{if(x.car!==axis&&!firstA.includes(x.car))firstA.push(x.car);});
-  }
-  firstA=firstA.slice(0,2);
+  let firstA=[];
+  let secondA=uniq(A.slice());
 
-  const secondA=A.slice();
+  if(isSuper){
+    firstA=[axis];
+    secondA=uniq(A.filter(c=>c!==axis)).slice(0,3);
+  }else if(isCaution){
+    firstA=A.filter(c=>c!==axis);
+    secondA=uniq([axis,...A.filter(c=>c!==axis)]).slice(0,3);
+  }else if(isDanger){
+    firstA=A.filter(c=>c!==axis);
+    secondA=uniq([...A.filter(c=>c!==axis),axis]).slice(0,3);
+  }else{
+    firstA=A.slice(0,2);
+  }
+
+  if(!firstA.length){
+    moves.forEach(x=>{
+      if(x.car!==axis&&!firstA.includes(x.car))firstA.push(x.car);
+    });
+  }
+
+  firstA=uniq(firstA).slice(0,2);
 
   const twoMain=[];
   firstA.forEach(a=>{
     secondA.forEach(b=>{
-      if(a!==b&&twoMain.length<6)twoMain.push(a+'→'+b);
+      if(a!==b&&twoMain.length<8)twoMain.push(a+'→'+b);
     });
   });
 
   const twoHole=[];
   firstA.forEach(a=>{
-    C.forEach(c=>{if(a!==c)twoHole.push(a+'→'+c);});
+    C.forEach(c=>{
+      if(a!==c)twoHole.push(a+'→'+c);
+    });
   });
-  if(isDangerAxis||isCautionAxis){
-    firstA.forEach(a=>{if(a!==axis)twoHole.push(a+'→'+axis);});
+
+  if(isCaution||isDanger){
+    firstA.forEach(a=>{
+      if(a!==axis)twoHole.push(a+'→'+axis);
+    });
   }
 
   const triMain=[];
   firstA.forEach(a=>{
     secondA.forEach(b=>{
       C.forEach(c=>{
-        if(a!==b&&b!==c&&a!==c&&triMain.length<8){
+        if(a!==b&&b!==c&&a!==c&&triMain.length<10){
           triMain.push(a+'-'+b+'-'+c);
         }
       });
@@ -232,13 +265,14 @@ function analyze(){
   firstA.forEach(a=>{
     C.forEach(c=>{
       secondA.forEach(b=>{
-        if(a!==b&&b!==c&&a!==c&&triHole.length<8){
+        if(a!==b&&b!==c&&a!==c&&triHole.length<10){
           triHole.push(a+'-'+c+'-'+b);
         }
       });
     });
   });
-  if(isDangerAxis||isCautionAxis){
+
+  if(isCaution||isDanger){
     firstA.forEach(a=>{
       secondA.forEach(b=>{
         if(a!==b&&a!==axis&&b!==axis){
@@ -263,9 +297,8 @@ function analyze(){
   '\n2車複10倍以内：'+mNi10+
   '\n2車複10倍以上：'+mNiOver+
   '\n\n🔥【メジアン重複】\n'+(dup.join('・')||'なし')+
-  '\n\n⚫【ボトム値】\n'+bottom+
-  '\n\n🟢【本線車 A】\n'+(A.join('・')||'なし')+
   '\n\n⚫【ボトム穴 C】\n'+(C.join('・')||'なし')+
+  '\n\n🟢【本線車 A】\n'+(A.join('・')||'なし')+
   '\n\n🏍️【本線2車単】\n'+(twoMain.join('\n')||'なし')+
   '\n\n⚫【穴2車単】\n'+(twoHole.join('\n')||'なし')+
   '\n\n🏍️【本線3連単】\n'+(triMain.join('\n')||'なし')+
@@ -274,8 +307,8 @@ function analyze(){
 }
 
 function sample(){
-race.value='浜松3R';
-odds.value='[TAN]\n7 2.0\n6 2.9\n8 3.0\n2 9.4\n4 14.1\n1 15.1\n3 32.4\n\n[NISHA]\n7-8 3.0\n6-7 3.3\n6-8 4.0\n4-7 11.6\n4-8 15.2\n4-6 18.3\n2-6 22.1\n2-7 22.9\n3-7 27.8\n2-8 30.5\n3-8 33.7\n1-7 35.6\n3-6 41.3\n1-8 42.7\n2-3 61.0\n3-4 67.4\n2-4 71.2\n1-6 75.4\n1-2 106.8\n1-3 106.8\n\n[SANREN]\n6-7-8 2.2\n4-7-8 5.4\n4-6-7 8.4\n4-6-8 12.0\n2-7-8 16.6\n3-7-8 18.8\n2-6-7 20.3\n3-6-7 21.9\n1-7-8 23.8\n3-6-8 29.9';
+race.value='浜松1R';
+odds.value='[TAN]\n6 1.6\n8 4.3\n5 4.9\n4 7.2\n3 7.8\n1 16.0\n7 24.6\n2 40.0\n\n[NISHA]\n5-6 1.4\n6-8 4.4\n3-6 5.4\n6-7 9.5\n4-6 15.2\n5-8 26.3\n3-5 49.1\n3-8 49.1\n4-8 51.8\n4-5 61.2\n3-4 90.7\n7-8 107.2\n5-7 138.7\n3-7 162.6\n4-7 214.4\n2-6 224.6\n1-6 277.5\n1-8 362.9\n2-8 428.9\n2-4 471.8\n\n[SANREN]\n5-6-8 4.2\n3-5-6 5.1\n3-6-8 5.2\n6-7-8 8.5\n4-5-6 8.8\n4-6-8 9.2\n3-4-6 12.7\n5-6-7 14.7\n3-5-8 28.4\n3-6-7 30.5';
 analyze();
 }
 </script>
