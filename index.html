@@ -330,6 +330,38 @@ axisB.split('・').forEach(function(a){
  targetA.split('・').forEach(function(b){addBuyPair(a,b)});
  targetB.split('・').forEach(function(b){addBuyPair(a,b)});
 });
+ const fukuAnaMap = {};
+
+function addFukuAna(v){
+ String(v || '').split('・').forEach(function(x){
+  if(x && x !== '-'){
+   fukuAnaMap[x] = (fukuAnaMap[x] || 0) + 1;
+  }
+ });
+}
+
+f15pre.forEach(addFukuAna);
+addFukuAna(f6entryHorse);
+addFukuAna(f15to6med);
+
+const anaArr = Object.entries(fukuAnaMap)
+ .filter(function(x){return x[1] >= 2})
+ .sort(function(a,b){return b[1] - a[1]})
+ .map(function(x){return x[0]});
+
+const ana1 = Object.entries(fukuAnaMap)
+ .filter(function(x){return x[1] >= 2})
+ .sort(function(a,b){return b[1] - a[1]})
+ .map(function(x){return x[0] + '(' + x[1] + '回)'})
+ .join('・') || '-';
+
+axisA.split('・').forEach(function(a){
+ anaArr.forEach(function(b){addBuyPair(a,b)});
+});
+
+axisB.split('・').forEach(function(a){
+ anaArr.forEach(function(b){addBuyPair(a,b)});
+});
 
  document.getElementById('out').innerHTML=
  tableBook(tan,fuku,umaren)+
@@ -379,11 +411,13 @@ type+'\n'+
 '馬連壁：\n'+(wallList(umaren,8).join('\n')||'なし')+'\n\n'+
 '【10倍未満6頭警報】\n'+
 (tan10>=6?'発動：7人気・8人気も注意':'なし')+'\n\n'+
+ 
 '【チャッピー推奨】\n'+
 '軸① 単勝10倍以内メジアン：'+axisA+'\n'+
 '軸② 複勝6倍壁前2頭→1人気：'+axisB+'\n'+
 '相手① 単勝99倍以内メジアン：'+targetA+'\n'+
 '相手② 境目ペア：'+targetB+'\n\n'+
+'穴① 複勝超重複案件：'+ana1+'\n\n'+
 '【推奨 馬連】\n'+
 (buyPairs.join(' / ')||'-')+'\n\n'+
 '【推奨 ワイド】\n'+
