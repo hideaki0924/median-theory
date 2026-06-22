@@ -213,16 +213,7 @@ if(isDangerAxis || isCautionAxis){
 
 
 
-// 危険な1番人気は3着候補にも入れる
-if(isDangerAxis || isCautionAxis){
-  firstA.forEach(a=>{
-    secondA.forEach(b=>{
-      if(a!==b && a!==axis && b!==axis){
-        triHole.push(a+'-'+b+'-'+axis);
-      }
-    });
-  });
-}
+
 
  const triMain=[];
  if(A.length>=2&&C.length){
@@ -239,7 +230,16 @@ if(isDangerAxis || isCautionAxis){
      triHole.push(A[1]+'-'+c+'-'+A[0]);
    });
  }
-
+// 危険な1番人気は3着候補にも入れる
+if(isDangerAxis || isCautionAxis){
+  firstA.forEach(a=>{
+    secondA.forEach(b=>{
+      if(a!==b && a!==axis && b!==axis){
+        triHole.push(a+'-'+b+'-'+axis);
+      }
+    });
+  });
+}
  out.innerHTML=
  '<h2>'+race+'</h2>'+
  '<div class="alert"><div class="yellow">📊 レース判定</div>'+raceType+'<br>単勝10倍以内：'+under10.length+'車<br>'+under10.join('・')+'</div>'+
