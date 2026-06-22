@@ -26,7 +26,7 @@ pre{white-space:pre-wrap;line-height:1.75;font-size:22px;font-weight:bold}
 </head>
 <body>
 
-<h1>🏍️ チャッピー神予想<br>オート版V3</h1>
+<h1>🏍️ チャッピー神予想<br>オート版V4</h1>
 
 <div class="box">
 <input id="race" placeholder="例：浜松3R">
@@ -211,27 +211,7 @@ if(isDangerAxis || isCautionAxis){
   });
 }
 
-const triMain=[];
-firstA.forEach(a=>{
-  secondA.forEach(b=>{
-    C.forEach(c=>{
-      if(a!==b && b!==c && a!==c && triMain.length<8){
-        triMain.push(a+'-'+b+'-'+c);
-      }
-    });
-  });
-});
 
-const triHole=[];
-firstA.forEach(a=>{
-  C.forEach(c=>{
-    secondA.forEach(b=>{
-      if(a!==b && b!==c && a!==c && triHole.length<8){
-        triHole.push(a+'-'+c+'-'+b);
-      }
-    });
-  });
-});
 
 // 危険な1番人気は3着候補にも入れる
 if(isDangerAxis || isCautionAxis){
