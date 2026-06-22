@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 オート版V4</title>
+<title>チャッピー神予想 オート版V5</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;background:#07101f;color:#fff;padding:14px;margin:0;font-size:20px}
 h1{color:#ffd66b;font-size:32px}
@@ -19,12 +19,14 @@ td{border:1px solid #33415c;padding:12px;text-align:center;white-space:nowrap}
 .blue{color:#4da3ff;font-size:28px;font-weight:bold}
 .red{color:#ff4d4d;font-size:28px;font-weight:bold}
 .yellow{color:#ffd966;font-size:28px;font-weight:bold}
+.green{color:#53d769;font-size:28px;font-weight:bold}
+.purple{color:#d88cff;font-size:28px;font-weight:bold}
 pre{white-space:pre-wrap;line-height:1.75;font-size:22px;font-weight:bold}
 </style>
 </head>
 <body>
 
-<h1>🏍️ チャッピー神予想<br>オート版V4</h1>
+<h1>🏍️ チャッピー神予想<br>オート版V5</h1>
 
 <div class="box">
 <input id="race" placeholder="例：浜松3R">
@@ -48,10 +50,7 @@ pre{white-space:pre-wrap;line-height:1.75;font-size:22px;font-weight:bold}
 
 <script>
 function norm(s){
-  return String(s)
-    .replace(/[０-９]/g,x=>String.fromCharCode(x.charCodeAt(0)-65248))
-    .replace(/－/g,'-')
-    .replace(/=/g,'-');
+  return String(s).replace(/[０-９]/g,x=>String.fromCharCode(x.charCodeAt(0)-65248)).replace(/－/g,'-').replace(/=/g,'-');
 }
 function toNum(v){return parseFloat(norm(v).replace(/[^\d.]/g,''));}
 function splitH(s){return norm(s).split('-').map(x=>x.trim()).filter(Boolean);}
@@ -65,7 +64,7 @@ function uniq(arr){return arr.filter((v,i,a)=>v&&a.indexOf(v)===i);}
 function parseData(){
   const lines=norm(document.getElementById('odds').value).split(/\n/).map(x=>x.trim()).filter(Boolean);
   let sec='tan';
-  const tan=[], nisha=[], san=[];
+  const tan=[],nisha=[],san=[];
   for(const line of lines){
     const u=line.toUpperCase();
     if(u.includes('TAN')||line.includes('単勝')){sec='tan';continue;}
@@ -90,10 +89,7 @@ function otani(tan,nisha){
   const cars=[axis], odds=['-'];
   nisha.filter(x=>x.hs.includes(axis)).forEach(x=>{
     const other=x.hs.find(h=>h!==axis);
-    if(other&&!cars.includes(other)){
-      cars.push(other);
-      odds.push(x.odds);
-    }
+    if(other&&!cars.includes(other)){cars.push(other);odds.push(x.odds);}
   });
   return {axis,cars,odds};
 }
@@ -129,10 +125,7 @@ function analyze(){
   const san15=san.filter(x=>x.odds<=15);
   let firstOut='15倍以内すべて入り';
   for(let i=0;i<san15.length;i++){
-    if(!san15[i].hs.includes(axis)){
-      firstOut=(i+1)+'位で消滅';
-      break;
-    }
+    if(!san15[i].hs.includes(axis)){firstOut=(i+1)+'位で消滅';break;}
   }
 
   let safe='🔵超有力';
@@ -144,10 +137,8 @@ function analyze(){
   const isDangerAxis=safe.includes('危険');
   const isCautionAxis=safe.includes('注意');
 
-  const tanRank={};
-  tan.forEach((x,i)=>tanRank[x.car]=i+1);
-  const niRank={};
-  o.cars.forEach((c,i)=>niRank[c]=i+1);
+  const tanRank={}; tan.forEach((x,i)=>tanRank[x.car]=i+1);
+  const niRank={}; o.cars.forEach((c,i)=>niRank[c]=i+1);
 
   const moves=Object.keys(tanRank)
     .filter(c=>niRank[c])
@@ -167,9 +158,7 @@ function analyze(){
 
   const medText=[mTanAll,mTan10,mTanOver,mNiAll,mNi10,mNiOver].join('・').split('・');
   const count={};
-  medText.forEach(c=>{
-    if(c&&c!=='-')count[c]=(count[c]||0)+1;
-  });
+  medText.forEach(c=>{if(c&&c!=='-')count[c]=(count[c]||0)+1;});
 
   const dup=Object.entries(count)
     .filter(x=>x[1]>=2)
@@ -189,14 +178,10 @@ function analyze(){
 
   let A=dupCars.slice(0,2);
   if(A.length<2){
-    under10.forEach(c=>{
-      if(!A.includes(c)&&A.length<2)A.push(c);
-    });
+    under10.forEach(c=>{if(!A.includes(c)&&A.length<2)A.push(c);});
   }
   if(A.length<2){
-    moves.forEach(x=>{
-      if(!A.includes(x.car)&&A.length<2)A.push(x.car);
-    });
+    moves.forEach(x=>{if(!A.includes(x.car)&&A.length<2)A.push(x.car);});
   }
 
   let C=bottomCars.filter(c=>!A.includes(c)).slice(0,2);
@@ -207,45 +192,36 @@ function analyze(){
   }
 
   let firstA=A.slice();
-
-  if(isDangerAxis || isCautionAxis){
+  if(isDangerAxis||isCautionAxis){
     firstA=firstA.filter(c=>c!==axis);
   }
-
   if(!firstA.length){
-    moves.forEach(x=>{
-      if(x.car!==axis&&!firstA.includes(x.car))firstA.push(x.car);
-    });
+    moves.forEach(x=>{if(x.car!==axis&&!firstA.includes(x.car))firstA.push(x.car);});
   }
-
   firstA=firstA.slice(0,2);
+
   const secondA=A.slice();
 
   const twoMain=[];
   firstA.forEach(a=>{
     secondA.forEach(b=>{
-      if(a!==b && twoMain.length<6)twoMain.push(a+'→'+b);
+      if(a!==b&&twoMain.length<6)twoMain.push(a+'→'+b);
     });
   });
 
   const twoHole=[];
   firstA.forEach(a=>{
-    C.forEach(c=>{
-      if(a!==c)twoHole.push(a+'→'+c);
-    });
+    C.forEach(c=>{if(a!==c)twoHole.push(a+'→'+c);});
   });
-
-  if(isDangerAxis || isCautionAxis){
-    firstA.forEach(a=>{
-      if(a!==axis)twoHole.push(a+'→'+axis);
-    });
+  if(isDangerAxis||isCautionAxis){
+    firstA.forEach(a=>{if(a!==axis)twoHole.push(a+'→'+axis);});
   }
 
   const triMain=[];
   firstA.forEach(a=>{
     secondA.forEach(b=>{
       C.forEach(c=>{
-        if(a!==b && b!==c && a!==c && triMain.length<8){
+        if(a!==b&&b!==c&&a!==c&&triMain.length<8){
           triMain.push(a+'-'+b+'-'+c);
         }
       });
@@ -256,17 +232,16 @@ function analyze(){
   firstA.forEach(a=>{
     C.forEach(c=>{
       secondA.forEach(b=>{
-        if(a!==b && b!==c && a!==c && triHole.length<8){
+        if(a!==b&&b!==c&&a!==c&&triHole.length<8){
           triHole.push(a+'-'+c+'-'+b);
         }
       });
     });
   });
-
-  if(isDangerAxis || isCautionAxis){
+  if(isDangerAxis||isCautionAxis){
     firstA.forEach(a=>{
       secondA.forEach(b=>{
-        if(a!==b && a!==axis && b!==axis){
+        if(a!==b&&a!==axis&&b!==axis){
           triHole.push(a+'-'+b+'-'+axis);
         }
       });
