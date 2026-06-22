@@ -291,7 +291,10 @@ function analyze(){
 '【単勝案件】\n'+(tansho.length?tansho.join('・'):'なし')+'\n\n'+
 '重複ランキング：\n'+(ranking.map((x,i)=>(i+1)+'位 '+x[0]+'：'+x[1].pt+'回 '+heat(x[1].pt)).join('\n')||'なし')+'\n\n'+
 '【超穴警報ランキング】\n'+
-(ultraRank.map((x,i)=>(i+1)+'位 '+x[0]+'：'+x[1].pt+'点 / '+x[1].labels.join('・')).join('\n')||'なし')+'\n\n'+
+(ultraRank.map((x,i)=>{
+ let mark=x[1].pt>=8?'🔥':x[1].pt>=6?'🟣':x[1].pt>=4?'🟡':'⚪';
+ return mark+' '+(i+1)+'位 '+x[0]+' : '+x[1].pt+'点 / '+x[1].labels.join('・');
+}).join('\n')||'なし')+
 '【メジアン】\n'+
 '単勝全体：'+medianHorse(tan)+'\n'+
 '単勝10倍以内：'+medianHorse(tan.filter(x=>x.odds<=10))+'\n'+
