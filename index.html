@@ -292,15 +292,11 @@ function analyze(){
 '重複ランキング：\n'+(ranking.map((x,i)=>(i+1)+'位 '+x[0]+'：'+x[1].pt+'回 '+heat(x[1].pt)).join('\n')||'なし')+'\n\n'+
 '【超穴警報ランキング】\n'+
 (ultraRank.map((x,i)=>{
- let color=
-  x[1].pt>=8 ? '#ff4444' :
-  x[1].pt>=6 ? '#d88cff' :
-  x[1].pt>=4 ? '#ffd700' :
-  '#ffffff';
+ let cls=x[1].pt>=8?'red':x[1].pt>=6?'purple':x[1].pt>=4?'yellow':'';
 
- return '<span style="font-size:30px;font-weight:bold;color:'+color+';">'
- +(i+1)+'位 '+x[0]+' : '+x[1].pt+'点 / '+x[1].labels.join('・')
- +'</span>';
+return '<span class="'+cls+'">'+
+(i+1)+'位 '+x[0]+' : '+x[1].pt+'点 / '+x[1].labels.join('・')+
+'</span>';
 }).join('<br>')||'なし')+'\n\n'+
 
 '【メジアン】\n'+
