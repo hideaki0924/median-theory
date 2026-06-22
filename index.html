@@ -330,6 +330,60 @@ axisB.split('・').forEach(function(a){
  targetA.split('・').forEach(function(b){addBuyPair(a,b)});
  targetB.split('・').forEach(function(b){addBuyPair(a,b)});
 });
+ const tanUnder10Arr = tan.filter(function(x){return x.odds < 10}).map(function(x){return x.horse});
+
+let um1Judge = '-';
+if(um1){
+ if(um1 < 4) um1Judge = '堅め：馬複1人気4倍未満';
+ else if(um1 < 9) um1Judge = '中荒れ：馬複1人気4〜9倍';
+ else um1Judge = '大荒れ注意：馬複1人気9倍以上';
+}
+
+const f10i = fuku.findIndex(function(x){return x.odds >= 10});
+const f10pre = f10i >= 2 ? fuku.slice(f10i-2, f10i).map(function(x){return x.horse}) : [];
+const f10afterHorse = f10i >= 0 ? fuku[f10i].horse : '-';
+
+let bookHoleRaw = [];
+f10pre.forEach(function(h){bookHoleRaw.push(h)});
+if(f10afterHorse && f10afterHorse !== '-') bookHoleRaw.push(f10afterHorse);
+
+bookHoleRaw = bookHoleRaw.filter(function(v,i,a){return a.indexOf(v) === i});
+
+const bookHoleArr = bookHoleRaw.filter(function(h){
+ const item = fuku.find(function(x){return x.horse === h});
+ return item && item.odds <= 20;
+});
+
+const bookCutArr = bookHoleRaw.filter(function(h){
+ const item = fuku.find(function(x){return x.horse === h});
+ return item && item.odds > 20;
+});
+
+const tanGapAlerts = [];
+let tanGapHorses = [];
+
+for(let i=0;i<tan.length-1;i++){
+ const ratio = tan[i+1].odds / tan[i].odds;
+ if(ratio >= 2){
+  const before2 = tan.slice(Math.max(0,i-1), i+1).map(function(x){return x.horse});
+  before2.forEach(function(h){
+   if(!tanGapHorses.includes(h)) tanGapHorses.push(h);
+  });
+  tanGapAlerts.push(
+   tan[i].horse+'('+tan[i].odds+') → '+tan[i+1].horse+'('+tan[i+1].odds+') 乖離'+ratio.toFixed(2)+'倍 / 注目 '+before2.join('・')
+  );
+ }
+}
+
+axisA.split('・').forEach(function(a){
+ bookHoleArr.forEach(function(b){addBuyPair(a,b)});
+ tanGapHorses.forEach(function(b){addBuyPair(a,b)});
+});
+
+axisB.split('・').forEach(function(a){
+ bookHoleArr.forEach(function(b){addBuyPair(a,b)});
+ tanGapHorses.forEach(function(b){addBuyPair(a,b)});
+});
  const fukuAnaMap = {};
 
 function addFukuAna(v){
@@ -411,7 +465,11 @@ type+'\n'+
 '馬連壁：\n'+(wallList(umaren,8).join('\n')||'なし')+'\n\n'+
 '【10倍未満6頭警報】\n'+
 (tan10>=6?'発動：7人気・8人気も注意':'なし')+'\n\n'+
- 
+ '【本ルール追加】\n'+
+'単勝10倍未満馬：'+(tanUnder10Arr.join('・')||'なし')+'\n'+
+'馬複1人気判定：'+um1Judge+'\n'+
+'複勝10倍壁前2頭：'+(f10pre.join('・')||'なし')+'\n'+
+'複勝10倍壁直後馬：'+f10afterHorse+'\n\n'+
 '【チャッピー推奨】\n'+
 '軸① 単勝10倍以内メジアン：'+axisA+'\n'+
 '軸② 複勝6倍壁前2頭→1人気：'+axisB+'\n'+
