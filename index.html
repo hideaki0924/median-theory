@@ -292,9 +292,17 @@ function analyze(){
 '重複ランキング：\n'+(ranking.map((x,i)=>(i+1)+'位 '+x[0]+'：'+x[1].pt+'回 '+heat(x[1].pt)).join('\n')||'なし')+'\n\n'+
 '【超穴警報ランキング】\n'+
 (ultraRank.map((x,i)=>{
- let mark=x[1].pt>=8?'🔥':x[1].pt>=6?'🟣':x[1].pt>=4?'🟡':'⚪';
- return mark+' '+(i+1)+'位 '+x[0]+' : '+x[1].pt+'点 / '+x[1].labels.join('・');
-}).join('\n')||'なし')+
+ let color=
+  x[1].pt>=8 ? '#ff4444' :
+  x[1].pt>=6 ? '#d88cff' :
+  x[1].pt>=4 ? '#ffd700' :
+  '#ffffff';
+
+ return '<span style="font-size:30px;font-weight:bold;color:'+color+';">'
+ +(i+1)+'位 '+x[0]+' : '+x[1].pt+'点 / '+x[1].labels.join('・')
+ +'</span>';
+}).join('<br>')||'なし')+'\n\n'+
+
 '【メジアン】\n'+
 '単勝全体：'+medianHorse(tan)+'\n'+
 '単勝10倍以内：'+medianHorse(tan.filter(x=>x.odds<=10))+'\n'+
