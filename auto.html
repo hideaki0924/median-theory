@@ -62,7 +62,8 @@ function parseData(){
   const u=line.toUpperCase();
   if(u.includes('TAN')||line.includes('単勝')){sec='tan';continue}
   if(u.includes('NISHA')||line.includes('2車複')||line.includes('２車複')){sec='nisha';continue}
-  if(u.includes('SANREN')||line.includes('3連複')||line.includes('３連複')){sec='san';continue}
+
+if(u.includes('SANREN')||line.includes('3連複')||line.includes('３連複')){sec='san';continue}
   const p=line.split(/\s+/); if(p.length<2)continue;
   const od=toNum(p[1]); if(!od)continue;
   if(sec==='tan')tan.push({car:p[0],odds:od});
