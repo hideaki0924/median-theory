@@ -294,7 +294,7 @@ function analyze(){
 (ultraRank.map((x,i)=>{
  let cls=x[1].pt>=8?'red':x[1].pt>=6?'purple':x[1].pt>=4?'yellow':'';
 
-return '<span class="'+cls+'">'+
+return '<span class="'+cls+'" style="font-size:22px">'+
 (i+1)+'位 '+x[0]+' : '+x[1].pt+'点 / '+x[1].labels.join('・')+
 '</span>';
 }).join('<br>')||'なし')+'\n\n'+
