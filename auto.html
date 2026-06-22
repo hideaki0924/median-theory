@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 オート版V5.1</title>
+<title>チャッピー神予想 オート版V6</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;background:#07101f;color:#fff;padding:14px;margin:0;font-size:20px}
 h1{color:#ffd66b;font-size:32px}
@@ -25,22 +25,23 @@ pre{white-space:pre-wrap;line-height:1.75;font-size:22px;font-weight:bold}
 </head>
 <body>
 
-<h1>🏍️ チャッピー神予想<br>オート版V5.1</h1>
+<h1>🏍️ チャッピー神予想<br>オート版V6</h1>
 
 <div class="box">
-<input id="race" placeholder="例：浜松1R">
+<input id="race" placeholder="例：川口1R">
 <textarea id="odds" placeholder="[TAN]
-6 1.6
-8 4.3
-5 4.9
+7 1.5
+6 2.5
+5 6.1
+3 7.6
 
 [NISHA]
-5-6 1.4
-6-8 4.4
+6-7 2.2
+5-6 3.6
 
 [SANREN]
-5-6-8 4.2
-3-5-6 5.1"></textarea>
+5-6-7 2.5
+3-5-6 5.4"></textarea>
 <button onclick="analyze()">分析する</button>
 <button onclick="sample()">サンプル</button>
 </div>
@@ -48,267 +49,185 @@ pre{white-space:pre-wrap;line-height:1.75;font-size:22px;font-weight:bold}
 <div id="out" class="box">ここに結果が出ます。</div>
 
 <script>
-function norm(s){
-  return String(s)
-  .replace(/[０-９]/g,x=>String.fromCharCode(x.charCodeAt(0)-65248))
-  .replace(/－/g,'-')
-  .replace(/=/g,'-');
-}
-function toNum(v){return parseFloat(norm(v).replace(/[^\d.]/g,''));}
-function splitH(s){return norm(s).split('-').map(x=>x.trim()).filter(Boolean);}
-function uniq(arr){return arr.filter((v,i,a)=>v&&a.indexOf(v)===i);}
-function med(arr){
-  if(!arr.length)return '-';
-  const n=arr.length;
-  return n%2 ? arr[Math.floor(n/2)] : arr[n/2-1]+'・'+arr[n/2];
-}
+function norm(s){return String(s).replace(/[０-９]/g,x=>String.fromCharCode(x.charCodeAt(0)-65248)).replace(/－/g,'-').replace(/=/g,'-')}
+function toNum(v){return parseFloat(norm(v).replace(/[^\d.]/g,''))}
+function splitH(s){return norm(s).split('-').map(x=>x.trim()).filter(Boolean)}
+function uniq(a){return a.filter((v,i,x)=>v&&x.indexOf(v)===i)}
+function med(a){if(!a.length)return '-';const n=a.length;return n%2?a[Math.floor(n/2)]:a[n/2-1]+'・'+a[n/2]}
 
 function parseData(){
-  const lines=norm(document.getElementById('odds').value).split(/\n/).map(x=>x.trim()).filter(Boolean);
-  let sec='tan';
-  const tan=[],nisha=[],san=[];
-  for(const line of lines){
-    const u=line.toUpperCase();
-    if(u.includes('TAN')||line.includes('単勝')){sec='tan';continue;}
-    if(u.includes('NISHA')||line.includes('2車複')||line.includes('２車複')){sec='nisha';continue;}
-    if(u.includes('SANREN')||line.includes('3連複')||line.includes('３連複')){sec='san';continue;}
-    const p=line.split(/\s+/);
-    if(p.length<2)continue;
-    const odds=toNum(p[1]);
-    if(!odds)continue;
-    if(sec==='tan')tan.push({car:p[0],odds});
-    if(sec==='nisha')nisha.push({pair:p[0],odds,hs:splitH(p[0])});
-    if(sec==='san')san.push({pair:p[0],odds,hs:splitH(p[0])});
-  }
-  tan.sort((a,b)=>a.odds-b.odds);
-  nisha.sort((a,b)=>a.odds-b.odds);
-  san.sort((a,b)=>a.odds-b.odds);
-  return {tan,nisha,san};
+ const lines=norm(odds.value).split(/\n/).map(x=>x.trim()).filter(Boolean);
+ let sec='tan'; const tan=[],nisha=[],san=[];
+ for(const line of lines){
+  const u=line.toUpperCase();
+  if(u.includes('TAN')||line.includes('単勝')){sec='tan';continue}
+  if(u.includes('NISHA')||line.includes('2車複')||line.includes('２車複')){sec='nisha';continue}
+  if(u.includes('SANREN')||line.includes('3連複')||line.includes('３連複')){sec='san';continue}
+  const p=line.split(/\s+/); if(p.length<2)continue;
+  const od=toNum(p[1]); if(!od)continue;
+  if(sec==='tan')tan.push({car:p[0],odds:od});
+  if(sec==='nisha')nisha.push({pair:p[0],odds:od,hs:splitH(p[0])});
+  if(sec==='san')san.push({pair:p[0],odds:od,hs:splitH(p[0])});
+ }
+ tan.sort((a,b)=>a.odds-b.odds); nisha.sort((a,b)=>a.odds-b.odds); san.sort((a,b)=>a.odds-b.odds);
+ return {tan,nisha,san};
 }
-
 function otani(tan,nisha){
-  const axis=tan[0]?.car||'';
-  const cars=[axis],odds=['-'];
-  nisha.filter(x=>x.hs.includes(axis)).forEach(x=>{
-    const other=x.hs.find(h=>h!==axis);
-    if(other&&!cars.includes(other)){
-      cars.push(other);
-      odds.push(x.odds);
-    }
-  });
-  return {axis,cars,odds};
+ const axis=tan[0]?.car||'', cars=[axis], odds=['-'];
+ nisha.filter(x=>x.hs.includes(axis)).forEach(x=>{
+  const other=x.hs.find(h=>h!==axis);
+  if(other&&!cars.includes(other)){cars.push(other);odds.push(x.odds)}
+ });
+ return {axis,cars,odds};
 }
-
 function mainTable(tan,o){
-  const max=Math.max(tan.length,o.cars.length);
-  let h='<div class="scroll"><table>';
-  h+='<tr><td class="head">順位</td>';
-  for(let i=1;i<=max;i++)h+='<td>'+i+'</td>';
-  h+='</tr><tr><td class="head">単勝</td>';
-  for(let i=0;i<max;i++)h+='<td>'+(tan[i]?.car||'')+'</td>';
-  h+='</tr><tr><td class="head">単勝オッズ</td>';
-  for(let i=0;i<max;i++)h+='<td>'+(tan[i]?.odds||'')+'</td>';
-  h+='</tr><tr><td class="head">2車複</td>';
-  for(let i=0;i<max;i++)h+='<td>'+(o.cars[i]||'')+'</td>';
-  h+='</tr><tr><td class="head">2車複オッズ</td>';
-  for(let i=0;i<max;i++)h+='<td>'+(o.odds[i]||'')+'</td>';
-  h+='</tr></table></div>';
-  return h;
+ const max=Math.max(tan.length,o.cars.length);
+ let h='<div class="scroll"><table><tr><td class="head">順位</td>';
+ for(let i=1;i<=max;i++)h+='<td>'+i+'</td>';
+ h+='</tr><tr><td class="head">単勝</td>';
+ for(let i=0;i<max;i++)h+='<td>'+(tan[i]?.car||'')+'</td>';
+ h+='</tr><tr><td class="head">単勝オッズ</td>';
+ for(let i=0;i<max;i++)h+='<td>'+(tan[i]?.odds||'')+'</td>';
+ h+='</tr><tr><td class="head">2車複</td>';
+ for(let i=0;i<max;i++)h+='<td>'+(o.cars[i]||'')+'</td>';
+ h+='</tr><tr><td class="head">2車複オッズ</td>';
+ for(let i=0;i<max;i++)h+='<td>'+(o.odds[i]||'')+'</td>';
+ h+='</tr></table></div>'; return h;
+}
+function allIn(set, hs){return hs.every(x=>set.includes(x))}
+function scoreCars(cars,nisha,san){
+ const sc={}; cars.forEach(c=>sc[c]=0);
+ nisha.slice(0,10).forEach(x=>x.hs.forEach(h=>{if(sc[h]!=null)sc[h]+=2}));
+ san.slice(0,10).forEach(x=>x.hs.forEach(h=>{if(sc[h]!=null)sc[h]+=3}));
+ return cars.slice().sort((a,b)=>(sc[b]||0)-(sc[a]||0));
+}
+function perms(arr,limit){
+ const r=[];
+ arr.forEach(a=>arr.forEach(b=>arr.forEach(c=>{
+  if(a!==b&&b!==c&&a!==c&&r.length<limit)r.push(a+'-'+b+'-'+c);
+ })));
+ return r;
+}
+function twoPerms(arr,limit){
+ const r=[];
+ arr.forEach(a=>arr.forEach(b=>{if(a!==b&&r.length<limit)r.push(a+'→'+b)}));
+ return r;
 }
 
 function analyze(){
-  const race=document.getElementById('race').value||'レース名未入力';
-  const {tan,nisha,san}=parseData();
-  if(!tan.length){out.innerHTML='単勝データがありません';return;}
+ const race=document.getElementById('race').value||'レース名未入力';
+ const {tan,nisha,san}=parseData();
+ if(!tan.length){out.innerHTML='単勝データがありません';return}
 
-  const o=otani(tan,nisha);
-  const axis=o.axis;
+ const o=otani(tan,nisha), axis=o.axis;
+ const under10=tan.filter(x=>x.odds<10).map(x=>x.car);
+ const underSet=under10.slice();
 
-  const under10=tan.filter(x=>x.odds<10).map(x=>x.car);
-  const raceType=under10.length<=3?'🔵本命型':under10.length===4?'🟢上位集中型':under10.length===5?'🟡中穴型':'🔴荒れ警戒型';
+ const raceType=under10.length<=3?'🔵本命型':under10.length===4?'🟢4車完結候補':under10.length===5?'🟡5車完結候補':'🔴荒れ警戒型';
 
-  const san15=san.filter(x=>x.odds<=15);
-  let firstOut='15倍以内すべて入り';
-  for(let i=0;i<san15.length;i++){
-    if(!san15[i].hs.includes(axis)){
-      firstOut=(i+1)+'位で消滅';
-      break;
-    }
+ const san15=san.filter(x=>x.odds<=15);
+ let firstOut='15倍以内すべて入り';
+ for(let i=0;i<san15.length;i++){if(!san15[i].hs.includes(axis)){firstOut=(i+1)+'位で消滅';break}}
+ let safe='🔵超有力';
+ if(firstOut!=='15倍以内すべて入り'){const n=parseInt(firstOut); safe=n<=5?'🔴危険':n<=10?'🟡注意':'🟢有力'}
+ const isSuper=safe.includes('超有力'), isDanger=safe.includes('危険'), isCaution=safe.includes('注意');
+
+ const tanRank={}; tan.forEach((x,i)=>tanRank[x.car]=i+1);
+ const niRank={}; o.cars.forEach((c,i)=>niRank[c]=i+1);
+ const moves=Object.keys(tanRank).filter(c=>niRank[c]).map(c=>({car:c,m:Math.abs(tanRank[c]-niRank[c])})).sort((a,b)=>b.m-a.m||Number(a.car)-Number(b.car));
+ const maxMove=moves.length?moves[0].m:0;
+
+ const mTanAll=med(tan.map(x=>x.car));
+ const mTan10=med(tan.filter(x=>x.odds<10).map(x=>x.car));
+ const mTanOver=med(tan.filter(x=>x.odds>=10).map(x=>x.car));
+ const mNiAll=med(o.cars);
+ const mNi10=med(o.cars.filter((c,i)=>i===0||Number(o.odds[i])<10));
+ const mNiOver=med(o.cars.filter((c,i)=>i>0&&Number(o.odds[i])>=10));
+
+ const medText=[mTanAll,mTan10,mTanOver,mNiAll,mNi10,mNiOver].join('・').split('・');
+ const count={}; medText.forEach(c=>{if(c&&c!=='-')count[c]=(count[c]||0)+1});
+ const dup=Object.entries(count).filter(x=>x[1]>=2).sort((a,b)=>b[1]-a[1]).map(x=>x[0]+'('+x[1]+')');
+ const dupCars=dup.map(x=>x.replace(/\(.*/,''));
+
+ const bottom=med(tan.slice(Math.floor(tan.length/2)).map(x=>x.car));
+ const bottomCars=String(bottom).split('・').filter(x=>x&&x!=='-');
+
+ const dangerPopular=tan.slice(1,5).filter(x=>{
+  const r=niRank[x.car]||99, inMed=count[x.car]||0;
+  return r>=5&&inMed===0;
+ }).map(x=>x.car);
+
+ const nishaClosed=nisha.slice(0,6).every(x=>allIn(underSet,x.hs));
+ const sanClosed=san.slice(0,6).every(x=>allIn(underSet,x.hs));
+ const bottomStrong=bottomCars.some(c=>!underSet.includes(c)&&san15.some(x=>x.hs.includes(c)));
+ const completeMode=(under10.length===4||under10.length===5)&&maxMove<=2&&nishaClosed&&sanClosed&&!bottomStrong&&!dangerPopular.length;
+
+ let A=dupCars.slice(0,2);
+ if(isSuper)A=[axis,...A.filter(c=>c!==axis)];
+ if(A.length<2)under10.forEach(c=>{if(!A.includes(c)&&A.length<2)A.push(c)});
+ if(A.length<2)moves.forEach(x=>{if(!A.includes(x.car)&&A.length<2)A.push(x.car)});
+ A=uniq(A).slice(0,3);
+
+ let C=bottomCars.filter(c=>!A.includes(c)).slice(0,2);
+ if(!C.length)tan.slice(Math.floor(tan.length/2)).forEach(x=>{if(!A.includes(x.car)&&!C.includes(x.car)&&C.length<2)C.push(x.car)});
+
+ let twoMain=[],twoHole=[],triMain=[],triHole=[];
+ let modeText='通常モード';
+
+ if(completeMode){
+  modeText='🔥上位完結モード';
+  const box=scoreCars(under10,nisha,san);
+  const boxUse=box.slice(0,under10.length===5?5:4);
+  twoMain=twoPerms(boxUse.slice(0,4),12);
+  triMain=perms(boxUse.slice(0,4),12);
+  if(under10.length===5){
+   triHole=perms(boxUse,18).filter(x=>x.includes(boxUse[4])).slice(0,10);
+   twoHole=twoPerms([boxUse[4],...boxUse.slice(0,3)],8);
   }
-
-  let safe='🔵超有力';
-  if(firstOut!=='15倍以内すべて入り'){
-    const n=parseInt(firstOut);
-    safe=n<=5?'🔴危険':n<=10?'🟡注意':'🟢有力';
-  }
-
-  const isSuper=safe.includes('超有力');
-  const isDanger=safe.includes('危険');
-  const isCaution=safe.includes('注意');
-
-  const tanRank={}; tan.forEach((x,i)=>tanRank[x.car]=i+1);
-  const niRank={}; o.cars.forEach((c,i)=>niRank[c]=i+1);
-
-  const moves=Object.keys(tanRank)
-    .filter(c=>niRank[c])
-    .map(c=>({car:c,m:Math.abs(tanRank[c]-niRank[c])}))
-    .sort((a,b)=>b.m-a.m || Number(a.car)-Number(b.car));
-
-  const tanCars=tan.map(x=>x.car);
-  const niCars=o.cars;
-
-  const mTanAll=med(tanCars);
-  const mTan10=med(tan.filter(x=>x.odds<10).map(x=>x.car));
-  const mTanOver=med(tan.filter(x=>x.odds>=10).map(x=>x.car));
-
-  const mNiAll=med(niCars);
-  const mNi10=med(o.cars.filter((c,i)=>i===0||Number(o.odds[i])<10));
-  const mNiOver=med(o.cars.filter((c,i)=>i>0&&Number(o.odds[i])>=10));
-
-  const medText=[mTanAll,mTan10,mTanOver,mNiAll,mNi10,mNiOver].join('・').split('・');
-  const count={};
-  medText.forEach(c=>{if(c&&c!=='-')count[c]=(count[c]||0)+1;});
-
-  const dup=Object.entries(count)
-    .filter(x=>x[1]>=2)
-    .sort((a,b)=>b[1]-a[1])
-    .map(x=>x[0]+'('+x[1]+')');
-
-  const dupCars=dup.map(x=>x.replace(/\(.*/,''));
-
-  const bottom=med(tan.slice(Math.floor(tan.length/2)).map(x=>x.car));
-  const bottomCars=String(bottom).split('・').filter(x=>x&&x!=='-');
-
-  const dangerPopular=tan.slice(1,5).filter(x=>{
-    const r=niRank[x.car]||99;
-    const inMed=count[x.car]||0;
-    return r>=5 && inMed===0;
-  }).map(x=>x.car);
-
-  let A=dupCars.slice(0,2);
-
-  if(isSuper){
-    A=[axis,...A.filter(c=>c!==axis)];
-  }
-
-  if(A.length<2){
-    under10.forEach(c=>{if(!A.includes(c)&&A.length<2)A.push(c);});
-  }
-  if(A.length<2){
-    moves.forEach(x=>{if(!A.includes(x.car)&&A.length<2)A.push(x.car);});
-  }
-  A=uniq(A).slice(0,3);
-
-  let C=bottomCars.filter(c=>!A.includes(c)).slice(0,2);
-  if(!C.length){
-    tan.slice(Math.floor(tan.length/2)).forEach(x=>{
-      if(!A.includes(x.car)&&!C.includes(x.car)&&C.length<2)C.push(x.car);
-    });
-  }
-
+ }else{
+  modeText='⚫ボトム穴モード';
   let firstA=[];
   let secondA=uniq(A.slice());
-
-  if(isSuper){
-    firstA=[axis];
-    secondA=uniq(A.filter(c=>c!==axis)).slice(0,3);
-  }else if(isCaution){
-    firstA=A.filter(c=>c!==axis);
-    secondA=uniq([axis,...A.filter(c=>c!==axis)]).slice(0,3);
-  }else if(isDanger){
-    firstA=A.filter(c=>c!==axis);
-    secondA=uniq([...A.filter(c=>c!==axis),axis]).slice(0,3);
-  }else{
-    firstA=A.slice(0,2);
-  }
-
-  if(!firstA.length){
-    moves.forEach(x=>{
-      if(x.car!==axis&&!firstA.includes(x.car))firstA.push(x.car);
-    });
-  }
-
+  if(isSuper){firstA=[axis];secondA=uniq(A.filter(c=>c!==axis)).slice(0,3)}
+  else if(isCaution){firstA=A.filter(c=>c!==axis);secondA=uniq([axis,...A.filter(c=>c!==axis)]).slice(0,3)}
+  else if(isDanger){firstA=A.filter(c=>c!==axis);secondA=uniq([...A.filter(c=>c!==axis),axis]).slice(0,3)}
+  else firstA=A.slice(0,2);
+  if(!firstA.length)moves.forEach(x=>{if(x.car!==axis&&!firstA.includes(x.car))firstA.push(x.car)});
   firstA=uniq(firstA).slice(0,2);
+  firstA.forEach(a=>secondA.forEach(b=>{if(a!==b&&twoMain.length<8)twoMain.push(a+'→'+b)}));
+  firstA.forEach(a=>C.forEach(c=>{if(a!==c)twoHole.push(a+'→'+c)}));
+  firstA.forEach(a=>secondA.forEach(b=>C.forEach(c=>{if(a!==b&&b!==c&&a!==c&&triMain.length<10)triMain.push(a+'-'+b+'-'+c)})));
+  firstA.forEach(a=>C.forEach(c=>secondA.forEach(b=>{if(a!==b&&b!==c&&a!==c&&triHole.length<10)triHole.push(a+'-'+c+'-'+b)})));
+ }
 
-  const twoMain=[];
-  firstA.forEach(a=>{
-    secondA.forEach(b=>{
-      if(a!==b&&twoMain.length<8)twoMain.push(a+'→'+b);
-    });
-  });
-
-  const twoHole=[];
-  firstA.forEach(a=>{
-    C.forEach(c=>{
-      if(a!==c)twoHole.push(a+'→'+c);
-    });
-  });
-
-  if(isCaution||isDanger){
-    firstA.forEach(a=>{
-      if(a!==axis)twoHole.push(a+'→'+axis);
-    });
-  }
-
-  const triMain=[];
-  firstA.forEach(a=>{
-    secondA.forEach(b=>{
-      C.forEach(c=>{
-        if(a!==b&&b!==c&&a!==c&&triMain.length<10){
-          triMain.push(a+'-'+b+'-'+c);
-        }
-      });
-    });
-  });
-
-  const triHole=[];
-  firstA.forEach(a=>{
-    C.forEach(c=>{
-      secondA.forEach(b=>{
-        if(a!==b&&b!==c&&a!==c&&triHole.length<10){
-          triHole.push(a+'-'+c+'-'+b);
-        }
-      });
-    });
-  });
-
-  if(isCaution||isDanger){
-    firstA.forEach(a=>{
-      secondA.forEach(b=>{
-        if(a!==b&&a!==axis&&b!==axis){
-          triHole.push(a+'-'+b+'-'+axis);
-        }
-      });
-    });
-  }
-
-  out.innerHTML=
-  '<h2>'+race+'</h2>'+
-  '<div class="alert"><div class="yellow">📊 レース判定</div>'+raceType+'<br>単勝10倍以内：'+under10.length+'車<br>'+under10.join('・')+'</div>'+
-  '<div class="alert"><div class="blue">🔵 危険な1番人気診断</div>1番人気：'+axis+'<br>3連複15倍以内：'+san15.length+'組<br>初消滅：'+firstOut+'<br>判定：'+safe+'</div>'+
-  '<div class="alert"><div class="red">🔴 危険な人気車</div>'+(dangerPopular.length?dangerPopular.join('・'):'なし')+'</div>'+
-  '<div class="yellow">📊 本表</div>'+mainTable(tan,o)+
-  '<pre>'+
-  '🔄【移動数】\n'+moves.map(x=>x.car+'：'+x.m+'移動').join('\n')+
-  '\n\n🟡【メジアン】\n単勝全体：'+mTanAll+
-  '\n単勝10倍以内：'+mTan10+
-  '\n単勝10倍以上：'+mTanOver+
-  '\n\n2車複全体：'+mNiAll+
-  '\n2車複10倍以内：'+mNi10+
-  '\n2車複10倍以上：'+mNiOver+
-  '\n\n🔥【メジアン重複】\n'+(dup.join('・')||'なし')+
-  '\n\n⚫【ボトム穴 C】\n'+(C.join('・')||'なし')+
-  '\n\n🟢【本線車 A】\n'+(A.join('・')||'なし')+
-  '\n\n🏍️【本線2車単】\n'+(twoMain.join('\n')||'なし')+
-  '\n\n⚫【穴2車単】\n'+(twoHole.join('\n')||'なし')+
-  '\n\n🏍️【本線3連単】\n'+(triMain.join('\n')||'なし')+
-  '\n\n⚫【穴3連単】\n'+(triHole.join('\n')||'なし')+
-  '</pre>';
+ out.innerHTML=
+ '<h2>'+race+'</h2>'+
+ '<div class="alert"><div class="yellow">📊 レース判定</div>'+raceType+'<br>単勝10倍以内：'+under10.length+'車<br>'+under10.join('・')+'</div>'+
+ '<div class="alert"><div class="green">🔥 V6モード判定</div>'+modeText+'<br>最大移動数：'+maxMove+'<br>2車複上位完結：'+(nishaClosed?'OK':'NG')+'<br>3連複上位完結：'+(sanClosed?'OK':'NG')+'</div>'+
+ '<div class="alert"><div class="blue">🔵 危険な1番人気診断</div>1番人気：'+axis+'<br>3連複15倍以内：'+san15.length+'組<br>初消滅：'+firstOut+'<br>判定：'+safe+'</div>'+
+ '<div class="alert"><div class="red">🔴 危険な人気車</div>'+(dangerPopular.length?dangerPopular.join('・'):'なし')+'</div>'+
+ '<div class="yellow">📊 本表</div>'+mainTable(tan,o)+
+ '<pre>'+
+ '🔄【移動数】\n'+moves.map(x=>x.car+'：'+x.m+'移動').join('\n')+
+ '\n\n🟡【メジアン】\n単勝全体：'+mTanAll+
+ '\n単勝10倍以内：'+mTan10+
+ '\n単勝10倍以上：'+mTanOver+
+ '\n\n2車複全体：'+mNiAll+
+ '\n2車複10倍以内：'+mNi10+
+ '\n2車複10倍以上：'+mNiOver+
+ '\n\n🔥【メジアン重複】\n'+(dup.join('・')||'なし')+
+ '\n\n⚫【ボトム穴 C】\n'+(C.join('・')||'なし')+
+ '\n\n🟢【本線車 A】\n'+(A.join('・')||'なし')+
+ '\n\n🏍️【本線2車単】\n'+(twoMain.join('\n')||'なし')+
+ '\n\n⚫【穴2車単】\n'+(twoHole.join('\n')||'なし')+
+ '\n\n🏍️【本線3連単】\n'+(triMain.join('\n')||'なし')+
+ '\n\n⚫【穴3連単】\n'+(triHole.join('\n')||'なし')+
+ '</pre>';
 }
 
 function sample(){
-race.value='浜松1R';
-odds.value='[TAN]\n6 1.6\n8 4.3\n5 4.9\n4 7.2\n3 7.8\n1 16.0\n7 24.6\n2 40.0\n\n[NISHA]\n5-6 1.4\n6-8 4.4\n3-6 5.4\n6-7 9.5\n4-6 15.2\n5-8 26.3\n3-5 49.1\n3-8 49.1\n4-8 51.8\n4-5 61.2\n3-4 90.7\n7-8 107.2\n5-7 138.7\n3-7 162.6\n4-7 214.4\n2-6 224.6\n1-6 277.5\n1-8 362.9\n2-8 428.9\n2-4 471.8\n\n[SANREN]\n5-6-8 4.2\n3-5-6 5.1\n3-6-8 5.2\n6-7-8 8.5\n4-5-6 8.8\n4-6-8 9.2\n3-4-6 12.7\n5-6-7 14.7\n3-5-8 28.4\n3-6-7 30.5';
+race.value='川口1R';
+odds.value='[TAN]\n7 1.5\n6 2.5\n5 6.1\n3 7.6\n2 25.3\n1 33.7\n4 38.9\n\n[NISHA]\n6-7 2.2\n5-6 3.6\n5-7 5.5\n3-6 13.7\n3-5 16.1\n3-7 16.4\n2-5 20.0\n2-6 20.0\n2-7 20.0\n4-6 32.9\n4-7 32.9\n4-5 35.4\n1-6 48.5\n2-3 51.2\n3-4 54.2\n1-5 102.4\n1-7 153.6\n2-4 153.6\n1-3 184.3\n1-4 230.4\n\n[SANREN]\n5-6-7 2.5\n3-5-6 5.4\n3-6-7 6.4\n3-5-7 6.9\n2-6-7 16.3\n2-5-6 17.3\n4-6-7 20.5\n4-5-6 21.9\n4-5-7 24.2\n2-3-6 28.1';
 analyze();
 }
 </script>
