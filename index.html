@@ -245,7 +245,24 @@ function analyze(){
   });
   return Object.entries(map).map(x=>x[0]+' → '+x[1].join('・')).join('\n')||'-';
  }
+let sanLostRank='-';
+let sanLostOdds='-';
+let sanLostPair='-';
+let sanLostEval='-';
 
+if(axis && san.length){
+ const idx=san.findIndex(x=>!x.hs.includes(axis));
+ if(idx>=0){
+  sanLostRank=idx+1;
+  sanLostOdds=san[idx].odds;
+  sanLostPair=san[idx].pair;
+
+  if(sanLostRank<=5) sanLostEval='危険';
+  else if(sanLostRank<=10) sanLostEval='注意';
+  else if(sanLostRank<=15) sanLostEval='標準';
+  else sanLostEval='信頼';
+ }
+}
  const san1=san[0]?san[0].hs:[];
  const triple=[];
  ultraSub.slice(0,3).forEach(h=>{
@@ -272,8 +289,24 @@ function analyze(){
  '<div>6倍壁前2頭：'+(f6pre.join('・')||'なし')+'</div>'+
  '<div>15倍壁前2頭：'+(f15pre.join('・')||'なし')+'</div>'+
  '<div>15壁→6以上メジアン：'+f15to6med+'</div><hr>'+
- '<div class="green">🟢 三連複1人気確認</div>'+
- '<div>三連複1人気：'+(san[0]?san[0].pair:'-')+'</div>'+
+'<div class="green">🟢 三連複1人気確認</div>'+
+
+'<div>三連複1人気：'+
+
+(san[0]?san[0].pair:'-')+
+
+'</div><hr>'+
+'<div class="yellow">🟡 単勝1人気消滅ポイント</div>'+
+
+'<div>単勝1人気：'+axis+'</div>'+
+
+'<div>消滅順位：'+sanLostRank+'位</div>'+
+
+'<div>消滅組み合わせ：'+sanLostPair+'</div>'+
+
+'<div>オッズ：'+sanLostOdds+'倍</div>'+
+
+'<div>評価：'+sanLostEval+'</div>'+
  '</div>';
 
  document.getElementById('out').innerHTML=
