@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 オート版V9</title>
+<title>チャッピー神予想 オート版V10</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;background:#07101f;color:#fff;padding:14px;margin:0;font-size:20px}
 h1{color:#ffd66b;font-size:32px}
@@ -19,12 +19,13 @@ td{border:1px solid #33415c;padding:12px;text-align:center;white-space:nowrap}
 .yellow{color:#ffd966;font-size:28px;font-weight:bold}
 .green{color:#53d769;font-size:28px;font-weight:bold}
 .red{color:#ff4d4d;font-size:28px;font-weight:bold}
+.blue{color:#4da3ff;font-size:28px;font-weight:bold}
 pre{white-space:pre-wrap;line-height:1.75;font-size:22px;font-weight:bold}
 </style>
 </head>
 <body>
 
-<h1>🏍️ チャッピー神予想<br>オート版V9</h1>
+<h1>🏍️ チャッピー神予想<br>オート版V10</h1>
 
 <div class="box">
 <input id="race" placeholder="例：浜松2R">
@@ -130,6 +131,23 @@ function analyze(){
 
  const raceType=under10.length<=2?'🔵超本命型':under10.length===3?'🟢3車＋直後2車型':under10.length===4?'🔥4車完結候補':under10.length===5?'🔥5車完結候補':'🔴荒れ警戒型';
 
+ // ======================
+ // 危険な1番人気診断 復活
+ // ======================
+ const san15=san.filter(x=>x.odds<=15);
+ let firstOut='15倍以内すべて入り';
+ for(let i=0;i<san15.length;i++){
+  if(!san15[i].hs.includes(axis)){
+   firstOut=(i+1)+'位で消滅';
+   break;
+  }
+ }
+ let safe='🔵超有力';
+ if(firstOut!=='15倍以内すべて入り'){
+  const n=parseInt(firstOut);
+  safe=n<=5?'🔴危険':n<=10?'🟡注意':'🟢有力';
+ }
+
  const tanRank={}; tan.forEach((x,i)=>tanRank[x.car]=i+1);
  const niRank={}; o.cars.forEach((c,i)=>niRank[c]=i+1);
  const moves=Object.keys(tanRank).filter(c=>niRank[c]).map(c=>({
@@ -153,6 +171,16 @@ function analyze(){
  const dup=Object.entries(count).filter(x=>x[1]>=2).sort((a,b)=>b[1]-a[1]).map(x=>x[0]+'('+x[1]+')');
 
  const bottom=med(tan.slice(Math.floor(tan.length/2)).map(x=>x.car));
+
+ // ======================
+ // 危険な人気車 復活
+ // ======================
+ const dangerPopular=tan.slice(1,5).filter(x=>{
+  const inSan15=san15.some(s=>s.hs.includes(x.car));
+  const inNisha10=nisha.slice(0,10).some(n=>n.hs.includes(x.car));
+  const inMed=(count[x.car]||0)>0;
+  return !inSan15 && !inNisha10 && !inMed;
+ }).map(x=>x.car);
 
  let reviveAxis='',lastCar='',reviveCar='';
  if(nisha.length>=8){
@@ -196,6 +224,8 @@ function analyze(){
  out.innerHTML=
  '<h2>'+raceName+'</h2>'+
  '<div class="alert"><div class="yellow">📊 レース判定</div>'+raceType+'<br>軸車：<span class="red">'+axis+'</span><br>単勝10倍以内：'+under10.length+'車<br>'+under10.join('・')+'<br>直後2車：'+(next2.join('・')||'なし')+'</div>'+
+ '<div class="alert"><div class="blue">🔵 危険な1番人気診断</div>1番人気：'+axis+'<br>3連複15倍以内：'+san15.length+'組<br>初消滅：'+firstOut+'<br>判定：'+safe+'</div>'+
+ '<div class="alert"><div class="red">🔴 危険な人気車</div>'+(dangerPopular.length?dangerPopular.join('・'):'なし')+'</div>'+
  '<div class="yellow">📊 本表</div>'+mainTable(tan,o)+
  '<pre>'+
  '🔄【移動数ランキング】\n'+
