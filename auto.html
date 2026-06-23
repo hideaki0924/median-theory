@@ -123,7 +123,95 @@ function analyze(){
 
  const o=otani(tan,nisha);
  const axis=o.axis;
+// ======================
 
+// 復活穴理論 V8
+
+// ======================
+
+let reviveAxis='';
+
+let lastCar='';
+
+let reviveCar='';
+
+if(nisha.length>=8){
+
+  const topPairs=nisha.slice(0,15);
+
+  // 最初に一番多く出る軸
+
+  const cnt={};
+
+  topPairs.forEach(x=>{
+
+    x.hs.forEach(h=>{
+
+      cnt[h]=(cnt[h]||0)+1;
+
+    });
+
+  });
+
+  reviveAxis=Object.keys(cnt)
+
+    .sort((a,b)=>cnt[b]-cnt[a])[0] || '';
+
+  let streakEnd=-1;
+
+  // 連続出現終了位置
+
+  for(let i=0;i<topPairs.length;i++){
+
+    if(topPairs[i].hs.includes(reviveAxis)){
+
+      streakEnd=i;
+
+    }else{
+
+      break;
+
+    }
+
+  }
+
+  // 最後車
+
+  if(streakEnd>=0){
+
+    const pair=topPairs[streakEnd].hs;
+
+    lastCar=pair.find(x=>x!==reviveAxis)||'';
+
+  }
+
+  // 復活車
+
+  let vanished=false;
+
+  for(let i=streakEnd+1;i<topPairs.length;i++){
+
+    if(!topPairs[i].hs.includes(reviveAxis)){
+
+      vanished=true;
+
+      continue;
+
+    }
+
+    if(vanished && topPairs[i].hs.includes(reviveAxis)){
+
+      reviveCar=topPairs[i].hs.find(x=>x!==reviveAxis)||'';
+
+      break;
+
+    }
+
+  }
+
+}
+
+const reviveHoles=uniq([reviveCar,lastCar].filter(Boolean));
  const under10=tan.filter(x=>x.odds<10).map(x=>x.car);
  const next2=tan.filter(x=>x.odds>=10).slice(0,2).map(x=>x.car);
  const world5=uniq([...under10,...next2]).slice(0,5);
@@ -246,6 +334,15 @@ function analyze(){
  '\n2車複10倍以内：'+mNi10+
  '\n2車複10倍以上：'+mNiOver+
  '\n\n🔥【メジアン重複】\n'+(dup.join('・')||'なし')+
+ '\n\n🔥【復活穴理論】\n'+
+
+'軸車：'+(reviveAxis||'なし')+
+
+'\n最後車：'+(lastCar||'なし')+
+
+'\n復活車：'+(reviveCar||'なし')+
+
+'\n穴候補：'+(reviveHoles.join('・')||'なし')
  '\n\n⚫【ボトム穴 C】\n'+(C.join('・')||'なし')+
  '\n\n🟢【本線車 A】\n'+(A.join('・')||'なし')+
  '\n\n🏍️【本線2車単】\n'+(twoMain.join('\n')||'なし')+
