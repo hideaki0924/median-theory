@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 オート版V8</title>
+<title>チャッピー神予想 オート版V9</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;background:#07101f;color:#fff;padding:14px;margin:0;font-size:20px}
 h1{color:#ffd66b;font-size:32px}
@@ -16,32 +16,31 @@ button{width:100%;padding:16px;border:0;border-radius:16px;font-size:24px;font-w
 table{border-collapse:collapse;min-width:850px;font-size:22px}
 td{border:1px solid #33415c;padding:12px;text-align:center;white-space:nowrap}
 .head{background:#152036;color:#ffd66b;font-weight:bold}
-.blue{color:#4da3ff;font-size:28px;font-weight:bold}
-.red{color:#ff4d4d;font-size:28px;font-weight:bold}
 .yellow{color:#ffd966;font-size:28px;font-weight:bold}
 .green{color:#53d769;font-size:28px;font-weight:bold}
+.red{color:#ff4d4d;font-size:28px;font-weight:bold}
 pre{white-space:pre-wrap;line-height:1.75;font-size:22px;font-weight:bold}
 </style>
 </head>
 <body>
 
-<h1>🏍️ チャッピー神予想<br>オート版V8</h1>
+<h1>🏍️ チャッピー神予想<br>オート版V9</h1>
 
 <div class="box">
-<input id="race" placeholder="例：浜松1R">
+<input id="race" placeholder="例：浜松2R">
 <textarea id="odds" placeholder="[TAN]
-3 1.9
-6 3.2
-8 4.9
-4 5.0
+6 1.9
+7 3.1
+4 4.8
+8 6.1
 
 [NISHA]
-4-6 2.3
-3-6 2.3
+6-8 3.3
+6-7 4.8
 
 [SANREN]
-3-6-8 3.0
-4-6-8 3.7"></textarea>
+6-7-8 3.3
+3-6-8 7.8"></textarea>
 <button onclick="analyze()">分析する</button>
 <button onclick="sample()">サンプル</button>
 </div>
@@ -131,6 +130,17 @@ function analyze(){
 
  const raceType=under10.length<=2?'🔵超本命型':under10.length===3?'🟢3車＋直後2車型':under10.length===4?'🔥4車完結候補':under10.length===5?'🔥5車完結候補':'🔴荒れ警戒型';
 
+ const tanRank={}; tan.forEach((x,i)=>tanRank[x.car]=i+1);
+ const niRank={}; o.cars.forEach((c,i)=>niRank[c]=i+1);
+ const moves=Object.keys(tanRank).filter(c=>niRank[c]).map(c=>({
+  car:c,
+  tan:tanRank[c],
+  ni:niRank[c],
+  m:Math.abs(tanRank[c]-niRank[c])
+ })).sort((a,b)=>b.m-a.m || a.tan-b.tan);
+
+ const moveKing=moves.length?moves[0]:null;
+
  const mTanAll=med(tan.map(x=>x.car));
  const mTan10=med(under10);
  const mTanOver=med(tan.filter(x=>x.odds>=10).map(x=>x.car));
@@ -188,7 +198,11 @@ function analyze(){
  '<div class="alert"><div class="yellow">📊 レース判定</div>'+raceType+'<br>軸車：<span class="red">'+axis+'</span><br>単勝10倍以内：'+under10.length+'車<br>'+under10.join('・')+'<br>直後2車：'+(next2.join('・')||'なし')+'</div>'+
  '<div class="yellow">📊 本表</div>'+mainTable(tan,o)+
  '<pre>'+
- '🟡【メジアン】\n単勝全体：'+mTanAll+
+ '🔄【移動数ランキング】\n'+
+ (moves.length?moves.map(x=>x.car+'：'+x.m+'移動（単勝'+x.tan+'位→2車複'+x.ni+'位）').join('\n'):'なし')+
+ '\n\n🔥【移動数王】\n'+
+ (moveKing?moveKing.car+'（'+moveKing.m+'移動）':'なし')+
+ '\n\n🟡【メジアン】\n単勝全体：'+mTanAll+
  '\n単勝10倍以内：'+mTan10+
  '\n単勝10倍以上：'+mTanOver+
  '\n\n2車複全体：'+mNiAll+
@@ -211,8 +225,8 @@ function analyze(){
 }
 
 function sample(){
- race.value='浜松1R';
- odds.value='[TAN]\n3 1.9\n6 3.2\n8 4.9\n4 5.0\n5 17.1\n7 17.1\n1 19.6\n2 34.3\n\n[NISHA]\n4-6 2.3\n3-6 2.3\n6-8 9.3\n3-8 10.1\n3-4 11.7\n1-3 16.7\n7-8 26.0\n1-8 29.3\n5-8 33.5\n4-8 46.9\n1-4 58.6\n1-6 58.6\n5-6 58.6\n2-8 78.1\n3-5 117.2\n4-7 117.2\n6-7 117.2\n1-2 234.5\n2-3 234.5\n2-6 234.5\n\n[SANREN]\n3-6-8 3.0\n4-6-8 3.7\n3-4-6 9.2\n1-3-6 13.9\n3-4-8 16.7\n6-7-8 23.0\n1-3-8 33.5\n1-4-6 33.5\n1-6-8 36.8\n1-3-4 38.8';
+ race.value='浜松2R';
+ odds.value='[TAN]\n6 1.9\n7 3.1\n4 4.8\n8 6.1\n3 8.4\n5 14.6\n1 32.6\n2 141.4\n\n[NISHA]\n6-8 3.3\n6-7 4.8\n3-6 5.8\n7-8 8.1\n3-8 13.4\n5-6 14.3\n3-7 14.4\n4-6 15.7\n5-8 17.2\n3-5 22.4\n4-7 22.8\n5-7 23.6\n3-4 28.3\n1-6 45.6\n4-8 45.6\n4-5 47.2\n1-8 70.8\n1-3 101.1\n1-5 128.7\n1-7 128.7\n\n[SANREN]\n6-7-8 3.3\n3-6-8 7.8\n5-6-8 9.4\n5-6-7 10.1\n3-6-7 10.5\n5-7-8 13.7\n3-5-6 13.8\n3-7-8 15.0\n4-6-8 17.1\n4-6-7 19.4';
  analyze();
 }
 </script>
