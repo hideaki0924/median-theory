@@ -280,7 +280,7 @@ if(axis && san.length){
  const guide='<div class="guide">'+
  '<div class="blue">🔵 優先：'+priority+'</div>'+
  '<div>'+priorityText+'</div><hr>'+
- '<div class="red" style="font-size:42px;font-weight:bold">🚨激走注意馬🐎🐴</div>'+
+ '<div style="color:#ff4d4d;font-size:42px;font-weight:bold">🚨超激走注意馬🐎🐴</div>'+
 '<div style="font-size:52px;font-weight:bold;color:#ff4d4d;line-height:1.4;text-shadow:0 0 10px #ff4d4d;">'+
 (ultraMain.length?ultraMain.join('・'):'なし')+
 '</div>'+
@@ -360,11 +360,11 @@ return '<span class="'+cls+'" style="font-size:22px">'+
 '軸② 複勝6倍壁前2頭→1人気：'+axisB+'\n'+
 '相手① 単勝99倍以内メジアン：'+targetA+'\n'+
 '相手② 境目ペア：'+targetB+'\n'+
-'穴① 超穴警報：'+(ultraSub.join('・')||'なし')+'\n\n'+
+'穴① 超激走注意馬：'+(ultraSub.join('・')||'なし')+'\n\n'+
 '【推奨 馬連 大谷式】\n'+formatOtani(buyPairs)+'\n\n'+
 '【推奨 ワイド 大谷式】\n'+formatOtani(buyPairs)+'\n\n'+
 '【三連単10万馬券モード】\n'+
-'超穴警報馬を1着候補にする。\n'+
+'超激走注意馬を1着候補にする。\n'+
 (triple.slice(0,18).join('\n')||'なし')+
 '</pre>';
 }
