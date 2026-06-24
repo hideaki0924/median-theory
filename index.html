@@ -143,44 +143,25 @@ function calcRanks(tan,fuku,umaren){
  return {u,tanRank,tanOdds,fukuRank,fukuOdds,umaRank,umaOdds};
 }
 function tableBook(tan,fuku,umaren){
- const r=calcRanks(tan,fuku,umaren);
- const horses=[];
- function addHorse(h){
-  if(h&&h!=='―'&&!horses.includes(h))horses.push(h);
- }
+ const u=makeUmarenOrder(tan,umaren);
 
- // 単勝1人気 → 馬連上位に出る順
- r.u.order.forEach(addHorse);
+ const rows=[
+  ['馬連ランク',u.order],
+  ['単勝ランク',tan.map(x=>x.horse)],
+  ['複勝ランク',fuku.map(x=>x.horse)]
+ ];
 
- // 足りない馬も後ろに追加
- tan.forEach(x=>addHorse(x.horse));
- fuku.forEach(x=>addHorse(x.horse));
-
- function cls(h,rankObj){
-  if(!r.umaRank[h] || !rankObj[h])return '';
-  const d=Math.abs(r.umaRank[h]-rankObj[h]);
-  if(d===0)return 'disc-good';
-  if(d<=2)return 'disc-warn';
-  return 'disc-bad';
- }
+ const max=Math.max(...rows.map(r=>r[1].length));
 
  let html='<div class="scroll"><table>';
 
- html+='<tr><td class="rowhead">馬番</td>';
- horses.forEach(h=>html+='<td class="rank-red">'+h+'</td>');
- html+='</tr>';
-
- html+='<tr><td class="rowhead">馬連順位</td>';
- horses.forEach(h=>html+='<td class="rank-red">'+(r.umaRank[h]||'')+'</td>');
- html+='</tr>';
-
- html+='<tr><td class="rowhead">単勝順位</td>';
- horses.forEach(h=>html+='<td class="'+cls(h,r.tanRank)+'">'+(r.tanRank[h]||'')+'</td>');
- html+='</tr>';
-
- html+='<tr><td class="rowhead">複勝順位</td>';
- horses.forEach(h=>html+='<td class="'+cls(h,r.fukuRank)+'">'+(r.fukuRank[h]||'')+'</td>');
- html+='</tr>';
+ rows.forEach(row=>{
+  html+='<tr><td class="rowhead">'+row[0]+'</td>';
+  for(let i=0;i<max;i++){
+   html+='<td class="rank-red">'+(row[1][i]||'')+'</td>';
+  }
+  html+='</tr>';
+ });
 
  html+='</table></div>';
  return html;
