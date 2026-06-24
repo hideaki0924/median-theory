@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 V26</title>
+<title>チャッピー神予想 V27</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;background:#07101f;color:#fff;padding:16px;margin:0;font-size:18px}
 h1{font-size:30px;line-height:1.25}
@@ -26,7 +26,7 @@ td,th{border:1px solid #33415c;padding:4px;text-align:center;white-space:nowrap;
 .red{color:#ff4d4d;font-size:28px;font-weight:bold}
 .green{color:#5ee05e;font-size:28px;font-weight:bold}
 .purple{color:#d88cff;font-size:28px;font-weight:bold}
- .disc-good{color:#5ee05e;font-weight:bold}
+.disc-good{color:#5ee05e;font-weight:bold}
 .disc-warn{color:#ffd66b;font-weight:bold}
 .disc-bad{color:#ff4d4d;font-weight:bold}
 .lamp{background:#300000;border:4px solid #ff4d4d;color:#fff;border-radius:18px;padding:18px;margin:16px 0;font-weight:bold;box-shadow:0 0 18px #ff4d4d}
@@ -35,7 +35,7 @@ td,th{border:1px solid #33415c;padding:4px;text-align:center;white-space:nowrap;
 </head>
 <body>
 
-<h1>🏇 チャッピー神予想<br>V26 神勝負・圧縮BOX</h1>
+<h1>🏇 チャッピー神予想<br>V27 壁理論・単勝王</h1>
 
 <div class="box">
 <label>レース名</label>
@@ -106,6 +106,12 @@ function medianPair(arr){
  const n=arr.length;
  return n%2 ? arr[Math.floor(n/2)].pair : arr[n/2-1].pair+'・'+arr[n/2].pair;
 }
+function medianSimple(arr){
+ arr=uniq(arr);
+ if(!arr.length)return '-';
+ const n=arr.length;
+ return n%2 ? arr[Math.floor(n/2)] : arr[n/2-1]+'・'+arr[n/2];
+}
 function stars(n){if(n>=85)return'★★★★★';if(n>=70)return'★★★★';if(n>=55)return'★★★';if(n>=40)return'★★';return'★';}
 function heat(n){if(n>=5)return'🔥激熱';if(n>=4)return'⭕熱';if(n>=3)return'△注意';return'';}
 function addMap(map,h,p,label){
@@ -124,6 +130,35 @@ function wallList(arr,t){
   if(d>=t)r.push((arr[i].horse||arr[i].pair)+'('+arr[i].odds+') → '+(arr[i+1].horse||arr[i+1].pair)+'('+arr[i+1].odds+') 差'+d.toFixed(1));
  }
  return r;
+}
+function ratioWall(arr,rate=2){
+ for(let i=0;i<arr.length-1;i++){
+  const a=arr[i].odds,b=arr[i+1].odds;
+  if(a>0 && b/a>=rate){
+   return {
+    index:i,
+    from:a,
+    to:b,
+    before:arr.slice(Math.max(0,i-1),i+1),
+    inside:arr.slice(0,i+1)
+   };
+  }
+ }
+ return null;
+}
+function itemHorses(x){
+ if(!x)return [];
+ if(x.horse)return [x.horse];
+ if(x.hs)return x.hs;
+ return [];
+}
+function wallHorses(w){
+ if(!w)return [];
+ return uniq(w.before.flatMap(itemHorses));
+}
+function insideHorses(w){
+ if(!w)return [];
+ return uniq(w.inside.flatMap(itemHorses));
 }
 function makeUmarenOrder(tan,umaren){
  const axis=tan[0]?tan[0].horse:'';
@@ -144,25 +179,18 @@ function calcRanks(tan,fuku,umaren){
 }
 function tableBook(tan,fuku,umaren){
  const u=makeUmarenOrder(tan,umaren);
-
  const rows=[
   ['馬連ランク',u.order],
   ['単勝ランク',tan.map(x=>x.horse)],
   ['複勝ランク',fuku.map(x=>x.horse)]
  ];
-
  const max=Math.max(...rows.map(r=>r[1].length));
-
  let html='<div class="scroll"><table>';
-
  rows.forEach(row=>{
   html+='<tr><td class="rowhead">'+row[0]+'</td>';
-  for(let i=0;i<max;i++){
-   html+='<td class="rank-red">'+(row[1][i]||'')+'</td>';
-  }
+  for(let i=0;i<max;i++)html+='<td class="rank-red">'+(row[1][i]||'')+'</td>';
   html+='</tr>';
  });
-
  html+='</table></div>';
  return html;
 }
@@ -219,6 +247,32 @@ function analyze(){
   border=n%2===0 ? tan20[n/2-1].horse+'・'+tan20[n/2].horse : tan20[Math.floor(n/2)].horse;
  }
 
+ const tanHole78=[];
+ if(tan10>=6){
+  if(tan[6])tanHole78.push(tan[6].horse);
+  if(tan[7])tanHole78.push(tan[7].horse);
+ }
+
+ const fukuHole78=[];
+ if(fuku6>=6){
+  if(fuku[6])fukuHole78.push(fuku[6].horse);
+  if(fuku[7])fukuHole78.push(fuku[7].horse);
+ }
+
+ const tanRatioWall=ratioWall(tan,2);
+ const fukuRatioWall=ratioWall(fuku,2);
+ const umaRatioWall=ratioWall(umaren,2);
+
+ const axisUmaren=umaren.filter(x=>x.hs.includes(axis));
+ const axisUmaWall=ratioWall(axisUmaren,2);
+ const axisUmaWallBefore=axisUmaWall?uniq(axisUmaWall.before.map(x=>x.hs.find(h=>h!==axis)).filter(Boolean)):[];
+ const axisUmaWallInside=axisUmaWall?uniq(axisUmaWall.inside.map(x=>x.hs.find(h=>h!==axis)).filter(Boolean)):[];
+ const axisUmaWallMedian=medianSimple(axisUmaWallInside);
+
+ const umaWallBefore=wallHorses(umaRatioWall);
+ const umaWallInside=insideHorses(umaRatioWall);
+ const umaWallMedian=medianSimple(umaWallInside);
+
  const rank=calcRanks(tan,fuku,umaren);
  const moveRank=[];
  tan.forEach(x=>{
@@ -247,7 +301,10 @@ function analyze(){
  ].join('・').split('・').forEach(h=>addMap(score,h,1,'メジアン'));
 
  f6pre.forEach(h=>addMap(score,h,1,'6倍壁前2頭'));
+ f10pre.forEach(h=>addMap(score,h,1,'10倍壁前2頭'));
  f15pre.forEach(h=>addMap(score,h,1,'15倍壁前2頭'));
+ axisUmaWallBefore.forEach(h=>addMap(score,h,1,'単勝1人気軸馬連壁前'));
+ addMap(score,axisUmaWallMedian,1,'馬連壁内メジアン');
  addMap(score,f6entry,1,'6倍入口');
 
  const ranking=Object.entries(score).sort((a,b)=>b[1].pt-a[1].pt);
@@ -262,8 +319,10 @@ function analyze(){
  }
  [...f6pre,f6entry,...f10pre,f10after,...f15pre,f15entry,...border.split('・'),...movePlus2,...tansho].forEach(h=>addBottom(h,1,'反応点'));
  f6pre.forEach(h=>addBottom(h,2,'6倍壁前'));
+ f10pre.forEach(h=>addBottom(h,2,'10倍壁前'));
  if(f6entry!=='-')addBottom(f6entry,2,'6倍壁直後');
  f15pre.forEach(h=>addBottom(h,2,'15倍壁前'));
+ axisUmaWallBefore.forEach(h=>addBottom(h,2,'馬連壁前'));
  movePlus2.forEach(h=>addBottom(h,1,'順位変動補助'));
  tansho.forEach(h=>addBottom(h,2,'単勝案件'));
 
@@ -274,7 +333,10 @@ function analyze(){
  const ultra={};
  tansho.forEach(h=>addMap(ultra,h,2,'単勝案件'));
  f15pre.forEach(h=>addMap(ultra,h,2,'15倍壁前2頭'));
+ f10pre.forEach(h=>addMap(ultra,h,2,'10倍壁前2頭'));
  f6pre.forEach(h=>addMap(ultra,h,2,'6倍壁前2頭'));
+ axisUmaWallBefore.forEach(h=>addMap(ultra,h,3,'単勝1人気軸馬連壁前'));
+ addMap(ultra,axisUmaWallMedian,2,'馬連壁内メジアン');
  addMap(ultra,f6entry,2,'6倍壁直後');
  addMap(ultra,f15to6med,2,'15壁→6以上メジアン');
  addMap(ultra,f10after,1,'複勝10倍壁直後');
@@ -289,6 +351,29 @@ function analyze(){
  const ultraMain=ultraRank.filter(x=>x[1].pt>=5).map(x=>x[0]);
  const ultraSub=ultraRank.filter(x=>x[1].pt>=3).map(x=>x[0]);
 
+ const king={};
+ const holeKing={};
+ function addKing(h,p,label){addMap(king,h,p,label);}
+ function addHole(h,p,label){addMap(holeKing,h,p,label);}
+
+ tansho.forEach(h=>addKing(h,3,'単勝案件'));
+ f10pre.forEach(h=>{addKing(h,4,'複勝10倍壁前');addHole(h,4,'複勝10倍壁前');});
+ f15pre.forEach(h=>{addKing(h,5,'複勝15倍壁前');addHole(h,5,'複勝15倍壁前');});
+ axisUmaWallBefore.forEach(h=>{addKing(h,5,'馬連壁前');addHole(h,4,'馬連壁前');});
+ addKing(axisUmaWallMedian,3,'馬連壁内メジアン');
+ addHole(axisUmaWallMedian,3,'馬連壁内メジアン');
+ wallHorses(tanRatioWall).forEach(h=>{addKing(h,3,'単勝2倍乖離壁前');addHole(h,3,'単勝2倍乖離壁前');});
+ wallHorses(fukuRatioWall).forEach(h=>{addKing(h,3,'複勝2倍乖離壁前');addHole(h,3,'複勝2倍乖離壁前');});
+ umaWallBefore.forEach(h=>{addKing(h,3,'馬連全体壁前');addHole(h,3,'馬連全体壁前');});
+ tanHole78.forEach(h=>addHole(h,4,'単勝10倍未満6頭→7・8人気'));
+ fukuHole78.forEach(h=>addHole(h,3,'複勝6倍未満6頭→7・8位'));
+ border.split('・').forEach(h=>{addKing(h,2,'境目ペア');addHole(h,2,'境目ペア');});
+ [medianHorse(tan),medianHorse(tan.filter(x=>x.odds<=10)),medianHorse(fuku),axisUmaWallMedian,umaWallMedian].join('・').split('・').forEach(h=>addKing(h,1,'メジアン補助'));
+ movePlus2.forEach(h=>addHole(h,2,'順位移動'));
+
+ const kingRank=Object.entries(king).sort((a,b)=>b[1].pt-a[1].pt);
+ const holeRank=Object.entries(holeKing).sort((a,b)=>b[1].pt-a[1].pt);
+
  let arere=30;
  if(um1>=9)arere+=25;
  if(tan30>=10)arere+=25;
@@ -299,12 +384,12 @@ function analyze(){
  let priority='標準';
  let priorityText='標準判定。単勝案件・複勝壁・境目・ボトム値を確認。';
  if(um1 && um1<4){priority='馬連1人気4倍未満';priorityText='本命集中。ただし壁前・壁直後の割り込み注意。';}
- else if(um1 && um1<9){priority='馬連1人気4〜9倍';priorityText='中穴ゾーン。境目ペア・単勝案件・複勝壁前を重視。';}
+ else if(um1 && um1>=4.1 && um1<=9){priority='馬連1人気4.1〜9倍';priorityText='中穴ゾーン。複勝10倍壁前2頭を強制注目。';}
  else if(um1>=9){priority='馬連1人気9倍以上';priorityText='荒れ注意。複勝壁・ボトム値・超穴警報を厚めに確認。';}
 
  const topUmHorses=uniq(umaren.slice(0,5).flatMap(x=>x.hs));
  const concentration=topUmHorses.length<=4 && umaren.length>=3;
- const wallAll=uniq([...f6pre,...f15pre]);
+ const wallAll=uniq([...f6pre,...f10pre,...f15pre,...axisUmaWallBefore]);
  const hotWall=wallAll.filter(h=>ultraSub.includes(h));
  const tanshoWall=wallAll.filter(h=>tansho.includes(h));
  const bottomWall=wallAll.filter(h=>bottomSub.includes(h));
@@ -317,6 +402,7 @@ function analyze(){
  if(concentration){godPoint++;godReasons.push('馬連人気集中');}
  if(bottomWall.length){godPoint++;godReasons.push('ボトム値×壁前馬：'+bottomWall.join('・'));}
  if(borderHit.length){godPoint++;godReasons.push('境目ペア反応：'+borderHit.join('・'));}
+ if(axisUmaWallBefore.length){godPoint++;godReasons.push('単勝1人気軸馬連壁前：'+axisUmaWallBefore.join('・'));}
 
  let godLabel='なし';
  let boxSize=0;
@@ -336,7 +422,9 @@ function analyze(){
  bottomMain.forEach(h=>addBox(h,4,'ボトム値上位'));
  tansho.forEach(h=>addBox(h,4,'単勝案件'));
  f6pre.forEach(h=>addBox(h,3,'6倍壁前'));
+ f10pre.forEach(h=>addBox(h,3,'10倍壁前'));
  f15pre.forEach(h=>addBox(h,3,'15倍壁前'));
+ axisUmaWallBefore.forEach(h=>addBox(h,4,'馬連壁前'));
  if(f6entry!=='-')addBox(f6entry,2,'6倍壁直後');
  border.split('・').forEach(h=>addBox(h,2,'境目ペア'));
  movePlus2.forEach(h=>addBox(h,1,'順位変動補助'));
@@ -358,8 +446,8 @@ function analyze(){
   const p=a+'-'+b;
   if(!buyPairs.includes(p))buyPairs.push(p);
  }
- [...axisA.split('・'),...axisB.split('・')].forEach(a=>{
-  [...targetA.split('・'),...targetB.split('・'),...ultraSub,...bottomSub].forEach(b=>addBuyPair(a,b));
+ [...axisA.split('・'),...axisB.split('・'),...ultraMain,...axisUmaWallBefore].forEach(a=>{
+  [...targetA.split('・'),...targetB.split('・'),...ultraSub,...bottomSub,...f10pre,...f15pre].forEach(b=>addBuyPair(a,b));
  });
 
  let sanLostRank='-',sanLostOdds='-',sanLostPair='-',sanLostEval='-';
@@ -390,6 +478,10 @@ function analyze(){
  '<div>'+priorityText+'</div><hr>'+
  '<div class="bigred">'+godLabel+'</div>'+
  '<div>'+(godReasons.length?godReasons.map(x=>'✔ '+x).join('<br>'):'成立理由なし')+'</div><hr>'+
+ '<div class="bigred">🏆 単勝王</div>'+
+ '<div>'+(kingRank.slice(0,5).map((x,i)=>(i+1)+'位 '+x[0]+'：'+x[1].pt+'点').join('<br>')||'なし')+'</div><hr>'+
+ '<div class="red">🕳 穴王</div>'+
+ '<div>'+(holeRank.slice(0,5).map((x,i)=>(i+1)+'位 '+x[0]+'：'+x[1].pt+'点').join('<br>')||'なし')+'</div><hr>'+
  '<div class="bigred">🚨超激走注意馬</div>'+
  '<div class="bigred">'+(ultraMain.length?ultraMain.join('・'):'なし')+'</div><hr>'+
  '<div class="green">🎯単勝案件</div>'+
@@ -398,7 +490,12 @@ function analyze(){
  '<div>'+(bottomRank.map((x,i)=>(i+1)+'位 '+x[0]+'：'+x[1].pt+'点').join('<br>')||'なし')+'</div><hr>'+
  '<div class="purple">🧱 壁セット</div>'+
  '<div>6倍壁前：'+(f6pre.join('・')||'なし')+'　直後：'+f6entry+'</div>'+
- '<div>15倍壁前：'+(f15pre.join('・')||'なし')+'　直後：'+f15entry+'</div><hr>'+
+ '<div>10倍壁前：'+(f10pre.join('・')||'なし')+'　直後：'+f10after+'</div>'+
+ '<div>15倍壁前：'+(f15pre.join('・')||'なし')+'　直後：'+f15entry+'</div>'+
+ '<div>単勝2倍乖離壁前：'+(wallHorses(tanRatioWall).join('・')||'なし')+'</div>'+
+ '<div>複勝2倍乖離壁前：'+(wallHorses(fukuRatioWall).join('・')||'なし')+'</div>'+
+ '<div>単勝1人気軸馬連壁前：'+(axisUmaWallBefore.join('・')||'なし')+'</div>'+
+ '<div>馬連壁内メジアン：'+axisUmaWallMedian+'</div><hr>'+
  '<div class="green">📈 順位変動ランキング</div>'+
  '<div>'+moveRank.map(x=>x.horse+'番 単'+x.tan+'位→複'+x.fuku+'位（'+(x.diff>0?'+':'')+x.diff+'）').join('<br>')+'</div><hr>'+
  '<div class="yellow">🟡 境目ペア</div>'+
@@ -428,6 +525,10 @@ function analyze(){
 '複勝6倍未満：'+fuku6+'頭\n\n'+
 '【神勝負判定】\n'+godLabel+'\n'+
 (godReasons.length?godReasons.map(x=>'✔ '+x).join('\n'):'なし')+'\n\n'+
+'【単勝王ランキング】\n'+
+(kingRank.map((x,i)=>(i+1)+'位 '+x[0]+'：'+x[1].pt+'点 / '+x[1].labels.join('・')).join('\n')||'なし')+'\n\n'+
+'【穴王ランキング】\n'+
+(holeRank.map((x,i)=>(i+1)+'位 '+x[0]+'：'+x[1].pt+'点 / '+x[1].labels.join('・')).join('\n')||'なし')+'\n\n'+
 '【本命BOX】\n'+(mainBox.join('・')||'なし')+'\n\n'+
 '【穴候補】\n'+(holeBox.join('・')||'なし')+'\n\n'+
 '【保険】\n'+(insureBox.join('・')||'なし')+'\n\n'+
@@ -452,22 +553,33 @@ moveRank.map(x=>x.horse+'番 単勝'+x.tan+'位 → 複勝'+x.fuku+'位（'+(x.d
 '複勝12倍以内：'+medianHorse(fuku.filter(x=>x.odds<=12))+'\n\n'+
 '馬連メジアン：'+medianPair(umaren)+'\n'+
 '三連複メジアン：'+medianPair(san)+'\n\n'+
+'【新・壁理論】\n'+
+'単勝2倍乖離壁前：'+(wallHorses(tanRatioWall).join('・')||'なし')+'\n'+
+'複勝2倍乖離壁前：'+(wallHorses(fukuRatioWall).join('・')||'なし')+'\n'+
+'馬連全体壁前：'+(umaWallBefore.join('・')||'なし')+'\n'+
+'馬連全体壁内メジアン：'+umaWallMedian+'\n'+
+'単勝1人気軸馬連壁前：'+(axisUmaWallBefore.join('・')||'なし')+'\n'+
+'単勝1人気軸馬連壁内メジアン：'+axisUmaWallMedian+'\n'+
+'単勝10倍未満6頭→7・8人気：'+(tanHole78.join('・')||'なし')+'\n'+
+'複勝6倍未満6頭→複勝7・8位：'+(fukuHole78.join('・')||'なし')+'\n\n'+
 '【複勝壁】\n'+
 '複勝6倍壁前2頭：'+(f6pre.join('・')||'なし')+'\n'+
 '複勝6倍壁直後：'+f6entry+'\n'+
+'複勝10倍壁前2頭：'+(f10pre.join('・')||'なし')+'\n'+
+'複勝10倍壁直後馬：'+f10after+'\n'+
 '複勝15倍壁前2頭：'+(f15pre.join('・')||'なし')+'\n'+
 '複勝15倍壁直後：'+f15entry+'\n'+
 '15壁→6倍以上メジアン：'+f15to6med+'\n'+
-'6倍壁前2頭→1人気：'+(f6ToFav||'なし')+'\n'+
-'複勝10倍壁前2頭：'+(f10pre.join('・')||'なし')+'\n'+
-'複勝10倍壁直後馬：'+f10after+'\n\n'+
+'6倍壁前2頭→1人気：'+(f6ToFav||'なし')+'\n\n'+
 '【乖離差警告】\n'+(wallList(tan,8).join('\n')||'なし')+'\n\n'+
 '【チャッピー推奨】\n'+
 '軸① 単勝10倍以内メジアン：'+axisA+'\n'+
 '軸② 複勝6倍壁前2頭→1人気：'+axisB+'\n'+
 '相手① 単勝99倍以内メジアン：'+targetA+'\n'+
 '相手② 境目ペア：'+targetB+'\n'+
-'穴① 超激走注意馬：'+(ultraSub.join('・')||'なし')+'\n\n'+
+'穴① 超激走注意馬：'+(ultraSub.join('・')||'なし')+'\n'+
+'穴② 単勝王：'+(kingRank[0]?kingRank[0][0]:'なし')+'\n'+
+'穴③ 穴王：'+(holeRank[0]?holeRank[0][0]:'なし')+'\n\n'+
 '【推奨 馬連 大谷式】\n'+formatOtani(buyPairs)+'\n\n'+
 '【推奨 ワイド 大谷式】\n'+formatOtani(buyPairs)+'\n\n'+
 '【本命BOX 馬連】\n'+formatPairsBox(mainBox)+'\n\n'+
