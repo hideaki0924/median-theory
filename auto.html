@@ -3,261 +3,281 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 オート版V10</title>
+<title>チャッピー神予想 オートV20</title>
 <style>
-body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;background:#07101f;color:#fff;padding:14px;margin:0;font-size:20px}
-h1{color:#ffd66b;font-size:32px}
-textarea,input{width:100%;box-sizing:border-box;background:#050912;color:#fff;border:2px solid #33415c;border-radius:14px;padding:12px;font-size:20px;margin:8px 0}
-textarea{height:310px;font-family:monospace}
-button{width:100%;padding:16px;border:0;border-radius:16px;font-size:24px;font-weight:bold;background:#ffd66b;color:#000;margin:8px 0}
-.box{background:#111b2e;border:2px solid #33415c;border-radius:18px;padding:14px;margin:14px 0}
-.alert{border:3px solid #33415c;border-radius:24px;padding:16px;margin:14px 0}
-.scroll{overflow-x:auto;border:3px solid #ffd66b;border-radius:18px;margin:12px 0}
-table{border-collapse:collapse;min-width:850px;font-size:22px}
-td{border:1px solid #33415c;padding:12px;text-align:center;white-space:nowrap}
-.head{background:#152036;color:#ffd66b;font-weight:bold}
-.yellow{color:#ffd966;font-size:28px;font-weight:bold}
-.green{color:#53d769;font-size:28px;font-weight:bold}
-.red{color:#ff4d4d;font-size:28px;font-weight:bold}
-.blue{color:#4da3ff;font-size:28px;font-weight:bold}
-pre{white-space:pre-wrap;line-height:1.75;font-size:22px;font-weight:bold}
+body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;background:#07101f;color:white;padding:14px;font-size:18px}
+textarea{width:100%;height:280px;font-size:17px;border-radius:10px;padding:10px}
+button{font-size:20px;padding:10px 14px;margin:6px 4px;border:0;border-radius:12px;background:#22c55e;color:white}
+.btn2{background:#3b82f6}.btn3{background:#64748b}
+.box{background:#111827;border-radius:14px;padding:14px;margin:12px 0}
+h1{font-size:26px}h2{font-size:22px;border-bottom:1px solid #374151;padding-bottom:6px}
+.hot{color:#fb7185;font-size:24px;font-weight:bold}.gold{color:#facc15;font-size:24px;font-weight:bold}
+.green{color:#22c55e;font-weight:bold}.yellow{color:#facc15;font-weight:bold}.red{color:#fb7185;font-weight:bold}
+.small{font-size:15px;color:#cbd5e1}
+.rankWrap{overflow-x:auto;white-space:nowrap}
+.row{margin:12px 0;font-size:24px;font-weight:bold}
+.label{display:inline-block;width:110px;color:#cbd5e1;font-size:18px}
+.cell{display:inline-block;min-width:34px;text-align:center;padding:4px 6px;border-right:1px solid #64748b}
+.wallTan{border-right:3px solid #3b82f6}
+.wallNisha{border-right:3px solid #ff3b30}
+pre{white-space:pre-wrap}
 </style>
 </head>
 <body>
 
-<h1>🏍️ チャッピー神予想<br>オート版V10</h1>
+<h1>チャッピー神予想 オートV20</h1>
 
 <div class="box">
-<input id="race" placeholder="例：浜松2R">
-<textarea id="odds" placeholder="[TAN]
-6 1.9
-7 3.1
-4 4.8
-8 6.1
+<textarea id="input">伊勢崎〇R
+
+[TAN]
 
 [NISHA]
-6-8 3.3
-6-7 4.8
 
 [SANREN]
-6-7-8 3.3
-3-6-8 7.8"></textarea>
-<button onclick="analyze()">分析する</button>
-<button onclick="sample()">サンプル</button>
+</textarea><br>
+<button onclick="analyze()">解析</button>
+<button class="btn2" onclick="testData()">テスト</button>
+<button class="btn3" onclick="resetInput()">リセット</button>
 </div>
 
-<div id="out" class="box">ここに結果が出ます。</div>
+<div id="result"></div>
 
 <script>
-function norm(s){return String(s).replace(/[０-９]/g,x=>String.fromCharCode(x.charCodeAt(0)-65248)).replace(/[－ー―=]/g,'-')}
-function toNum(v){return parseFloat(norm(v).replace(/[^\d.]/g,''))}
-function splitH(s){return norm(s).split('-').map(x=>x.trim()).filter(Boolean)}
-function uniq(a){return a.filter((v,i,x)=>v&&x.indexOf(v)===i)}
-function med(a){if(!a.length)return '-';const n=a.length;return n%2?a[Math.floor(n/2)]:a[n/2-1]+'・'+a[n/2]}
-
-function parseData(){
- const lines=norm(odds.value).split(/\n/).map(x=>x.trim()).filter(Boolean);
- let sec='tan'; const tan=[],nisha=[],san=[];
- for(const line of lines){
-  const u=line.toUpperCase();
-  if(u.includes('TAN')||line.includes('単勝')){sec='tan';continue}
-  if(u.includes('NISHA')||line.includes('2車複')||line.includes('２車複')){sec='nisha';continue}
-  if(u.includes('SANREN')||line.includes('3連複')||line.includes('３連複')){sec='san';continue}
-  const p=line.split(/\s+/); if(p.length<2)continue;
-  const od=toNum(p[1]); if(!od)continue;
-  if(sec==='tan')tan.push({car:p[0],odds:od});
-  if(sec==='nisha')nisha.push({pair:p[0],odds:od,hs:splitH(p[0])});
-  if(sec==='san')san.push({pair:p[0],odds:od,hs:splitH(p[0])});
- }
- tan.sort((a,b)=>a.odds-b.odds);
- nisha.sort((a,b)=>a.odds-b.odds);
- san.sort((a,b)=>a.odds-b.odds);
- return {tan,nisha,san};
+function norm(s){
+  return s.replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0)).replace(/[－ー―–]/g,"-");
 }
 
-function otani(tan,nisha){
- const axis=tan[0]?.car||'';
- const cars=[axis], odds=['-'];
- nisha.filter(x=>x.hs.includes(axis)).sort((a,b)=>a.odds-b.odds).forEach(x=>{
-  const other=x.hs.find(h=>h!==axis);
-  if(other&&!cars.includes(other)){cars.push(other);odds.push(x.odds)}
- });
- return {axis,cars,odds};
-}
+function parseInput(text){
+  text=norm(text);
+  const lines=text.split(/\n/).map(x=>x.trim()).filter(Boolean);
+  let mode="", race="レース名未入力";
+  const tan=[],nisha=[],sanren=[];
+  for(const line of lines){
+    if(line.match(/^\[TAN\]|単勝/i)){mode="TAN";continue;}
+    if(line.match(/^\[NISHA\]|2車|二車/i)){mode="NISHA";continue;}
+    if(line.match(/^\[SANREN\]|3連|三連/i)){mode="SANREN";continue;}
+    if(!line.includes(" ")&&!line.includes("-")&&!line.startsWith("[")){race=line;continue;}
 
-function mainTable(tan,o){
- const max=Math.max(tan.length,o.cars.length);
- let h='<div class="scroll"><table>';
- h+='<tr><td class="head">単勝</td>';
- for(let i=0;i<max;i++)h+='<td>'+(tan[i]?.car||'')+'</td>';
- h+='</tr><tr><td class="head">単勝オッズ</td>';
- for(let i=0;i<max;i++)h+='<td>'+(tan[i]?.odds||'')+'</td>';
- h+='</tr><tr><td class="head">2車複</td>';
- for(let i=0;i<max;i++)h+='<td>'+(o.cars[i]||'')+'</td>';
- h+='</tr><tr><td class="head">2車複オッズ</td>';
- for(let i=0;i<max;i++)h+='<td>'+(o.odds[i]||'')+'</td>';
- h+='</tr></table></div>';
- return h;
-}
-
-function pairList(axis,cars){
- return uniq(cars).filter(c=>c!==axis).map(c=>axis+'-'+c);
-}
-function triList(axis,cars,limit){
- const r=[], a=uniq(cars).filter(c=>c!==axis);
- for(let i=0;i<a.length;i++){
-  for(let j=i+1;j<a.length;j++){
-   if(r.length<limit)r.push(axis+'-'+a[i]+'-'+a[j]);
+    const p=line.split(/\s+/);
+    if(mode==="TAN"&&p.length>=2) tan.push({car:p[0],odds:parseFloat(p[1])});
+    if(mode==="NISHA"&&p.length>=2&&p[0].includes("-")) nisha.push({pair:p[0],odds:parseFloat(p[1])});
+    if(mode==="SANREN"&&p.length>=2&&p[0].includes("-")) sanren.push({tri:p[0],odds:parseFloat(p[1])});
   }
- }
- return r;
+  return {race,tan,nisha,sanren};
 }
-function countIn(items){
- const c={};
- items.forEach(x=>x.hs.forEach(h=>c[h]=(c[h]||0)+1));
- return c;
+
+function wallIndexes(list){
+  const s=new Set();
+  for(let i=0;i<list.length-1;i++){
+    if(list[i].odds>0 && list[i+1].odds/list[i].odds>=1.8)s.add(i);
+  }
+  return s;
+}
+
+function rankLine(label,list,walls,type){
+  const wallClass=type==="tan"?"wallTan":"wallNisha";
+  let html=`<div class="row"><span class="label">${label}</span>`;
+  list.forEach((x,i)=>{
+    html+=`<span class="cell ${walls.has(i)?wallClass:""}">${x.car}</span>`;
+  });
+  html+=`</div>`;
+  return html;
+}
+
+function medianCars(list){
+  if(!list.length)return [];
+  const n=list.length;
+  if(n%2===1)return [list[Math.floor(n/2)].car];
+  return [list[n/2-1].car,list[n/2].car];
+}
+
+function add(map,c,pt,reason){
+  if(!c)return;
+  if(!map[c])map[c]={pt:0,rs:[]};
+  map[c].pt+=pt;
+  map[c].rs.push(reason);
+}
+
+function top(map){
+  return Object.entries(map).sort((a,b)=>b[1].pt-a[1].pt).map(([c,v])=>`${c}(${v.pt})`);
+}
+
+function shihaiBox(fav,sanren,nisha){
+  const sortedS=[...sanren].sort((a,b)=>a.odds-b.odds);
+  const sortedN=[...nisha].sort((a,b)=>a.odds-b.odds);
+  function remain(list,key){
+    let last=0,od=0;
+    for(let i=0;i<list.length;i++){
+      const cars=list[i][key].split("-");
+      if(cars.includes(fav.car)){last=i+1;od=list[i].odds;}
+      else break;
+    }
+    return {last,od};
+  }
+  const n=remain(sortedN,"pair"), s=remain(sortedS,"tri");
+  const rate=Math.round(((n.last/Math.max(sortedN.length,1))+(s.last/Math.max(sortedS.length,1)))/2*100);
+  let judge="C：過信注意",cls="yellow";
+  if(rate>=60){judge="S：支配強い";cls="green";}
+  else if(rate>=40){judge="A：そこそこ強い";cls="green";}
+  else if(rate<25){judge="D：飛び警戒";cls="red";}
+  return `<div class="box"><h2>🏆単勝1人気支配率</h2>
+  <div>単勝1人気：${fav.car}（${fav.odds}倍）</div>
+  <div>2車複：${n.last}位まで / ${n.od? n.od+"倍まで":"なし"}</div>
+  <div>3連系：${s.last}位まで / ${s.od? s.od+"倍まで":"なし"}</div>
+  <div class="${cls}" style="font-size:26px;margin-top:8px">${judge}</div></div>`;
 }
 
 function analyze(){
- const raceName=document.getElementById('race').value||'レース名未入力';
- const {tan,nisha,san}=parseData();
- if(!tan.length){out.innerHTML='単勝データがありません';return}
+  const {race,tan,nisha,sanren}=parseInput(document.getElementById("input").value);
+  const result=document.getElementById("result");
+  if(!tan.length||!nisha.length){result.innerHTML='<div class="box red">単勝と2車複を入れてください</div>';return;}
 
- const o=otani(tan,nisha);
- const axis=tan[0].car;
+  const tanRank=[...tan].sort((a,b)=>a.odds-b.odds);
+  const axis=tanRank[0].car;
 
- const under10=tan.filter(x=>x.odds<10).map(x=>x.car);
- const next2=tan.filter(x=>x.odds>=10).slice(0,2).map(x=>x.car);
+  const axisNisha=nisha.filter(x=>x.pair.split("-").includes(axis))
+    .sort((a,b)=>a.odds-b.odds)
+    .map(x=>{const [a,b]=x.pair.split("-");return {car:a===axis?b:a,odds:x.odds,pair:x.pair};});
 
- const raceType=under10.length<=2?'🔵超本命型':under10.length===3?'🟢3車＋直後2車型':under10.length===4?'🔥4車完結候補':under10.length===5?'🔥5車完結候補':'🔴荒れ警戒型';
+  const nishaRank=[{car:axis,odds:0},...axisNisha];
 
- // ======================
- // 危険な1番人気診断 復活
- // ======================
- const san15=san.filter(x=>x.odds<=15);
- let firstOut='15倍以内すべて入り';
- for(let i=0;i<san15.length;i++){
-  if(!san15[i].hs.includes(axis)){
-   firstOut=(i+1)+'位で消滅';
-   break;
-  }
- }
- let safe='🔵超有力';
- if(firstOut!=='15倍以内すべて入り'){
-  const n=parseInt(firstOut);
-  safe=n<=5?'🔴危険':n<=10?'🟡注意':'🟢有力';
- }
+  const tanWalls=wallIndexes(tanRank);
+  const nishaWalls=new Set([...wallIndexes(axisNisha)].map(i=>i+1));
 
- const tanRank={}; tan.forEach((x,i)=>tanRank[x.car]=i+1);
- const niRank={}; o.cars.forEach((c,i)=>niRank[c]=i+1);
- const moves=Object.keys(tanRank).filter(c=>niRank[c]).map(c=>({
-  car:c,
-  tan:tanRank[c],
-  ni:niRank[c],
-  m:Math.abs(tanRank[c]-niRank[c])
- })).sort((a,b)=>b.m-a.m || a.tan-b.tan);
+  const score={};
 
- const moveKing=moves.length?moves[0]:null;
+  medianCars(tanRank).forEach(c=>add(score,c,30,"単勝メジアン"));
+  medianCars(nishaRank).forEach(c=>add(score,c,30,"2車複メジアン"));
 
- const mTanAll=med(tan.map(x=>x.car));
- const mTan10=med(under10);
- const mTanOver=med(tan.filter(x=>x.odds>=10).map(x=>x.car));
- const mNiAll=med(o.cars);
- const mNi10=med(o.cars.filter((c,i)=>i===0||Number(o.odds[i])<10));
- const mNiOver=med(o.cars.filter((c,i)=>i>0&&Number(o.odds[i])>=10));
+  // メジアン重複
+  const tanMed=new Set(medianCars(tanRank));
+  const niMed=new Set(medianCars(nishaRank));
+  [...tanMed].filter(c=>niMed.has(c)).forEach(c=>add(score,c,30,"メジアン重複"));
 
- const medText=[mTanAll,mTan10,mTanOver,mNiAll,mNi10,mNiOver].join('・').split('・');
- const count={}; medText.forEach(c=>{if(c&&c!=='-')count[c]=(count[c]||0)+1});
- const dup=Object.entries(count).filter(x=>x[1]>=2).sort((a,b)=>b[1]-a[1]).map(x=>x[0]+'('+x[1]+')');
+  // ボトム値：下位2車
+  const bottom=[...new Set([...tanRank.slice(-2).map(x=>x.car),...nishaRank.slice(-2).map(x=>x.car)])];
+  bottom.forEach(c=>add(score,c,15,"ボトム値"));
 
- const bottom=med(tan.slice(Math.floor(tan.length/2)).map(x=>x.car));
+  // 順位上昇
+  const tanPos={}, niPos={};
+  tanRank.forEach((x,i)=>tanPos[x.car]=i+1);
+  nishaRank.forEach((x,i)=>niPos[x.car]=i+1);
+  const up=[];
+  Object.keys(tanPos).forEach(c=>{
+    if(niPos[c]&&tanPos[c]-niPos[c]>=2){up.push(c);add(score,c,15,"順位上昇");}
+  });
 
- // ======================
- // 危険な人気車 復活
- // ======================
- const dangerPopular=tan.slice(1,5).filter(x=>{
-  const inSan15=san15.some(s=>s.hs.includes(x.car));
-  const inNisha10=nisha.slice(0,10).some(n=>n.hs.includes(x.car));
-  const inMed=(count[x.car]||0)>0;
-  return !inSan15 && !inNisha10 && !inMed;
- }).map(x=>x.car);
+  // 復活穴：単勝下位なのに2車複上位
+  const revival=[];
+  Object.keys(tanPos).forEach(c=>{
+    if(tanPos[c]>=5&&niPos[c]&&niPos[c]<=4){revival.push(c);add(score,c,20,"復活車");}
+  });
 
- let reviveAxis='',lastCar='',reviveCar='';
- if(nisha.length>=8){
-  const topPairs=nisha.slice(0,15);
-  const cnt=countIn(topPairs);
-  reviveAxis=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0]||'';
-  let streakEnd=-1;
-  for(let i=0;i<topPairs.length;i++){
-   if(topPairs[i].hs.includes(reviveAxis))streakEnd=i;
-   else break;
-  }
-  if(streakEnd>=0){
-   const pair=topPairs[streakEnd].hs;
-   lastCar=pair.find(x=>x!==reviveAxis)||'';
-  }
-  let vanished=false;
-  for(let i=streakEnd+1;i<topPairs.length;i++){
-   if(!topPairs[i].hs.includes(reviveAxis)){vanished=true;continue}
-   if(vanished&&topPairs[i].hs.includes(reviveAxis)){
-    reviveCar=topPairs[i].hs.find(x=>x!==reviveAxis)||'';
-    break;
-   }
-  }
- }
- const reviveHoles=uniq([reviveCar,lastCar].filter(x=>x&&x!==axis));
+  // 連携崩れ警報
+  const topNisha=[...nisha].sort((a,b)=>a.odds-b.odds)[0];
+  const collapse=!topNisha.pair.split("-").includes(axis);
+  if(collapse) topNisha.pair.split("-").forEach(c=>add(score,c,10,"連携崩れ対象"));
 
- const score={};
- tan.forEach(x=>score[x.car]=0);
- nisha.slice(0,10).forEach(x=>x.hs.forEach(h=>score[h]=(score[h]||0)+2));
- san.slice(0,10).forEach(x=>x.hs.forEach(h=>score[h]=(score[h]||0)+3));
- const ranked=Object.keys(score).sort((a,b)=>(score[b]||0)-(score[a]||0));
+  const sorted=Object.entries(score).sort((a,b)=>b[1].pt-a[1].pt);
+  const sRank=sorted.filter(x=>x[1].pt>=60).map(x=>x[0]);
+  const aRank=sorted.filter(x=>x[1].pt>=40&&x[1].pt<60).map(x=>x[0]);
+  const bRank=sorted.filter(x=>x[1].pt>=25&&x[1].pt<40).map(x=>x[0]);
 
- const mainCars=uniq([axis,...under10,...ranked]).slice(0,5);
- const holeCars=uniq([...reviveHoles,...String(bottom).split('・'),...next2]).filter(x=>x&&x!=='-'&&x!==axis);
+  result.innerHTML=`
+  <div class="box"><div class="gold">【${race}】</div></div>
 
- const twoMain=pairList(axis,mainCars).slice(0,8);
- const twoHole=pairList(axis,holeCars).slice(0,8);
- const triMain=triList(axis,mainCars,10);
- const triHole=triList(axis,uniq([...holeCars,...mainCars]),10).filter(x=>holeCars.some(h=>x.includes(h))).slice(0,10);
+  ${shihaiBox(tanRank[0],sanren,nisha)}
 
- out.innerHTML=
- '<h2>'+raceName+'</h2>'+
- '<div class="alert"><div class="yellow">📊 レース判定</div>'+raceType+'<br>軸車：<span class="red">'+axis+'</span><br>単勝10倍以内：'+under10.length+'車<br>'+under10.join('・')+'<br>直後2車：'+(next2.join('・')||'なし')+'</div>'+
- '<div class="alert"><div class="blue">🔵 危険な1番人気診断</div>1番人気：'+axis+'<br>3連複15倍以内：'+san15.length+'組<br>初消滅：'+firstOut+'<br>判定：'+safe+'</div>'+
- '<div class="alert"><div class="red">🔴 危険な人気車</div>'+(dangerPopular.length?dangerPopular.join('・'):'なし')+'</div>'+
- '<div class="yellow">📊 本表</div>'+mainTable(tan,o)+
- '<pre>'+
- '🔄【移動数ランキング】\n'+
- (moves.length?moves.map(x=>x.car+'：'+x.m+'移動（単勝'+x.tan+'位→2車複'+x.ni+'位）').join('\n'):'なし')+
- '\n\n🔥【移動数王】\n'+
- (moveKing?moveKing.car+'（'+moveKing.m+'移動）':'なし')+
- '\n\n🟡【メジアン】\n単勝全体：'+mTanAll+
- '\n単勝10倍以内：'+mTan10+
- '\n単勝10倍以上：'+mTanOver+
- '\n\n2車複全体：'+mNiAll+
- '\n2車複10倍以内：'+mNi10+
- '\n2車複10倍以上：'+mNiOver+
- '\n\n🔥【メジアン重複】\n'+(dup.join('・')||'なし')+
- '\n\n🔥【復活穴理論】\n'+
- '軸車：'+axis+
- '\n復活側の軸：'+(reviveAxis||'なし')+
- '\n最後車：'+(lastCar||'なし')+
- '\n復活車：'+(reviveCar||'なし')+
- '\n穴候補：'+(reviveHoles.join('・')||'なし')+
- '\n\n⚫【ボトム値】\n'+bottom+
- '\n\n🟢【本線車】\n'+(mainCars.join('・')||'なし')+
- '\n\n🏍️【本線2車複】\n'+(twoMain.join('\n')||'なし')+
- '\n\n⚫【穴2車複】\n'+(twoHole.join('\n')||'なし')+
- '\n\n🏍️【本線3連複】\n'+(triMain.join('\n')||'なし')+
- '\n\n⚫【穴3連複】\n'+(triHole.join('\n')||'なし')+
- '</pre>';
+  <div class="box">
+    <h2>🚨連携崩れ警報</h2>
+    <div>単勝1人気：${axis}</div>
+    <div>2車複1人気：${topNisha.pair}（${topNisha.odds}倍）</div>
+    <div class="${collapse?'red':'green'}" style="font-size:24px">${collapse?'単勝1人気が不在：荒れ警戒':'正常：単勝1人気が含まれています'}</div>
+  </div>
+
+  <div class="box">
+    <h2>🔥勝負ランプ</h2>
+    <div class="hot">S：${sRank.length?sRank.join("・"):"なし"}</div>
+    <div class="gold">A：${aRank.length?aRank.join("・"):"なし"}</div>
+    <div>B：${bRank.length?bRank.join("・"):"なし"}</div>
+  </div>
+
+  <div class="box">
+    <h2>📊本表</h2>
+    <div class="small">青線＝単勝壁　赤線＝2車複壁　※乖離率1.8倍以上</div>
+    <div class="rankWrap">
+      ${rankLine("単勝",tanRank,tanWalls,"tan")}
+      ${rankLine("2車複("+axis+"軸)",nishaRank,nishaWalls,"nisha")}
+    </div>
+  </div>
+
+  <div class="box">
+    <h2>⬆️順位移動</h2>
+    <div>上昇車：<b>${up.length?up.join("・"):"なし"}</b></div>
+    <div>復活車：<b>${revival.length?revival.join("・"):"なし"}</b></div>
+    <div>ボトム値：<b>${bottom.join("・")}</b></div>
+  </div>
+
+  <div class="box">
+    <h2>🏍️勝負指数</h2>
+    <pre>${sorted.map(([c,v])=>`${c}　${v.pt}点　${v.rs.join(" / ")}`).join("\n")}</pre>
+  </div>
+  `;
 }
 
-function sample(){
- race.value='浜松2R';
- odds.value='[TAN]\n6 1.9\n7 3.1\n4 4.8\n8 6.1\n3 8.4\n5 14.6\n1 32.6\n2 141.4\n\n[NISHA]\n6-8 3.3\n6-7 4.8\n3-6 5.8\n7-8 8.1\n3-8 13.4\n5-6 14.3\n3-7 14.4\n4-6 15.7\n5-8 17.2\n3-5 22.4\n4-7 22.8\n5-7 23.6\n3-4 28.3\n1-6 45.6\n4-8 45.6\n4-5 47.2\n1-8 70.8\n1-3 101.1\n1-5 128.7\n1-7 128.7\n\n[SANREN]\n6-7-8 3.3\n3-6-8 7.8\n5-6-8 9.4\n5-6-7 10.1\n3-6-7 10.5\n5-7-8 13.7\n3-5-6 13.8\n3-7-8 15.0\n4-6-8 17.1\n4-6-7 19.4';
- analyze();
+function resetInput(){
+  document.getElementById("input").value=`伊勢崎〇R
+
+[TAN]
+
+[NISHA]
+
+[SANREN]`;
+  document.getElementById("result").innerHTML="";
+}
+
+function testData(){
+document.getElementById("input").value=`伊勢崎4R
+
+[TAN]
+6 1.1
+3 4.8
+8 8.7
+5 10.7
+4 19.3
+7 19.3
+2 96.6
+1 0.0
+
+[NISHA]
+7-8 4.2
+6-8 7.9
+5-6 9.2
+4-8 9.5
+4-6 9.7
+6-7 14.4
+3-4 15.8
+3-6 15.8
+4-5 15.8
+4-7 18.4
+3-5 19.5
+5-8 19.5
+3-7 27.7
+5-7 27.7
+3-8 30.2
+
+[SANREN]
+4-6-8 8.4
+5-6-8 10.9
+6-7-8 11.4
+3-4-6 12.5
+3-4-8 13.9
+3-6-8 14.5
+4-5-8 16.0
+4-5-6 17.2
+3-5-6 19.0
+4-6-7 19.9`;
 }
 </script>
 </body>
