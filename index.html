@@ -201,7 +201,73 @@ function favoriteTrustBox(winFav,sanpuku){
       </div>
     `;
   }
+function chappyIndexBox(h,tanshoSet,gekisoSet,shobu,fuku10Before,fuku15Before,umaWallBefore,winWallBefore,placeWallBeforeList){
+  let score=0;
+  let reasons=[];
 
+  function add(cond,pt,label){
+    if(cond){
+      score+=pt;
+      reasons.push(label+" +"+pt);
+    }
+  }
+
+  const isTansho=tanshoSet.has(h);
+  const isGekiso=gekisoSet.has(h);
+  const isShobu=shobu.includes(h);
+
+  add(isTansho,20,"単勝案件");
+  add(fuku15Before.includes(h),15,"複勝15倍壁前");
+  add(fuku10Before.includes(h),10,"複勝10倍壁前");
+  add(umaWallBefore.includes(h),10,"馬連壁前");
+  add(winWallBefore.includes(h),8,"単勝壁前");
+  add(placeWallBeforeList.includes(h),8,"複勝自然壁前");
+  add(isGekiso,10,"超激走注意馬");
+  add(isShobu,20,"勝負ランプ");
+
+  const cnt=[
+    isTansho,
+    isGekiso,
+    isShobu,
+    fuku15Before.includes(h),
+    fuku10Before.includes(h),
+    umaWallBefore.includes(h),
+    winWallBefore.includes(h),
+    placeWallBeforeList.includes(h)
+  ].filter(Boolean).length;
+
+  if(cnt>=3){
+    score+=15;
+    reasons.push("3項目以上重複 +15");
+  }
+
+  if(score>100) score=100;
+
+  let rank="D：様子見";
+  let cls="small";
+  if(score>=90){rank="S：勝負";cls="hot";}
+  else if(score>=75){rank="A：強気";cls="gold";}
+  else if(score>=60){rank="B：狙い目";cls="yellow";}
+  else if(score>=40){rank="C：注意";cls="green";}
+
+  return {horse:h,score,rank,cls,reasons};
+}
+
+function renderChappyIndex(list){
+  const sorted=list.sort((a,b)=>b.score-a.score);
+  return `
+  <div class="box">
+    <h2>🔥チャッピー指数 Ver.1</h2>
+    ${sorted.map(x=>`
+      <div style="margin:12px 0;padding:10px;border-bottom:1px solid #374151">
+        <div class="${x.cls}" style="font-size:26px">
+          ${x.horse}番　${x.score}点　${x.rank}
+        </div>
+        <div class="small">${x.reasons.length ? x.reasons.join(" / ") : "加点なし"}</div>
+      </div>
+    `).join("")}
+  </div>`;
+}
   if(sanpuku.length===0){
     return `
       <div class="box">
@@ -299,14 +365,32 @@ function analyze(){
   const tanshoSet=new Set(tanshoList.map(x=>x.split("(")[0]));
   const gekisoSet=new Set(gekisoList.map(x=>x.split("(")[0]));
   const shobu=[...tanshoSet].filter(h=>gekisoSet.has(h));
+  const umaWallBefore=beforeWallHorses(umaList,adjustedUmaWalls);
+  const winWallBefore=beforeWallHorses(winRank,winWalls);
+  const placeWallBeforeList=beforeWallHorses(placeRank,placeWalls);
 
+  const allHorses=[...new Set(tanpuku.map(x=>x.horse))];
+
+  const chappyList=allHorses.map(h=>
+    chappyIndexBox(
+      h,
+      tanshoSet,
+      gekisoSet,
+      shobu,
+      fuku10Before,
+      fuku15Before,
+      umaWallBefore,
+      winWallBefore,
+      placeWallBeforeList
+    )
+  );
   result.innerHTML=`
     <div class="box">
       <div class="raceTitle">【${raceName}】</div>
     </div>
 
     ${favoriteTrustBox(winRank[0],sanpuku)}
-
+${renderChappyIndex(chappyList)}
     <div class="box">
       <h2>🔥勝負ランプ</h2>
       <div class="hot">${shobu.length ? shobu.join("・") : "該当なし"}</div>
