@@ -5,37 +5,16 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>チャッピー神予想 新V1</title>
 <style>
-body{
-  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;
-  background:#07101f;color:#fff;padding:14px;font-size:18px;
-}
-textarea{
-  width:100%;height:260px;font-size:17px;
-  border-radius:10px;padding:10px;
-}
-button{
-  font-size:22px;padding:12px 18px;margin:10px 0;
-  border-radius:12px;border:0;background:#22c55e;color:#fff;
-}
-.box{
-  background:#111827;border-radius:14px;padding:14px;margin:12px 0;
-}
+body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;background:#07101f;color:#fff;padding:14px;font-size:18px}
+textarea{width:100%;height:260px;font-size:17px;border-radius:10px;padding:10px}
+button{font-size:22px;padding:12px 18px;margin:10px 0;border-radius:12px;border:0;background:#22c55e;color:#fff}
+.box{background:#111827;border-radius:14px;padding:14px;margin:12px 0}
 h1{font-size:26px}
 h2{font-size:22px;border-bottom:1px solid #374151;padding-bottom:6px}
-.rankTable{
-  overflow-x:auto;
-  white-space:nowrap;
-  font-size:24px;
-  line-height:2.0;
-}
-.num{
-  display:inline-block;
-  min-width:34px;
-  text-align:center;
-  font-weight:bold;
-}
-.wallBefore{color:#ff4d4d;}
-.wallAfter{color:#38bdf8;}
+.rankTable{overflow-x:auto;white-space:nowrap;font-size:24px;line-height:2.0}
+.num{display:inline-block;min-width:34px;text-align:center;font-weight:bold}
+.wallBefore{color:#ff4d4d}
+.wallAfter{color:#38bdf8}
 .green{color:#22c55e;font-weight:bold}
 .yellow{color:#facc15;font-weight:bold}
 .red{color:#fb7185;font-weight:bold}
@@ -50,16 +29,13 @@ pre{white-space:pre-wrap;font-size:16px}
 <div class="box">
 <textarea id="input" placeholder="ここに貼り付け
 
-例：
 [TANFUKU]
 9 1.8 1.4
 6 4.1 1.5
 
 [UMAREN]
 6-9 3.6
-8-9 5.1
-
-※単勝・複勝・馬連だけでOK"></textarea>
+8-9 5.1"></textarea>
 <button onclick="analyze()">解析する</button>
 </div>
 
@@ -67,74 +43,47 @@ pre{white-space:pre-wrap;font-size:16px}
 
 <script>
 function norm(s){
-  return s.replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0))
-          .replace(/[－ー―–]/g,'-');
+  return s.replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0)).replace(/[－ー―–]/g,'-');
 }
-
 function parseInput(text){
-  text = norm(text);
-  const lines = text.split(/\n/).map(x=>x.trim()).filter(Boolean);
-  let mode = "";
-  const tanpuku = [];
-  const umaren = [];
-
+  text=norm(text);
+  const lines=text.split(/\n/).map(x=>x.trim()).filter(Boolean);
+  let mode="";
+  const tanpuku=[],umaren=[];
   for(const line of lines){
     if(line.match(/TANFUKU|単勝|複勝/i)){mode="TANFUKU";continue;}
     if(line.match(/UMAREN|馬連|馬複/i)){mode="UMAREN";continue;}
     if(line.match(/SANPUKU|三連複/i)){mode="SANPUKU";continue;}
-
-    const p = line.split(/\s+/);
-    if(mode==="TANFUKU" && p.length>=3){
-      tanpuku.push({
-        horse:p[0],
-        win:parseFloat(p[1]),
-        place:parseFloat(p[2])
-      });
+    const p=line.split(/\s+/);
+    if(mode==="TANFUKU"&&p.length>=3){
+      tanpuku.push({horse:p[0],win:parseFloat(p[1]),place:parseFloat(p[2])});
     }
-    if(mode==="UMAREN" && p.length>=2){
-      const pair=p[0];
-      const odds=parseFloat(p[1]);
-      if(pair.includes("-") && !isNaN(odds)){
-        umaren.push({pair,odds});
-      }
+    if(mode==="UMAREN"&&p.length>=2){
+      const pair=p[0],odds=parseFloat(p[1]);
+      if(pair.includes("-")&&!isNaN(odds)) umaren.push({pair,odds});
     }
   }
   return {tanpuku,umaren};
 }
-
-function wallMarks(list, oddsKey){
-  // 乖離率1.8倍以上
-  const before = new Set();
-  const after = new Set();
-  const walls = [];
-
+function wallMarks(list,key){
+  const before=new Set(),after=new Set();
   for(let i=0;i<list.length-1;i++){
-    const a = list[i][oddsKey];
-    const b = list[i+1][oddsKey];
-    if(a>0 && b/a >= 1.8){
-      before.add(list[i].horse || list[i].mainHorse);
-      after.add(list[i+1].horse || list[i+1].mainHorse);
-      walls.push({
-        before:list[i].horse || list[i].mainHorse,
-        after:list[i+1].horse || list[i+1].mainHorse,
-        from:a,
-        to:b,
-        rate:(b/a).toFixed(2)
-      });
+    const a=list[i][key],b=list[i+1][key];
+    if(a>0&&b/a>=1.8){
+      before.add(list[i].horse);
+      after.add(list[i+1].horse);
     }
   }
-  return {before,after,walls};
+  return {before,after};
 }
-
 function colorNum(h,before,after){
   let cls="num";
-  if(before.has(h)) cls += " wallBefore";
-  if(after.has(h)) cls += " wallAfter";
+  if(before.has(h)) cls+=" wallBefore";
+  if(after.has(h)) cls+=" wallAfter";
   return `<span class="${cls}">${h}</span>`;
 }
-
 function classify(topOdds){
-  if(topOdds < 4){
+  if(topOdds<4){
     return {
       cls:"green",
       title:"本命戦",
@@ -142,7 +91,7 @@ function classify(topOdds){
       text:"馬連1番人気の2頭のどちらかを\n穴馬の相手に入れる\n\n（2頭とも入れる場合あり）"
     };
   }
-  if(topOdds < 9){
+  if(topOdds<9){
     return {
       cls:"yellow",
       title:"中荒れ戦",
@@ -157,48 +106,40 @@ function classify(topOdds){
     text:"複勝10倍の壁の直後に\nランクされている馬からの\nワイド馬券に注目する"
   };
 }
-
 function analyze(){
-  const {tanpuku,umaren} = parseInput(document.getElementById("input").value);
-  const result = document.getElementById("result");
-
-  if(tanpuku.length===0 || umaren.length===0){
-    result.innerHTML = `<div class="box red">単勝複勝と馬連を入れてください</div>`;
+  const {tanpuku,umaren}=parseInput(document.getElementById("input").value);
+  const result=document.getElementById("result");
+  if(tanpuku.length===0||umaren.length===0){
+    result.innerHTML=`<div class="box red">単勝複勝と馬連を入れてください</div>`;
     return;
   }
+  const winRank=[...tanpuku].sort((a,b)=>a.win-b.win);
+  const placeRank=[...tanpuku].sort((a,b)=>a.place-b.place);
+  const axis=winRank[0].horse;
 
-  const winRank = [...tanpuku].sort((a,b)=>a.win-b.win);
-  const placeRank = [...tanpuku].sort((a,b)=>a.place-b.place);
-  const axis = winRank[0].horse;
-
-  const axisUmaren = umaren
+  const axisUmaren=umaren
     .filter(x=>x.pair.split("-").includes(axis))
     .sort((a,b)=>a.odds-b.odds)
     .map(x=>{
       const [a,b]=x.pair.split("-");
-      const other = a===axis ? b : a;
-      return {mainHorse:other, horse:other, pair:x.pair, odds:x.odds};
+      const other=a===axis?b:a;
+      return {horse:other,pair:x.pair,odds:x.odds};
     });
 
-  const topUmaren = [...umaren].sort((a,b)=>a.odds-b.odds)[0];
-  const race = classify(topUmaren.odds);
+  const topUmaren=[...umaren].sort((a,b)=>a.odds-b.odds)[0];
+  const race=classify(topUmaren.odds);
 
-  const umaWall = wallMarks(axisUmaren,"odds");
-  const winWall = wallMarks(winRank,"win");
-  const placeWall = wallMarks(placeRank,"place");
+  const umaWall=wallMarks(axisUmaren,"odds");
+  const winWall=wallMarks(winRank,"win");
+  const placeWall=wallMarks(placeRank,"place");
 
-  const umaLine = [axis,...axisUmaren.map(x=>x.horse)]
+  const umaLine=[axis,...axisUmaren.map(x=>x.horse)]
     .map(h=>colorNum(h,umaWall.before,umaWall.after)).join("");
 
-  const winLine = winRank.map(x=>colorNum(x.horse,winWall.before,winWall.after)).join("");
-  const placeLine = placeRank.map(x=>colorNum(x.horse,placeWall.before,placeWall.after)).join("");
+  const winLine=winRank.map(x=>colorNum(x.horse,winWall.before,winWall.after)).join("");
+  const placeLine=placeRank.map(x=>colorNum(x.horse,placeWall.before,placeWall.after)).join("");
 
-  function wallList(title,walls){
-    if(walls.length===0) return `${title}\n壁なし`;
-    return title+"\n"+walls.map(w=>`壁前 ${w.before} → 壁後 ${w.after}　${w.from} → ${w.to}　乖離${w.rate}倍`).join("\n");
-  }
-
-  result.innerHTML = `
+  result.innerHTML=`
   <div class="box">
     <h2>レース分類</h2>
     <div>馬連1番人気：${topUmaren.pair}　${topUmaren.odds}倍</div>
@@ -219,15 +160,6 @@ function analyze(){
       <div>単勝　${winLine}</div>
       <div>複勝　${placeLine}</div>
     </div>
-  </div>
-
-  <div class="box">
-    <h2>壁一覧</h2>
-    <pre>${wallList("馬連",umaWall.walls)}
-
-${wallList("単勝",winWall.walls)}
-
-${wallList("複勝",placeWall.walls)}</pre>
   </div>
   `;
 }
