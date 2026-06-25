@@ -26,9 +26,9 @@ pre{white-space:pre-wrap;font-size:16px}
   padding:4px 6px;
   border-right:1px solid #64748b;
 }
-.wall{
-  border-right:8px solid #ff0000;
-}
+.wallUma{border-right:3px solid #ff3b30}
+.wallWin{border-right:3px solid #3b82f6}
+.wallPlace{border-right:3px solid #facc15}
 </style>
 </head>
 <body>
@@ -39,14 +39,12 @@ pre{white-space:pre-wrap;font-size:16px}
 <textarea id="input" placeholder="ここに貼り付け
 
 [TANFUKU]
-9 1.8 1.4
-6 4.1 1.5
-8 4.8 2.1
+1 1.5 1.4
+10 3.5 1.5
 
 [UMAREN]
-6-9 3.6
-8-9 5.1
-3-9 11.1"></textarea>
+1-10 2.6
+1-2 5.7"></textarea>
 <button onclick="analyze()">解析する</button>
 </div>
 
@@ -127,10 +125,15 @@ function wallIndexes(list,key){
   return walls;
 }
 
-function rankLine(label,list,walls){
+function rankLine(label,list,walls,type){
+  let wallClass="";
+  if(type==="uma") wallClass="wallUma";
+  if(type==="win") wallClass="wallWin";
+  if(type==="place") wallClass="wallPlace";
+
   let html=`<div class="row"><span class="label">${label}</span>`;
   list.forEach((x,i)=>{
-    const cls=walls.has(i) ? "cell wall" : "cell";
+    const cls=walls.has(i) ? `cell ${wallClass}` : "cell";
     html+=`<span class="${cls}">${x.horse}</span>`;
   });
   html+=`</div>`;
@@ -185,11 +188,15 @@ function analyze(){
 
     <div class="box">
       <h2>本表</h2>
-      <div class="small">細線＝通常区切り　太い赤線＝オッズの壁（乖離率1.8倍以上）</div>
+      <div class="small">
+        細線＝通常区切り<br>
+        馬連の壁＝赤線　単勝の壁＝青線　複勝の壁＝黄色線<br>
+        ※壁は乖離率1.8倍以上
+      </div>
       <div class="rankWrap">
-        ${rankLine("馬連",umaList,adjustedUmaWalls)}
-        ${rankLine("単勝",winRank,winWalls)}
-        ${rankLine("複勝",placeRank,placeWalls)}
+        ${rankLine("馬連",umaList,adjustedUmaWalls,"uma")}
+        ${rankLine("単勝",winRank,winWalls,"win")}
+        ${rankLine("複勝",placeRank,placeWalls,"place")}
       </div>
     </div>
   `;
