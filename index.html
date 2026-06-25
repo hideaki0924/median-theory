@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 新V1.0</title>
+<title>チャッピー神予想 新V1.1</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;background:#07101f;color:#fff;padding:14px;font-size:18px}
 textarea{width:100%;height:260px;font-size:17px;border-radius:10px;padding:10px}
@@ -14,18 +14,14 @@ h2{font-size:22px;border-bottom:1px solid #374151;padding-bottom:6px}
 .green{color:#22c55e;font-weight:bold}
 .yellow{color:#facc15;font-weight:bold}
 .red{color:#fb7185;font-weight:bold}
+.hot{color:#fb7185;font-size:24px;font-weight:bold}
+.gold{color:#facc15;font-size:24px;font-weight:bold}
 .small{font-size:15px;color:#cbd5e1}
 pre{white-space:pre-wrap;font-size:16px}
 .rankWrap{overflow-x:auto;white-space:nowrap}
 .row{margin:12px 0;font-size:24px;font-weight:bold}
 .label{display:inline-block;width:70px;color:#cbd5e1;font-size:18px}
-.cell{
-  display:inline-block;
-  min-width:34px;
-  text-align:center;
-  padding:4px 6px;
-  border-right:1px solid #64748b;
-}
+.cell{display:inline-block;min-width:34px;text-align:center;padding:4px 6px;border-right:1px solid #64748b}
 .wallUma{border-right:3px solid #ff3b30}
 .wallWin{border-right:3px solid #3b82f6}
 .wallPlace{border-right:3px solid #facc15}
@@ -33,7 +29,7 @@ pre{white-space:pre-wrap;font-size:16px}
 </head>
 <body>
 
-<h1>チャッピー神予想 新V1.0</h1>
+<h1>チャッピー神予想 新V1.1</h1>
 
 <div class="box">
 <textarea id="input" placeholder="ここに貼り付け
@@ -52,8 +48,7 @@ pre{white-space:pre-wrap;font-size:16px}
 
 <script>
 function norm(s){
-  return s.replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0))
-          .replace(/[－ー―–]/g,'-');
+  return s.replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0)).replace(/[－ー―–]/g,'-');
 }
 
 function parseInput(text){
@@ -70,19 +65,13 @@ function parseInput(text){
     const p=line.split(/\s+/);
 
     if(mode==="TANFUKU" && p.length>=3){
-      tanpuku.push({
-        horse:p[0],
-        win:parseFloat(p[1]),
-        place:parseFloat(p[2])
-      });
+      tanpuku.push({horse:p[0],win:parseFloat(p[1]),place:parseFloat(p[2])});
     }
 
     if(mode==="UMAREN" && p.length>=2){
       const pair=p[0];
       const odds=parseFloat(p[1]);
-      if(pair.includes("-") && !isNaN(odds)){
-        umaren.push({pair,odds});
-      }
+      if(pair.includes("-") && !isNaN(odds)) umaren.push({pair,odds});
     }
   }
   return {tanpuku,umaren};
@@ -116,13 +105,44 @@ function classify(topOdds){
 function wallIndexes(list,key){
   const walls=new Set();
   for(let i=0;i<list.length-1;i++){
-    const a=list[i][key];
-    const b=list[i+1][key];
-    if(a>0 && b/a>=1.8){
-      walls.add(i);
-    }
+    const a=list[i][key], b=list[i+1][key];
+    if(a>0 && b/a>=1.8) walls.add(i);
   }
   return walls;
+}
+
+function medianHorses(list){
+  if(list.length===0) return [];
+  const n=list.length;
+  if(n%2===1) return [list[Math.floor(n/2)].horse];
+  return [list[n/2-1].horse,list[n/2].horse];
+}
+
+function beforeWallHorses(list,walls){
+  const s=new Set();
+  walls.forEach(i=>{
+    if(list[i]) s.add(list[i].horse);
+    if(list[i-1]) s.add(list[i-1].horse);
+  });
+  return [...s];
+}
+
+function placeWallBefore(placeRank,limit){
+  const before=placeRank.filter(x=>x.place<limit);
+  if(before.length===0) return [];
+  return before.slice(-2).map(x=>x.horse);
+}
+
+function addScore(map,h,pt=1){
+  if(!h) return;
+  map[h]=(map[h]||0)+pt;
+}
+
+function topList(map,min=1){
+  return Object.entries(map)
+    .filter(([h,p])=>p>=min)
+    .sort((a,b)=>b[1]-a[1])
+    .map(([h,p])=>`${h}(${p})`);
 }
 
 function rankLine(label,list,walls,type){
@@ -169,11 +189,49 @@ function analyze(){
 
   const umaWalls=wallIndexes(axisUmaren,"odds");
   const adjustedUmaWalls=new Set([...umaWalls].map(i=>i+1));
-
   const winWalls=wallIndexes(winRank,"win");
   const placeWalls=wallIndexes(placeRank,"place");
 
+  // 単勝案件＝重複理論の集合体
+  const tanshoScore={};
+  [...medianHorses(winRank),...medianHorses(placeRank),...medianHorses(umaList)].forEach(h=>addScore(tanshoScore,h));
+  beforeWallHorses(winRank,winWalls).forEach(h=>addScore(tanshoScore,h));
+  beforeWallHorses(placeRank,placeWalls).forEach(h=>addScore(tanshoScore,h));
+  beforeWallHorses(umaList,adjustedUmaWalls).forEach(h=>addScore(tanshoScore,h));
+
+  // 超激走＝穴理論の集合体
+  const gekisoScore={};
+  placeWallBefore(placeRank,10).forEach(h=>addScore(gekisoScore,h,2));
+  placeWallBefore(placeRank,15).forEach(h=>addScore(gekisoScore,h,2));
+  beforeWallHorses(umaList,adjustedUmaWalls).forEach(h=>addScore(gekisoScore,h,1));
+  winRank.filter(x=>x.win>=10 && x.win<=30).forEach(x=>addScore(gekisoScore,x.horse,1));
+
+  const tanshoList=topList(tanshoScore,2);
+  const gekisoList=topList(gekisoScore,2);
+
+  const tanshoSet=new Set(tanshoList.map(x=>x.split("(")[0]));
+  const gekisoSet=new Set(gekisoList.map(x=>x.split("(")[0]));
+  const shobu=[...tanshoSet].filter(h=>gekisoSet.has(h));
+
   result.innerHTML=`
+    <div class="box">
+      <h2>🔥勝負ランプ</h2>
+      <div class="hot">${shobu.length ? shobu.join("・") : "該当なし"}</div>
+      <div class="small">単勝案件と超激走注意馬が重なった馬</div>
+    </div>
+
+    <div class="box">
+      <h2>🎯単勝案件</h2>
+      <div class="gold">${tanshoList.length ? tanshoList.join("　") : "該当なし"}</div>
+      <div class="small">重複理論の集合体</div>
+    </div>
+
+    <div class="box">
+      <h2>🚨超激走注意馬</h2>
+      <div class="hot">${gekisoList.length ? gekisoList.join("　") : "該当なし"}</div>
+      <div class="small">穴理論の集合体</div>
+    </div>
+
     <div class="box">
       <h2>レース分類</h2>
       <div>馬連1番人気：${topUmaren.pair}　${topUmaren.odds}倍</div>
