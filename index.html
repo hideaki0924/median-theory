@@ -3,13 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 V2</title>
+<title>チャッピー神予想 V2改</title>
 <style>
 body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;background:#07101f;color:#fff;padding:14px;font-size:18px}
-textarea{width:100%;height:280px;font-size:17px;border-radius:10px;padding:10px}
+textarea{
+  width:100%;
+  height:280px;
+  font-size:17px;
+  border-radius:10px;
+  padding:10px;
+  background:#fff;
+  color:#000;
+  box-sizing:border-box;
+}
+textarea::placeholder{color:#777}
 button{font-size:20px;padding:10px 14px;margin:6px 4px 6px 0;border-radius:12px;border:0;background:#22c55e;color:#fff}
 .btn2{background:#3b82f6}
 .btn3{background:#64748b}
+.btn4{background:#f59e0b}
 .box{background:#111827;border-radius:14px;padding:14px;margin:12px 0}
 h1{font-size:26px}
 h2{font-size:22px;border-bottom:1px solid #374151;padding-bottom:6px}
@@ -32,21 +43,21 @@ pre{white-space:pre-wrap;font-size:16px}
 </head>
 <body>
 
-<h1>チャッピー神予想 V2</h1>
+<h1>チャッピー神予想 V2改</h1>
 
 <div class="box">
-<textarea id="input">【レース名】
+<textarea id="input" placeholder="【レース名】
 
 [TANFUKU]
 
 [UMAREN]
 
-[SANPUKU]
-</textarea>
+[SANPUKU]"></textarea>
 <br>
 <button onclick="analyze()">解析</button>
 <button class="btn2" onclick="testData()">テスト</button>
 <button class="btn3" onclick="resetInput()">リセット</button>
+<button class="btn4" onclick="copyResult()">結果コピー</button>
 </div>
 
 <div id="result"></div>
@@ -96,7 +107,7 @@ function classify(topOdds){
       cls:"green",
       title:"本命戦",
       reason:"馬連1番人気が4倍未満だから",
-      text:"馬連1番人気の2頭のどちらかを\n穴馬の相手に入れる\n\n（2頭とも入れる場合あり）"
+      text:"馬連1番人気の2頭のどちらかを穴馬の相手に入れる"
     };
   }
   if(topOdds<9){
@@ -104,14 +115,14 @@ function classify(topOdds){
       cls:"yellow",
       title:"中荒れ戦",
       reason:"馬連1番人気が4倍以上9倍未満だから",
-      text:"中穴馬が馬券に絡む可能性が高い\n\n複勝10倍の壁の前の2頭に\n特に注目する"
+      text:"中穴馬が馬券に絡む可能性が高い"
     };
   }
   return {
     cls:"red",
     title:"荒れ戦",
     reason:"馬連1番人気が9倍以上だから",
-    text:"複勝10倍の壁の直後に\nランクされている馬からの\nワイド馬券に注目する"
+    text:"複勝10倍の壁の直後にランクされている馬からのワイド馬券に注目する"
   };
 }
 
@@ -144,6 +155,12 @@ function placeWallBefore(placeRank,limit){
   const before=placeRank.filter(x=>x.place<limit);
   if(before.length===0) return [];
   return before.slice(-2).map(x=>x.horse);
+}
+
+function placeWallAfter(placeRank,limit){
+  const after=placeRank.filter(x=>x.place>=limit);
+  if(after.length===0) return [];
+  return after.slice(0,2).map(x=>x.horse);
 }
 
 function addScore(map,h,pt=1){
@@ -224,7 +241,6 @@ function favoriteTrustBox(winFav,sanpuku){
       <div>残ったオッズ：<b>${lastOdds ? lastOdds+"倍まで" : "なし"}</b></div>
       <div>三連複1番人気：<b>${firstTrio}</b>（${firstOdds}倍）</div>
       <div class="${cls}" style="font-size:26px;margin-top:10px">${judge}</div>
-      <div class="small">本命戦＋信頼度高なら、三連複1番人気の構成馬を重視</div>
     </div>
   `;
 }
@@ -261,6 +277,10 @@ function analyze(){
   const winWalls=wallIndexes(winRank,"win");
   const placeWalls=wallIndexes(placeRank,"place");
 
+  const fuku10Before=placeWallBefore(placeRank,10);
+  const fuku10After=placeWallAfter(placeRank,10);
+  const fuku15Before=placeWallBefore(placeRank,15);
+
   const tanshoScore={};
   [...medianHorses(winRank),...medianHorses(placeRank),...medianHorses(umaList)].forEach(h=>addScore(tanshoScore,h));
   beforeWallHorses(winRank,winWalls).forEach(h=>addScore(tanshoScore,h));
@@ -268,8 +288,8 @@ function analyze(){
   beforeWallHorses(umaList,adjustedUmaWalls).forEach(h=>addScore(tanshoScore,h));
 
   const gekisoScore={};
-  placeWallBefore(placeRank,10).forEach(h=>addScore(gekisoScore,h,2));
-  placeWallBefore(placeRank,15).forEach(h=>addScore(gekisoScore,h,2));
+  fuku10Before.forEach(h=>addScore(gekisoScore,h,2));
+  fuku15Before.forEach(h=>addScore(gekisoScore,h,2));
   beforeWallHorses(umaList,adjustedUmaWalls).forEach(h=>addScore(gekisoScore,h,1));
   winRank.filter(x=>x.win>=10 && x.win<=30).forEach(x=>addScore(gekisoScore,x.horse,1));
 
@@ -313,8 +333,13 @@ function analyze(){
     </div>
 
     <div class="box">
-      <h2>本の買い方</h2>
-      <pre>${race.text}</pre>
+      <h2>📚本の買い方</h2>
+      <p>${race.text}</p>
+      <p>複勝10倍壁前2頭：<b class="gold">${fuku10Before.length ? fuku10Before.join("・") : "なし"}</b></p>
+      <p>複勝10倍壁直後：<b class="hot">${fuku10After.length ? fuku10After.join("・") : "なし"}</b></p>
+      <p>複勝15倍壁前2頭：<b class="gold">${fuku15Before.length ? fuku15Before.join("・") : "なし"}</b></p>
+      <p>単勝案件：<b class="gold">${tanshoList.length ? tanshoList.join("　") : "なし"}</b></p>
+      <p>超激走注意馬：<b class="hot">${gekisoList.length ? gekisoList.join("　") : "なし"}</b></p>
     </div>
 
     <div class="box">
@@ -334,14 +359,21 @@ function analyze(){
 }
 
 function resetInput(){
-  document.getElementById("input").value=`【レース名】
-
-[TANFUKU]
-
-[UMAREN]
-
-[SANPUKU]`;
+  document.getElementById("input").value="";
   document.getElementById("result").innerHTML="";
+}
+
+function copyResult(){
+  const text=document.getElementById("result").innerText;
+  if(!text){
+    alert("コピーする結果がありません");
+    return;
+  }
+  navigator.clipboard.writeText(text).then(()=>{
+    alert("結果をコピーしました");
+  }).catch(()=>{
+    alert("コピーできませんでした");
+  });
 }
 
 function testData(){
