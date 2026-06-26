@@ -572,18 +572,69 @@ function renderCenterIndex(list){
 }
 
 function renderKing(total){
-  return `<div class="box">
+
+  const a=total[0];
+  const b=total[1];
+  const c=total[2];
+  const d=total[3];
+
+  const rest=total
+    .slice(4,8)
+    .map((x,i)=>`⑤⑥⑦⑧`[i]+`${x.horse}(${x.total})`)
+    .join("　");
+
+  return `
+  <div class="box">
+
     <h2>👑総合支配率</h2>
-    <div class="small">本表の王様＋ワイド支配率</div>
-    ${total.slice(0,8).map((x,i)=>`
-      <div class="indexCard">
-        <div class="${i===0?'hot':i<=2?'gold':'green'}" style="font-size:24px">
-          ${x.horse}番　${x.total}点
-        </div>
-        <div class="small">本表 ${x.center}点 / ワイド ${x.wide}点</div>
+
+    ${a?`
+      <div class="hot"
+        style="
+          font-size:36px;
+          margin:8px 0;
+        ">
+        🥇${a.horse}【${a.total}】
       </div>
-    `).join("")}
-  </div>`;
+    `:""}
+
+    ${b?`
+      <div class="gold"
+        style="
+          font-size:32px;
+          margin:8px 0;
+        ">
+        🥈${b.horse}【${b.total}】
+      </div>
+    `:""}
+
+    <div
+      style="
+        font-size:26px;
+        font-weight:bold;
+        margin:10px 0;
+      ">
+
+      ${c?`🥉${c.horse}【${c.total}】`:""}
+
+      &nbsp;&nbsp;
+
+      ${d?`④${d.horse}【${d.total}】`:""}
+
+    </div>
+
+    <div class="small"
+      style="
+        font-size:18px;
+        margin-top:10px;
+      ">
+
+      ${rest}
+
+    </div>
+
+  </div>
+  `;
 }
 
 function renderRanks(sig){
