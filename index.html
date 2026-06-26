@@ -473,7 +473,7 @@ function favoriteTrustBox(winFav,sanpuku){
 
   return {horse:h,score,rank,cls,reasons};
 }
-
+  
 function renderChappyIndex(list){
   const sorted=[...list].sort((a,b)=>b.score-a.score);
   return `<div class="box"><h2>🔥チャッピー指数</h2>
@@ -487,6 +487,7 @@ function renderChappyIndex(list){
   `).join("")}
   </div>`;
 }
+
 
 
 function integratedPanel(winRank,firstList,chappyList,thirdList,strictLamp,noticeLamp){
