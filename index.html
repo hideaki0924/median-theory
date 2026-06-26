@@ -438,19 +438,14 @@ function buildSignals(winRank,placeRank,umaren,sanpuku){
 }
 
 function renderOtani(sig){
+  const wallCount=sig.wallCount||0;
+  const wallText=wallCount===0 ? "馬連壁：なし" : `馬連壁：${wallCount}枚`;
+
   return `<div class="box">
     <h2>🏇大谷式</h2>
-    <div>馬連壁：${sig.wallCount}枚</div>
-    <div>馬連壁前：<b class="gold">${
-      sig.otaniWallBefore.length
-      ? sig.otaniWallBefore.join("・")
-      : "なし"
-    }</b></div>
-    <div>壁前メジアン：<b class="gold">${
-      sig.umaMed.length
-      ? sig.umaMed.join("・")
-      : "なし"
-    }</b></div>
+    <div>${wallText}</div>
+    <div>馬連壁前：<b class="gold">${sig.umaBefore.length?sig.umaBefore.join("・"):"なし"}</b></div>
+    <div>壁前メジアン：<b class="gold">${wallCount===0?"なし":(sig.umaMed.length?sig.umaMed.join("・"):"なし")}</b></div>
   </div>`;
 }
 
