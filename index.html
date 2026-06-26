@@ -647,12 +647,12 @@ function analyze(){
     const firstList=sortDetail(first);
   const thirdList=sortDetail(third);
   const chappySorted=[...chappyList].sort((a,b)=>b.score-a.score);
-
-  const strictLamp=allHorses.filter(h=>
+　const strictLamp=allHorses.filter(h=>
     tanshoSet.has(h) &&
     gekisoSet.has(h) &&
     (umaWallBefore.includes(h) || fuku15Before.includes(h))
   );
+  
 
   const noticeLamp=allHorses.filter(h=>
     !strictLamp.includes(h) &&
