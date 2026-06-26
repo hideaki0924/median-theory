@@ -457,7 +457,44 @@ function renderOtani(sig){
     <div>壁前メジアン：<b class="gold">${wallCount===0?"なし":(sig.umaMed.length?sig.umaMed.join("・"):"なし")}</b></div>
   </div>`;
 }
+function countCenterIndex(umaren,sanpuku){
+  const umaMap={};
+  const sanMap={};
 
+  umaren.forEach(x=>{
+    x.pair.split("-").forEach(h=>countMapAdd(umaMap,h));
+  });
+
+  sanpuku.forEach(x=>{
+    x.trio.split("-").forEach(h=>countMapAdd(sanMap,h));
+  });
+
+  const all=[...new Set([...Object.keys(umaMap),...Object.keys(sanMap)])];
+
+  const total=all.map(h=>({
+    horse:h,
+    uma:umaMap[h]||0,
+    san:sanMap[h]||0,
+    total:(umaMap[h]||0)+(sanMap[h]||0)
+  })).sort((a,b)=>b.total-a.total);
+
+  return total;
+}
+
+function renderCenterIndex(list){
+  return `<div class="box">
+    <h2>🏆中心指数</h2>
+    <div class="small">馬連上位＋三連複上位に何回出るか</div>
+    ${list.slice(0,8).map(x=>`
+      <div class="indexCard">
+        <div class="${x.total>=10?'hot':x.total>=7?'gold':'green'}" style="font-size:24px">
+          ${x.horse}番　${x.total}点
+        </div>
+        <div class="small">馬連 ${x.uma}回 / 三連複 ${x.san}回</div>
+      </div>
+    `).join("")}
+  </div>`;
+}
 function renderIntegrated(sig,winRank){
   const main=sig.sRank[0] || sig.aRank[0] || sig.otaniStrong[0] || "-";
   const second=sig.sRank[1] || sig.aRank[1] || sig.otaniStrong[1] || "-";
@@ -488,13 +525,14 @@ function renderIntegrated(sig,winRank){
 
   const diagnosis=raceDiagnosis(winRank,placeRank,topUmaren);
   const sig=buildSignals(winRank,placeRank,umaren,sanpuku);
-
+　const centerIndex=countCenterIndex(umaren,sanpuku);
   result.innerHTML=`
     <div class="box"><div class="raceTitle">【${raceName}】</div></div>
 
     ${diagnosisBox(diagnosis,topUmaren)}
     ${favoriteTrustBox(winRank[0],sanpuku)}
     ${renderOtani(sig)}
+    ${renderCenterIndex(centerIndex)}
     ${renderRanks(sig)}
     ${renderIntegrated(sig,winRank)}
 
