@@ -496,7 +496,7 @@ function integratedPanel(winRank,firstList,chappyList,thirdList,strictLamp,notic
 
   const ranked=[...chappyList].map(x=>{
     let p=0;
-    if(strictLamp.includes(x.horse))p+=1000;
+    if(strictLamp.includes(x.horse))p+=2000;
     if(hasReason(x,"勝負ランプ"))p+=800;
     if(hasReason(x,"超激走注意馬"))p+=500;
     if(hasReason(x,"単勝案件"))p+=120;
