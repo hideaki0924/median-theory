@@ -165,7 +165,8 @@ function placeWallAfter(placeRank,limit){
   const after=placeRank.filter(x=>x.place>=limit);
   if(!after.length)return[];
   return after.slice(0,2).map(x=>x.horse);
-}function addScore(map,h,pt=1){
+}
+  function addScore(map,h,pt=1){
   if(!h)return;
   map[h]=(map[h]||0)+pt;
 }
@@ -475,4 +476,7 @@ function renderIntegrated(sig,winRank){
   const topUmaren=[...umaren].sort((a,b)=>a.odds-b.odds)[0];
 
   const diagnosis=raceDiagnosis(winRank,placeRank,topUmaren);
-  const sig=buildSignals(win
+  const sig=buildSignals(winRank,placeRank,umaren,sanpuku);
+
+  result.innerHTML=`
+    <div class="box"><div
