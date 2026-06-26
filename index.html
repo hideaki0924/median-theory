@@ -3,321 +3,252 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 V4 1着指数入り</title>
+<title>チャッピー神予想 V22.3</title>
 <style>
-body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;background:#07101f;color:#fff;padding:14px;font-size:18px}
-textarea{width:100%;height:280px;font-size:17px;border-radius:10px;padding:10px;background:#fff;color:#000;box-sizing:border-box}
-textarea::placeholder{color:#777}
-button{font-size:20px;padding:10px 14px;margin:6px 4px 6px 0;border-radius:12px;border:0;background:#22c55e;color:#fff}
-.btn2{background:#3b82f6}.btn3{background:#64748b}.btn4{background:#f59e0b}
-.box{background:#111827;border-radius:14px;padding:14px;margin:12px 0}
-h1{font-size:26px}h2{font-size:22px;border-bottom:1px solid #374151;padding-bottom:6px}
-.green{color:#22c55e;font-weight:bold}.yellow{color:#facc15;font-weight:bold}.red{color:#fb7185;font-weight:bold}
-.hot{color:#fb7185;font-size:24px;font-weight:bold}.gold{color:#facc15;font-size:24px;font-weight:bold}
-.small{font-size:15px;color:#cbd5e1}
-pre{white-space:pre-wrap;font-size:16px}
-.rankWrap{overflow-x:auto;white-space:nowrap}
-.row{margin:12px 0;font-size:24px;font-weight:bold}
-.label{display:inline-block;width:70px;color:#cbd5e1;font-size:18px}
-.cell{display:inline-block;min-width:34px;text-align:center;padding:4px 6px;border-right:1px solid #64748b}
-.wallUma{border-right:3px solid #ff3b30}.wallWin{border-right:3px solid #3b82f6}.wallPlace{border-right:3px solid #facc15}
-.raceTitle{font-size:30px;font-weight:bold;color:#facc15}
-.indexCard{margin:10px 0;padding:10px;border-bottom:1px solid #374151}
+body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;padding:14px}
+h1{font-size:30px;color:#ffd84d}
+textarea{width:100%;height:330px;font-size:17px;border-radius:16px;padding:12px;box-sizing:border-box}
+button{font-size:24px;font-weight:800;border:0;border-radius:16px;padding:14px 22px;margin:10px 6px 14px 0}
+.go{background:#2563eb;color:#fff}.clear{background:#64748b;color:#fff}
+.card{background:#101a2b;border-radius:18px;padding:16px;margin:14px 0;border:1px solid #1e3a5f}
+.title{font-size:25px;font-weight:900;margin-bottom:10px}
+.big{font-size:38px;font-weight:900;color:#22c55e}
+.gold{color:#facc15}.red{color:#fb7185}.blue{color:#60a5fa}
+.badge{display:inline-block;padding:5px 10px;border-radius:9px;font-weight:900;margin:2px;background:#123b7a}
+.s{background:#0057ff}.a{background:#f97316}.b{background:#ca8a04}.c{background:#166534}.d{background:#374151}
+table{width:100%;border-collapse:collapse;font-size:16px}
+td,th{border-bottom:1px solid #334155;padding:7px;text-align:left;vertical-align:top}
+.num{display:inline-block;min-width:25px;text-align:center;border-radius:4px;padding:2px 4px;font-weight:900}
+.n1{background:#eee;color:#111}.n2{background:#111;color:#fff}.n3{background:#c91d1d}.n4{background:#1d5fd1}.n5{background:#facc15;color:#111}.n6{background:#2f8f2f}.n7{background:#d86b1d}.n8{background:#e052c9}.n9{background:#c044c8}.n10{background:#d946ef}
+.small{font-size:14px;color:#cbd5e1}
+hr{border:0;border-top:1px solid #334155}
 </style>
 </head>
 <body>
 
-<h1>チャッピー神予想 V4 1着指数入り</h1>
+<h1>💙 チャッピー神予想 V22.3</h1>
 
-<div class="box">
-<textarea id="input" placeholder="【レース名】
-
-[TANFUKU]
-
-[UMAREN]
-
-[SANPUKU]"></textarea>
-<br>
-<button onclick="analyze()">解析</button>
-<button class="btn2" onclick="testData()">テスト</button>
-<button class="btn3" onclick="resetInput()">リセット</button>
-<button class="btn4" onclick="copyResult()">結果コピー</button>
-</div>
-
-<div id="result"></div>
-
-<script>
-function norm(s){
-  return s.replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0))
-          .replace(/[－ー―–]/g,'-');
-}
-
-function parseInput(text){
-  text=norm(text);
-  const lines=text.split(/\n/).map(x=>x.trim()).filter(Boolean);
-  let mode="", raceName="レース名未入力";
-  const tanpuku=[],umaren=[],sanpuku=[];
-
-  for(const line of lines){
-    if(line.match(/^【.*】$/)){ raceName=line.replace(/[【】]/g,""); continue; }
-    if(line.match(/TANFUKU|単勝|複勝/i)){mode="TANFUKU";continue;}
-    if(line.match(/UMAREN|馬連|馬複/i)){mode="UMAREN";continue;}
-    if(line.match(/SANPUKU|三連複/i)){mode="SANPUKU";continue;}
-
-    const p=line.split(/\s+/);
-    if(mode==="TANFUKU" && p.length>=3){
-      tanpuku.push({horse:p[0],win:+p[1],place:+p[2]});
-    }
-    if(mode==="UMAREN" && p.length>=2 && p[0].includes("-")){
-      umaren.push({pair:p[0],odds:+p[1]});
-    }
-    if(mode==="SANPUKU" && p.length>=2 && p[0].includes("-")){
-      sanpuku.push({trio:p[0],odds:+p[1]});
-    }
-  }
-  return {raceName,tanpuku,umaren,sanpuku};
-}
-
-function medianHorses(list){
-  if(!list.length) return [];
-  const n=list.length;
-  return n%2 ? [list[Math.floor(n/2)].horse] : [list[n/2-1].horse,list[n/2].horse];
-}
-
-function wallIndexes(list,key){
-  const s=new Set();
-  for(let i=0;i<list.length-1;i++){
-    if(list[i][key]>0 && list[i+1][key]/list[i][key]>=1.8) s.add(i);
-  }
-  return s;
-}
-
-function beforeWallHorses(list,walls){
-  const s=new Set();
-  walls.forEach(i=>{
-    if(list[i]) s.add(list[i].horse);
-    if(list[i-1]) s.add(list[i-1].horse);
-  });
-  return [...s];
-}
-
-function placeWallBefore(placeRank,limit){
-  return placeRank.filter(x=>x.place<limit).slice(-2).map(x=>x.horse);
-}
-
-function add(map,h,pt,why){
-  if(!h) return;
-  if(!map[h]) map[h]={pt:0,why:[]};
-  map[h].pt+=pt;
-  map[h].why.push(why+" +"+pt);
-}
-
-function sortedIndex(map){
-  return Object.entries(map)
-    .sort((a,b)=>b[1].pt-a[1].pt)
-    .map(([h,v])=>({horse:h,pt:v.pt,why:v.why}));
-}
-
-function grade(pt){
-  if(pt>=80) return "S：勝負";
-  if(pt>=60) return "B：狙い目";
-  if(pt>=40) return "C：注意";
-  return "D：様子見";
-}
-
-function indexHtml(title,icon,list){
-  let html=`<div class="box"><h2>${icon}${title}</h2>`;
-  if(!list.length) return html+`<div class="small">該当なし</div></div>`;
-  list.forEach(x=>{
-    const cls=x.pt>=80?"hot":x.pt>=60?"gold":"green";
-    html+=`
-      <div style="border-bottom:1px solid #374151;padding:12px 0">
-        <div class="${cls}" style="font-size:30px">${x.horse}番　${x.pt}点　${grade(x.pt)}</div>
-        <div class="small">${x.why.join(" / ")}</div>
-      </div>`;
-  });
-  return html+`</div>`;
-}
-
-function rankLine(label,list,walls,type){
-  const wc=type==="uma"?"wallUma":type==="win"?"wallWin":"wallPlace";
-  let html=`<div class="row"><span class="label">${label}</span>`;
-  list.forEach((x,i)=>{
-    html+=`<span class="cell ${walls.has(i)?wc:""}">${x.horse}</span>`;
-  });
-  html+=`</div>`;
-  return html;
-}
-
-function classify(topOdds){
-  if(topOdds<4) return ["本命戦","green","馬連1番人気が4倍未満"];
-  if(topOdds<9) return ["中荒れ戦","yellow","馬連1番人気が4倍以上9倍未満"];
-  return ["荒れ戦","red","馬連1番人気が9倍以上"];
-}
-
-function analyze(){
-  const {raceName,tanpuku,umaren,sanpuku}=parseInput(document.getElementById("input").value);
-  const result=document.getElementById("result");
-
-  if(!tanpuku.length || !umaren.length){
-    result.innerHTML=`<div class="box red">単勝複勝と馬連を入れてください</div>`;
-    return;
-  }
-
-  const winRank=[...tanpuku].sort((a,b)=>a.win-b.win);
-  const placeRank=[...tanpuku].sort((a,b)=>a.place-b.place);
-  const axis=winRank[0].horse;
-
-  const axisUmaren=umaren.filter(x=>x.pair.split("-").includes(axis))
-    .sort((a,b)=>a.odds-b.odds)
-    .map(x=>{
-      const [a,b]=x.pair.split("-");
-      return {horse:a===axis?b:a,odds:x.odds,pair:x.pair};
-    });
-
-  const umaList=[{horse:axis,odds:0},...axisUmaren];
-  const topUmaren=[...umaren].sort((a,b)=>a.odds-b.odds)[0];
-
-  const umaWallsRaw=wallIndexes(axisUmaren,"odds");
-  const umaWalls=new Set([...umaWallsRaw].map(i=>i+1));
-  const winWalls=wallIndexes(winRank,"win");
-  const placeWalls=wallIndexes(placeRank,"place");
-
-  const fuku10=placeWallBefore(placeRank,10);
-  const fuku15=placeWallBefore(placeRank,15);
-  const winMed=medianHorses(winRank);
-  const placeMed=medianHorses(placeRank);
-  const umaMed=medianHorses(umaList);
-
-  const winBefore=beforeWallHorses(winRank,winWalls);
-  const placeBefore=beforeWallHorses(placeRank,placeWalls);
-  const umaBefore=beforeWallHorses(umaList,umaWalls);
-
-  const tansho={}, gekiso={}, ichaku={}, total={};
-
-  // 単勝案件
-  [...winMed,...placeMed,...umaMed].forEach(h=>add(tansho,h,10,"メジアン"));
-  winBefore.forEach(h=>add(tansho,h,12,"単勝壁前"));
-  placeBefore.forEach(h=>add(tansho,h,8,"複勝自然壁前"));
-  umaBefore.forEach(h=>add(tansho,h,12,"馬連壁前"));
-  fuku15.forEach(h=>add(tansho,h,10,"複勝15倍壁前"));
-
-  // 超激走
-  fuku15.forEach(h=>add(gekiso,h,15,"複勝15倍壁前"));
-  fuku10.forEach(h=>add(gekiso,h,10,"複勝10倍壁前"));
-  placeBefore.forEach(h=>add(gekiso,h,8,"複勝自然壁前"));
-  winRank.filter(x=>x.win>=10 && x.win<=30).forEach(x=>add(gekiso,x.horse,10,"単勝10〜30倍"));
-  umaBefore.forEach(h=>add(gekiso,h,10,"馬連壁前"));
-
-  // 1着指数
-  winRank.slice(0,3).forEach(x=>add(ichaku,x.horse,20,"単勝1〜3人気"));
-  winRank.slice(0,5).forEach(x=>add(ichaku,x.horse,10,"単勝1〜5人気"));
-  winRank.filter(x=>x.win<30).forEach(x=>add(ichaku,x.horse,8,"単勝30倍未満"));
-  winBefore.forEach(h=>add(ichaku,h,15,"単勝壁前"));
-  umaBefore.forEach(h=>add(ichaku,h,12,"馬連壁前"));
-  Object.keys(tansho).forEach(h=>add(ichaku,h,10,"単勝案件"));
-  if(+winRank[0].horse < +placeRank.find(x=>x.horse===winRank[0].horse)?.horse){}
-
-  // 総合指数
-  const horses=[...new Set(tanpuku.map(x=>x.horse))];
-  horses.forEach(h=>{
-    const w=ichaku[h]?.pt||0;
-    const t=tansho[h]?.pt||0;
-    const g=gekiso[h]?.pt||0;
-    add(total,h,Math.round(w*0.4+t*0.35+g*0.25),"総合");
-  });
-
-  const ichiList=sortedIndex(ichaku).slice(0,8);
-  const tanshoList=sortedIndex(tansho).slice(0,8);
-  const gekisoList=sortedIndex(gekiso).slice(0,8);
-  const totalList=sortedIndex(total).slice(0,8);
-
-  const shobu=tanshoList.map(x=>x.horse).filter(h=>gekiso[h]);
-
-  const [raceTitle,raceCls,raceReason]=classify(topUmaren.odds);
-
-  result.innerHTML=`
-    <div class="box"><div class="raceTitle">【${raceName}】</div></div>
-
-    ${indexHtml("1着指数","👑",ichiList)}
-    ${indexHtml("チャッピー総合指数","🔥",totalList)}
-
-    <div class="box">
-      <h2>🔥勝負ランプ</h2>
-      <div class="hot">${shobu.length?shobu.join("・"):"該当なし"}</div>
-      <div class="small">単勝案件と超激走注意馬が重なった馬</div>
-    </div>
-
-    ${indexHtml("単勝案件","🎯",tanshoList)}
-    ${indexHtml("超激走注意馬","🚨",gekisoList)}
-
-    <div class="box">
-      <h2>レース分類</h2>
-      <div>馬連1番人気：${topUmaren.pair}　${topUmaren.odds}倍</div>
-      <p>${raceReason}</p>
-      <div class="${raceCls}" style="font-size:28px">${raceTitle}</div>
-    </div>
-
-    <div class="box">
-      <h2>本表</h2>
-      <div class="small">馬連の壁＝赤線　単勝の壁＝青線　複勝の壁＝黄色線</div>
-      <div class="rankWrap">
-        ${rankLine("馬連",umaList,umaWalls,"uma")}
-        ${rankLine("単勝",winRank,winWalls,"win")}
-        ${rankLine("複勝",placeRank,placeWalls,"place")}
-      </div>
-    </div>
-  `;
-}
-
-function resetInput(){
-  document.getElementById("input").value="";
-  document.getElementById("result").innerHTML="";
-}
-
-function copyResult(){
-  const text=document.getElementById("result").innerText;
-  if(!text){ alert("コピーする結果がありません"); return; }
-  navigator.clipboard.writeText(text).then(()=>alert("結果をコピーしました"));
-}
-
-function testData(){
-  document.getElementById("input").value=`【テスト】
+<textarea id="inp" placeholder="競馬：
+笠松4R
 
 [TANFUKU]
-6 2.1 1.4
-8 2.5 1.6
-4 6.4 2.0
-7 9.7 3.0
-3 11.4 3.3
-9 34.1 6.7
-1 42.5 6.1
-5 151.1 25.1
-2 333.5 18.7
+6 1.7 1.3
+2 3.6 1.8
 
 [UMAREN]
-6-8 2.3
-4-8 8.3
-3-8 8.8
-6-7 11.0
-3-6 11.1
-4-6 12.5
-7-8 14.1
-1-6 34.0
-4-7 29.3
-1-8 42.1
+2-6 3.9
 
 [SANPUKU]
-4-6-8 6.2
-3-6-8 7.2
-6-7-8 9.3
-6-8-9 15.0
-4-7-8 17.5
-4-6-7 17.7
-3-4-6 19.1
-3-4-8 19.1`;
+2-6-8 5.9
+
+オート：
+浜松7R
+
+[TAN]
+4 2.1
+1 2.8
+
+[NISHA]
+4-5 2.9
+
+[SANREN]
+4-5-7 3.1"></textarea>
+
+<button class="go" onclick="run()">解析</button>
+<button class="clear" onclick="inp.value='';out.innerHTML=''">リセット</button>
+
+<div id="out"></div>
+
+<script>
+function n(x){return `<span class="num n${x}">${x}</span>`}
+function pair(s){return s.split('-').map(Number)}
+function med(arr){if(!arr.length)return [];let m=Math.floor((arr.length-1)/2);return arr.length%2?[arr[m]]:[arr[m],arr[m+1]]}
+function add(obj,k,v){obj[k]=(obj[k]||0)+v}
+function label(p){
+ if(p>=90)return ['SS','s','最有力'];
+ if(p>=75)return ['S','s','本命'];
+ if(p>=55)return ['A','a','相手'];
+ if(p>=35)return ['B','b','注意'];
+ return ['D','d','様子見'];
+}
+function parse(){
+ let txt=inp.value.replace(/[－ー]/g,'-');
+ let sec='',race='',tan=[],ren=[],san=[],isAuto=false;
+ txt.split(/\n/).forEach(l=>{
+  l=l.trim(); if(!l)return;
+  if(!l.includes('[')&&!race)race=l;
+  if(/\[TANFUKU\]/i.test(l)){sec='tanfuku';isAuto=false;return}
+  if(/\[TAN\]/i.test(l)){sec='tan';isAuto=true;return}
+  if(/\[UMAREN\]/i.test(l)){sec='ren';isAuto=false;return}
+  if(/\[NISHA\]/i.test(l)){sec='ren';isAuto=true;return}
+  if(/\[SANPUKU\]/i.test(l)){sec='san';isAuto=false;return}
+  if(/\[SANREN\]/i.test(l)){sec='san';isAuto=true;return}
+  let a=l.split(/\s+/);
+  if(sec==='tanfuku'&&a.length>=3)tan.push({car:+a[0],tan:+a[1],fuku:+a[2]});
+  if(sec==='tan'&&a.length>=2)tan.push({car:+a[0],tan:+a[1],fuku:null});
+  if(sec==='ren'&&a.length>=2)ren.push({cars:pair(a[0]),od:+a[1],key:a[0]});
+  if(sec==='san'&&a.length>=2)san.push({cars:pair(a[0]),od:+a[1],key:a[0]});
+ });
+ tan.sort((a,b)=>a.tan-b.tan);
+ ren.sort((a,b)=>a.od-b.od);
+ san.sort((a,b)=>a.od-b.od);
+ return {race,tan,ren,san,isAuto};
+}
+function positions(car,list){let r=[];list.forEach((x,i)=>{if(x.cars.includes(car))r.push(i+1)});return r}
+function run(){
+ let {race,tan,ren,san,isAuto}=parse();
+ if(!tan.length){out.innerHTML='<div class=card>単勝データがありません</div>';return}
+ let cars=[...new Set(tan.map(x=>x.car))];
+
+ let one={}, total={}, casePt={}, geki={}, reasons={}, final1={};
+ cars.forEach(c=>{one[c]=0;total[c]=0;casePt[c]=0;geki[c]=0;reasons[c]=[]});
+
+ // 1着指数 基本
+ tan.forEach((x,i)=>{
+  if(i<3){add(one,x.car,20);reasons[x.car].push('単勝1〜3人気')}
+  if(i<5){add(one,x.car,10)}
+  if(x.tan<30)add(one,x.car,8);
+ });
+
+ // 総合指数
+ tan.forEach((x,i)=>{
+  if(i<3)add(total,x.car,15);
+  if(i<5)add(total,x.car,8);
+ });
+ ren.forEach((x,i)=>{
+  if(i<5)x.cars.forEach(c=>add(total,c,12));
+  if(i<10)x.cars.forEach(c=>add(total,c,6));
+ });
+ san.forEach((x,i)=>{
+  if(i<5)x.cars.forEach(c=>add(total,c,10));
+  if(i<10)x.cars.forEach(c=>add(total,c,5));
+ });
+
+ // 単勝案件・壁
+ let tanWalls=[10,20,30,50];
+ tan.forEach((x,i)=>{
+  if(tanWalls.some(w=>x.tan<w && tan[i+1] && tan[i+1].tan>=w)){
+    add(casePt,x.car,12); add(one,x.car,15); add(total,x.car,8); reasons[x.car].push('単勝壁前');
+  }
+ });
+ [[0,10],[10,20],[20,50],[50,999]].forEach(([a,b])=>{
+  med(tan.filter(x=>x.tan>=a&&x.tan<b).map(x=>x.car)).forEach(c=>{
+    add(casePt,c,10); add(total,c,6); reasons[c].push('単勝区間メジアン');
+  });
+ });
+
+ if(!isAuto){
+  tan.forEach(x=>{
+    if(x.fuku!==null){
+      if(x.fuku<15 && tan.some(y=>y.fuku>=15)){add(geki,x.car,10)}
+      if(x.fuku>=6&&x.fuku<=15)add(total,x.car,8);
+    }
+  });
+ }
+
+ // 馬連・2車複 壁前
+ [10,20,50].forEach(w=>{
+  ren.forEach((x,i)=>{
+   if(x.od<w && ren[i+1] && ren[i+1].od>=w){
+    x.cars.forEach(c=>{add(casePt,c,12);add(total,c,8);reasons[c].push(isAuto?'2車複壁前':'馬連壁前')});
+   }
+  });
+ });
+
+ // 激走注意
+ cars.forEach(c=>{
+  let to=tan.find(x=>x.car===c)?.tan||999;
+  let rp=positions(c,ren), sp=positions(c,san);
+  if(to>=20)add(geki,c,10);
+  if(rp.some(v=>v<=15))add(geki,c,10);
+  if(sp.some(v=>v<=8))add(geki,c,10);
+  if(casePt[c]>=20)add(geki,c,10);
+ });
+
+ // 中心度
+ let renCount={}, sanCount={};
+ cars.forEach(c=>{
+  renCount[c]=positions(c,ren).filter(v=>v<=10).length;
+  sanCount[c]=positions(c,san).filter(v=>v<=10).length;
+ });
+
+ // 最終1着指数
+ let totalRank=cars.map(c=>({c,p:total[c]})).sort((a,b)=>b.p-a.p);
+ let renRank=cars.map(c=>({c,p:renCount[c]})).sort((a,b)=>b.p-a.p);
+ let sanRank=cars.map(c=>({c,p:sanCount[c]})).sort((a,b)=>b.p-a.p);
+
+ cars.forEach(c=>{
+  final1[c]=one[c];
+
+  let tr=totalRank.findIndex(x=>x.c===c)+1;
+  if(tr===1)final1[c]+=15;
+  else if(tr===2)final1[c]+=10;
+  else if(tr===3)final1[c]+=5;
+
+  let rr=renRank.findIndex(x=>x.c===c)+1;
+  if(rr===1)final1[c]+=15;
+  else if(rr===2)final1[c]+=10;
+  else if(rr===3)final1[c]+=5;
+
+  let sr=sanRank.findIndex(x=>x.c===c)+1;
+  if(sr===1)final1[c]+=10;
+  else if(sr===2)final1[c]+=5;
+
+  if(geki[c]>=40)final1[c]+=5;
+ });
+
+ let finalRank=cars.map(c=>({c,p:final1[c]})).sort((a,b)=>b.p-a.p);
+ let totalSorted=cars.map(c=>({c,p:total[c]})).sort((a,b)=>b.p-a.p);
+ let gekiSorted=cars.map(c=>({c,p:geki[c]})).sort((a,b)=>b.p-a.p);
+ let caseSorted=cars.map(c=>({c,p:casePt[c]})).sort((a,b)=>b.p-a.p);
+
+ let html='';
+ html+=`<div class=card><div class=title>🏆 最終1着指数</div>`;
+ finalRank.forEach(x=>{
+  let [r,cls,txt]=label(x.p);
+  html+=`<div>${n(x.c)} <span class="big gold">${x.p}点</span> <span class="badge ${cls}">${r}：${txt}</span></div>
+  <div class=small>現1着${one[x.c]} / 総合${total[x.c]} / 連中心${renCount[x.c]} / 三連中心${sanCount[x.c]} / 激走${geki[x.c]}</div><hr>`;
+ });
+ html+=`</div>`;
+
+ html+=`<div class=card><div class=title>🚨 超激走注意馬</div>`;
+ gekiSorted.filter(x=>x.p>0).forEach(x=>{
+  html+=`<div>${n(x.c)} <span class=big>${x.p}点</span> ${x.p>=40?'★★★ 買い目必須':x.p>=30?'★★ 相手本線':'★ 押さえ'}</div><hr>`;
+ });
+ html+=`</div>`;
+
+ html+=`<div class=card><div class=title>🎯 単勝案件</div>`;
+ caseSorted.filter(x=>x.p>0).forEach(x=>{
+  html+=`<div>${n(x.c)} <span class=big>${x.p}点</span></div><hr>`;
+ });
+ html+=`</div>`;
+
+ let main=finalRank.slice(0,2).map(x=>x.c);
+ let third=[...new Set([...finalRank.slice(2,5).map(x=>x.c),...gekiSorted.filter(x=>x.p>=30).map(x=>x.c)])].filter(c=>!main.includes(c));
+
+ html+=`<div class=card><div class=title>💙 チャッピー最終結論</div>
+ <div class=big>◎ ${n(finalRank[0].c)}</div>
+ <div>○ ${n(finalRank[1].c)}　▲ ${n(finalRank[2].c)}</div>
+ <div>△ ${third.map(n).join('・')}</div>
+ <hr>
+ <b>${isAuto?'2車複':'馬連'}：</b><br>
+ ${ren.slice(0,10).filter(x=>x.cars.some(c=>main.includes(c))).map(x=>x.key).join(' / ')}
+ <br><br>
+ <b>${isAuto?'3連系':'三連複'}：</b><br>
+ ${san.slice(0,10).filter(x=>x.cars.includes(finalRank[0].c)||x.cars.includes(finalRank[1].c)).map(x=>x.key).join(' / ')}
+ </div>`;
+
+ html+=`<div class=card><div class=title>📊 オッズ確認</div>
+ <table><tr><th>単勝</th><th>${isAuto?'2車複':'馬連'}</th><th>${isAuto?'3連系':'三連複'}</th></tr><tr><td>`;
+ tan.forEach((x,i)=>html+=`${i+1}. ${n(x.car)} ${x.tan}${x.fuku?` / ${x.fuku}`:''}<br>`);
+ html+=`</td><td>`;
+ ren.slice(0,20).forEach((x,i)=>html+=`${i+1}. ${x.cars.map(n).join('-')} ${x.od}<br>`);
+ html+=`</td><td>`;
+ san.slice(0,20).forEach((x,i)=>html+=`${i+1}. ${x.cars.map(n).join('-')} ${x.od}<br>`);
+ html+=`</td></tr></table></div>`;
+
+ out.innerHTML=html;
 }
 </script>
-
 </body>
 </html>
