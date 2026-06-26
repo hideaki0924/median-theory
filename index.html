@@ -479,4 +479,118 @@ function renderIntegrated(sig,winRank){
   const sig=buildSignals(winRank,placeRank,umaren,sanpuku);
 
   result.innerHTML=`
-    <div class="box"><div
+    <div class="box"><div class="raceTitle">【${raceName}】</div></div>
+
+    ${diagnosisBox(diagnosis,topUmaren)}
+    ${favoriteTrustBox(winRank[0],sanpuku)}
+    ${renderOtani(sig)}
+    ${renderRanks(sig)}
+    ${renderIntegrated(sig,winRank)}
+
+    <div class="box">
+      <h2>🔥勝負ランプ</h2>
+      <div class="hot">${sig.shobu.length?sig.shobu.join("・"):"該当なし"}</div>
+      <div class="small">単勝案件と超激走注意馬が重なった馬</div>
+    </div>
+
+    <div class="box">
+      <h2>🎯単勝案件</h2>
+      <div class="gold">${sig.tanshoList.length?sig.tanshoList.join("　"):"該当なし"}</div>
+    </div>
+
+    <div class="box">
+      <h2>🚨超激走注意馬</h2>
+      <div class="hot">${sig.gekisoList.length?sig.gekisoList.join("　"):"該当なし"}</div>
+    </div>
+
+    <div class="box">
+      <h2>📚本の買い方</h2>
+      <p>単勝メジアン：<b class="gold">${sig.winMed.join("・")||"なし"}</b></p>
+      <p>複勝メジアン：<b class="gold">${sig.placeMed.join("・")||"なし"}</b></p>
+      <p>馬連メジアン：<b class="gold">${sig.umaMed.join("・")||"なし"}</b></p>
+      <p>複勝10倍壁前2頭：<b class="gold">${sig.fuku10Before.join("・")||"なし"}</b></p>
+      <p>複勝10倍壁直後：<b class="hot">${sig.fuku10After.join("・")||"なし"}</b></p>
+      <p>複勝15倍壁前2頭：<b class="gold">${sig.fuku15Before.join("・")||"なし"}</b></p>
+      <p>馬連壁前：<b class="gold">${sig.umaBefore.join("・")||"なし"}</b></p>
+      <p>単勝壁前：<b class="gold">${sig.winBefore.join("・")||"なし"}</b></p>
+      <p>複勝自然壁前：<b class="gold">${sig.placeBefore.join("・")||"なし"}</b></p>
+    </div>
+
+    <div class="box">
+      <h2>本表</h2>
+      <div class="small">
+        大谷式馬連＝単勝1番人気を先頭にして馬連オッズ順<br>
+        馬連の壁＝赤線　単勝の壁＝青線　複勝の壁＝黄色線
+      </div>
+      <div class="rankWrap">
+        ${rankLine("馬連",sig.otaniList,sig.adjustedOtaniWalls,"uma")}
+        ${rankLine("単勝",winRank,sig.winWalls,"win")}
+        ${rankLine("複勝",placeRank,sig.placeWalls,"place")}
+      </div>
+    </div>
+  `;
+}
+
+function resetInput(){
+  document.getElementById("input").value="";
+  document.getElementById("result").innerHTML="";
+}
+
+function copyResult(){
+  const text=document.getElementById("result").innerText;
+  if(!text){
+    alert("コピーする結果がありません");
+    return;
+  }
+  navigator.clipboard.writeText(text)
+    .then(()=>alert("結果をコピーしました"))
+    .catch(()=>alert("コピーできませんでした"));
+}
+
+function testData(){
+  document.getElementById("input").value=`【笠松11R】
+
+[TANFUKU]
+3 2.7 1.9
+8 4.2 1.5
+7 4.8 1.6
+2 8.2 5.1
+5 8.2 2.4
+6 9.8 4.5
+1 12.2 3.1
+4 41.0 8.6
+
+[UMAREN]
+7-8 6.5
+3-7 6.6
+3-8 7.2
+3-5 9.7
+5-8 12.4
+5-7 14.6
+3-6 20.6
+6-7 23.2
+6-8 23.3
+2-7 24.0
+1-7 24.6
+1-3 25.1
+2-8 26.0
+2-3 26.4
+2-5 30.1
+5-6 30.9
+
+[SANPUKU]
+3-7-8 8.1
+3-5-7 11.0
+3-5-8 11.6
+5-7-8 12.2
+6-7-8 20.0
+2-7-8 21.1
+3-6-8 21.5
+3-6-7 23.5
+1-7-8 24.6
+1-3-7 25.1`;
+}
+</script>
+
+</body>
+</html>
