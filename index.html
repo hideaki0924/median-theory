@@ -557,18 +557,37 @@ function renderOtani(sig){
 }
 
 function renderCenterIndex(list){
-  return `<div class="box">
+
+  const a=list[0];
+  const b=list[1];
+  const c=list[2];
+  const d=list[3];
+
+  const rest=list
+    .slice(4,8)
+    .map((x,i)=>`⑤⑥⑦⑧`[i]+`${x.horse}(${x.total})`)
+    .join("　");
+
+  return `
+  <div class="box">
     <h2>🏆本表の王様</h2>
-    <div class="small">馬連上位＋三連複上位に何回出るか</div>
-    ${list.slice(0,8).map((x,i)=>`
-      <div class="indexCard">
-        <div class="${i===0?'hot':i<=2?'gold':'green'}" style="font-size:24px">
-          ${x.horse}番　${x.total}点
-        </div>
-        <div class="small">馬連 ${x.uma}回 / 三連複 ${x.san}回</div>
-      </div>
-    `).join("")}
-  </div>`;
+    <div class="small">馬連＋三連複</div>
+
+    <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:10px">
+      ${a?`<div class="hot" style="font-size:34px">🥇${a.horse}【${a.total}】</div>`:""}
+      ${b?`<div class="gold" style="font-size:30px">🥈${b.horse}【${b.total}】</div>`:""}
+    </div>
+
+    <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;font-size:25px;font-weight:bold">
+      ${c?`<span>🥉${c.horse}【${c.total}】</span>`:""}
+      ${d?`<span>④${d.horse}【${d.total}】</span>`:""}
+    </div>
+
+    <div class="small" style="font-size:18px;margin-top:10px">
+      ${rest}
+    </div>
+  </div>
+  `;
 }
 
 function renderKing(total){
