@@ -3,20 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 V22.3</title>
+<title>チャッピー神予想 V22.4</title>
 <style>
 body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;padding:14px}
-h1{font-size:30px;color:#ffd84d}
+h1{font-size:30px;color:#60a5fa}
 textarea{width:100%;height:330px;font-size:17px;border-radius:16px;padding:12px;box-sizing:border-box}
 button{font-size:24px;font-weight:800;border:0;border-radius:16px;padding:14px 22px;margin:10px 6px 14px 0}
 .go{background:#2563eb;color:#fff}.clear{background:#64748b;color:#fff}
 .card{background:#101a2b;border-radius:18px;padding:16px;margin:14px 0;border:1px solid #1e3a5f}
-.title{font-size:25px;font-weight:900;margin-bottom:10px}
-.big{font-size:38px;font-weight:900;color:#22c55e}
+.title{font-size:25px;font-weight:900;margin-bottom:10px;color:#93c5fd}
+.big{font-size:34px;font-weight:900;color:#22c55e}
 .gold{color:#facc15}.red{color:#fb7185}.blue{color:#60a5fa}
 .badge{display:inline-block;padding:5px 10px;border-radius:9px;font-weight:900;margin:2px;background:#123b7a}
 .s{background:#0057ff}.a{background:#f97316}.b{background:#ca8a04}.c{background:#166534}.d{background:#374151}
-table{width:100%;border-collapse:collapse;font-size:16px}
+.scroll{overflow-x:auto}
+table{min-width:760px;width:100%;border-collapse:collapse;font-size:16px}
 td,th{border-bottom:1px solid #334155;padding:7px;text-align:left;vertical-align:top}
 .num{display:inline-block;min-width:25px;text-align:center;border-radius:4px;padding:2px 4px;font-weight:900}
 .n1{background:#eee;color:#111}.n2{background:#111;color:#fff}.n3{background:#c91d1d}.n4{background:#1d5fd1}.n5{background:#facc15;color:#111}.n6{background:#2f8f2f}.n7{background:#d86b1d}.n8{background:#e052c9}.n9{background:#c044c8}.n10{background:#d946ef}
@@ -26,10 +27,9 @@ hr{border:0;border-top:1px solid #334155}
 </head>
 <body>
 
-<h1>💙 チャッピー神予想 V22.3</h1>
+<h1>💙 チャッピー神予想 V22.4</h1>
 
-<textarea id="inp" placeholder="競馬：
-笠松4R
+<textarea id="inp" placeholder="笠松4R
 
 [TANFUKU]
 6 1.7 1.3
@@ -39,20 +39,7 @@ hr{border:0;border-top:1px solid #334155}
 2-6 3.9
 
 [SANPUKU]
-2-6-8 5.9
-
-オート：
-浜松7R
-
-[TAN]
-4 2.1
-1 2.8
-
-[NISHA]
-4-5 2.9
-
-[SANREN]
-4-5-7 3.1"></textarea>
+2-6-8 5.9"></textarea>
 
 <button class="go" onclick="run()">解析</button>
 <button class="clear" onclick="inp.value='';out.innerHTML=''">リセット</button>
@@ -62,8 +49,30 @@ hr{border:0;border-top:1px solid #334155}
 <script>
 function n(x){return `<span class="num n${x}">${x}</span>`}
 function pair(s){return s.split('-').map(Number)}
-function med(arr){if(!arr.length)return [];let m=Math.floor((arr.length-1)/2);return arr.length%2?[arr[m]]:[arr[m],arr[m+1]]}
-function add(obj,k,v){obj[k]=(obj[k]||0)+v}
+function add(o,k,v){o[k]=(o[k]||0)+v}
+function med(a){if(!a.length)return [];let m=Math.floor((a.length-1)/2);return a.length%2?[a[m]]:[a[m],a[m+1]]}
+function pos(c,list){let r=[];list.forEach((x,i)=>{if(x.cars.includes(c))r.push(i+1)});return r}
+
+function parse(){
+ let txt=inp.value.replace(/[－ー]/g,'-');
+ let sec='',race='',tf=[],ren=[],san=[];
+ txt.split(/\n/).forEach(l=>{
+  l=l.trim(); if(!l)return;
+  if(!l.includes('[')&&!race)race=l;
+  if(/\[TANFUKU\]/i.test(l)){sec='tf';return}
+  if(/\[UMAREN\]/i.test(l)){sec='ren';return}
+  if(/\[SANPUKU\]/i.test(l)){sec='san';return}
+  let a=l.split(/\s+/);
+  if(sec==='tf'&&a.length>=3)tf.push({car:+a[0],tan:+a[1],fuku:+a[2]});
+  if(sec==='ren'&&a.length>=2)ren.push({cars:pair(a[0]),od:+a[1],key:a[0]});
+  if(sec==='san'&&a.length>=2)san.push({cars:pair(a[0]),od:+a[1],key:a[0]});
+ });
+ tf.sort((a,b)=>a.tan-b.tan);
+ ren.sort((a,b)=>a.od-b.od);
+ san.sort((a,b)=>a.od-b.od);
+ return {race,tf,ren,san};
+}
+
 function label(p){
  if(p>=90)return ['SS','s','最有力'];
  if(p>=75)return ['S','s','本命'];
@@ -71,181 +80,175 @@ function label(p){
  if(p>=35)return ['B','b','注意'];
  return ['D','d','様子見'];
 }
-function parse(){
- let txt=inp.value.replace(/[－ー]/g,'-');
- let sec='',race='',tan=[],ren=[],san=[],isAuto=false;
- txt.split(/\n/).forEach(l=>{
-  l=l.trim(); if(!l)return;
-  if(!l.includes('[')&&!race)race=l;
-  if(/\[TANFUKU\]/i.test(l)){sec='tanfuku';isAuto=false;return}
-  if(/\[TAN\]/i.test(l)){sec='tan';isAuto=true;return}
-  if(/\[UMAREN\]/i.test(l)){sec='ren';isAuto=false;return}
-  if(/\[NISHA\]/i.test(l)){sec='ren';isAuto=true;return}
-  if(/\[SANPUKU\]/i.test(l)){sec='san';isAuto=false;return}
-  if(/\[SANREN\]/i.test(l)){sec='san';isAuto=true;return}
-  let a=l.split(/\s+/);
-  if(sec==='tanfuku'&&a.length>=3)tan.push({car:+a[0],tan:+a[1],fuku:+a[2]});
-  if(sec==='tan'&&a.length>=2)tan.push({car:+a[0],tan:+a[1],fuku:null});
-  if(sec==='ren'&&a.length>=2)ren.push({cars:pair(a[0]),od:+a[1],key:a[0]});
-  if(sec==='san'&&a.length>=2)san.push({cars:pair(a[0]),od:+a[1],key:a[0]});
- });
- tan.sort((a,b)=>a.tan-b.tan);
- ren.sort((a,b)=>a.od-b.od);
- san.sort((a,b)=>a.od-b.od);
- return {race,tan,ren,san,isAuto};
-}
-function positions(car,list){let r=[];list.forEach((x,i)=>{if(x.cars.includes(car))r.push(i+1)});return r}
+
 function run(){
- let {race,tan,ren,san,isAuto}=parse();
- if(!tan.length){out.innerHTML='<div class=card>単勝データがありません</div>';return}
- let cars=[...new Set(tan.map(x=>x.car))];
+ let {race,tf,ren,san}=parse();
+ if(!tf.length){out.innerHTML='<div class=card>データがありません</div>';return}
+ let cars=tf.map(x=>x.car);
 
- let one={}, total={}, casePt={}, geki={}, reasons={}, final1={};
- cars.forEach(c=>{one[c]=0;total[c]=0;casePt[c]=0;geki[c]=0;reasons[c]=[]});
+ let first={},final1={},total={},casePt={},geki={},memo={};
+ cars.forEach(c=>{first[c]=0;final1[c]=0;total[c]=0;casePt[c]=0;geki[c]=0;memo[c]=[]});
 
- // 1着指数 基本
- tan.forEach((x,i)=>{
-  if(i<3){add(one,x.car,20);reasons[x.car].push('単勝1〜3人気')}
-  if(i<5){add(one,x.car,10)}
-  if(x.tan<30)add(one,x.car,8);
+ // 基本1着指数
+ tf.forEach((x,i)=>{
+  if(i<3)add(first,x.car,25);
+  else if(i<5)add(first,x.car,15);
+  if(x.tan<10)add(first,x.car,15);
+  else if(x.tan<20)add(first,x.car,8);
  });
 
  // 総合指数
- tan.forEach((x,i)=>{
-  if(i<3)add(total,x.car,15);
-  if(i<5)add(total,x.car,8);
+ tf.forEach((x,i)=>{
+  if(i<3)add(total,x.car,20);
+  else if(i<5)add(total,x.car,12);
  });
  ren.forEach((x,i)=>{
-  if(i<5)x.cars.forEach(c=>add(total,c,12));
-  if(i<10)x.cars.forEach(c=>add(total,c,6));
+  if(i<5)x.cars.forEach(c=>add(total,c,15));
+  else if(i<10)x.cars.forEach(c=>add(total,c,8));
  });
  san.forEach((x,i)=>{
-  if(i<5)x.cars.forEach(c=>add(total,c,10));
-  if(i<10)x.cars.forEach(c=>add(total,c,5));
+  if(i<5)x.cars.forEach(c=>add(total,c,12));
+  else if(i<10)x.cars.forEach(c=>add(total,c,6));
  });
 
- // 単勝案件・壁
- let tanWalls=[10,20,30,50];
- tan.forEach((x,i)=>{
-  if(tanWalls.some(w=>x.tan<w && tan[i+1] && tan[i+1].tan>=w)){
-    add(casePt,x.car,12); add(one,x.car,15); add(total,x.car,8); reasons[x.car].push('単勝壁前');
-  }
+ // 単勝壁・区間メジアン
+ [10,20,30,50].forEach(w=>{
+  tf.forEach((x,i)=>{
+   if(x.tan<w && tf[i+1] && tf[i+1].tan>=w){
+    add(casePt,x.car,12); add(total,x.car,8); add(first,x.car,8);
+    memo[x.car].push('単勝壁前');
+   }
+  });
  });
  [[0,10],[10,20],[20,50],[50,999]].forEach(([a,b])=>{
-  med(tan.filter(x=>x.tan>=a&&x.tan<b).map(x=>x.car)).forEach(c=>{
-    add(casePt,c,10); add(total,c,6); reasons[c].push('単勝区間メジアン');
+  med(tf.filter(x=>x.tan>=a&&x.tan<b).map(x=>x.car)).forEach(c=>{
+   add(casePt,c,10); add(total,c,6); memo[c].push('単勝区間メジアン');
   });
  });
 
- if(!isAuto){
-  tan.forEach(x=>{
-    if(x.fuku!==null){
-      if(x.fuku<15 && tan.some(y=>y.fuku>=15)){add(geki,x.car,10)}
-      if(x.fuku>=6&&x.fuku<=15)add(total,x.car,8);
-    }
+ // 複勝壁：ここを強く戻す
+ let fukuSort=[...tf].sort((a,b)=>a.fuku-b.fuku);
+ [6,10,15].forEach(w=>{
+  fukuSort.forEach((x,i)=>{
+   if(x.fuku<w && fukuSort[i+1] && fukuSort[i+1].fuku>=w){
+    add(geki,x.car,14);
+    add(casePt,x.car,10);
+    add(total,x.car,8);
+    memo[x.car].push(`複勝${w}倍壁前`);
+   }
   });
- }
+ });
+ [[0,3],[3,6],[6,15],[15,999]].forEach(([a,b])=>{
+  med(fukuSort.filter(x=>x.fuku>=a&&x.fuku<b).map(x=>x.car)).forEach(c=>{
+   add(geki,c,10); add(total,c,5); memo[c].push('複勝区間メジアン');
+  });
+ });
 
- // 馬連・2車複 壁前
- [10,20,50].forEach(w=>{
+ // 馬連壁前
+ [10,20,30,50,100].forEach(w=>{
   ren.forEach((x,i)=>{
    if(x.od<w && ren[i+1] && ren[i+1].od>=w){
-    x.cars.forEach(c=>{add(casePt,c,12);add(total,c,8);reasons[c].push(isAuto?'2車複壁前':'馬連壁前')});
+    x.cars.forEach(c=>{
+     add(casePt,c,12); add(geki,c,8); add(total,c,8);
+     memo[c].push('馬連壁前');
+    });
    }
   });
  });
 
- // 激走注意
+ // 超激走：弱めない
  cars.forEach(c=>{
-  let to=tan.find(x=>x.car===c)?.tan||999;
-  let rp=positions(c,ren), sp=positions(c,san);
-  if(to>=20)add(geki,c,10);
+  let t=tf.find(x=>x.car===c);
+  let rp=pos(c,ren), sp=pos(c,san);
+  if(t.tan>=20)add(geki,c,10);
+  if(t.fuku>=6 && t.fuku<=15)add(geki,c,12);
   if(rp.some(v=>v<=15))add(geki,c,10);
-  if(sp.some(v=>v<=8))add(geki,c,10);
-  if(casePt[c]>=20)add(geki,c,10);
+  if(sp.some(v=>v<=10))add(geki,c,10);
+  if(casePt[c]>=20)add(geki,c,8);
  });
 
  // 中心度
- let renCount={}, sanCount={};
+ let renC={},sanC={};
  cars.forEach(c=>{
-  renCount[c]=positions(c,ren).filter(v=>v<=10).length;
-  sanCount[c]=positions(c,san).filter(v=>v<=10).length;
+  renC[c]=pos(c,ren).filter(v=>v<=10).length;
+  sanC[c]=pos(c,san).filter(v=>v<=10).length;
  });
 
- // 最終1着指数
  let totalRank=cars.map(c=>({c,p:total[c]})).sort((a,b)=>b.p-a.p);
- let renRank=cars.map(c=>({c,p:renCount[c]})).sort((a,b)=>b.p-a.p);
- let sanRank=cars.map(c=>({c,p:sanCount[c]})).sort((a,b)=>b.p-a.p);
+ let renRank=cars.map(c=>({c,p:renC[c]})).sort((a,b)=>b.p-a.p);
+ let sanRank=cars.map(c=>({c,p:sanC[c]})).sort((a,b)=>b.p-a.p);
 
+ // 最終1着指数：ここだけ改善
  cars.forEach(c=>{
-  final1[c]=one[c];
+  final1[c]=first[c];
 
   let tr=totalRank.findIndex(x=>x.c===c)+1;
-  if(tr===1)final1[c]+=15;
-  else if(tr===2)final1[c]+=10;
-  else if(tr===3)final1[c]+=5;
+  if(tr===1)final1[c]+=18;
+  else if(tr===2)final1[c]+=12;
+  else if(tr===3)final1[c]+=6;
 
   let rr=renRank.findIndex(x=>x.c===c)+1;
-  if(rr===1)final1[c]+=15;
-  else if(rr===2)final1[c]+=10;
-  else if(rr===3)final1[c]+=5;
+  if(rr===1)final1[c]+=18;
+  else if(rr===2)final1[c]+=12;
+  else if(rr===3)final1[c]+=6;
 
   let sr=sanRank.findIndex(x=>x.c===c)+1;
-  if(sr===1)final1[c]+=10;
-  else if(sr===2)final1[c]+=5;
+  if(sr===1)final1[c]+=12;
+  else if(sr===2)final1[c]+=6;
 
-  if(geki[c]>=40)final1[c]+=5;
+  // 超激走は1着補正では弱く、でも完全には消さない
+  if(geki[c]>=40)final1[c]+=4;
  });
 
- let finalRank=cars.map(c=>({c,p:final1[c]})).sort((a,b)=>b.p-a.p);
- let totalSorted=cars.map(c=>({c,p:total[c]})).sort((a,b)=>b.p-a.p);
- let gekiSorted=cars.map(c=>({c,p:geki[c]})).sort((a,b)=>b.p-a.p);
- let caseSorted=cars.map(c=>({c,p:casePt[c]})).sort((a,b)=>b.p-a.p);
+ let fr=cars.map(c=>({c,p:final1[c]})).sort((a,b)=>b.p-a.p);
+ let gr=cars.map(c=>({c,p:geki[c]})).sort((a,b)=>b.p-a.p);
+ let cr=cars.map(c=>({c,p:casePt[c]})).sort((a,b)=>b.p-a.p);
 
  let html='';
+
+ html+=`<div class=card><div class=title>📊 本表：単勝・複勝・馬連</div><div class=scroll><table>
+ <tr><th>順位</th><th>単勝</th><th>複勝</th><th>馬連</th></tr>`;
+ let max=Math.max(tf.length,ren.length);
+ let fukuList=[...tf].sort((a,b)=>a.fuku-b.fuku);
+ for(let i=0;i<max;i++){
+  html+=`<tr><td>${i+1}</td>
+  <td>${tf[i]?n(tf[i].car)+' '+tf[i].tan:''}</td>
+  <td>${fukuList[i]?n(fukuList[i].car)+' '+fukuList[i].fuku:''}</td>
+  <td>${ren[i]?ren[i].cars.map(n).join('-')+' '+ren[i].od:''}</td></tr>`;
+ }
+ html+=`</table></div></div>`;
+
  html+=`<div class=card><div class=title>🏆 最終1着指数</div>`;
- finalRank.forEach(x=>{
+ fr.forEach(x=>{
   let [r,cls,txt]=label(x.p);
   html+=`<div>${n(x.c)} <span class="big gold">${x.p}点</span> <span class="badge ${cls}">${r}：${txt}</span></div>
-  <div class=small>現1着${one[x.c]} / 総合${total[x.c]} / 連中心${renCount[x.c]} / 三連中心${sanCount[x.c]} / 激走${geki[x.c]}</div><hr>`;
+  <div class=small>元1着${first[x.c]} / 総合${total[x.c]} / 馬連中心${renC[x.c]} / 三連中心${sanC[x.c]} / 超激走${geki[x.c]}</div><hr>`;
  });
  html+=`</div>`;
 
  html+=`<div class=card><div class=title>🚨 超激走注意馬</div>`;
- gekiSorted.filter(x=>x.p>0).forEach(x=>{
-  html+=`<div>${n(x.c)} <span class=big>${x.p}点</span> ${x.p>=40?'★★★ 買い目必須':x.p>=30?'★★ 相手本線':'★ 押さえ'}</div><hr>`;
+ gr.filter(x=>x.p>0).forEach(x=>{
+  html+=`<div>${n(x.c)} <span class=big>${x.p}点</span> ${x.p>=40?'★★★ 買い目必須':x.p>=30?'★★ 相手本線':'★ 押さえ'}</div>
+  <div class=small>${memo[x.c].join(' / ')}</div><hr>`;
  });
  html+=`</div>`;
 
  html+=`<div class=card><div class=title>🎯 単勝案件</div>`;
- caseSorted.filter(x=>x.p>0).forEach(x=>{
-  html+=`<div>${n(x.c)} <span class=big>${x.p}点</span></div><hr>`;
+ cr.filter(x=>x.p>0).forEach(x=>{
+  html+=`<div>${n(x.c)} <span class=big>${x.p}点</span></div>
+  <div class=small>${memo[x.c].join(' / ')}</div><hr>`;
  });
  html+=`</div>`;
 
- let main=finalRank.slice(0,2).map(x=>x.c);
- let third=[...new Set([...finalRank.slice(2,5).map(x=>x.c),...gekiSorted.filter(x=>x.p>=30).map(x=>x.c)])].filter(c=>!main.includes(c));
-
  html+=`<div class=card><div class=title>💙 チャッピー最終結論</div>
- <div class=big>◎ ${n(finalRank[0].c)}</div>
- <div>○ ${n(finalRank[1].c)}　▲ ${n(finalRank[2].c)}</div>
- <div>△ ${third.map(n).join('・')}</div>
+ <div class=big>◎ ${n(fr[0].c)}</div>
+ <div>○ ${n(fr[1].c)}　▲ ${n(fr[2].c)}</div>
+ <div>☆ 超激走：${gr.filter(x=>x.p>=30).map(x=>n(x.c)).join('・')||'なし'}</div>
  <hr>
- <b>${isAuto?'2車複':'馬連'}：</b><br>
- ${ren.slice(0,10).filter(x=>x.cars.some(c=>main.includes(c))).map(x=>x.key).join(' / ')}
+ <b>馬連候補</b><br>${ren.slice(0,12).map(x=>x.key).join(' / ')}
  <br><br>
- <b>${isAuto?'3連系':'三連複'}：</b><br>
- ${san.slice(0,10).filter(x=>x.cars.includes(finalRank[0].c)||x.cars.includes(finalRank[1].c)).map(x=>x.key).join(' / ')}
+ <b>三連複候補</b><br>${san.slice(0,12).map(x=>x.key).join(' / ')}
  </div>`;
-
- html+=`<div class=card><div class=title>📊 オッズ確認</div>
- <table><tr><th>単勝</th><th>${isAuto?'2車複':'馬連'}</th><th>${isAuto?'3連系':'三連複'}</th></tr><tr><td>`;
- tan.forEach((x,i)=>html+=`${i+1}. ${n(x.car)} ${x.tan}${x.fuku?` / ${x.fuku}`:''}<br>`);
- html+=`</td><td>`;
- ren.slice(0,20).forEach((x,i)=>html+=`${i+1}. ${x.cars.map(n).join('-')} ${x.od}<br>`);
- html+=`</td><td>`;
- san.slice(0,20).forEach((x,i)=>html+=`${i+1}. ${x.cars.map(n).join('-')} ${x.od}<br>`);
- html+=`</td></tr></table></div>`;
 
  out.innerHTML=html;
 }
