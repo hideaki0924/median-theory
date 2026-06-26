@@ -437,12 +437,19 @@ function buildSignals(winRank,placeRank,umaren,sanpuku){
 }
 
 function renderOtani(sig){
+  const wallCount = sig.adjustedOtaniWalls ? sig.adjustedOtaniWalls.size : 0;
+  const wallText =
+    sig.umaWallText ||
+    (wallCount===0 ? "馬連壁：なし" :
+     wallCount===1 ? "馬連壁：1枚" :
+     "馬連壁：2枚以上");
+
   return `<div class="box">
     <h2>🏇大谷式</h2>
     <div class="small">単勝1番人気を先頭にして、馬連をオッズ順に並べる方式</div>
     <div class="hot" style="font-size:32px">${sig.otani.join(" → ")}</div>
     <br>
-    <div>${sig.umaWallText}</div>
+    <div>${wallText}</div>
     <div>馬連壁前：<b class="gold">${sig.umaBefore.length?sig.umaBefore.join("・"):"なし"}</b></div>
     <div>壁前メジアン：<b class="gold">${sig.umaMed.length?sig.umaMed.join("・"):"なし"}</b></div>
   </div>`;
