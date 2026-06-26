@@ -370,36 +370,44 @@ function buildSignals(winRank,placeRank,umaren,sanpuku){
 
   const allHorses=[...new Set(winRank.map(x=>x.horse))];
 
-  const sRank=[];
-  const aRank=[];
-  const bRank=[];
-  const cRank=[];
+  const rankScore=[];
 
-  allHorses.forEach(h=>{
-    const isTansho=tanshoSet.has(h);
-    const isGekiso=gekisoSet.has(h);
-    const isUma=umaBefore.includes(h);
-    const isFuku15=fuku15Before.includes(h);
-    const isFuku10=fuku10Before.includes(h);
-    const isWin=winBefore.includes(h);
-    const isPlace=placeBefore.includes(h);
+allHorses.forEach(h=>{
+  let pt=0;
+  let memo=[];
 
-    if(
-      shobu.includes(h) ||
-      (isTansho&&isUma) ||
-      (isTansho&&isFuku15) ||
-      (isGekiso&&isFuku15)
-    ){
-      sRank.push(h);
-    }else if(isTansho||isUma||isFuku15){
-      aRank.push(h);
-    }else if(isGekiso||isFuku10||isWin||isPlace){
-      bRank.push(h);
-    }else{
-      cRank.push(h);
-    }
-  });
+  if(shobu.includes(h)){ pt+=5; memo.push("勝負ランプ"); }
+  if(tanshoSet.has(h)){ pt+=3; memo.push("単勝案件"); }
+  if(gekisoSet.has(h)){ pt+=3; memo.push("超激走"); }
+  if(umaBefore.includes(h)){ pt+=2; memo.push("馬連壁前"); }
+  if(fuku15Before.includes(h)){ pt+=2; memo.push("複勝15壁前"); }
+  if(fuku10Before.includes(h)){ pt+=1; memo.push("複勝10壁前"); }
+  if(winBefore.includes(h)){ pt+=1; memo.push("単勝壁前"); }
+  if(placeBefore.includes(h)){ pt+=1; memo.push("複勝自然壁前"); }
 
+  rankScore.push({horse:h,pt,memo});
+});
+
+rankScore.sort((a,b)=>b.pt-a.pt);
+
+const sRank=rankScore
+  .filter(x=>x.pt>=7)
+  .slice(0,3)
+  .map(x=>x.horse);
+
+const aRank=rankScore
+  .filter(x=>x.pt>=4 && !sRank.includes(x.horse))
+  .slice(0,4)
+  .map(x=>x.horse);
+
+const bRank=rankScore
+  .filter(x=>x.pt>=1 && !sRank.includes(x.horse) && !aRank.includes(x.horse))
+  .slice(0,2)
+  .map(x=>x.horse);
+
+const cRank=rankScore
+  .filter(x=>!sRank.includes(x.horse) && !aRank.includes(x.horse) && !bRank.includes(x.horse))
+  .map(x=>x.horse);
   const otaniStrong=otani.slice(0,5);
   const otaniWallBefore=umaBefore;
 
@@ -410,6 +418,7 @@ function buildSignals(winRank,placeRank,umaren,sanpuku){
     otaniList,
     adjustedOtaniWalls,
     wallCount: adjustedOtaniWalls.size,
+    rankScore,
     winWalls,
     placeWalls,
     winBefore,
