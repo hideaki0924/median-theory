@@ -305,7 +305,19 @@ function simpleBox(title,icon,items,cls="gold"){
     <div class="${cls}">${items.length?items.join("・"):"該当なし"}</div>
   </div>`;
 }
-  function buildSignals(winRank,placeRank,umaren,sanpuku){
+  
+function renderRanks(sig){
+  return `<div class="box">
+    <h2>🧠階級判断</h2>
+    <div class="hot">S：${sig.sRank.length?sig.sRank.join("・"):"該当なし"}</div>
+    <div class="gold">A：${sig.aRank.length?sig.aRank.join("・"):"該当なし"}</div>
+    <div class="yellow">B：${sig.bRank.length?sig.bRank.join("・"):"該当なし"}</div>
+    <div class="small">C：${sig.cRank.length?sig.cRank.join("・"):"該当なし"}</div>
+    <br>
+    <div class="small">※点数ではなく、勝負ランプ・単勝案件・馬連壁前・複勝15倍壁前の重なりを優先</div>
+  </div>`;
+}
+function buildSignals(winRank,placeRank,umaren,sanpuku){
   const topUmaren=[...umaren].sort((a,b)=>a.odds-b.odds)[0];
   const axis=winRank[0].horse;
 
@@ -424,26 +436,15 @@ function simpleBox(title,icon,items,cls="gold"){
   };
 }
 
-function renderRanks(sig){
-  return `<div class="box">
-    <h2>🧠階級判断</h2>
-    <div class="hot">S：${sig.sRank.length?sig.sRank.join("・"):"該当なし"}</div>
-    <div class="gold">A：${sig.aRank.length?sig.aRank.join("・"):"該当なし"}</div>
-    <div class="yellow">B：${sig.bRank.length?sig.bRank.join("・"):"該当なし"}</div>
-    <div class="small">C：${sig.cRank.length?sig.cRank.join("・"):"該当なし"}</div>
-    <br>
-    <div class="small">※点数ではなく、勝負ランプ・単勝案件・馬連壁前・複勝15倍壁前の重なりを優先</div>
-  </div>`;
-}
-
 function renderOtani(sig){
   return `<div class="box">
     <h2>🏇大谷式</h2>
     <div class="small">単勝1番人気を先頭にして、馬連をオッズ順に並べる方式</div>
     <div class="hot" style="font-size:32px">${sig.otani.join(" → ")}</div>
     <br>
-    <div>大谷式上位：<b class="gold">${sig.otaniStrong.join("・")}</b></div>
-    <div>大谷式馬連壁前：<b class="gold">${sig.otaniWallBefore.length?sig.otaniWallBefore.join("・"):"なし"}</b></div>
+    <div>${sig.umaWallText}</div>
+    <div>馬連壁前：<b class="gold">${sig.umaBefore.length?sig.umaBefore.join("・"):"なし"}</b></div>
+    <div>壁前メジアン：<b class="gold">${sig.umaMed.length?sig.umaMed.join("・"):"なし"}</b></div>
   </div>`;
 }
 
