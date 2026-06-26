@@ -197,7 +197,42 @@ function rankLine(label,list,walls,type){
   html+=`</div>`;
   return html;
 }
+function renderExtremeMoveAlert(umaList,winRank,placeRank){
+  const umaRank={};
+  const winMap={};
+  const placeMap={};
 
+  umaList.forEach((x,i)=>umaRank[x.horse]=i+1);
+  winRank.forEach((x,i)=>winMap[x.horse]=i+1);
+  placeRank.forEach((x,i)=>placeMap[x.horse]=i+1);
+
+  const alerts=[];
+
+  Object.keys(umaRank).forEach(h=>{
+    if(winMap[h]){
+      const diff=winMap[h]-umaRank[h];
+      if(diff>=3)alerts.push(`${h}　単→馬 +${diff}`);
+    }
+    if(placeMap[h]){
+      const diff=placeMap[h]-umaRank[h];
+      if(diff>=3)alerts.push(`${h}　複→馬 +${diff}`);
+    }
+  });
+
+  Object.keys(placeMap).forEach(h=>{
+    if(winMap[h]){
+      const diff=winMap[h]-placeMap[h];
+      if(diff>=3)alerts.push(`${h}　単→複 +${diff}`);
+    }
+  });
+
+  if(!alerts.length)return `<div class="small">極端移動：なし</div>`;
+
+  return `<div style="margin-top:14px">
+    <div class="hot">🚨極端移動</div>
+    <div class="gold">${alerts.join("　")}</div>
+  </div>`;
+}
 function otaniLine(winRank,umaren){
   if(!winRank.length||!umaren.length)return [];
   const axis=winRank[0].horse;
@@ -575,6 +610,7 @@ function renderIntegrated(sig,winRank){
         ${rankLine("馬連",sig.otaniList,sig.adjustedOtaniWalls,"uma")}
         ${rankLine("単勝",winRank,sig.winWalls,"win")}
         ${rankLine("複勝",placeRank,sig.placeWalls,"place")}
+        ${renderExtremeMoveAlert(sig.otaniList,winRank,placeRank)}
       </div>
     </div>
   `;
