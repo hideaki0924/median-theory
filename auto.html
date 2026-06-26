@@ -72,6 +72,40 @@ function parse(){
  return {tan,nisha,san};
 }
 function posList(car,list){let r=[];list.forEach((x,i)=>{if(x.cars.includes(car))r.push(i+1)});return r}
+ // ===== オート専用：連王ランプ =====
+function autoRenOh(tan,nisha,san){
+ let score={};
+ function add(c,pt){
+  if(!score[c])score[c]=0;
+  score[c]+=pt;
+ }
+
+ nisha.forEach((x,i)=>{
+  let pt=i<5?3:i<10?2:1;
+  x.cars.forEach(c=>add(c,pt));
+ });
+
+ san.forEach((x,i)=>{
+  let pt=i<6?4:i<12?2:1;
+  x.cars.forEach(c=>add(c,pt));
+ });
+
+ return Object.entries(score)
+  .map(([c,pt])=>({c:+c,pt}))
+  .sort((a,b)=>b.pt-a.pt);
+}
+
+function autoRenOhTickets(renOh){
+ let cars=renOh.slice(0,4).map(x=>x.c);
+ if(cars.length<3)return [];
+ let king=cars[0], aite=cars[1], ana=cars[2];
+ return [
+  `${aite}-${king}-${ana}`,
+  `${king}-${aite}-${ana}`,
+  `${aite}-${ana}-${king}`,
+  `${king}-${ana}-${aite}`
+ ];
+}
 function run(){
  let {tan,nisha,san}=parse();
  let cars=[...new Set(tan.map(x=>x.car))];
@@ -115,6 +149,17 @@ function run(){
  let shihai = (!nIn.length&&!sIn.length) ? 'D：飛び警戒' : (nIn[0]===1&&sIn[0]===1?'A：支配型':'B：半支配型');
 
  let html='';
+ let renOh=autoRenOh(tan,nisha,san);
+let renTickets=autoRenOhTickets(renOh);
+
+html+=`<div class=card><div class=title>🏍️ オート専用：連王ランプ</div>`;
+renOh.slice(0,5).forEach((r,i)=>{
+ let mark=i===0?'👑連王':i===1?'⚔️相手王':i===2?'🔥穴候補':'注意';
+ html+=`<div>${mark}：${n(r.c)} <span class=big>${r.pt}点</span></div><hr>`;
+});
+html+=`<div class=title>🎯 連王3連単候補</div>`;
+renTickets.forEach(t=>html+=`<div class=big>${t}</div>`);
+html+=`</div>`;
  html+=`<div class=card><div class=title>🏆 単勝1人気支配率</div>
  単勝1人気：${n(tan1)}（${tan[0].od}倍）<br>
  2車複：${nIn.length?nIn[0]+'位':'圏外'}<br>
