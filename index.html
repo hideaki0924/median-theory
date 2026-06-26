@@ -488,7 +488,7 @@ function renderChappyIndex(list){
   </div>`;
 }
 
-<script>
+
 function integratedPanel(winRank,firstList,chappyList,thirdList,strictLamp,noticeLamp){
   function hasReason(x,word){
     return (x.reasons||[]).some(r=>r.includes(word));
@@ -527,7 +527,7 @@ function integratedPanel(winRank,firstList,chappyList,thirdList,strictLamp,notic
     <div>🟡注意ランプ：<b class="gold">${noticeLamp.length?noticeLamp.join("・"):"該当なし"}</b></div>
   </div>`;
 }
-</script>
+
 
 function analyze(){
   const {raceName,tanpuku,umaren,sanpuku}=parseInput(document.getElementById("input").value);
