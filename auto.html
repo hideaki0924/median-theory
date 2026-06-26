@@ -96,15 +96,32 @@ function autoRenOh(tan,nisha,san){
 }
 
 function autoRenOhTickets(renOh){
- let cars=renOh.slice(0,4).map(x=>x.c);
- if(cars.length<3)return [];
- let king=cars[0], aite=cars[1], ana=cars[2];
- return [
-  `${aite}-${king}-${ana}`,
-  `${king}-${aite}-${ana}`,
-  `${aite}-${ana}-${king}`,
-  `${king}-${ana}-${aite}`
- ];
+ let cars=renOh.slice(0,5).map(x=>x.c);
+ if(cars.length<3)return {main:[],gyakuten:[]};
+
+ let king=cars[0];
+ let aite=cars[1];
+ let ana=cars[2];
+ let ana2=cars[4] || cars[3];
+
+ return {
+
+  //通常連王
+  main:[
+   `${aite}-${king}-${ana}`,
+   `${king}-${aite}-${ana}`,
+   `${aite}-${ana}-${king}`,
+   `${king}-${ana}-${aite}`
+  ],
+
+  //穴逆転
+  gyakuten:[
+   `${ana}-${king}-${aite}`,
+   `${ana}-${king}-${ana2}`,
+   `${ana}-${aite}-${king}`,
+   `${ana}-${ana2}-${king}`
+  ]
+ };
 }
 function run(){
  let {tan,nisha,san}=parse();
@@ -157,8 +174,15 @@ renOh.slice(0,5).forEach((r,i)=>{
  let mark=i===0?'👑連王':i===1?'⚔️相手王':i===2?'🔥穴候補':'注意';
  html+=`<div>${mark}：${n(r.c)} <span class=big>${r.pt}点</span></div><hr>`;
 });
-html+=`<div class=title>🎯 連王3連単候補</div>`;
-renTickets.forEach(t=>html+=`<div class=big>${t}</div>`);
+html+=`<div class=title>🎯 連王3連単</div>`;
+renTickets.main.forEach(t=>
+ html+=`<div class=big>${t}</div>`
+);
+
+html+=`<hr><div class=title>🔥 激走逆転3連単</div>`;
+renTickets.gyakuten.forEach(t=>
+ html+=`<div class="big yellow">${t}</div>`
+);
 html+=`</div>`;
  html+=`<div class=card><div class=title>🏆 単勝1人気支配率</div>
  単勝1人気：${n(tan1)}（${tan[0].od}倍）<br>
