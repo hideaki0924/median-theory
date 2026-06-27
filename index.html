@@ -750,6 +750,15 @@ function renderExtremeMoveAlert(umaList,winRank,placeRank){
   return [...new Set(a)].filter(x=>new Set(b).has(x));
 }
 
+
+  function analyze(){
+  const {raceName,tanpuku,umaren,wide,sanpuku}=parseInput(document.getElementById("input").value);
+  const result=document.getElementById("result");
+
+  if(tanpuku.length===0||umaren.length===0){
+    result.innerHTML=`<div class="box red">単勝複勝と馬連を入れてください</div>`;
+    return;
+  }
 function renderSA(sig){
   const fuku10=sig.fuku10Before||[];
   const fuku15=sig.fuku15Before||[];
@@ -833,15 +842,6 @@ function renderSA(sig){
   </div>
   `;
 }
-  function analyze(){
-  const {raceName,tanpuku,umaren,wide,sanpuku}=parseInput(document.getElementById("input").value);
-  const result=document.getElementById("result");
-
-  if(tanpuku.length===0||umaren.length===0){
-    result.innerHTML=`<div class="box red">単勝複勝と馬連を入れてください</div>`;
-    return;
-  }
-
   const winRank=[...tanpuku].sort((a,b)=>a.win-b.win);
   const placeRank=[...tanpuku].sort((a,b)=>a.place-b.place);
   const topUmaren=[...umaren].sort((a,b)=>a.odds-b.odds)[0];
