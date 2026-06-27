@@ -750,15 +750,6 @@ function renderExtremeMoveAlert(umaList,winRank,placeRank){
   return [...new Set(a)].filter(x=>new Set(b).has(x));
 }
 
-
-  function analyze(){
-  const {raceName,tanpuku,umaren,wide,sanpuku}=parseInput(document.getElementById("input").value);
-  const result=document.getElementById("result");
-
-  if(tanpuku.length===0||umaren.length===0){
-    result.innerHTML=`<div class="box red">単勝複勝と馬連を入れてください</div>`;
-    return;
-  }
 function renderSA(sig){
   const fuku10=sig.fuku10Before||[];
   const fuku15=sig.fuku15Before||[];
@@ -767,6 +758,16 @@ function renderSA(sig){
 
   const tansho=[...sig.tanshoSet];
   const gekiso=[...sig.gekisoSet];
+
+  const wallArr=[...sig.ot.walls].sort((a,b)=>a-b);
+  let firstWallGroup=[];
+  let firstWallMed=[];
+
+  if(wallArr.length){
+    const group=sig.ot.otaniList.slice(0,wallArr[0]+1);
+    firstWallGroup=group.map(x=>x.horse);
+    firstWallMed=medianHorses(group);
+  }
 
   const superLamp=intersect(gekiso,fuku10);
   const umaFuku=intersect(umaBefore,fuku10);
@@ -778,6 +779,7 @@ function renderSA(sig){
     ...umaFuku,
     ...umaTansho,
     ...umaGekiso,
+    ...firstWallMed,
     ...umaMed
   ])];
 
@@ -796,6 +798,8 @@ function renderSA(sig){
     <div class="indexCard">
       <div class="hot">🏇大谷式 馬連壁</div>
       <div>壁前：<b class="gold">${umaBefore.length?umaBefore.join("・"):"なし"}</b></div>
+      <div>壁から1人気まで：<b class="gold">${firstWallGroup.length?firstWallGroup.join("・"):"なし"}</b></div>
+      <div>壁内メジアン：<b class="hot">${firstWallMed.length?firstWallMed.join("・"):"なし"}</b></div>
       <div>壁メジアン：<b class="gold">${umaMed.length?umaMed.join("・"):"なし"}</b></div>
       <div>複勝10倍壁前：<b class="gold">${fuku10.length?fuku10.join("・"):"なし"}</b></div>
       <div>複勝15倍壁前：<b class="gold">${fuku15.length?fuku15.join("・"):"なし"}</b></div>
@@ -803,45 +807,37 @@ function renderSA(sig){
 
     <div class="indexCard">
       <div class="hot">🔥超勝負ランプ</div>
-      <div>超激走 × 複勝10倍壁前：
-        <b class="hot">${superLamp.length?superLamp.join("・"):"該当なし"}</b>
-      </div>
-      <div>馬連壁前 × 複勝10倍壁前：
-        <b class="gold">${umaFuku.length?umaFuku.join("・"):"該当なし"}</b>
-      </div>
-      <div>馬連壁前 × 単勝案件：
-        <b class="gold">${umaTansho.length?umaTansho.join("・"):"該当なし"}</b>
-      </div>
-      <div>馬連壁前 × 超激走：
-        <b class="gold">${umaGekiso.length?umaGekiso.join("・"):"該当なし"}</b>
-      </div>
+      <div>超激走 × 複勝10倍壁前：<b class="hot">${superLamp.length?superLamp.join("・"):"該当なし"}</b></div>
+      <div>馬連壁前 × 複勝10倍壁前：<b class="gold">${umaFuku.length?umaFuku.join("・"):"該当なし"}</b></div>
+      <div>馬連壁前 × 単勝案件：<b class="gold">${umaTansho.length?umaTansho.join("・"):"該当なし"}</b></div>
+      <div>馬連壁前 × 超激走：<b class="gold">${umaGekiso.length?umaGekiso.join("・"):"該当なし"}</b></div>
     </div>
 
     <div class="indexCard">
       <div class="hot">🚨結論</div>
-      <div>軸候補：
-        <b class="hot">${axis.length?axis.join("・"):"なし"}</b>
-      </div>
-      <div>相手候補：
-        <b class="gold">${mates.length?mates.slice(0,8).join("・"):"なし"}</b>
-      </div>
+      <div>◎ 軸候補：<b class="hot">${axis.length?axis.join("・"):"なし"}</b></div>
+      <div>○ 相手候補：<b class="gold">${mates.length?mates.slice(0,8).join("・"):"なし"}</b></div>
     </div>
   </div>
 
   <div class="box aBox">
     <h2>⭐A級・候補馬発掘</h2>
-    <div>境目・壁前候補：
-      <b class="gold">${[...new Set([...sig.winBefore,...sig.placeBefore,...umaBefore])].join("・")||"なし"}</b>
-    </div>
-    <div>単勝案件：
-      <b class="gold">${sig.tanshoList.length?sig.tanshoList.join("　"):"該当なし"}</b>
-    </div>
-    <div>超激走注意馬：
-      <b class="hot">${sig.gekisoList.length?sig.gekisoList.join("　"):"該当なし"}</b>
-    </div>
+    <div>境目・壁前候補：<b class="gold">${[...new Set([...sig.winBefore,...sig.placeBefore,...umaBefore])].join("・")||"なし"}</b></div>
+    <div>単勝案件：<b class="gold">${sig.tanshoList.length?sig.tanshoList.join("　"):"該当なし"}</b></div>
+    <div>超激走注意馬：<b class="hot">${sig.gekisoList.length?sig.gekisoList.join("　"):"該当なし"}</b></div>
   </div>
   `;
 }
+
+function analyze(){
+  const {raceName,tanpuku,umaren,wide,sanpuku}=parseInput(document.getElementById("input").value);
+  const result=document.getElementById("result");
+
+  if(tanpuku.length===0||umaren.length===0){
+    result.innerHTML=`<div class="box red">単勝複勝と馬連を入れてください</div>`;
+    return;
+  }
+
   const winRank=[...tanpuku].sort((a,b)=>a.win-b.win);
   const placeRank=[...tanpuku].sort((a,b)=>a.place-b.place);
   const topUmaren=[...umaren].sort((a,b)=>a.odds-b.odds)[0];
