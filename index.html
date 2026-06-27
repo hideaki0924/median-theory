@@ -796,13 +796,51 @@ function renderSA(sig){
     <h2>🏆S級・勝負判断</h2>
 
     <div class="indexCard">
-      <div class="hot">🏇大谷式 馬連壁</div>
-      <div>壁前：<b class="gold">${umaBefore.length?umaBefore.join("・"):"なし"}</b></div>
-      <div>壁から1人気まで：<b class="gold">${firstWallGroup.length?firstWallGroup.join("・"):"なし"}</b></div>
-      <div>壁内メジアン：<b class="hot">${firstWallMed.length?firstWallMed.join("・"):"なし"}</b></div>
-      <div>壁メジアン：<b class="gold">${umaMed.length?umaMed.join("・"):"なし"}</b></div>
-      <div>複勝10倍壁前：<b class="gold">${fuku10.length?fuku10.join("・"):"なし"}</b></div>
-      <div>複勝15倍壁前：<b class="gold">${fuku15.length?fuku15.join("・"):"なし"}</b></div>
+      <div class="indexCard">
+  <div class="hot">🏇大谷式 馬連壁</div>
+
+  <div>
+    壁前：
+    <b class="gold">
+      ${umaBefore.length ? umaBefore.join("・") : "なし"}
+    </b>
+  </div>
+
+  <div>
+    壁から1人気まで：
+    <b class="gold">
+      ${firstWall.length ? firstWall.join("・") : "なし"}
+    </b>
+  </div>
+
+  <div>
+    壁内メジアン：
+    <b class="hot">
+      ${firstWallMed.length ? firstWallMed.join("・") : "なし"}
+    </b>
+  </div>
+
+  <div>
+    壁メジアン：
+    <b class="gold">
+      ${umaMed.length ? umaMed.join("・") : "なし"}
+    </b>
+  </div>
+
+  <div>
+    複勝10倍壁前：
+    <b class="gold">
+      ${fuku10.length ? fuku10.join("・") : "なし"}
+    </b>
+  </div>
+
+  <div>
+    複勝15倍壁前：
+    <b class="gold">
+      ${fuku15.length ? fuku15.join("・") : "なし"}
+    </b>
+  </div>
+</div>
     </div>
 
     <div class="indexCard">
