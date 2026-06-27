@@ -79,6 +79,30 @@ h2{
   padding:10px;
   border-bottom:1px solid #1d6fe8;
 }
+  .gradeBox{
+  border:2px solid #facc15;
+  background:#071f42;
+}
+
+.sBox{
+  border:2px solid #fb7185;
+  background:#2a0714;
+}
+
+.aBox{
+  border:2px solid #60a5fa;
+  background:#061b3a;
+}
+
+.badge{
+  display:inline-block;
+  background:#111827;
+  border:1px solid #60a5fa;
+  border-radius:999px;
+  padding:5px 10px;
+  margin:4px;
+  font-weight:bold;
+}
 </style>
 </head>
 
@@ -722,6 +746,93 @@ function renderExtremeMoveAlert(umaList,winRank,placeRank){
     <div class="gold">${alerts.join("　")}</div>
   </div>`;
 }
+  function intersect(a,b){
+  return [...new Set(a)].filter(x=>new Set(b).has(x));
+}
+
+function renderSA(sig){
+  const fuku10=sig.fuku10Before||[];
+  const fuku15=sig.fuku15Before||[];
+  const umaBefore=sig.ot.wallBefore||[];
+  const umaMed=sig.umaMed||[];
+
+  const tansho=[...sig.tanshoSet];
+  const gekiso=[...sig.gekisoSet];
+
+  const superLamp=intersect(gekiso,fuku10);
+  const umaFuku=intersect(umaBefore,fuku10);
+  const umaTansho=intersect(umaBefore,tansho);
+  const umaGekiso=intersect(umaBefore,gekiso);
+
+  const axis=[...new Set([
+    ...superLamp,
+    ...umaFuku,
+    ...umaTansho,
+    ...umaGekiso,
+    ...umaMed
+  ])];
+
+  const mates=[...new Set([
+    ...umaBefore,
+    ...fuku10,
+    ...fuku15,
+    ...gekiso,
+    ...tansho
+  ])].filter(x=>!axis.includes(x));
+
+  return `
+  <div class="box sBox">
+    <h2>🏆S級・勝負判断</h2>
+
+    <div class="indexCard">
+      <div class="hot">🏇大谷式 馬連壁</div>
+      <div>壁前：<b class="gold">${umaBefore.length?umaBefore.join("・"):"なし"}</b></div>
+      <div>壁メジアン：<b class="gold">${umaMed.length?umaMed.join("・"):"なし"}</b></div>
+      <div>複勝10倍壁前：<b class="gold">${fuku10.length?fuku10.join("・"):"なし"}</b></div>
+      <div>複勝15倍壁前：<b class="gold">${fuku15.length?fuku15.join("・"):"なし"}</b></div>
+    </div>
+
+    <div class="indexCard">
+      <div class="hot">🔥超勝負ランプ</div>
+      <div>超激走 × 複勝10倍壁前：
+        <b class="hot">${superLamp.length?superLamp.join("・"):"該当なし"}</b>
+      </div>
+      <div>馬連壁前 × 複勝10倍壁前：
+        <b class="gold">${umaFuku.length?umaFuku.join("・"):"該当なし"}</b>
+      </div>
+      <div>馬連壁前 × 単勝案件：
+        <b class="gold">${umaTansho.length?umaTansho.join("・"):"該当なし"}</b>
+      </div>
+      <div>馬連壁前 × 超激走：
+        <b class="gold">${umaGekiso.length?umaGekiso.join("・"):"該当なし"}</b>
+      </div>
+    </div>
+
+    <div class="indexCard">
+      <div class="hot">🚨結論</div>
+      <div>軸候補：
+        <b class="hot">${axis.length?axis.join("・"):"なし"}</b>
+      </div>
+      <div>相手候補：
+        <b class="gold">${mates.length?mates.slice(0,8).join("・"):"なし"}</b>
+      </div>
+    </div>
+  </div>
+
+  <div class="box aBox">
+    <h2>⭐A級・候補馬発掘</h2>
+    <div>境目・壁前候補：
+      <b class="gold">${[...new Set([...sig.winBefore,...sig.placeBefore,...umaBefore])].join("・")||"なし"}</b>
+    </div>
+    <div>単勝案件：
+      <b class="gold">${sig.tanshoList.length?sig.tanshoList.join("　"):"該当なし"}</b>
+    </div>
+    <div>超激走注意馬：
+      <b class="hot">${sig.gekisoList.length?sig.gekisoList.join("　"):"該当なし"}</b>
+    </div>
+  </div>
+  `;
+}
   function analyze(){
   const {raceName,tanpuku,umaren,wide,sanpuku}=parseInput(document.getElementById("input").value);
   const result=document.getElementById("result");
@@ -751,6 +862,7 @@ function renderExtremeMoveAlert(umaList,winRank,placeRank){
     ${renderKing(totalKing)}
     ${renderCenterIndex(centerIndex)}
     ${renderOtani(sig)}
+    ${renderSA(sig)}
     ${renderRanks(sig)}
     ${renderIntegrated(sig,winRank,totalKing)}
 
