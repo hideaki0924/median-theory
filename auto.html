@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 オートV23 Ultimate</title>
+<title>チャッピー神予想 オートV23.5 Ultimate</title>
 <style>
 body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;padding:14px}
 h1{font-size:28px;color:#ffd84d}
@@ -20,10 +20,17 @@ button{font-size:22px;font-weight:800;border:0;border-radius:16px;padding:13px 2
 .num{display:inline-block;min-width:25px;text-align:center;border-radius:4px;padding:2px 4px;font-weight:900}
 .n1{background:#eee;color:#111}.n2{background:#111;color:#fff}.n3{background:#c91d1d}.n4{background:#1d5fd1}.n5{background:#facc15;color:#111}.n6{background:#2f8f2f}.n7{background:#d86b1d}.n8{background:#e052c9}
 hr{border:0;border-top:1px solid #334155}
+
+/* V23.5追加 */
+.roleBox{border:2px solid #facc15;background:#111827;box-shadow:0 0 18px rgba(250,204,21,.25)}
+.roleSSS{font-size:30px;font-weight:900;color:#fb7185}
+.roleSS{font-size:30px;font-weight:900;color:#f97316}
+.roleHide{font-size:30px;font-weight:900;color:#38bdf8}
+.buyBox{border:2px solid #22c55e;border-radius:16px;padding:12px;margin-top:10px;background:#052e1a}
 </style>
 </head>
 <body>
-<h1>🏍️ チャッピー神予想 オートV23 Ultimate</h1>
+<h1>🏍️ チャッピー神予想 オートV23.5 Ultimate</h1>
 
 <textarea id="inp" placeholder="【伊勢崎12R】
 
@@ -48,6 +55,7 @@ function n(x){return `<span class="num n${x}">${x}</span>`}
 function pair(s){return s.split('-').map(Number)}
 function med(a){if(!a.length)return[];let m=Math.floor((a.length-1)/2);return a.length%2?[a[m]]:[a[m],a[m+1]]}
 function add(map,c,pt,memo,label){map[c]=(map[c]||0)+pt;if(!memo[c])memo[c]=[];if(label&&!memo[c].includes(label))memo[c].push(label)}
+
 function parse(){
  let txt=inp.value.replace(/[－ー]/g,'-');
  let sec='',tan=[],nisha=[],wide=[],san=[];
@@ -63,15 +71,31 @@ function parse(){
   if(sec==='wide'&&a.length>=2)wide.push({cars:pair(a[0]),od:+a[1],key:a[0]});
   if(sec==='san'&&a.length>=2)san.push({cars:pair(a[0]),od:+a[1],key:a[0]});
  });
- tan.sort((a,b)=>a.od-b.od);nisha.sort((a,b)=>a.od-b.od);wide.sort((a,b)=>a.od-b.od);san.sort((a,b)=>a.od-b.od);
+ tan.sort((a,b)=>a.od-b.od);
+ nisha.sort((a,b)=>a.od-b.od);
+ wide.sort((a,b)=>a.od-b.od);
+ san.sort((a,b)=>a.od-b.od);
  return{tan,nisha,wide,san};
 }
-function pos(c,list){let r=[];list.forEach((x,i)=>{if(x.cars.includes(c))r.push(i+1)});return r}
+
+function pos(c,list){
+ let r=[];
+ list.forEach((x,i)=>{if(x.cars.includes(c))r.push(i+1)});
+ return r;
+}
+
 function axisLine(axis,list){
  let line=[axis];
- list.forEach(x=>{if(x.cars.includes(axis))x.cars.forEach(c=>{if(c!==axis&&!line.includes(c))line.push(c)})});
+ list.forEach(x=>{
+  if(x.cars.includes(axis)){
+   x.cars.forEach(c=>{
+    if(c!==axis&&!line.includes(c))line.push(c);
+   });
+  }
+ });
  return line;
 }
+
 function wallBefore(list){
  let s=[];
  list.forEach((x,i)=>{
@@ -80,6 +104,7 @@ function wallBefore(list){
  });
  return[...new Set(s)];
 }
+
 function renOh(cars,nisha,wide,san){
  let sc={},memo={};
  nisha.forEach((x,i)=>x.cars.forEach(c=>add(sc,c,i<5?5:i<10?3:1,memo,'2車複上位')));
@@ -87,11 +112,17 @@ function renOh(cars,nisha,wide,san){
  san.forEach((x,i)=>x.cars.forEach(c=>add(sc,c,i<8?5:i<15?3:1,memo,'3連系上位')));
  return cars.map(c=>({c,pt:sc[c]||0,memo:memo[c]||[]})).sort((a,b)=>b.pt-a.pt);
 }
+
 function strange(cars,tan,nisha,wide,san,nishaMed,wideMed,nishaBefore,wideBefore){
  let sc={},memo={},tr={};
  tan.forEach((x,i)=>tr[x.car]=i+1);
+
  cars.forEach(c=>{
-  let nr=pos(c,nisha)[0]||99,wr=pos(c,wide)[0]||99,sr=pos(c,san)[0]||99,rank=tr[c]||99;
+  let nr=pos(c,nisha)[0]||99;
+  let wr=pos(c,wide)[0]||99;
+  let sr=pos(c,san)[0]||99;
+  let rank=tr[c]||99;
+
   if(rank>=5&&nr<=5)add(sc,c,6,memo,'単勝弱いのに2車複上位');
   if(rank>=5&&wr<=10)add(sc,c,6,memo,'単勝弱いのにワイド上位');
   if(rank>=5&&sr<=8)add(sc,c,6,memo,'単勝弱いのに3連系上位');
@@ -100,16 +131,19 @@ function strange(cars,tan,nisha,wide,san,nishaMed,wideMed,nishaBefore,wideBefore
   if(nishaBefore.includes(c))add(sc,c,3,memo,'2車複壁前');
   if(wideBefore.includes(c))add(sc,c,3,memo,'ワイド壁前');
  });
- return Object.entries(sc).map(([c,pt])=>({c:+c,pt,memo:memo[c]||[]})).filter(x=>x.pt>=6).sort((a,b)=>b.pt-a.pt);
-}
- function superAna(cars,tan,ren,wide,san){
- let sc={},memo={};
 
+ return Object.entries(sc)
+  .map(([c,pt])=>({c:+c,pt,memo:memo[c]||[]}))
+  .filter(x=>x.pt>=6)
+  .sort((a,b)=>b.pt-a.pt);
+}
+
+function superAna(cars,tan,ren,wide,san){
+ let sc={},memo={};
  if(!ren || ren.length<2)return [];
 
  let king=ren[0].c;
  let partner=ren[1].c;
-
  let tanRank={};
  tan.forEach((x,i)=>tanRank[x.car]=i+1);
 
@@ -137,62 +171,177 @@ function strange(cars,tan,nisha,wide,san,nishaMed,wideMed,nishaBefore,wideBefore
   .filter(x=>x.pt>=10)
   .sort((a,b)=>b.pt-a.pt);
 }
-function tickets(list){
- let cs=list.slice(0,4).map(x=>x.c); if(cs.length<3)return[];
- return [`${cs[0]}-${cs[1]}-${cs[2]}`,`${cs[1]}-${cs[0]}-${cs[2]}`,`${cs[2]}-${cs[0]}-${cs[1]}`,`${cs[2]}-${cs[1]}-${cs[0]}`];
+ function tickets(list){
+ let cs=list.slice(0,4).map(x=>x.c);
+ if(cs.length<3)return[];
+ return [
+  `${cs[0]}-${cs[1]}-${cs[2]}`,
+  `${cs[1]}-${cs[0]}-${cs[2]}`,
+  `${cs[2]}-${cs[0]}-${cs[1]}`,
+  `${cs[2]}-${cs[1]}-${cs[0]}`
+ ];
 }
+
+/* V23.5追加：本命SSS・単勝SS・隠れ穴を分類 */
+function autoRoleLamp(final,tan,nisha,wide,san,ijyo,ana){
+ let tanMap={},tanRank={};
+ tan.forEach((x,i)=>{tanMap[x.car]=x.od;tanRank[x.car]=i+1});
+
+ let nCount={},wCount={},sCount={};
+ nisha.forEach(x=>x.cars.forEach(c=>nCount[c]=(nCount[c]||0)+1));
+ wide.forEach(x=>x.cars.forEach(c=>wCount[c]=(wCount[c]||0)+1));
+ san.forEach(x=>x.cars.forEach(c=>sCount[c]=(sCount[c]||0)+1));
+
+ let ijyoSet=new Set(ijyo.map(x=>x.c));
+ let anaSet=new Set(ana.map(x=>x.c));
+
+ let honmei=[];
+ let tansho=[];
+ let kakure=[];
+
+ final.forEach(x=>{
+  let c=x.c;
+  let od=tanMap[c]||999;
+  let nr=nCount[c]||0;
+  let wr=wCount[c]||0;
+  let sr=sCount[c]||0;
+  let rank=tanRank[c]||99;
+
+  let memo=[];
+  if(x.pt>=25)memo.push("超勝負25点以上");
+  if(nr>=3)memo.push("2車複重複");
+  if(wr>=3)memo.push("ワイド重複");
+  if(sr>=2)memo.push("3連系重複");
+  if(ijyoSet.has(c))memo.push("異常検知");
+  if(anaSet.has(c))memo.push("超穴逆転");
+
+  if(od<5 && x.pt>=22){
+   honmei.push({c,pt:x.pt,od,memo:[...memo,"本命型"]});
+  }
+
+  if(od>=5 && x.pt>=20){
+   tansho.push({c,pt:x.pt,od,memo:[...memo,"単勝穴型"]});
+  }
+
+  if(od>=20 && (nr>=2 || wr>=2) && sr>=1){
+   kakure.push({c,pt:x.pt,od,memo:[...memo,"隠れ穴"]});
+  }
+ });
+
+ honmei.sort((a,b)=>b.pt-a.pt);
+ tansho.sort((a,b)=>b.pt-a.pt);
+ kakure.sort((a,b)=>b.pt-a.pt);
+
+ return {honmei,tansho,kakure};
+}
+
+function renderRoleLamp(role){
+ let html=`<div class="card roleBox"><div class="title">🏍️オート役割分担ランプ</div>`;
+
+ html+=`<div class="roleSSS">💥連系SSS</div>`;
+ if(!role.honmei.length){
+  html+=`<div class="small">該当なし</div>`;
+ }else{
+  role.honmei.slice(0,4).forEach(x=>{
+   html+=`<div>${n(x.c)} <span class="hot">${x.pt}点</span> <span class="small">単${x.od}</span><br><span class="small">${x.memo.join(" / ")}</span></div><hr>`;
+  });
+ }
+
+ html+=`<div class="roleSS">🔥単勝SS</div>`;
+ if(!role.tansho.length){
+  html+=`<div class="small">該当なし</div>`;
+ }else{
+  role.tansho.slice(0,4).forEach(x=>{
+   html+=`<div>${n(x.c)} <span class="big">${x.pt}点</span> <span class="small">単${x.od}</span><br><span class="small">${x.memo.join(" / ")}</span></div><hr>`;
+  });
+ }
+
+ html+=`<div class="roleHide">💣隠れ穴</div>`;
+ if(!role.kakure.length){
+  html+=`<div class="small">該当なし</div>`;
+ }else{
+  role.kakure.slice(0,4).forEach(x=>{
+   html+=`<div>${n(x.c)} <span class="big">${x.pt}点</span> <span class="small">単${x.od}</span><br><span class="small">${x.memo.join(" / ")}</span></div><hr>`;
+  });
+ }
+
+ html+=`<div class="buyBox">
+  <div class="title">買い方</div>
+  <div>連系：${role.honmei.length ? role.honmei.slice(0,3).map(x=>n(x.c)).join("・") : "見送り"}</div>
+  <div>単勝：${role.tansho.length ? role.tansho.slice(0,2).map(x=>n(x.c)).join("・") : "見送り"}</div>
+  <div>隠れ穴：${role.kakure.length ? role.kakure.slice(0,2).map(x=>n(x.c)).join("・") : "なし"}</div>
+  <div class="small">基本：本命型は連系、単勝5倍以上の強ランプだけ単勝。隠れ穴は100円だけ。</div>
+ </div>`;
+
+ html+=`</div>`;
+ return html;
+}
+
 function run(){
  let{tan,nisha,wide,san}=parse();
 
-if(!tan.length && !nisha.length && !wide.length && !san.length){
- out.innerHTML='<div class=card>入力なし</div>';
- return;
-}
- let cars=[...new Set([
- ...tan.map(x=>x.car),
- ...nisha.flatMap(x=>x.cars),
- ...wide.flatMap(x=>x.cars),
- ...san.flatMap(x=>x.cars)
-])];
+ if(!tan.length && !nisha.length && !wide.length && !san.length){
+  out.innerHTML='<div class=card>入力なし</div>';
+  return;
+ }
 
-let axis=tan.length ? tan[0].car :
-         nisha.length ? nisha[0].cars[0] :
-         wide.length ? wide[0].cars[0] :
-         san.length ? san[0].cars[0] : null;
- let nLine=axisLine(axis,nisha),wLine=axisLine(axis,wide);
- let tanMed=med(tan.map(x=>x.car)),nMed=med(nLine),wMed=med(wLine);
- let nBefore=wallBefore(nisha),wBefore=wallBefore(wide);
+ let cars=[...new Set([
+  ...tan.map(x=>x.car),
+  ...nisha.flatMap(x=>x.cars),
+  ...wide.flatMap(x=>x.cars),
+  ...san.flatMap(x=>x.cars)
+ ])];
+
+ let axis=tan.length ? tan[0].car :
+          nisha.length ? nisha[0].cars[0] :
+          wide.length ? wide[0].cars[0] :
+          san.length ? san[0].cars[0] : null;
+
+ let nLine=axisLine(axis,nisha);
+ let wLine=axisLine(axis,wide);
+ let tanMed=med(tan.map(x=>x.car));
+ let nMed=med(nLine);
+ let wMed=med(wLine);
+ let nBefore=wallBefore(nisha);
+ let wBefore=wallBefore(wide);
+
  let ren=renOh(cars,nisha,wide,san);
  let ijyo=strange(cars,tan,nisha,wide,san,nMed,wMed,nBefore,wBefore);
  let ana=superAna(cars,tan,ren,wide,san);
+
  let finalScore={},finalMemo={};
  ren.slice(0,5).forEach((x,i)=>add(finalScore,x.c,12-i*2,finalMemo,i===0?'連王':i===1?'相手王':'連王上位'));
  ijyo.forEach(x=>add(finalScore,x.c,x.pt,finalMemo,'異常検知'));
  ana.forEach(x=>add(finalScore,x.c,x.pt,finalMemo,'超穴逆転'));
  [...tanMed,...nMed,...wMed,...nBefore,...wBefore].forEach(c=>add(finalScore,c,4,finalMemo,'メジアン/壁前'));
+
  let final=cars.map(c=>({c,pt:finalScore[c]||0,memo:finalMemo[c]||[]})).sort((a,b)=>b.pt-a.pt);
+ let role=autoRoleLamp(final,tan,nisha,wide,san,ijyo,ana);
+
  let html='';
+
+ html+=renderRoleLamp(role);
+
  html+=`<div class=card><div class=title>🔥超勝負ランプ</div>`;
  final.slice(0,5).forEach(x=>html+=`<div>${n(x.c)} <span class=hot>${x.pt}点</span><br><span class=small>${x.memo.join(' / ')}</span></div><hr>`);
  html+=`</div>`;
+
  html+=`<div class=card><div class=title>🚨 超穴逆転ランプ</div>`;
-
-if(!ana.length){
- html+=`<div class=small>該当なし</div>`;
-}else{
- ana.slice(0,5).forEach(x=>{
-  html+=`
-   <div>
-    ${n(x.c)}
-    <span class=big>${x.pt}点</span><br>
-    <span class=small>${x.memo.join(' / ')}</span>
-   </div>
-   <hr>
-  `;
- });
-}
-
-html+=`</div>`;
+ if(!ana.length){
+  html+=`<div class=small>該当なし</div>`;
+ }else{
+  ana.slice(0,5).forEach(x=>{
+   html+=`
+    <div>
+     ${n(x.c)}
+     <span class=big>${x.pt}点</span><br>
+     <span class=small>${x.memo.join(' / ')}</span>
+    </div>
+    <hr>
+   `;
+  });
+ }
+ html+=`</div>`;
 
  html+=`<div class=card><div class=title>①メジアン本表</div>
  単勝メジアン：<span class=big>${tanMed.map(n).join('・')}</span><br>
@@ -201,18 +350,22 @@ html+=`</div>`;
  2車複壁前：<span class=yellow>${nBefore.map(n).join('・')||'なし'}</span><br>
  ワイド壁前：<span class=yellow>${wBefore.map(n).join('・')||'なし'}</span>
  </div>`;
+
  html+=`<div class=card><div class=title>②連王ランプ</div>`;
  ren.slice(0,5).forEach((x,i)=>html+=`<div>${i===0?'👑連王':i===1?'⚔️相手王':i===2?'🔥穴王':'注意'}：${n(x.c)} <span class=big>${x.pt}点</span></div><hr>`);
  html+=`</div>`;
+
  html+=`<div class=card><div class=title>③異常検知</div>`;
  if(!ijyo.length)html+=`<div class=small>該当なし</div>`;
  ijyo.slice(0,5).forEach(x=>html+=`<div>${n(x.c)} <span class=hot>${x.pt}点</span><br><span class=small>${x.memo.join(' / ')}</span></div><hr>`);
  html+=`</div>`;
+
  html+=`<div class=card><div class=title>🎯チャッピー推奨</div>
  <div class=big>軸：${final.slice(0,2).map(x=>n(x.c)).join('・')}</div>
  <div class="big yellow">穴：${final.slice(2,5).map(x=>n(x.c)).join('・')}</div>
  <hr><div class=title>3連系候補</div>${tickets(final).map(t=>`<div class=big>${t}</div>`).join('')}
  </div>`;
+
  out.innerHTML=html;
 }
 </script>
