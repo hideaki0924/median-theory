@@ -87,6 +87,36 @@ h2{
 .wallUma{border-right:3px solid #ff3b30}
 .wallWin{border-right:3px solid #3b82f6}
 .wallPlace{border-right:3px solid #facc15}
+  /* 💣大穴一発逆転 */
+.ooana{
+  background:#020617;
+  border:3px solid #38bdf8;
+  border-radius:20px;
+  padding:16px;
+  margin:16px 0;
+  box-shadow:0 0 14px #38bdf8,0 0 32px #38bdf8;
+  animation:ooanaFlash 1.2s infinite alternate;
+}
+.ooana h2{
+  color:#7dd3fc;
+  text-shadow:0 0 10px #38bdf8;
+  font-size:26px;
+}
+.ooana .ooHit{
+  color:#7dd3fc;
+  font-size:26px;
+  font-weight:900;
+  margin:10px 0 4px;
+}
+.ooana .ooMemo{
+  color:#dbeafe;
+  font-size:16px;
+  margin-bottom:10px;
+}
+@keyframes ooanaFlash{
+  from{box-shadow:0 0 10px #38bdf8,0 0 24px #38bdf8}
+  to{box-shadow:0 0 22px #38bdf8,0 0 60px #38bdf8}
+}
 </style>
 </head>
 
@@ -740,6 +770,67 @@ function renderExtremeMoveAlert(umaList,winRank,placeRank){
     <div class="gold">${alerts.join("　")}</div>
   </div>`;
 }
+  function renderOoana(sig){
+  const score={};
+  const memo={};
+  function add(h,pt,label){
+    if(!h)return;
+    score[h]=(score[h]||0)+pt;
+    if(!memo[h])memo[h]=[];
+    if(!memo[h].includes(label))memo[h].push(label);
+  }
+
+  // 勝負ランプ
+  sig.shobu.forEach(h=>add(h,6,"勝負ランプ"));
+
+  // 超激走
+  [...sig.gekisoSet].forEach(h=>add(h,5,"超激走"));
+
+  // 単勝案件
+  [...sig.tanshoSet].forEach(h=>add(h,5,"単勝案件"));
+
+  // 複勝15倍壁前
+  sig.fuku15Before.forEach(h=>add(h,4,"複勝15倍壁前"));
+
+  // 複勝10倍壁前
+  sig.fuku10Before.forEach(h=>add(h,3,"複勝10倍壁前"));
+
+  // 馬連壁前
+  sig.ot.wallBefore.forEach(h=>add(h,3,"馬連壁前"));
+
+  // 単勝メジアン
+  sig.winMed.forEach(h=>add(h,2,"単勝メジアン"));
+
+  // 複勝メジアン
+  sig.placeMed.forEach(h=>add(h,2,"複勝メジアン"));
+
+  const list=Object.entries(score)
+    .map(([horse,pt])=>({horse,pt,memo:memo[horse]||[]}))
+    .filter(x=>x.pt>=7)
+    .sort((a,b)=>b.pt-a.pt)
+    .slice(0,5);
+
+  if(!list.length){
+    return `<div class="box"><h2>💣大穴一発逆転</h2><div class="small">該当なし</div></div>`;
+  }
+
+  let html=`<div class="box ooana"><h2>💣大穴一発逆転</h2>`;
+
+  list.forEach((x,i)=>{
+    let mark="⭐";
+    let judge="三連複穴";
+    if(x.pt>=15){mark="💥";judge="単勝勝負";}
+    else if(x.pt>=10){mark="🔥";judge="馬連・ワイド";}
+
+    html+=`
+      <div class="ooHit">${mark} ${i+1}位　${x.horse}【${x.pt}】 ${judge}</div>
+      <div class="ooMemo">${x.memo.join("・")}</div>
+    `;
+  });
+
+  html+=`</div>`;
+  return html;
+}
   function analyze(){
   const {raceName,tanpuku,umaren,wide,sanpuku}=parseInput(document.getElementById("input").value);
   const result=document.getElementById("result");
@@ -770,6 +861,7 @@ function renderExtremeMoveAlert(umaList,winRank,placeRank){
     ${renderCenterIndex(centerIndex)}
     ${renderOtani(sig)}
     ${renderSA(sig)}
+    ${renderOoana(sig)}
     ${renderRanks(sig)}
     ${renderIntegrated(sig,winRank,totalKing)}
 
