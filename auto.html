@@ -114,15 +114,36 @@ function run(){
  let nBefore=wallBefore(nisha),wBefore=wallBefore(wide);
  let ren=renOh(cars,nisha,wide,san);
  let ijyo=strange(cars,tan,nisha,wide,san,nMed,wMed,nBefore,wBefore);
+ let ana=superAna(cars,tan,ren,wide,san);
  let finalScore={},finalMemo={};
  ren.slice(0,5).forEach((x,i)=>add(finalScore,x.c,12-i*2,finalMemo,i===0?'連王':i===1?'相手王':'連王上位'));
  ijyo.forEach(x=>add(finalScore,x.c,x.pt,finalMemo,'異常検知'));
+ ana.forEach(x=>add(finalScore,x.c,x.pt,finalMemo,'超穴逆転'));
  [...tanMed,...nMed,...wMed,...nBefore,...wBefore].forEach(c=>add(finalScore,c,4,finalMemo,'メジアン/壁前'));
  let final=cars.map(c=>({c,pt:finalScore[c]||0,memo:finalMemo[c]||[]})).sort((a,b)=>b.pt-a.pt);
  let html='';
  html+=`<div class=card><div class=title>🔥超勝負ランプ</div>`;
  final.slice(0,5).forEach(x=>html+=`<div>${n(x.c)} <span class=hot>${x.pt}点</span><br><span class=small>${x.memo.join(' / ')}</span></div><hr>`);
  html+=`</div>`;
+ html+=`<div class=card><div class=title>🚨 超穴逆転ランプ</div>`;
+
+if(!ana.length){
+ html+=`<div class=small>該当なし</div>`;
+}else{
+ ana.slice(0,5).forEach(x=>{
+  html+=`
+   <div>
+    ${n(x.c)}
+    <span class=big>${x.pt}点</span><br>
+    <span class=small>${x.memo.join(' / ')}</span>
+   </div>
+   <hr>
+  `;
+ });
+}
+
+html+=`</div>`;
+
  html+=`<div class=card><div class=title>①メジアン本表</div>
  単勝メジアン：<span class=big>${tanMed.map(n).join('・')}</span><br>
  2車複メジアン：<span class=big>${nMed.map(n).join('・')}</span><br>
