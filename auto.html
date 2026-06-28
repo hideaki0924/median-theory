@@ -102,13 +102,63 @@ function strange(cars,tan,nisha,wide,san,nishaMed,wideMed,nishaBefore,wideBefore
  });
  return Object.entries(sc).map(([c,pt])=>({c:+c,pt,memo:memo[c]||[]})).filter(x=>x.pt>=6).sort((a,b)=>b.pt-a.pt);
 }
+ function superAna(cars,tan,ren,wide,san){
+ let sc={},memo={};
+
+ if(!ren || ren.length<2)return [];
+
+ let king=ren[0].c;
+ let partner=ren[1].c;
+
+ let tanRank={};
+ tan.forEach((x,i)=>tanRank[x.car]=i+1);
+
+ function addAna(c,pt,label){
+  sc[c]=(sc[c]||0)+pt;
+  if(!memo[c])memo[c]=[];
+  if(!memo[c].includes(label))memo[c].push(label);
+ }
+
+ cars.forEach(c=>{
+  let r=tanRank[c]||99;
+  if(r<7)return;
+
+  let hasKingWide=wide.some(x=>x.cars.includes(c)&&x.cars.includes(king));
+  let hasPartnerWide=wide.some(x=>x.cars.includes(c)&&x.cars.includes(partner));
+  let hasSan20=san.slice(0,20).some(x=>x.cars.includes(c));
+
+  if(hasKingWide)addAna(c,5,"連王とのワイドあり");
+  if(hasPartnerWide)addAna(c,5,"相手王とのワイドあり");
+  if(hasSan20)addAna(c,5,"3連系20位以内");
+ });
+
+ return Object.entries(sc)
+  .map(([c,pt])=>({c:+c,pt,memo:memo[c]||[]}))
+  .filter(x=>x.pt>=10)
+  .sort((a,b)=>b.pt-a.pt);
+}
 function tickets(list){
  let cs=list.slice(0,4).map(x=>x.c); if(cs.length<3)return[];
  return [`${cs[0]}-${cs[1]}-${cs[2]}`,`${cs[1]}-${cs[0]}-${cs[2]}`,`${cs[2]}-${cs[0]}-${cs[1]}`,`${cs[2]}-${cs[1]}-${cs[0]}`];
 }
 function run(){
- let{tan,nisha,wide,san}=parse(); if(!tan.length){out.innerHTML='<div class=card>入力なし</div>';return}
- let cars=[...new Set(tan.map(x=>x.car))],axis=tan[0].car;
+ let{tan,nisha,wide,san}=parse();
+
+if(!tan.length && !nisha.length && !wide.length && !san.length){
+ out.innerHTML='<div class=card>入力なし</div>';
+ return;
+}
+ let cars=[...new Set([
+ ...tan.map(x=>x.car),
+ ...nisha.flatMap(x=>x.cars),
+ ...wide.flatMap(x=>x.cars),
+ ...san.flatMap(x=>x.cars)
+])];
+
+let axis=tan.length ? tan[0].car :
+         nisha.length ? nisha[0].cars[0] :
+         wide.length ? wide[0].cars[0] :
+         san.length ? san[0].cars[0] : null;
  let nLine=axisLine(axis,nisha),wLine=axisLine(axis,wide);
  let tanMed=med(tan.map(x=>x.car)),nMed=med(nLine),wMed=med(wLine);
  let nBefore=wallBefore(nisha),wBefore=wallBefore(wide);
