@@ -298,13 +298,26 @@ function rankLine(label,list,walls,type,highlight=[]){
   let html=`<div class="row"><span class="label">${label}</span>`;
   list.forEach((x,i)=>{
     let cls=walls.has(i)?`cell ${wallClass}`:"cell";
-    let style=highlight.includes(x.horse) ? ` style="color:#fb7185;font-weight:900"` : "";
-    html+=`<span class="${cls}"${style}>${x.horse}</span>`;
+    let style="";
+
+if(highlight.includes(x.horse)){
+  style=`
+    style="
+      color:#fff;
+      background:#00aaff;
+      border:2px solid #60a5fa;
+      border-radius:8px;
+      padding:2px 6px;
+      font-weight:900;
+    "
+  `;
+}
+    html+=`<span class="${cls}" ${style}>${x.horse}</span>`;
   });
+
   html+=`</div>`;
   return html;
 }
-
 function otaniLine(winRank,umaren){
   if(!winRank.length||!umaren.length)return [];
   const axis=winRank[0].horse;
@@ -955,7 +968,6 @@ function renderExtremeMoveAlert(umaList,winRank,placeRank){
     ${renderCenterIndex(centerIndex)}
     ${renderOtani(sig)}
     ${renderSA(sig)}
-    ${renderOtani(sig)}
     ${renderStrangeMove(sig,winRank,umaren,sanpuku)}
     ${renderRanks(sig)}
     ${renderIntegrated(sig,winRank,totalKing)}
@@ -999,10 +1011,27 @@ function renderExtremeMoveAlert(umaList,winRank,placeRank){
         壁内メジアンは赤文字
       </div>
       <div class="rankWrap">
-        ${rankLine("馬連",sig.ot.otaniList,sig.ot.walls,"uma",sig.ot.firstWallMed)}
-        ${rankLine("単勝",winRank,sig.winWalls,"win")}
-        ${rankLine("複勝",placeRank,sig.placeWalls,"place")}
-        ${renderExtremeMoveAlert(sig.ot.otaniList,winRank,placeRank)}
+        ${rankLine(
+  "馬連",
+  sig.ot.otaniList,
+  sig.ot.walls,
+  "uma",
+  sig.ot.firstWallMed
+)}
+
+${rankLine(
+  "単勝",
+  winRank,
+  sig.winWalls,
+  "win"
+)}
+
+${rankLine(
+  "複勝",
+  placeRank,
+  sig.placeWalls,
+  "place"
+)}
       </div>
     </div>
   `;
