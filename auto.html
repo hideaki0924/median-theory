@@ -21,168 +21,7 @@ button{font-size:22px;font-weight:800;border:0;border-radius:16px;padding:13px 2
 .n1{background:#eee;color:#111}.n2{background:#111;color:#fff}.n3{background:#c91d1d}.n4{background:#1d5fd1}.n5{background:#facc15;color:#111}.n6{background:#2f8f2f}.n7{background:#d86b1d}.n8{background:#e052c9}
 hr{border:0;border-top:1px solid #334155}
 
-/* V23.5追加 */
-.roleBox{border:2px solid #facc15;background:#111827;box-shadow:0 0 18px rgba(250,204,21,.25)}
-.roleSSS{font-size:30px;font-weight:900;color:#fb7185}
-.roleSS{font-size:30px;font-weight:900;color:#f97316}
-.roleHide{font-size:30px;font-weight:900;color:#38bdf8}
-.buyBox{border:2px solid #22c55e;border-radius:16px;padding:12px;margin-top:10px;background:#052e1a}
-</style>
-</head>
-<body>
-<h1>🏍️ チャッピー神予想 オートV23.5 Ultimate</h1>
-
-<textarea id="inp" placeholder="【伊勢崎12R】
-
-[TAN]
-3 1.9
-
-[NISHA]
-3-7 2.3
-
-[WIDE]
-3-7 1.5
-
-[SANREN]
-3-4-7 4.4"></textarea>
-
-<button class="go" onclick="run()">解析</button>
-<button class="clear" onclick="inp.value='';out.innerHTML=''">リセット</button>
-<div id="out"></div>
-
-<script>
-function n(x){return `<span class="num n${x}">${x}</span>`}
-function pair(s){return s.split('-').map(Number)}
-function med(a){if(!a.length)return[];let m=Math.floor((a.length-1)/2);return a.length%2?[a[m]]:[a[m],a[m+1]]}
-function add(map,c,pt,memo,label){map[c]=(map[c]||0)+pt;if(!memo[c])memo[c]=[];if(label&&!memo[c].includes(label))memo[c].push(label)}
-
-function parse(){
- let txt=inp.value.replace(/[－ー]/g,'-');
- let sec='',tan=[],nisha=[],wide=[],san=[];
- txt.split(/\n/).forEach(l=>{
-  l=l.trim();if(!l||/^【/.test(l))return;
-  if(/\[TAN\]/i.test(l)){sec='tan';return}
-  if(/\[NISHA\]/i.test(l)){sec='nisha';return}
-  if(/\[WIDE\]/i.test(l)){sec='wide';return}
-  if(/\[SANREN\]/i.test(l)){sec='san';return}
-  let a=l.split(/\s+/);
-  if(sec==='tan'&&a.length>=2)tan.push({car:+a[0],od:+a[1]});
-  if(sec==='nisha'&&a.length>=2)nisha.push({cars:pair(a[0]),od:+a[1],key:a[0]});
-  if(sec==='wide'&&a.length>=2)wide.push({cars:pair(a[0]),od:+a[1],key:a[0]});
-  if(sec==='san'&&a.length>=2)san.push({cars:pair(a[0]),od:+a[1],key:a[0]});
- });
- tan.sort((a,b)=>a.od-b.od);
- nisha.sort((a,b)=>a.od-b.od);
- wide.sort((a,b)=>a.od-b.od);
- san.sort((a,b)=>a.od-b.od);
- return{tan,nisha,wide,san};
-}
-
-function pos(c,list){
- let r=[];
- list.forEach((x,i)=>{if(x.cars.includes(c))r.push(i+1)});
- return r;
-}
-
-function axisLine(axis,list){
- let line=[axis];
- list.forEach(x=>{
-  if(x.cars.includes(axis)){
-   x.cars.forEach(c=>{
-    if(c!==axis&&!line.includes(c))line.push(c);
-   });
-  }
- });
- return line;
-}
-
-function wallBefore(list){
- let s=[];
- list.forEach((x,i)=>{
-  let nx=list[i+1];if(!nx)return;
-  if([10,20,50].some(w=>x.od<w&&nx.od>=w))x.cars.forEach(c=>s.push(c));
- });
- return[...new Set(s)];
-}
-
-function renOh(cars,nisha,wide,san){
- let sc={},memo={};
- nisha.forEach((x,i)=>x.cars.forEach(c=>add(sc,c,i<5?5:i<10?3:1,memo,'2車複上位')));
- wide.forEach((x,i)=>x.cars.forEach(c=>add(sc,c,i<10?4:i<20?2:1,memo,'ワイド上位')));
- san.forEach((x,i)=>x.cars.forEach(c=>add(sc,c,i<8?5:i<15?3:1,memo,'3連系上位')));
- return cars.map(c=>({c,pt:sc[c]||0,memo:memo[c]||[]})).sort((a,b)=>b.pt-a.pt);
-}
-
-function strange(cars,tan,nisha,wide,san,nishaMed,wideMed,nishaBefore,wideBefore){
- let sc={},memo={},tr={};
- tan.forEach((x,i)=>tr[x.car]=i+1);
-
- cars.forEach(c=>{
-  let nr=pos(c,nisha)[0]||99;
-  let wr=pos(c,wide)[0]||99;
-  let sr=pos(c,san)[0]||99;
-  let rank=tr[c]||99;
-
-  if(rank>=5&&nr<=5)add(sc,c,6,memo,'単勝弱いのに2車複上位');
-  if(rank>=5&&wr<=10)add(sc,c,6,memo,'単勝弱いのにワイド上位');
-  if(rank>=5&&sr<=8)add(sc,c,6,memo,'単勝弱いのに3連系上位');
-  if(nishaMed.includes(c))add(sc,c,3,memo,'2車複メジアン');
-  if(wideMed.includes(c))add(sc,c,3,memo,'ワイドメジアン');
-  if(nishaBefore.includes(c))add(sc,c,3,memo,'2車複壁前');
-  if(wideBefore.includes(c))add(sc,c,3,memo,'ワイド壁前');
- });
-
- return Object.entries(sc)
-  .map(([c,pt])=>({c:+c,pt,memo:memo[c]||[]}))
-  .filter(x=>x.pt>=6)
-  .sort((a,b)=>b.pt-a.pt);
-}
-
-function superAna(cars,tan,ren,wide,san){
- let sc={},memo={};
- if(!ren || ren.length<2)return [];
-
- let king=ren[0].c;
- let partner=ren[1].c;
- let tanRank={};
- tan.forEach((x,i)=>tanRank[x.car]=i+1);
-
- function addAna(c,pt,label){
-  sc[c]=(sc[c]||0)+pt;
-  if(!memo[c])memo[c]=[];
-  if(!memo[c].includes(label))memo[c].push(label);
- }
-
- cars.forEach(c=>{
-  let r=tanRank[c]||99;
-  if(r<7)return;
-
-  let hasKingWide=wide.some(x=>x.cars.includes(c)&&x.cars.includes(king));
-  let hasPartnerWide=wide.some(x=>x.cars.includes(c)&&x.cars.includes(partner));
-  let hasSan20=san.slice(0,20).some(x=>x.cars.includes(c));
-
-  if(hasKingWide)addAna(c,5,"連王とのワイドあり");
-  if(hasPartnerWide)addAna(c,5,"相手王とのワイドあり");
-  if(hasSan20)addAna(c,5,"3連系20位以内");
- });
-
- return Object.entries(sc)
-  .map(([c,pt])=>({c:+c,pt,memo:memo[c]||[]}))
-  .filter(x=>x.pt>=10)
-  .sort((a,b)=>b.pt-a.pt);
-}
- function tickets(list){
- let cs=list.slice(0,4).map(x=>x.c);
- if(cs.length<3)return[];
- return [
-  `${cs[0]}-${cs[1]}-${cs[2]}`,
-  `${cs[1]}-${cs[0]}-${cs[2]}`,
-  `${cs[2]}-${cs[0]}-${cs[1]}`,
-  `${cs[2]}-${cs[1]}-${cs[0]}`
- ];
-}
-
-/* V23.5追加：本命SSS・単勝SS・隠れ穴を分類 */
+/* V23.6追加：本命SSS・中穴単勝・単勝SS・隠れ穴を分類 */
 function autoRoleLamp(final,tan,nisha,wide,san,ijyo,ana){
  let tanMap={},tanRank={};
  tan.forEach((x,i)=>{tanMap[x.car]=x.od;tanRank[x.car]=i+1});
@@ -196,6 +35,7 @@ function autoRoleLamp(final,tan,nisha,wide,san,ijyo,ana){
  let anaSet=new Set(ana.map(x=>x.c));
 
  let honmei=[];
+ let chuuana=[];
  let tansho=[];
  let kakure=[];
 
@@ -205,72 +45,74 @@ function autoRoleLamp(final,tan,nisha,wide,san,ijyo,ana){
   let nr=nCount[c]||0;
   let wr=wCount[c]||0;
   let sr=sCount[c]||0;
-  let rank=tanRank[c]||99;
 
   let memo=[];
   if(x.pt>=25)memo.push("超勝負25点以上");
-  if(nr>=3)memo.push("2車複重複");
-  if(wr>=3)memo.push("ワイド重複");
-  if(sr>=2)memo.push("3連系重複");
+  if(nr>=2)memo.push("2車複重複");
+  if(wr>=2)memo.push("ワイド重複");
+  if(sr>=1)memo.push("3連系あり");
   if(ijyoSet.has(c))memo.push("異常検知");
   if(anaSet.has(c))memo.push("超穴逆転");
 
+  // 本命型：連系担当
   if(od<5 && x.pt>=22){
    honmei.push({c,pt:x.pt,od,memo:[...memo,"本命型"]});
   }
 
+  // 中穴単勝：今回の7番を拾う場所
+  if(od>=5 && od<20 && x.pt>=14 && (nr>=2 || wr>=2) && sr>=1){
+   chuuana.push({c,pt:x.pt,od,memo:[...memo,"中穴単勝型"]});
+  }
+
+  // 強い単勝穴
   if(od>=5 && x.pt>=20){
    tansho.push({c,pt:x.pt,od,memo:[...memo,"単勝穴型"]});
   }
 
+  // 隠れ穴
   if(od>=20 && (nr>=2 || wr>=2) && sr>=1){
    kakure.push({c,pt:x.pt,od,memo:[...memo,"隠れ穴"]});
   }
  });
 
  honmei.sort((a,b)=>b.pt-a.pt);
+ chuuana.sort((a,b)=>b.pt-a.pt);
  tansho.sort((a,b)=>b.pt-a.pt);
  kakure.sort((a,b)=>b.pt-a.pt);
 
- return {honmei,tansho,kakure};
+ return {honmei,chuuana,tansho,kakure};
 }
 
 function renderRoleLamp(role){
  let html=`<div class="card roleBox"><div class="title">🏍️オート役割分担ランプ</div>`;
 
  html+=`<div class="roleSSS">💥連系SSS</div>`;
- if(!role.honmei.length){
-  html+=`<div class="small">該当なし</div>`;
- }else{
-  role.honmei.slice(0,4).forEach(x=>{
-   html+=`<div>${n(x.c)} <span class="hot">${x.pt}点</span> <span class="small">単${x.od}</span><br><span class="small">${x.memo.join(" / ")}</span></div><hr>`;
-  });
- }
+ html+= role.honmei.length ? role.honmei.slice(0,4).map(x=>`
+  <div>${n(x.c)} <span class="hot">${x.pt}点</span> <span class="small">単${x.od}</span><br>
+  <span class="small">${x.memo.join(" / ")}</span></div><hr>`).join("") : `<div class="small">該当なし</div>`;
+
+ html+=`<div class="roleSS">🔥中穴単勝</div>`;
+ html+= role.chuuana.length ? role.chuuana.slice(0,4).map(x=>`
+  <div>${n(x.c)} <span class="big">${x.pt}点</span> <span class="small">単${x.od}</span><br>
+  <span class="small">${x.memo.join(" / ")}</span></div><hr>`).join("") : `<div class="small">該当なし</div>`;
 
  html+=`<div class="roleSS">🔥単勝SS</div>`;
- if(!role.tansho.length){
-  html+=`<div class="small">該当なし</div>`;
- }else{
-  role.tansho.slice(0,4).forEach(x=>{
-   html+=`<div>${n(x.c)} <span class="big">${x.pt}点</span> <span class="small">単${x.od}</span><br><span class="small">${x.memo.join(" / ")}</span></div><hr>`;
-  });
- }
+ html+= role.tansho.length ? role.tansho.slice(0,4).map(x=>`
+  <div>${n(x.c)} <span class="big">${x.pt}点</span> <span class="small">単${x.od}</span><br>
+  <span class="small">${x.memo.join(" / ")}</span></div><hr>`).join("") : `<div class="small">該当なし</div>`;
 
  html+=`<div class="roleHide">💣隠れ穴</div>`;
- if(!role.kakure.length){
-  html+=`<div class="small">該当なし</div>`;
- }else{
-  role.kakure.slice(0,4).forEach(x=>{
-   html+=`<div>${n(x.c)} <span class="big">${x.pt}点</span> <span class="small">単${x.od}</span><br><span class="small">${x.memo.join(" / ")}</span></div><hr>`;
-  });
- }
+ html+= role.kakure.length ? role.kakure.slice(0,4).map(x=>`
+  <div>${n(x.c)} <span class="big">${x.pt}点</span> <span class="small">単${x.od}</span><br>
+  <span class="small">${x.memo.join(" / ")}</span></div><hr>`).join("") : `<div class="small">該当なし</div>`;
 
  html+=`<div class="buyBox">
   <div class="title">買い方</div>
   <div>連系：${role.honmei.length ? role.honmei.slice(0,3).map(x=>n(x.c)).join("・") : "見送り"}</div>
-  <div>単勝：${role.tansho.length ? role.tansho.slice(0,2).map(x=>n(x.c)).join("・") : "見送り"}</div>
+  <div>中穴単勝：${role.chuuana.length ? role.chuuana.slice(0,2).map(x=>n(x.c)).join("・") : "なし"}</div>
+  <div>単勝SS：${role.tansho.length ? role.tansho.slice(0,2).map(x=>n(x.c)).join("・") : "見送り"}</div>
   <div>隠れ穴：${role.kakure.length ? role.kakure.slice(0,2).map(x=>n(x.c)).join("・") : "なし"}</div>
-  <div class="small">基本：本命型は連系、単勝5倍以上の強ランプだけ単勝。隠れ穴は100円だけ。</div>
+  <div class="small">基本：本命型は連系。中穴単勝は100〜300円。隠れ穴は100円だけ。</div>
  </div>`;
 
  html+=`</div>`;
