@@ -770,6 +770,63 @@ function renderExtremeMoveAlert(umaList,winRank,placeRank){
     <div class="gold">${alerts.join("　")}</div>
   </div>`;
 }
+  function renderStrangeMove(sig, winRank, umaren, sanpuku){
+  const winRankMap = {};
+  winRank.forEach((x,i)=>winRankMap[x.horse]=i+1);
+
+  const umaRankMap = {};
+  [...umaren].sort((a,b)=>a.odds-b.odds).forEach((x,i)=>{
+    x.pair.split("-").forEach(h=>{
+      if(!umaRankMap[h])umaRankMap[h]=i+1;
+    });
+  });
+
+  const sanRankMap = {};
+  [...sanpuku].sort((a,b)=>a.odds-b.odds).forEach((x,i)=>{
+    x.trio.split("-").forEach(h=>{
+      if(!sanRankMap[h])sanRankMap[h]=i+1;
+    });
+  });
+
+  const fuku15After = sig.fuku15After || [];
+  const alerts=[];
+
+  winRank.forEach(x=>{
+    const h=x.horse;
+    const wr=winRankMap[h]||99;
+    const ur=umaRankMap[h]||99;
+    const sr=sanRankMap[h]||99;
+
+    let memo=[];
+    let pt=0;
+
+    if(wr>=8 && ur<=15){pt+=4; memo.push("単勝弱いのに馬連上位");}
+    if(wr>=8 && sr<=20){pt+=3; memo.push("単勝弱いのに三連複上位");}
+    if(fuku15After.includes(h) && ur<=30){pt+=4; memo.push("複勝15壁直後×馬連");}
+    if(fuku15After.includes(h) && sr<=30){pt+=4; memo.push("複勝15壁直後×三連複");}
+    if((wr===7||wr===8) && (ur<=20||sr<=20)){pt+=3; memo.push("7・8人気警報");}
+
+    if(pt>=4){
+      alerts.push({horse:h,pt,memo});
+    }
+  });
+
+  alerts.sort((a,b)=>b.pt-a.pt);
+
+  if(!alerts.length){
+    return `<div class="box"><h2>🚨異様な動き検知</h2><div class="small">該当なし</div></div>`;
+  }
+
+  return `<div class="box">
+    <h2>🚨異様な動き検知</h2>
+    ${alerts.slice(0,5).map(x=>`
+      <div class="indexCard">
+        <div class="hot">${x.horse}【${x.pt}】</div>
+        <div class="small">${x.memo.join("・")}</div>
+      </div>
+    `).join("")}
+  </div>`;
+}
   function renderOoana(sig){
   const score={};
   const memo={};
@@ -861,7 +918,8 @@ function renderExtremeMoveAlert(umaList,winRank,placeRank){
     ${renderCenterIndex(centerIndex)}
     ${renderOtani(sig)}
     ${renderSA(sig)}
-    ${renderOoana(sig)}
+    ${renderOtani(sig)}
+    ${renderStrangeMove(sig,winRank,umaren,sanpuku)}
     ${renderRanks(sig)}
     ${renderIntegrated(sig,winRank,totalKing)}
 
