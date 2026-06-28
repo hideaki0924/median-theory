@@ -3,295 +3,145 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 オートV22.3</title>
+<title>チャッピー神予想 オートV23 Ultimate</title>
 <style>
 body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;padding:14px}
-h1{font-size:30px;color:#ffd84d}
-textarea{width:100%;height:310px;font-size:17px;border-radius:16px;padding:12px;box-sizing:border-box}
-button{font-size:24px;font-weight:800;border:0;border-radius:16px;padding:14px 22px;margin:10px 6px 14px 0}
+h1{font-size:28px;color:#ffd84d}
+textarea{width:100%;height:330px;font-size:17px;border-radius:16px;padding:12px;box-sizing:border-box}
+button{font-size:22px;font-weight:800;border:0;border-radius:16px;padding:13px 20px;margin:10px 6px 14px 0}
 .go{background:#2f80ff;color:#fff}.clear{background:#6b7280;color:#fff}
 .card{background:#101a2b;border-radius:18px;padding:16px;margin:14px 0;border:1px solid #1e3a5f}
-.title{font-size:25px;font-weight:900;margin-bottom:10px}
-.big{font-size:38px;font-weight:900;color:#22c55e}
-.red{color:#fb7185}.blue{color:#60a5fa}.yellow{color:#facc15}.orange{color:#fb923c}
-.badge{display:inline-block;padding:5px 10px;border-radius:9px;font-weight:900;margin:2px;background:#123b7a}
-.s{background:#0057ff}.a{background:#f97316}.b{background:#ca8a04}.c{background:#166534}.d{background:#374151}
-.num{display:inline-block;min-width:25px;text-align:center;border-radius:4px;padding:2px 4px;font-weight:900}
-.n1{background:#eee;color:#111}.n2{background:#111;color:#fff}.n3{background:#c91d1d}.n4{background:#1d5fd1}.n5{background:#facc15;color:#111}.n6{background:#2f8f2f}.n7{background:#d86b1d}.n8{background:#e052c9}.n9{background:#c044c8}.n10{background:#d946ef}
+.title{font-size:24px;font-weight:900;margin-bottom:10px}
+.big{font-size:32px;font-weight:900;color:#22c55e}
+.hot{font-size:28px;font-weight:900;color:#fb7185}
+.yellow{color:#facc15}.red{color:#fb7185}.blue{color:#60a5fa}
 .small{font-size:14px;color:#cbd5e1}
+.badge{display:inline-block;padding:5px 10px;border-radius:9px;font-weight:900;margin:3px;background:#123b7a}
+.num{display:inline-block;min-width:25px;text-align:center;border-radius:4px;padding:2px 4px;font-weight:900}
+.n1{background:#eee;color:#111}.n2{background:#111;color:#fff}.n3{background:#c91d1d}.n4{background:#1d5fd1}.n5{background:#facc15;color:#111}.n6{background:#2f8f2f}.n7{background:#d86b1d}.n8{background:#e052c9}
 hr{border:0;border-top:1px solid #334155}
 </style>
 </head>
 <body>
-<h1>🏍️ チャッピー神予想 オートV22.3</h1>
+<h1>🏍️ チャッピー神予想 オートV23 Ultimate</h1>
 
-<textarea id="inp" placeholder="例：浜松7R
+<textarea id="inp" placeholder="【伊勢崎12R】
 
 [TAN]
-1 1.9
-4 2.6
+3 1.9
 
 [NISHA]
-4-5 4.9
-4-7 5.4
+3-7 2.3
+
+[WIDE]
+3-7 1.5
 
 [SANREN]
-4-5-7 3.8"></textarea>
+3-4-7 4.4"></textarea>
 
 <button class="go" onclick="run()">解析</button>
 <button class="clear" onclick="inp.value='';out.innerHTML=''">リセット</button>
-
 <div id="out"></div>
 
 <script>
 function n(x){return `<span class="num n${x}">${x}</span>`}
 function pair(s){return s.split('-').map(Number)}
-function med(arr){if(!arr.length)return [];let m=Math.floor((arr.length-1)/2);return arr.length%2?[arr[m]]:[arr[m],arr[m+1]]}
-function rankLabel(p){
- if(p>=70)return ['S','s','勝負'];
- if(p>=50)return ['A','a','狙い'];
- if(p>=30)return ['B','b','注意'];
- return ['D','d','様子見'];
-}
-
+function med(a){if(!a.length)return[];let m=Math.floor((a.length-1)/2);return a.length%2?[a[m]]:[a[m],a[m+1]]}
+function add(map,c,pt,memo,label){map[c]=(map[c]||0)+pt;if(!memo[c])memo[c]=[];if(label&&!memo[c].includes(label))memo[c].push(label)}
 function parse(){
  let txt=inp.value.replace(/[－ー]/g,'-');
- let sec='',tan=[],nisha=[],san=[];
+ let sec='',tan=[],nisha=[],wide=[],san=[];
  txt.split(/\n/).forEach(l=>{
-  l=l.trim(); if(!l)return;
+  l=l.trim();if(!l||/^【/.test(l))return;
   if(/\[TAN\]/i.test(l)){sec='tan';return}
   if(/\[NISHA\]/i.test(l)){sec='nisha';return}
+  if(/\[WIDE\]/i.test(l)){sec='wide';return}
   if(/\[SANREN\]/i.test(l)){sec='san';return}
   let a=l.split(/\s+/);
   if(sec==='tan'&&a.length>=2)tan.push({car:+a[0],od:+a[1]});
   if(sec==='nisha'&&a.length>=2)nisha.push({cars:pair(a[0]),od:+a[1],key:a[0]});
+  if(sec==='wide'&&a.length>=2)wide.push({cars:pair(a[0]),od:+a[1],key:a[0]});
   if(sec==='san'&&a.length>=2)san.push({cars:pair(a[0]),od:+a[1],key:a[0]});
  });
- tan.sort((a,b)=>a.od-b.od);
- nisha.sort((a,b)=>a.od-b.od);
- san.sort((a,b)=>a.od-b.od);
- return {tan,nisha,san};
+ tan.sort((a,b)=>a.od-b.od);nisha.sort((a,b)=>a.od-b.od);wide.sort((a,b)=>a.od-b.od);san.sort((a,b)=>a.od-b.od);
+ return{tan,nisha,wide,san};
 }
-
-function posList(car,list){
- let r=[];
- list.forEach((x,i)=>{if(x.cars.includes(car))r.push(i+1)});
- return r;
+function pos(c,list){let r=[];list.forEach((x,i)=>{if(x.cars.includes(c))r.push(i+1)});return r}
+function axisLine(axis,list){
+ let line=[axis];
+ list.forEach(x=>{if(x.cars.includes(axis))x.cars.forEach(c=>{if(c!==axis&&!line.includes(c))line.push(c)})});
+ return line;
 }
-
-function autoRenOh(tan,nisha,san){
- let score={};
- function add(c,pt){score[c]=(score[c]||0)+pt}
-
- nisha.forEach((x,i)=>{
-  let pt=i<5?3:i<10?2:1;
-  x.cars.forEach(c=>add(c,pt));
+function wallBefore(list){
+ let s=[];
+ list.forEach((x,i)=>{
+  let nx=list[i+1];if(!nx)return;
+  if([10,20,50].some(w=>x.od<w&&nx.od>=w))x.cars.forEach(c=>s.push(c));
  });
-
- san.forEach((x,i)=>{
-  let pt=i<6?4:i<12?2:1;
-  x.cars.forEach(c=>add(c,pt));
- });
-
- return Object.entries(score).map(([c,pt])=>({c:+c,pt})).sort((a,b)=>b.pt-a.pt);
+ return[...new Set(s)];
 }
-
-function autoRenOhTickets(renOh){
- let cars=renOh.slice(0,5).map(x=>x.c);
- if(cars.length<3)return {main:[],gyakuten:[]};
-
- let king=cars[0];
- let aite=cars[1];
- let ana=cars[2];
- let ana2=cars[4] || cars[3];
-
- return {
-  main:[
-   `${aite}-${king}-${ana}`,
-   `${king}-${aite}-${ana}`,
-   `${aite}-${ana}-${king}`,
-   `${king}-${ana}-${aite}`
-  ],
-  gyakuten:[
-   `${ana}-${king}-${aite}`,
-   `${ana}-${king}-${ana2}`,
-   `${ana}-${aite}-${king}`,
-   `${ana}-${ana2}-${king}`
-  ]
- };
+function renOh(cars,nisha,wide,san){
+ let sc={},memo={};
+ nisha.forEach((x,i)=>x.cars.forEach(c=>add(sc,c,i<5?5:i<10?3:1,memo,'2車複上位')));
+ wide.forEach((x,i)=>x.cars.forEach(c=>add(sc,c,i<10?4:i<20?2:1,memo,'ワイド上位')));
+ san.forEach((x,i)=>x.cars.forEach(c=>add(sc,c,i<8?5:i<15?3:1,memo,'3連系上位')));
+ return cars.map(c=>({c,pt:sc[c]||0,memo:memo[c]||[]})).sort((a,b)=>b.pt-a.pt);
 }
-
-function wallBeforeNisha(nisha){
- let before=[];
- nisha.forEach((x,i)=>{
-  let next=nisha[i+1];
-  if(!next)return;
-  if([10,20,50].some(w=>x.od<w && next.od>=w)){
-    x.cars.forEach(c=>before.push(c));
-  }
- });
- return [...new Set(before)];
-}
-
-function nishaMedianCars(nisha){
- let flat=[];
- nisha.slice(0,10).forEach(x=>x.cars.forEach(c=>flat.push(c)));
- return med(flat);
-}
-
-function renderAutoStrangeMove(tan,nisha,san){
- const tanRankMap={};
- tan.forEach((x,i)=>tanRankMap[x.car]=i+1);
-
- const nishaRankMap={};
- nisha.forEach((x,i)=>{
-  x.cars.forEach(c=>{
-   if(!nishaRankMap[c])nishaRankMap[c]=i+1;
-  });
- });
-
- const sanRankMap={};
- san.forEach((x,i)=>{
-  x.cars.forEach(c=>{
-   if(!sanRankMap[c])sanRankMap[c]=i+1;
-  });
- });
-
- const nishaBefore=wallBeforeNisha(nisha);
- const nishaMed=nishaMedianCars(nisha);
- const alerts=[];
-
- tan.forEach(x=>{
-  const c=x.car;
-  const tr=tanRankMap[c]||99;
-  const nr=nishaRankMap[c]||99;
-  const sr=sanRankMap[c]||99;
-
-  let pt=0;
-  let memo=[];
-
-  if(tr>=5 && nr<=5){
-    pt+=5;
-    memo.push("単勝弱いのに2車複上位");
-  }
-
-  if(tr>=5 && sr<=8){
-    pt+=5;
-    memo.push("単勝弱いのに3連系上位");
-  }
-
-  if(nishaMed.includes(c)){
-    pt+=3;
-    memo.push("2車複メジアン");
-  }
-
-  if(nishaBefore.includes(c)){
-    pt+=3;
-    memo.push("2車複壁前");
-  }
-
-  if(pt>=5){
-    alerts.push({c,pt,memo});
-  }
- });
-
- alerts.sort((a,b)=>b.pt-a.pt);
-
- if(!alerts.length){
-  return `<div class=card><div class=title>🏍️異様な動き検知</div><div class=small>該当なし</div></div>`;
- }
-
- let html=`<div class=card><div class=title>🏍️異様な動き検知</div>`;
- alerts.slice(0,5).forEach(x=>{
-  html+=`<div>${n(x.c)} <span class="big red">${x.pt}点</span><br><span class=small>${x.memo.join(' / ')}</span></div><hr>`;
- });
- html+=`</div>`;
- return html;
-}
-
-function run(){
- let {tan,nisha,san}=parse();
- let cars=[...new Set(tan.map(x=>x.car))];
- if(!tan.length){out.innerHTML='<div class=card>入力がありません</div>';return}
-
- let p={}; cars.forEach(c=>p[c]=0);
-
- tan.forEach((x,i)=>{ if(i<3)p[x.car]+=20; if(i<5)p[x.car]+=10; if(x.od<30)p[x.car]+=8; });
- nisha.forEach((x,i)=>{ if(i<5)x.cars.forEach(c=>p[c]+=12); if(i<10)x.cars.forEach(c=>p[c]+=6); });
- san.forEach((x,i)=>{ if(i<5)x.cars.forEach(c=>p[c]+=10); if(i<10)x.cars.forEach(c=>p[c]+=5); });
-
- tan.forEach((x,i)=>{
-  if([10,20,30,50].some(w=>x.od<w && (tan[i+1]&&tan[i+1].od>=w)))p[x.car]+=15;
- });
-
- [[0,10],[10,20],[20,50],[50,999]].forEach(([a,b])=>{
-  med(tan.filter(x=>x.od>=a&&x.od<b).map(x=>x.car)).forEach(c=>p[c]+=10);
- });
-
- nisha.forEach((x,i)=>{
-  if([10,20,50].some(w=>x.od<w && (nisha[i+1]&&nisha[i+1].od>=w)))x.cars.forEach(c=>p[c]+=10);
- });
-
- let gekiso=[];
+function strange(cars,tan,nisha,wide,san,nishaMed,wideMed,nishaBefore,wideBefore){
+ let sc={},memo={},tr={};
+ tan.forEach((x,i)=>tr[x.car]=i+1);
  cars.forEach(c=>{
-  let to=tan.find(x=>x.car===c)?.od||999;
-  let np=posList(c,nisha), sp=posList(c,san);
-  let cond=[];
-  if(to>=20)cond.push(`単勝${to}倍`);
-  if(np.some(v=>v<=15))cond.push('2車複上位15位内');
-  if(sp.some(v=>v<=8))cond.push('3連系上位8位内');
-  if(cond.length>=2){gekiso.push({c,cond}); p[c]+=15}
+  let nr=pos(c,nisha)[0]||99,wr=pos(c,wide)[0]||99,sr=pos(c,san)[0]||99,rank=tr[c]||99;
+  if(rank>=5&&nr<=5)add(sc,c,6,memo,'単勝弱いのに2車複上位');
+  if(rank>=5&&wr<=10)add(sc,c,6,memo,'単勝弱いのにワイド上位');
+  if(rank>=5&&sr<=8)add(sc,c,6,memo,'単勝弱いのに3連系上位');
+  if(nishaMed.includes(c))add(sc,c,3,memo,'2車複メジアン');
+  if(wideMed.includes(c))add(sc,c,3,memo,'ワイドメジアン');
+  if(nishaBefore.includes(c))add(sc,c,3,memo,'2車複壁前');
+  if(wideBefore.includes(c))add(sc,c,3,memo,'ワイド壁前');
  });
-
- let sorted=cars.map(c=>({c,p:p[c]})).sort((a,b)=>b.p-a.p);
- let tan1=tan[0].car;
- let nIn=posList(tan1,nisha), sIn=posList(tan1,san);
- let shihai=(!nIn.length&&!sIn.length)?'D：飛び警戒':(nIn[0]===1&&sIn[0]===1?'A：支配型':'B：半支配型');
-
+ return Object.entries(sc).map(([c,pt])=>({c:+c,pt,memo:memo[c]||[]})).filter(x=>x.pt>=6).sort((a,b)=>b.pt-a.pt);
+}
+function tickets(list){
+ let cs=list.slice(0,4).map(x=>x.c); if(cs.length<3)return[];
+ return [`${cs[0]}-${cs[1]}-${cs[2]}`,`${cs[1]}-${cs[0]}-${cs[2]}`,`${cs[2]}-${cs[0]}-${cs[1]}`,`${cs[2]}-${cs[1]}-${cs[0]}`];
+}
+function run(){
+ let{tan,nisha,wide,san}=parse(); if(!tan.length){out.innerHTML='<div class=card>入力なし</div>';return}
+ let cars=[...new Set(tan.map(x=>x.car))],axis=tan[0].car;
+ let nLine=axisLine(axis,nisha),wLine=axisLine(axis,wide);
+ let tanMed=med(tan.map(x=>x.car)),nMed=med(nLine),wMed=med(wLine);
+ let nBefore=wallBefore(nisha),wBefore=wallBefore(wide);
+ let ren=renOh(cars,nisha,wide,san);
+ let ijyo=strange(cars,tan,nisha,wide,san,nMed,wMed,nBefore,wBefore);
+ let finalScore={},finalMemo={};
+ ren.slice(0,5).forEach((x,i)=>add(finalScore,x.c,12-i*2,finalMemo,i===0?'連王':i===1?'相手王':'連王上位'));
+ ijyo.forEach(x=>add(finalScore,x.c,x.pt,finalMemo,'異常検知'));
+ [...tanMed,...nMed,...wMed,...nBefore,...wBefore].forEach(c=>add(finalScore,c,4,finalMemo,'メジアン/壁前'));
+ let final=cars.map(c=>({c,pt:finalScore[c]||0,memo:finalMemo[c]||[]})).sort((a,b)=>b.pt-a.pt);
  let html='';
- let renOh=autoRenOh(tan,nisha,san);
- let renTickets=autoRenOhTickets(renOh);
-
- html+=`<div class=card><div class=title>🏍️ オート専用：連王ランプ</div>`;
- renOh.slice(0,5).forEach((r,i)=>{
-  let mark=i===0?'👑連王':i===1?'⚔️相手王':i===2?'🔥穴候補':'注意';
-  html+=`<div>${mark}：${n(r.c)} <span class=big>${r.pt}点</span></div><hr>`;
- });
- html+=`<div class=title>🎯 連王3連単</div>`;
- renTickets.main.forEach(t=>html+=`<div class=big>${t}</div>`);
- html+=`<hr><div class=title>🔥 激走逆転3連単</div>`;
- renTickets.gyakuten.forEach(t=>html+=`<div class="big yellow">${t}</div>`);
+ html+=`<div class=card><div class=title>🔥超勝負ランプ</div>`;
+ final.slice(0,5).forEach(x=>html+=`<div>${n(x.c)} <span class=hot>${x.pt}点</span><br><span class=small>${x.memo.join(' / ')}</span></div><hr>`);
  html+=`</div>`;
-
- html+=renderAutoStrangeMove(tan,nisha,san);
-
- html+=`<div class=card><div class=title>🏆 単勝1人気支配率</div>
- 単勝1人気：${n(tan1)}（${tan[0].od}倍）<br>
- 2車複：${nIn.length?nIn[0]+'位':'圏外'}<br>
- 3連系：${sIn.length?sIn[0]+'位':'圏外'}<br>
- <div class="big red">${shihai}</div></div>`;
-
- html+=`<div class=card><div class=title>🔥 勝負ランプ</div>`;
- sorted.forEach(x=>{
-  let [r,cls,txt]=rankLabel(x.p);
-  html+=`<div>${n(x.c)} <span class=big>${x.p}点</span> <span class="badge ${cls}">${r}：${txt}</span></div><hr>`;
- });
- html+=`</div>`;
-
- html+=`<div class=card><div class=title>🚨 激走注意ランプ</div>`;
- if(!gekiso.length)html+='該当なし';
- gekiso.forEach(g=>html+=`<div>${n(g.c)} <span class="badge a">激走注意</span><br><span class=small>${g.cond.join(' / ')}</span></div><hr>`);
- html+=`</div>`;
-
- let main=sorted.slice(0,2).map(x=>x.c);
- let ana=gekiso.map(x=>x.c).filter(c=>!main.includes(c));
- html+=`<div class=card><div class=title>🎯 チャッピー推奨</div>
- <div class=big>本命：${main.map(n).join('・')}</div>
- <div class="big yellow">穴警戒：${ana.length?ana.map(n).join('・'):'なし'}</div>
- <br>2車複：${main.length>=2?nisha.filter(x=>main.every(c=>x.cars.includes(c))).map(x=>x.key).join(' / ')||main.join('-'):''}
- <br>3連系：${san.slice(0,8).map(x=>x.key).join(' / ')}
+ html+=`<div class=card><div class=title>①メジアン本表</div>
+ 単勝メジアン：<span class=big>${tanMed.map(n).join('・')}</span><br>
+ 2車複メジアン：<span class=big>${nMed.map(n).join('・')}</span><br>
+ ワイドメジアン：<span class=big>${wMed.map(n).join('・')}</span><br>
+ 2車複壁前：<span class=yellow>${nBefore.map(n).join('・')||'なし'}</span><br>
+ ワイド壁前：<span class=yellow>${wBefore.map(n).join('・')||'なし'}</span>
  </div>`;
-
+ html+=`<div class=card><div class=title>②連王ランプ</div>`;
+ ren.slice(0,5).forEach((x,i)=>html+=`<div>${i===0?'👑連王':i===1?'⚔️相手王':i===2?'🔥穴王':'注意'}：${n(x.c)} <span class=big>${x.pt}点</span></div><hr>`);
+ html+=`</div>`;
+ html+=`<div class=card><div class=title>③異常検知</div>`;
+ if(!ijyo.length)html+=`<div class=small>該当なし</div>`;
+ ijyo.slice(0,5).forEach(x=>html+=`<div>${n(x.c)} <span class=hot>${x.pt}点</span><br><span class=small>${x.memo.join(' / ')}</span></div><hr>`);
+ html+=`</div>`;
+ html+=`<div class=card><div class=title>🎯チャッピー推奨</div>
+ <div class=big>軸：${final.slice(0,2).map(x=>n(x.c)).join('・')}</div>
+ <div class="big yellow">穴：${final.slice(2,5).map(x=>n(x.c)).join('・')}</div>
+ <hr><div class=title>3連系候補</div>${tickets(final).map(t=>`<div class=big>${t}</div>`).join('')}
+ </div>`;
  out.innerHTML=html;
 }
 </script>
