@@ -198,7 +198,8 @@ function autoRoleLamp(final,tan,nisha,wide,san,ijyo,ana){
  let honmei=[];
  let tansho=[];
  let kakure=[];
-
+ let gyakuAtama=[];
+ 
  final.forEach(x=>{
   let c=x.c;
   let od=tanMap[c]||999;
@@ -223,6 +224,18 @@ function autoRoleLamp(final,tan,nisha,wide,san,ijyo,ana){
    tansho.push({c,pt:x.pt,od,memo:[...memo,"単勝穴型"]});
   }
 
+  if(
+   ijyoSet.has(c) &&
+   memo.includes("メジアン/壁前") &&
+   x.pt>=18
+){
+   gyakuAtama.push({
+      c,
+      pt:x.pt,
+      od,
+      memo:[...memo,"逆転頭候補"]
+   });
+}
   if(od>=20 && (nr>=2 || wr>=2) && sr>=1){
    kakure.push({c,pt:x.pt,od,memo:[...memo,"隠れ穴"]});
   }
@@ -231,13 +244,26 @@ function autoRoleLamp(final,tan,nisha,wide,san,ijyo,ana){
  honmei.sort((a,b)=>b.pt-a.pt);
  tansho.sort((a,b)=>b.pt-a.pt);
  kakure.sort((a,b)=>b.pt-a.pt);
-
- return {honmei,tansho,kakure};
-}
+ gyakuAtama.sort((a,b)=>b.pt-a.pt);
+ return {honmei,tansho,kakure,gyakuAtama};
 
 
 function renderRoleLamp(role){
  let html=`<div class="card roleBox">`;
+ html+=`<div class="roleSSS">🚨逆転頭ランプ</div>`;
+if(!role.gyakuAtama || !role.gyakuAtama.length){
+ html+=`<div class="small">該当なし</div>`;
+}else{
+ role.gyakuAtama.slice(0,3).forEach(x=>{
+  html+=`
+  <div>
+   ${n(x.c)}
+   <span class="hot">${x.pt}点</span>
+   <span class="small">単${x.od}</span><br>
+   <span class="small">${x.memo.join(" / ")}</span>
+  </div><hr>`;
+ });
+}
 
  html+=`<div class="roleSSS">💥連系SSS</div>`;
  if(!role.honmei.length){
