@@ -226,7 +226,7 @@ function autoRoleLamp(final,tan,nisha,wide,san,ijyo,ana){
 
   if(
    ijyoSet.has(c) &&
-   memo.includes("メジアン/壁前") &&
+   x.memo.includes("メジアン/壁前") &&
    x.pt>=18
 ){
    gyakuAtama.push({
@@ -246,7 +246,7 @@ function autoRoleLamp(final,tan,nisha,wide,san,ijyo,ana){
  kakure.sort((a,b)=>b.pt-a.pt);
  gyakuAtama.sort((a,b)=>b.pt-a.pt);
  return {honmei,tansho,kakure,gyakuAtama};
-
+}
 
 function renderRoleLamp(role){
  let html=`<div class="card roleBox">`;
