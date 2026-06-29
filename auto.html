@@ -236,14 +236,21 @@ function autoRoleLamp(final,tan,nisha,wide,san,ijyo,ana){
 }
 
 function renderRoleLamp(role){
- let html=`<div class="card roleBox"><div class="title">🏍️オート役割分担ランプ</div>`;
+function renderRoleLamp(role){
+ let html=`<div class="card roleBox">`;
 
  html+=`<div class="roleSSS">💥連系SSS</div>`;
  if(!role.honmei.length){
   html+=`<div class="small">該当なし</div>`;
  }else{
   role.honmei.slice(0,4).forEach(x=>{
-   html+=`<div>${n(x.c)} <span class="hot">${x.pt}点</span> <span class="small">単${x.od}</span><br><span class="small">${x.memo.join(" / ")}</span></div><hr>`;
+   html+=`
+   <div>
+    ${n(x.c)}
+    <span class="hot">${x.pt}点</span>
+    <span class="small">単${x.od}</span><br>
+    <span class="small">${x.memo.join(" / ")}</span>
+   </div><hr>`;
   });
  }
 
@@ -252,7 +259,13 @@ function renderRoleLamp(role){
   html+=`<div class="small">該当なし</div>`;
  }else{
   role.tansho.slice(0,4).forEach(x=>{
-   html+=`<div>${n(x.c)} <span class="big">${x.pt}点</span> <span class="small">単${x.od}</span><br><span class="small">${x.memo.join(" / ")}</span></div><hr>`;
+   html+=`
+   <div>
+    ${n(x.c)}
+    <span class="big">${x.pt}点</span>
+    <span class="small">単${x.od}</span><br>
+    <span class="small">${x.memo.join(" / ")}</span>
+   </div><hr>`;
   });
  }
 
@@ -261,16 +274,51 @@ function renderRoleLamp(role){
   html+=`<div class="small">該当なし</div>`;
  }else{
   role.kakure.slice(0,4).forEach(x=>{
-   html+=`<div>${n(x.c)} <span class="big">${x.pt}点</span> <span class="small">単${x.od}</span><br><span class="small">${x.memo.join(" / ")}</span></div><hr>`;
+   html+=`
+   <div>
+    ${n(x.c)}
+    <span class="yellow">${x.pt}点</span>
+    <span class="small">単${x.od}</span><br>
+    <span class="small">${x.memo.join(" / ")}</span>
+   </div><hr>`;
   });
  }
 
- html+=`<div class="buyBox">
+ html+=`
+ <div class="card" style="border:3px solid #4ade80;background:#10351a">
   <div class="title">買い方</div>
-  <div>連系：${role.honmei.length ? role.honmei.slice(0,3).map(x=>n(x.c)).join("・") : "見送り"}</div>
-  <div>単勝：${role.tansho.length ? role.tansho.slice(0,2).map(x=>n(x.c)).join("・") : "見送り"}</div>
-  <div>隠れ穴：${role.kakure.length ? role.kakure.slice(0,2).map(x=>n(x.c)).join("・") : "なし"}</div>
-  <div class="small">基本：本命型は連系、単勝5倍以上の強ランプだけ単勝。隠れ穴は100円だけ。</div>
+  <div>
+   連系：
+   ${
+     role.honmei.length
+     ? role.honmei.slice(0,2).map(x=>x.c).join("・")
+     : "見送り"
+   }
+  </div>
+
+  <div>
+   単勝：
+   ${
+     role.tansho.length
+     ? role.tansho.slice(0,2).map(x=>n(x.c)).join("・")
+     : "なし"
+   }
+  </div>
+
+  <div>
+   隠れ穴：
+   ${
+     role.kakure.length
+     ? role.kakure.slice(0,2).map(x=>n(x.c)).join("・")
+     : "なし"
+   }
+  </div>
+
+  <div class="small">
+   基本：本命型は連系、
+   単勝5倍以上の強ランプだけ単勝。
+   隠れ穴は100円だけ。
+  </div>
  </div>`;
 
  html+=`</div>`;
