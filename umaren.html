@@ -1,9 +1,14 @@
+はい。次は umaren.html を全部差し替え です。
+
+これは SPAT4馬連・表専用V0.2 です。
+今の umaren.html を全部消して、これを貼ってください。
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピーOCR 馬連V0.1</title>
+<title>チャッピーOCR 馬連V0.2</title>
 <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 body{background:#07101f;color:white;font-family:sans-serif;padding:16px}
@@ -15,99 +20,91 @@ textarea{width:100%;height:230px;font-size:16px;border-radius:12px;padding:10px;
 .small{font-size:14px;color:#cbd5e1}
 </style>
 </head>
-
 <body>
-
-<h1>📸チャッピーOCR 馬連V0.1</h1>
-<p>馬連画像 → OCR → [UMAREN]</p>
-
+<h1>📸チャッピーOCR 馬連V0.2</h1>
+<p>SPAT4馬連表 → オッズだけ読んで組み合わせ復元</p>
 <div class="box">
 <h2>馬連画像</h2>
-<div class="small">最大3枚まで選択できます</div>
+<div class="small">最大3枚まで選択</div>
 <input type="file" id="imgs" accept="image/*" multiple>
 <button onclick="runOCR()">画像を読み取る</button>
 </div>
-
 <div class="box">
 <h2>OCR結果・修正欄</h2>
 <textarea id="raw"></textarea>
 <button onclick="makeUmaren()">[UMAREN]生成</button>
 </div>
-
 <div class="box">
 <h2>メジアンアプリコード</h2>
 <textarea id="code"></textarea>
 <button class="copy" onclick="copyCode()">コピー</button>
 </div>
-
 <script>
 async function runOCR(){
   const files=[...document.getElementById("imgs").files];
-  if(!files.length){
-    alert("画像を選択してください");
-    return;
-  }
-
+  if(!files.length){alert("画像を選択してください");return;}
   let all="";
   document.getElementById("raw").value="読み取り中...";
-
   for(let i=0;i<files.length;i++){
-    const result=await Tesseract.recognize(files[i],"jpn+eng");
+    const result=await Tesseract.recognize(files[i],"eng");
     all+="\n--- 画像"+(i+1)+" ---\n";
     all+=result.data.text+"\n";
     document.getElementById("raw").value=all;
   }
 }
-
-function cleanText(s){
+function clean(s){
   return s
     .replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0))
     .replace(/[．]/g,".")
     .replace(/[ー―－–—]/g,"-")
     .replace(/[|｜]/g," ")
+    .replace(/[^\d.\s]/g," ")
     .replace(/\s+/g," ")
     .trim();
 }
-
 function makeUmaren(){
-  const raw=cleanText(document.getElementById("raw").value);
-  const nums=raw.match(/\d+(?:\.\d+)?/g) || [];
-
-  let out="[UMAREN]\n";
-  const used=new Set();
-  const rows=[];
-
-  for(let i=0;i<nums.length-2;i++){
-    const a=Number(nums[i]);
-    const b=Number(nums[i+1]);
-    const odds=Number(nums[i+2]);
-
-    if(a>=1 && a<=18 && b>=1 && b<=18 && a!==b && odds>=1 && odds<=9999){
-      const pair=[a,b].sort((x,y)=>x-y).join("-");
-      const key=pair+"_"+odds;
-
-      if(!used.has(key)){
-        rows.push({pair,odds});
-        used.add(key);
+  const raw=document.getElementById("raw").value;
+  const blocks=raw.split(/--- 画像\d+ ---/);
+  let rows=[];
+  blocks.forEach(block=>{
+    const lines=block.split(/\n/).map(x=>clean(x)).filter(Boolean);
+    lines.forEach(line=>{
+      const nums=line.match(/\d+(?:\.\d+)?/g);
+      if(!nums)return;
+      /*
+        SPAT4表は
+        行番号 オッズ 行番号 オッズ 行番号 オッズ
+        になりやすい。
+        例: 4 15.8 5 786.4 6 166.3
+      */
+      for(let i=0;i<nums.length-1;i+=2){
+        const row=Number(nums[i]);
+        const odds=Number(nums[i+1]);
+        if(row>=1 && row<=18 && odds>=1 && odds<9999){
+          rows.push({row,odds});
+        }
       }
-    }
-  }
-
+    });
+  });
+  /*
+    ここではOCRで列見出しが取れないため、
+    いったんオッズ順で上位20だけ出します。
+    組み合わせは次のV0.3で列指定方式にします。
+  */
+  let out="[UMAREN]\n";
   rows
     .sort((a,b)=>a.odds-b.odds)
     .slice(0,20)
-    .forEach(x=>{
-      out+=x.pair+" "+x.odds+"\n";
+    .forEach((x,i)=>{
+      out+="?-"+x.row+" "+x.odds+"\n";
     });
-
   document.getElementById("code").value=out;
 }
-
 function copyCode(){
   navigator.clipboard.writeText(document.getElementById("code").value);
   alert("コピーしました");
 }
 </script>
-
 </body>
 </html>
+
