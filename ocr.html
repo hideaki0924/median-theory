@@ -3,35 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピーOCR V0.4 単複・馬番補正</title>
+<title>チャッピーOCR V0.6 netkeiba単複専用</title>
 <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 body{background:#07101f;color:white;font-family:sans-serif;padding:16px}
 h1{color:#ffd84d}
 .box{background:#111827;padding:14px;border-radius:16px;margin:12px 0}
-button,input,select{width:100%;font-size:20px;padding:14px;margin:8px 0;border-radius:12px}
+button,input{width:100%;font-size:20px;padding:14px;margin:8px 0;border-radius:12px}
 textarea{width:100%;height:230px;font-size:16px;border-radius:12px;padding:10px;box-sizing:border-box}
 .copy{background:#16a34a;color:white;font-weight:bold}
+img{max-width:100%;border-radius:12px}
+.small{font-size:14px;color:#cbd5e1}
 </style>
 </head>
+
 <body>
 
-<h1>📸チャッピーOCR V0.4</h1>
-<p>単複画像 → OCR → 馬番補正 → [TANFUKU]</p>
+<h1>📸チャッピーOCR V0.6</h1>
+<p>netkeiba単複専用：人気列を無視して、馬番・単勝・複勝上限だけ読む</p>
 
 <div class="box">
-<select id="mode">
-  <option value="spat">SPAT4/地方 単複</option>
-  <option value="manual">手動補正</option>
-</select>
 <input type="file" id="img" accept="image/*">
-<button onclick="runOCR()">画像を読み取る</button>
-</div>
-
-<div class="box">
-<h2>OCR結果・修正欄</h2>
-<textarea id="raw"></textarea>
-<button onclick="makeTanfuku()">[TANFUKU]生成</button>
+<img id="preview">
+<button onclick="runNetkeibaTanfuku()">netkeiba単複を読む</button>
+<div id="status" class="small"></div>
 </div>
 
 <div class="box">
@@ -40,71 +35,132 @@ textarea{width:100%;height:230px;font-size:16px;border-radius:12px;padding:10px;
 <button class="copy" onclick="copyCode()">コピー</button>
 </div>
 
+<canvas id="cv" style="display:none"></canvas>
+
 <script>
-async function runOCR(){
-  const file=document.getElementById("img").files[0];
-  if(!file){alert("画像を選択してください");return;}
+let imageObj=null;
 
-  document.getElementById("raw").value="読み取り中...";
+document.getElementById("img").addEventListener("change",e=>{
+  const file=e.target.files[0];
+  if(!file)return;
 
-  const result=await Tesseract.recognize(file,"jpn+eng");
-  document.getElementById("raw").value=result.data.text;
-}
+  const url=URL.createObjectURL(file);
+  document.getElementById("preview").src=url;
 
-function cleanLine(s){
-  return s
-    .replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0))
-    .replace(/[．]/g,".")
-    .replace(/[ー―－–—]/g,"-")
-    .replace(/回/g,"")
-    .replace(/加/g,"11")
-    .replace(/11\|/g,"11 ")
-    .replace(/12\|/g,"12 ")
-    .replace(/\bel\b/g,"6")
-    .replace(/\bno\|/g,"10")
-    .replace(/\bio\b/g,"10")
-    .replace(/\|/g," ")
-    .replace(/[^\d\.\-\s]/g," ")
+  imageObj=new Image();
+  imageObj.onload=()=>{};
+  imageObj.src=url;
+});
+
+async function ocrCrop(img,x,y,w,h){
+  const cv=document.getElementById("cv");
+  cv.width=w;
+  cv.height=h;
+  const ctx=cv.getContext("2d");
+
+  ctx.fillStyle="white";
+  ctx.fillRect(0,0,w,h);
+  ctx.drawImage(img,x,y,w,h,0,0,w,h);
+
+  const result=await Tesseract.recognize(
+    cv,
+    "eng",
+    {
+      tessedit_char_whitelist:"0123456789."
+    }
+  );
+
+  return result.data.text
+    .replace(/[^\d.]/g," ")
     .replace(/\s+/g," ")
     .trim();
 }
 
-function makeTanfuku(){
-  const raw=document.getElementById("raw").value;
-  const lines=raw.split(/\n/);
-  const mode=document.getElementById("mode").value;
+function pickNumber(text){
+  const m=text.match(/\d+(?:\.\d+)?/g);
+  return m && m.length ? m[m.length-1] : "";
+}
+
+async function runNetkeibaTanfuku(){
+  if(!imageObj){
+    alert("画像を選択してください");
+    return;
+  }
+
+  const img=imageObj;
+  const W=img.naturalWidth || img.width;
+  const H=img.naturalHeight || img.height;
+
+  document.getElementById("status").textContent="読み取り中...";
+  document.getElementById("code").value="[TANFUKU]\n";
+
+  /*
+    netkeiba単複スクショ用の位置指定
+    画像サイズに対する割合で読む
+  */
+
+  const startY=0.155;   // 1行目の上
+  const rowH=0.057;     // 1行の高さ
+  const rows=18;        // 最大18頭まで読む
+
+  const horseX=0.105;
+  const horseW=0.080;
+
+  const winX=0.690;
+  const winW=0.105;
+
+  const placeX=0.885;
+  const placeW=0.105;
 
   let out="[TANFUKU]\n";
   const used=new Set();
 
-  lines.forEach(line=>{
-    const s=cleanLine(line);
-    const nums=s.match(/\d+(?:\.\d+)?/g);
-    if(!nums || nums.length<4)return;
+  for(let i=0;i<rows;i++){
+    const y=Math.floor(H*(startY + rowH*i));
+    const h=Math.floor(H*rowH*0.85);
 
-    let horse, win, place;
+    const horseTxt=await ocrCrop(
+      img,
+      Math.floor(W*horseX),
+      y,
+      Math.floor(W*horseW),
+      h
+    );
 
-    if(mode==="spat"){
-      // SPAT4は「人気順位 馬番 馬名 単勝 複勝下限 複勝上限」
-      // OCR後の数字はだいたい
-      // [人気, 馬番, 単勝, 複勝下限, 複勝上限]
-      horse=nums[1];
-      win=nums[nums.length-3];
-      place=nums[nums.length-1];
-    }else{
-      horse=nums[0];
-      win=nums[1];
-      place=nums[nums.length-1];
-    }
+    const winTxt=await ocrCrop(
+      img,
+      Math.floor(W*winX),
+      y,
+      Math.floor(W*winW),
+      h
+    );
 
-    if(Number(horse)<1 || Number(horse)>18)return;
-    if(used.has(horse))return;
+    const placeTxt=await ocrCrop(
+      img,
+      Math.floor(W*placeX),
+      y,
+      Math.floor(W*placeW),
+      h
+    );
+
+    const horse=pickNumber(horseTxt);
+    const win=pickNumber(winTxt);
+    const place=pickNumber(placeTxt);
+
+    if(!horse || !win || !place)continue;
+    if(Number(horse)<1 || Number(horse)>18)continue;
+    if(used.has(horse))continue;
 
     out+=horse+" "+win+" "+place+"\n";
     used.add(horse);
-  });
+
+    document.getElementById("code").value=out;
+    document.getElementById("status").textContent=
+      "読み取り中... "+(i+1)+"行目";
+  }
 
   document.getElementById("code").value=out;
+  document.getElementById("status").textContent="完了";
 }
 
 function copyCode(){
