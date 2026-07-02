@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>チャッピーOCR 馬連V0.1</title>
+<script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+body{background:#07101f;color:white;font-family:sans-serif;padding:16px}
+h1{color:#ffd84d}
+.box{background:#111827;padding:14px;border-radius:16px;margin:12px 0}
+button,input{width:100%;font-size:20px;padding:14px;margin:8px 0;border-radius:12px}
+textarea{width:100%;height:230px;font-size:16px;border-radius:12px;padding:10px;box-sizing:border-box}
+.copy{background:#16a34a;color:white;font-weight:bold}
+.small{font-size:14px;color:#cbd5e1}
+</style>
+</head>
+
+<body>
+
+<h1>📸チャッピーOCR 馬連V0.1</h1>
+<p>馬連画像 → OCR → [UMAREN]</p>
+
+<div class="box">
+<h2>馬連画像</h2>
+<div class="small">最大3枚まで選択できます</div>
+<input type="file" id="imgs" accept="image/*" multiple>
+<button onclick="runOCR()">画像を読み取る</button>
+</div>
+
+<div class="box">
+<h2>OCR結果・修正欄</h2>
+<textarea id="raw"></textarea>
+<button onclick="makeUmaren()">[UMAREN]生成</button>
+</div>
+
+<div class="box">
+<h2>メジアンアプリコード</h2>
+<textarea id="code"></textarea>
+<button class="copy" onclick="copyCode()">コピー</button>
+</div>
+
+<script>
+async function runOCR(){
+  const files=[...document.getElementById("imgs").files];
+  if(!files.length){
+    alert("画像を選択してください");
+    return;
+  }
+
+  let all="";
+  document.getElementById("raw").value="読み取り中...";
+
+  for(let i=0;i<files.length;i++){
+    const result=await Tesseract.recognize(files[i],"jpn+eng");
+    all+="\n--- 画像"+(i+1)+" ---\n";
+    all+=result.data.text+"\n";
+    document.getElementById("raw").value=all;
+  }
+}
+
+function cleanText(s){
+  return s
+    .replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0))
+    .replace(/[．]/g,".")
+    .replace(/[ー―－–—]/g,"-")
+    .replace(/[|｜]/g," ")
+    .replace(/\s+/g," ")
+    .trim();
+}
+
+function makeUmaren(){
+  const raw=cleanText(document.getElementById("raw").value);
+  const nums=raw.match(/\d+(?:\.\d+)?/g) || [];
+
+  let out="[UMAREN]\n";
+  const used=new Set();
+  const rows=[];
+
+  for(let i=0;i<nums.length-2;i++){
+    const a=Number(nums[i]);
+    const b=Number(nums[i+1]);
+    const odds=Number(nums[i+2]);
+
+    if(a>=1 && a<=18 && b>=1 && b<=18 && a!==b && odds>=1 && odds<=9999){
+      const pair=[a,b].sort((x,y)=>x-y).join("-");
+      const key=pair+"_"+odds;
+
+      if(!used.has(key)){
+        rows.push({pair,odds});
+        used.add(key);
+      }
+    }
+  }
+
+  rows
+    .sort((a,b)=>a.odds-b.odds)
+    .slice(0,20)
+    .forEach(x=>{
+      out+=x.pair+" "+x.odds+"\n";
+    });
+
+  document.getElementById("code").value=out;
+}
+
+function copyCode(){
+  navigator.clipboard.writeText(document.getElementById("code").value);
+  alert("コピーしました");
+}
+</script>
+
+</body>
+</html>
