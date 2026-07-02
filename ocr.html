@@ -3,26 +3,45 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピーOCR V0.4 単複・馬番補正</title>
+<title>チャッピーOCR V0.7 馬番順固定</title>
 <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 body{background:#07101f;color:white;font-family:sans-serif;padding:16px}
 h1{color:#ffd84d}
 .box{background:#111827;padding:14px;border-radius:16px;margin:12px 0}
 button,input,select{width:100%;font-size:20px;padding:14px;margin:8px 0;border-radius:12px}
-textarea{width:100%;height:230px;font-size:16px;border-radius:12px;padding:10px;box-sizing:border-box}
+textarea{width:100%;height:220px;font-size:16px;border-radius:12px;padding:10px;box-sizing:border-box}
 .copy{background:#16a34a;color:white;font-weight:bold}
+.small{font-size:14px;color:#cbd5e1}
 </style>
 </head>
+
 <body>
 
-<h1>📸チャッピーOCR V0.4</h1>
-<p>単複画像 → OCR → 馬番補正 → [TANFUKU]</p>
+<h1>📸チャッピーOCR V0.7</h1>
+<p>単複画像 → OCR → 馬番順固定 → [TANFUKU]</p>
+
+<div class="box">
+<h2>馬番順入力</h2>
+<div class="small">netkeiba単複の人気順に馬番を入れてください</div>
+<textarea id="horses" style="height:120px">4
+8
+9
+11
+3
+6
+12
+1
+2
+5
+10
+7</textarea>
+</div>
 
 <div class="box">
 <select id="mode">
-  <option value="spat">SPAT4/地方 単複</option>
-  <option value="manual">手動補正</option>
+  <option value="fixed">馬番順固定モード</option>
+  <option value="auto">旧OCR馬番モード</option>
 </select>
 <input type="file" id="img" accept="image/*">
 <button onclick="runOCR()">画像を読み取る</button>
@@ -69,33 +88,56 @@ function cleanLine(s){
     .trim();
 }
 
+function extractOddsRows(raw){
+  const rows=[];
+  raw.split(/\n/).forEach(line=>{
+    const s=cleanLine(line);
+    const nums=s.match(/\d+(?:\.\d+)?/g);
+    if(!nums || nums.length<3)return;
+
+    let win, place;
+
+    if(nums.length>=4){
+      win=nums[nums.length-3];
+      place=nums[nums.length-1];
+    }else{
+      win=nums[1];
+      place=nums[nums.length-1];
+    }
+
+    if(Number(win)<=0 || Number(place)<=0)return;
+    rows.push({win,place});
+  });
+  return rows;
+}
+
 function makeTanfuku(){
   const raw=document.getElementById("raw").value;
-  const lines=raw.split(/\n/);
   const mode=document.getElementById("mode").value;
 
   let out="[TANFUKU]\n";
-  const used=new Set();
 
-  lines.forEach(line=>{
+  if(mode==="fixed"){
+    const horses=document.getElementById("horses").value.trim().split(/\s+/);
+    const odds=extractOddsRows(raw);
+
+    for(let i=0;i<Math.min(horses.length,odds.length);i++){
+      out+=horses[i]+" "+odds[i].win+" "+odds[i].place+"\n";
+    }
+
+    document.getElementById("code").value=out;
+    return;
+  }
+
+  const used=new Set();
+  raw.split(/\n/).forEach(line=>{
     const s=cleanLine(line);
     const nums=s.match(/\d+(?:\.\d+)?/g);
     if(!nums || nums.length<4)return;
 
-    let horse, win, place;
-
-    if(mode==="spat"){
-      // SPAT4は「人気順位 馬番 馬名 単勝 複勝下限 複勝上限」
-      // OCR後の数字はだいたい
-      // [人気, 馬番, 単勝, 複勝下限, 複勝上限]
-      horse=nums[1];
-      win=nums[nums.length-3];
-      place=nums[nums.length-1];
-    }else{
-      horse=nums[0];
-      win=nums[1];
-      place=nums[nums.length-1];
-    }
+    const horse=nums[1];
+    const win=nums[nums.length-3];
+    const place=nums[nums.length-1];
 
     if(Number(horse)<1 || Number(horse)>18)return;
     if(used.has(horse))return;
