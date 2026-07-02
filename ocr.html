@@ -3,66 +3,93 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピーOCR V1</title>
-
-<style>
-body{
-  background:#07101f;
-  color:white;
-  font-family:sans-serif;
-  padding:20px;
-}
-h1{
-  color:#ffd84d;
-}
-input,button{
-  width:100%;
-  font-size:20px;
-  padding:15px;
-  margin:10px 0;
-  border-radius:12px;
-}
-pre{
-  background:#111827;
-  padding:15px;
-  border-radius:12px;
-  white-space:pre-wrap;
-}
-</style>
-</head>
-<body>
-
-<h1>📷 チャッピーOCR V1</h1>
-
-<input type="file" id="img">
-
-<button onclick="runOCR()">
-画像を読み取る
-</button>
-
-<pre id="out">
-ここに結果が表示されます
-</pre>
+<title>チャッピーOCR V0.2 単複変換</title>
 
 <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
 
+<style>
+body{background:#07101f;color:white;font-family:sans-serif;padding:16px}
+h1{color:#ffd84d}
+button,input{width:100%;font-size:20px;padding:14px;margin:8px 0;border-radius:12px}
+textarea{width:100%;height:230px;font-size:16px;border-radius:12px;padding:10px;box-sizing:border-box}
+.box{background:#111827;padding:14px;border-radius:16px;margin:12px 0}
+.copy{background:#16a34a;color:white;font-weight:bold}
+</style>
+</head>
+
+<body>
+
+<h1>📸チャッピーOCR V0.2</h1>
+<p>単複画像 → OCR → [TANFUKU] 生成</p>
+
+<div class="box">
+<input type="file" id="img" accept="image/*">
+<button onclick="runOCR()">画像を読み取る</button>
+</div>
+
+<div class="box">
+<h2>OCR結果（修正OK）</h2>
+<textarea id="raw"></textarea>
+<button onclick="makeTanfuku()">[TANFUKU]生成</button>
+</div>
+
+<div class="box">
+<h2>メジアンアプリコード</h2>
+<textarea id="code"></textarea>
+<button class="copy" onclick="copyCode()">コピー</button>
+</div>
+
 <script>
 async function runOCR(){
+  const file=document.getElementById("img").files[0];
+  if(!file){alert("画像を選択してください");return;}
 
- const file=document.getElementById("img").files[0];
- if(!file)return;
+  document.getElementById("raw").value="読み取り中...";
 
- document.getElementById("out").textContent=
- "読み取り中...";
+  const result=await Tesseract.recognize(file,"jpn+eng");
+  document.getElementById("raw").value=result.data.text;
+}
 
- const result=
- await Tesseract.recognize(
-   file,
-   "jpn"
- );
+function makeTanfuku(){
+  const raw=document.getElementById("raw").value;
+  const lines=raw.split(/\n/);
 
- document.getElementById("out").textContent=
- result.data.text;
+  let out="[TANFUKU]\n";
+  const used=new Set();
+
+  lines.forEach(line=>{
+    let s=line
+      .replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0))
+      .replace(/[．]/g,".")
+      .replace(/[ー―－–—]/g,"-")
+      .replace(/\s+/g," ")
+      .trim();
+
+    const nums=s.match(/\d+(?:\.\d+)?/g);
+    if(!nums || nums.length<3)return;
+
+    let horse=nums[0];
+    let win=nums[1];
+    let place=nums[nums.length-1];
+
+    if(Number(horse)<1 || Number(horse)>18)return;
+    if(used.has(horse))return;
+
+    // 複勝が「1.1 - 1.4」の時は上限だけ使う
+    // nums例: [1, 1.7, 1.1, 1.4] → place=1.4
+    // nums例: [10, 101.9, 15.6, 28.2] → place=28.2
+
+    out+=horse+" "+win+" "+place+"\n";
+    used.add(horse);
+  });
+
+  document.getElementById("code").value=out;
+}
+
+function copyCode(){
+  const text=document.getElementById("code").value;
+  navigator.clipboard.writeText(text);
+  alert("コピーしました");
 }
 </script>
 
