@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 V10 単複勝負ランプ搭載版</title>
+<title>チャッピー神予想 V10.1 補正版</title>
 
 <style>
 body{
@@ -86,7 +86,6 @@ h2{
 .wallWin{border-right:3px solid #3b82f6}
 .wallPlace{border-right:3px solid #facc15}
 
-/* 💣大穴一発逆転 */
 .ooana{
   background:#020617;
   border:3px solid #38bdf8;
@@ -117,7 +116,6 @@ h2{
   to{box-shadow:0 0 24px #38bdf8,0 0 70px #38bdf8}
 }
 
-/* 🚨超大穴 単複勝負ランプ */
 .tanpukuLamp{
   background:#020617;
   border:3px solid #ef4444;
@@ -131,26 +129,10 @@ h2{
   text-shadow:0 0 10px #ef4444;
   font-size:28px;
 }
-.lampSSS{
-  color:#ff4d4d;
-  font-size:34px;
-  font-weight:900;
-}
-.lampSS{
-  color:#fb923c;
-  font-size:30px;
-  font-weight:900;
-}
-.lampS{
-  color:#facc15;
-  font-size:28px;
-  font-weight:900;
-}
-.lampB{
-  color:#94a3b8;
-  font-size:26px;
-  font-weight:900;
-}
+.lampSSS{color:#ff4d4d;font-size:34px;font-weight:900}
+.lampSS{color:#fb923c;font-size:30px;font-weight:900}
+.lampS{color:#facc15;font-size:28px;font-weight:900}
+.lampB{color:#94a3b8;font-size:26px;font-weight:900}
 .buyJudge{
   background:#111827;
   border:2px solid #facc15;
@@ -165,7 +147,7 @@ h2{
 
 <body>
 
-<h1>チャッピー神予想 V10<br>単複勝負ランプ搭載版</h1>
+<h1>チャッピー神予想 V10.1<br>単複勝負ランプ補正版</h1>
 
 <div class="box">
 <textarea id="input" placeholder="【レース名】
@@ -187,7 +169,7 @@ h2{
 <div id="result"></div>
 
 <script>
-  function norm(s){
+function norm(s){
   return s
     .replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0))
     .replace(/[－ー―–—]/g,"-")
@@ -278,8 +260,7 @@ function medianHorses(list){
   if(n%2===1)return [list[Math.floor(n/2)].horse];
   return [list[n/2-1].horse,list[n/2].horse];
 }
-
-function addScore(map,h,pt=1){
+  function addScore(map,h,pt=1){
   if(!h)return;
   map[h]=(map[h]||0)+pt;
 }
@@ -386,7 +367,8 @@ function buildOtaniZone(winRank,umaren){
 
   return {axis,otaniList,walls,wallText,wallBefore,firstWallGroup,firstWallMed,zoneMed:firstWallMed};
 }
-  function buildSignals(winRank,placeRank,umaren,sanpuku){
+
+function buildSignals(winRank,placeRank,umaren,sanpuku){
   const ot=buildOtaniZone(winRank,umaren);
 
   const winWalls=wallIndexes(winRank,"win");
@@ -554,8 +536,7 @@ function renderTanpukuLamp(sig,d,winRank,placeRank,topUmaren){
       </div>
     `;
   });
-
-  return `<div class="tanpukuLamp">
+    return `<div class="tanpukuLamp">
     <h2>🚨超大穴 単複勝負ランプ</h2>
     <div class="${cls}">判定：${rank}</div>
     <div class="hot">
@@ -570,7 +551,8 @@ function renderTanpukuLamp(sig,d,winRank,placeRank,topUmaren){
     ${rows}
   </div>`;
 }
-  function renderDiagnosis(d,topUmaren){
+
+function renderDiagnosis(d,topUmaren){
   return `<div class="box">
     <h2>🩺レース診断</h2>
     <div>馬連1番人気：<b>${topUmaren.pair}</b> ${topUmaren.odds}倍</div>
@@ -589,6 +571,7 @@ function renderTanpukuLamp(sig,d,winRank,placeRank,topUmaren){
 
 function renderCenterIndex(list){
   const a=list[0],b=list[1],c=list[2],d=list[3];
+
   return `<div class="box">
     <h2>👑本表の王様</h2>
     <div class="small">馬連＋三連複の出現数</div>
@@ -620,6 +603,7 @@ function renderTanshoGekiso(sig){
 function renderOtani(sig){
   const ot=sig.ot;
   const firstGroup=ot.firstWallGroup.map(x=>x.horse);
+
   return `<div class="box">
     <h2>🏇大谷式 馬連壁</h2>
     <div>${ot.wallText}</div>
@@ -662,8 +646,15 @@ function renderOoana(sig){
   list.forEach((x,i)=>{
     let mark="⭐";
     let judge="三連複穴";
-    if(x.pt>=15){mark="💥";judge="単勝勝負";}
-    else if(x.pt>=10){mark="🔥";judge="馬連・ワイド";}
+
+    if(x.pt>=15){
+      mark="💥";
+      judge="単勝勝負";
+    }else if(x.pt>=10){
+      mark="🔥";
+      judge="馬連・ワイド";
+    }
+
     html+=`
       <div class="ooHit">${mark} ${i+1}位　${x.horse}【${x.pt}】 ${judge}</div>
       <div class="ooMemo">${x.memo.join("・")}</div>`;
@@ -687,6 +678,7 @@ function renderExtremeMove(otaniList,winRank,placeRank){
       const diff=winMap[h]-umaRank[h];
       if(diff>=3)alerts.push(`${h}　単→馬 +${diff}`);
     }
+
     if(placeMap[h]){
       const diff=placeMap[h]-umaRank[h];
       if(diff>=3)alerts.push(`${h}　複→馬 +${diff}`);
@@ -705,8 +697,7 @@ function renderExtremeMove(otaniList,winRank,placeRank){
     <div class="gold">${alerts.length?alerts.join("　"):"該当なし"}</div>
   </div>`;
 }
-
-function renderStrangeMove(sig,winRank,umaren,sanpuku){
+  function renderStrangeMove(sig,winRank,umaren,sanpuku){
   const winRankMap={};
   winRank.forEach((x,i)=>winRankMap[x.horse]=i+1);
 
@@ -855,6 +846,46 @@ function renderTable(sig,winRank,placeRank){
   </div>`;
 }
 
+/* V10.1追加：既存判定を変えず、横に表示する補助診断 */
+function renderV101Check(sig,d,centerIndex){
+  const topKings=(centerIndex||[]).slice(0,4).map(x=>x.horse);
+  const fuku6Before=sig.fuku10Before.filter(h=>{
+    return !sig.fuku15Before.includes(h) || true;
+  });
+
+  let notes=[];
+
+  if(d.race.title==="中荒れ戦" && d.fuku6>=7){
+    notes.push("中荒れ戦＋複勝6倍未満多め：超大穴より本表王・複勝6倍壁前も確認");
+  }
+
+  if(topKings.length){
+    notes.push("本表王上位："+topKings.join("・"));
+  }
+
+  if(sig.winMed.length){
+    notes.push("単勝メジアン："+sig.winMed.join("・"));
+  }
+
+  if(sig.placeMed.length){
+    notes.push("複勝メジアン："+sig.placeMed.join("・"));
+  }
+
+  if(sig.fuku10Before.length){
+    notes.push("複勝10倍壁前："+sig.fuku10Before.join("・"));
+  }
+
+  if(sig.fuku15Before.length){
+    notes.push("複勝15倍壁前："+sig.fuku15Before.join("・"));
+  }
+
+  return `<div class="box studyBox">
+    <h2>🧭V10.1補助診断</h2>
+    <div class="small">※既存の点数・ランプは変更せず、見落とし防止だけ追加</div>
+    ${notes.map(x=>`<div style="margin:8px 0">・${x}</div>`).join("")}
+  </div>`;
+}
+
 function safeRender(fn){
   try{
     return fn();
@@ -862,8 +893,7 @@ function safeRender(fn){
     return `<div class="box red">エラー：${e.message}</div>`;
   }
 }
-
-function analyze(){
+  function analyze(){
   const {raceName,tanpuku,umaren,wide,sanpuku}=parseInput(document.getElementById("input").value);
   const result=document.getElementById("result");
 
@@ -901,6 +931,7 @@ function analyze(){
       <div class="small">出た時だけ「もしかしたら」で見る</div>
     </div>
 
+    ${safeRender(()=>renderV101Check(sig,d,centerIndex))}
     ${safeRender(()=>renderExtremeMove(sig.ot.otaniList,winRank,placeRank))}
     ${safeRender(()=>renderStrangeMove(sig,winRank,umaren,sanpuku))}
     ${safeRender(()=>renderBabaTenka(d,sig,centerIndex))}
