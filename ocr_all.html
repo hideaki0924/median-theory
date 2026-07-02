@@ -388,12 +388,12 @@ function buildMap(){
   const m={};
   document.getElementById("map").value.split(/\n/).forEach(line=>{
     const p=line.trim().split("=");
-    if(p.length===2)m[p[0].trim()]=p[1].trim();
+    if(p.length===2)m[p[0].trim().toUpperCase()]=p[1].trim();
   });
   return m;
 }
 
-function normalizeSanLine(s){
+function fixHorseText(s){
   s=cleanLine(s);
 
   const fix={
@@ -401,25 +401,21 @@ function normalizeSanLine(s){
     "詳":"H",
     "占":"B",
     "mb":"M",
+    "MB":"M",
     "HFd":"HF",
+    "HFD":"HF",
     "HFe":"HF",
-    "at":"A",
-    "0":"O",
-    "1":"I",
+    "HFE":"HF",
     "|":"",
     "｜":""
   };
 
-  Object.keys(fix)
-    .sort((a,b)=>b.length-a.length)
-    .forEach(k=>{
-      s=s.replaceAll(k,fix[k]);
-    });
+  Object.keys(fix).sort((a,b)=>b.length-a.length).forEach(k=>{
+    s=s.replaceAll(k,fix[k]);
+  });
 
-  s=s.replace(/[^\w.\-\s]/g," ");
-  s=s.replace(/\s+/g," ").trim();
   s=s.toUpperCase();
-
+  s=s.replace(/\s+/g," ").trim();
   return s;
 }
 
@@ -460,24 +456,36 @@ function tokenToHorse(tok,map){
   return "";
 }
 
-function parseSanpukuLines(raw,map){
-  const list=[];
-  const lines=raw.split(/\n/);
+function makeSanpuku(){
+  const map=buildMap();
 
-  lines.forEach(line=>{
-    let s=normalizeSanLine(line);
-    if(!s)return;
+  const raw =
+    sanTexts.length
+    ? sanTexts.join("\n")
+    : document.getElementById("sanRaw").value;
 
-    const oddsMatch=s.match(/\d+(?:\.\d+)?\s*$/);
+  let out="[SANPUKU]\n";
+  const used=new Set();
+
+  raw.split(/\n/).forEach(line=>{
+    let base=cleanLine(line);
+    if(!base)return;
+
+    // 先にオッズだけ抜く。ここでは0や1を文字に変換しない
+    const oddsMatch=base.match(/(\d+(?:\.\d+)?)\s*$/);
     if(!oddsMatch)return;
 
-    const odds=oddsMatch[0].trim();
-    s=s.replace(/\d+(?:\.\d+)?\s*$/,"").trim();
+    const odds=Number(oddsMatch[1]);
+    if(isNaN(odds) || odds<=0 || odds>=9999)return;
 
-    // 人気順位削除
-    s=s.replace(/^\d+\s+/,"").trim();
+    let horsePart=base.replace(/(\d+(?:\.\d+)?)\s*$/,"").trim();
 
-    const parts=s
+    // 人気順位を削除
+    horsePart=horsePart.replace(/^\d+\s+/,"").trim();
+
+    horsePart=fixHorseText(horsePart);
+
+    const parts=horsePart
       .split(/[-\s]+/)
       .map(x=>x.trim())
       .filter(Boolean);
@@ -486,9 +494,7 @@ function parseSanpukuLines(raw,map){
 
     parts.forEach(p=>{
       const h=tokenToHorse(p,map);
-      if(h && !horses.includes(h)){
-        horses.push(h);
-      }
+      if(h && !horses.includes(h))horses.push(h);
     });
 
     if(horses.length>=3){
@@ -498,33 +504,10 @@ function parseSanpukuLines(raw,map){
         .sort((a,b)=>a-b)
         .join("-");
 
-      list.push({
-        trio,
-        odds:Number(odds)
-      });
-    }
-  });
-
-  return list;
-}
-
-function makeSanpuku(){
-  const map=buildMap();
-
-  const raw =
-    sanTexts.length
-    ? sanTexts.join("\n")
-    : document.getElementById("sanRaw").value;
-
-  const parsed=parseSanpukuLines(raw,map);
-
-  const used=new Set();
-  let out="[SANPUKU]\n";
-
-  parsed.forEach(x=>{
-    if(!used.has(x.trio)){
-      out+=x.trio+" "+x.odds+"\n";
-      used.add(x.trio);
+      if(!used.has(trio)){
+        out+=trio+" "+odds+"\n";
+        used.add(trio);
+      }
     }
   });
 
