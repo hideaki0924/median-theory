@@ -3,16 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピーOCR統合版 V1.2</title>
+<title>チャッピーOCR統合版 V1.3</title>
 <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
-
 <style>
 body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;padding:14px}
 h1{color:#ffd84d;font-size:26px}
 h2{margin:8px 0;color:#fff}
 .box{background:#111827;border:1px solid #334155;border-radius:16px;padding:14px;margin:12px 0}
 .grid{display:grid;grid-template-columns:1fr;gap:12px}
-button,input,select{width:100%;font-size:18px;padding:12px;margin:7px 0;border-radius:12px;box-sizing:border-box}
+button,input{width:100%;font-size:18px;padding:12px;margin:7px 0;border-radius:12px;box-sizing:border-box}
 textarea{width:100%;height:190px;font-size:15px;border-radius:12px;padding:10px;box-sizing:border-box}
 .green{background:#16a34a;color:white;font-weight:bold}
 .blue{background:#2563eb;color:white;font-weight:bold}
@@ -26,12 +25,12 @@ textarea{width:100%;height:190px;font-size:15px;border-radius:12px;padding:10px;
 
 <body>
 
-<h1>🏇チャッピーOCR統合版 V1.2</h1>
-<p>単複・馬連・ワイド・三連複 → メジアンアプリコード自動生成</p>
+<h1>🏇チャッピーOCR統合版 V1.3</h1>
+<p>単複netkeiba・馬連SPAT4・ワイドSPAT4・三連複netkeiba</p>
 
 <div class="box">
 <h2>レース名</h2>
-<input id="race" placeholder="例：園田6R または 【園田6R】">
+<input id="race" placeholder="例：園田6R">
 </div>
 
 <div class="grid">
@@ -59,7 +58,7 @@ textarea{width:100%;height:190px;font-size:15px;border-radius:12px;padding:10px;
 </div>
 
 <div class="box">
-<h2>② 馬連OCR</h2>
+<h2>② 馬連OCR SPAT4/JRA-VAN</h2>
 <div class="small">表画像を左から順番に複数選択</div>
 <input id="umaN" value="12" placeholder="出走頭数">
 <input id="umaStart" value="1" placeholder="画像1枚目の先頭列">
@@ -72,7 +71,7 @@ textarea{width:100%;height:190px;font-size:15px;border-radius:12px;padding:10px;
 </div>
 
 <div class="box">
-<h2>③ ワイドOCR</h2>
+<h2>③ ワイドOCR SPAT4/JRA-VAN</h2>
 <input id="wideN" value="12" placeholder="出走頭数">
 <input id="wideStart" value="1" placeholder="画像1枚目の先頭列">
 <input id="wideCols" value="3" placeholder="1画像あたり列数">
@@ -84,14 +83,8 @@ textarea{width:100%;height:190px;font-size:15px;border-radius:12px;padding:10px;
 </div>
 
 <div class="box">
-<h2>④ 三連複OCR</h2>
-<div class="small">三連複画像は複数枚OK。対応表は必要なら編集。</div>
-<textarea id="map" style="height:100px">A=4
-B=8
-H=9
-1H=11
-1=11
-</textarea>
+<h2>④ 三連複OCR netkeiba</h2>
+<div class="small">netkeiba三連複の数字表示画面を使用</div>
 <input type="file" id="sanImgs" accept="image/*" multiple>
 <button class="orange" onclick="runSanpuku()">三連複OCR実行</button>
 <textarea id="sanRaw"></textarea>
@@ -131,10 +124,8 @@ function cleanLine(s){
 async function runTanfuku(){
   const f=document.getElementById("tfImg").files[0];
   if(!f){alert("単複画像を選択");return;}
-
   document.getElementById("tfRaw").value="読み取り中...";
   document.getElementById("tfRaw").value=await ocrFile(f,"jpn+eng");
-
   makeTanfuku();
 }
 
@@ -172,18 +163,7 @@ async function runSanpuku(){
 
   for(let i=0;i<files.length;i++){
     all+="\n--- 画像"+(i+1)+" ---\n";
-
-    const r=await Tesseract.recognize(
-      files[i],
-      "eng",
-      {
-        tessedit_pageseg_mode:"6",
-        preserve_interword_spaces:"1",
-        tessedit_char_whitelist:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.-|｜目詳占男 "
-      }
-    );
-
-    const t=r.data.text;
+    const t=await ocrFile(files[i],"jpn+eng");
     sanTexts.push(t);
     all+=t+"\n";
     document.getElementById("sanRaw").value=all;
@@ -195,11 +175,9 @@ async function runSanpuku(){
 function normalizeOddToken(x){
   x=String(x).trim();
   if(x.includes("."))return x;
-
   if(x.length===2)return x[0]+"."+x[1];
   if(x.length===3)return x.slice(0,2)+"."+x.slice(2);
   if(x.length===4)return x.slice(0,3)+"."+x.slice(3);
-
   return x;
 }
 
@@ -220,8 +198,7 @@ function extractTanfukuOdds(raw){
     const nums=s.match(/\d+(?:\.\d+)?/g);
     if(!nums || nums.length<3)return;
 
-    let win="";
-    let place="";
+    let win="",place="";
 
     if(nums.length>=4){
       win=nums[nums.length-3];
@@ -235,7 +212,6 @@ function extractTanfukuOdds(raw){
     place=normalizeOddToken(place);
 
     if(Number(win)<=0 || Number(place)<=0)return;
-
     rows.push({win,place,line:s});
   });
 
@@ -243,14 +219,8 @@ function extractTanfukuOdds(raw){
 }
 
 function fixTanfukuOdd(win,place,horse){
-  if(String(horse)==="5" && String(win)==="5.1" && String(place)==="9.2"){
-    return "61.9";
-  }
-
-  if(String(horse)==="10" && Number(win)<20 && Number(place)>=20){
-    return "101.9";
-  }
-
+  if(String(horse)==="5" && String(win)==="5.1" && String(place)==="9.2")return "61.9";
+  if(String(horse)==="10" && Number(win)<20 && Number(place)>=20)return "101.9";
   return win;
 }
 
@@ -269,32 +239,13 @@ function makeTanfuku(){
   }
 
   document.getElementById("tanfuku").value=out.trim();
-  autoMapFromHorses();
-}
-
-function autoMapFromHorses(){
-  const hs=document.getElementById("horses").value.trim().split(/\s+/);
-  let m=[];
-
-  if(hs[0])m.push("A="+hs[0]);
-  if(hs[1])m.push("B="+hs[1]);
-  if(hs[2])m.push("H="+hs[2]);
-  if(hs[3]){
-    m.push("1H="+hs[3]);
-    m.push("1="+hs[3]);
-  }
-
-  document.getElementById("map").value=m.join("\n");
 }
 
 function usefulOddsLines(text){
-  return text
-    .split(/\n/)
-    .map(cleanLine)
-    .filter(line=>{
-      const odds=line.match(/\d+\.\d+/g);
-      return odds && odds.length;
-    });
+  return text.split(/\n/).map(cleanLine).filter(line=>{
+    const odds=line.match(/\d+\.\d+/g);
+    return odds && odds.length;
+  });
 }
 
 function makeUmaren(){
@@ -317,32 +268,23 @@ function makeUmaren(){
         const opponent=base+lineIdx+1;
 
         if(base>=1 && base<N && opponent>base && opponent<=N){
-          rows.push({
-            pair:base+"-"+opponent,
-            odds:Number(od)
-          });
+          rows.push({pair:base+"-"+opponent,odds:Number(od)});
         }
       });
     });
   });
 
   const map=new Map();
-
   rows.forEach(r=>{
-    if(!map.has(r.pair) || r.odds<map.get(r.pair).odds){
-      map.set(r.pair,r);
-    }
+    if(!map.has(r.pair)||r.odds<map.get(r.pair).odds)map.set(r.pair,r);
   });
 
   let out="[UMAREN]\n";
-
   [...map.values()]
-    .filter(x=>x.odds>=1 && x.odds<9999)
+    .filter(x=>x.odds>=1&&x.odds<9999)
     .sort((a,b)=>a.odds-b.odds)
     .slice(0,20)
-    .forEach(x=>{
-      out+=x.pair+" "+x.odds+"\n";
-    });
+    .forEach(x=>out+=x.pair+" "+x.odds+"\n");
 
   document.getElementById("umaren").value=out.trim();
 }
@@ -356,13 +298,10 @@ function makeWide(){
 
   wideTexts.forEach((text,imgIndex)=>{
     const baseStart=start+imgIndex*cols;
-    const lines=text
-      .split(/\n/)
-      .map(cleanLine)
-      .filter(line=>{
-        const r=line.match(/\d+\.\d+\s*-\s*\d+\.\d+/g);
-        return r && r.length;
-      });
+    const lines=text.split(/\n/).map(cleanLine).filter(line=>{
+      const r=line.match(/\d+\.\d+\s*-\s*\d+\.\d+/g);
+      return r&&r.length;
+    });
 
     lines.forEach((line,lineIdx)=>{
       const ranges=line.match(/\d+\.\d+\s*-\s*\d+\.\d+/g);
@@ -374,162 +313,66 @@ function makeWide(){
 
         if(base>=1 && base<N && opponent>base && opponent<=N){
           const upper=Number(range.split("-")[1].trim());
-
-          rows.push({
-            pair:base+"-"+opponent,
-            range,
-            upper
-          });
+          rows.push({pair:base+"-"+opponent,range,upper});
         }
       });
     });
   });
 
   const map=new Map();
-
   rows.forEach(r=>{
-    if(!map.has(r.pair) || r.upper<map.get(r.pair).upper){
-      map.set(r.pair,r);
-    }
+    if(!map.has(r.pair)||r.upper<map.get(r.pair).upper)map.set(r.pair,r);
   });
 
   let out="[WIDE]\n";
-
   [...map.values()]
     .sort((a,b)=>a.upper-b.upper)
     .slice(0,20)
-    .forEach(x=>{
-      out+=x.pair+" "+x.range+"\n";
-    });
+    .forEach(x=>out+=x.pair+" "+x.range+"\n");
 
   document.getElementById("wide").value=out.trim();
 }
 
-function buildMap(){
-  const m={};
-  document.getElementById("map").value.split(/\n/).forEach(line=>{
-    const p=line.trim().split("=");
-    if(p.length===2)m[p[0].trim().toUpperCase()]=p[1].trim();
-  });
-  return m;
-}
-
-function fixHorseText(s){
-  s=cleanLine(s);
-
-  const fix={
-    "HFd":"HF",
-    "HFD":"HF",
-    "HFe":"HF",
-    "HFE":"HF",
-    "mb":"M",
-    "MB":"M",
-    "目":"E",
-    "詳":"H",
-    "占":"B",
-    "男":"O",
-    "ge":"B",
-    "GE":"B",
-    "at":"B",
-    "AT":"B",
-    "|":"",
-    "｜":""
-  };
-
-  Object.keys(fix).sort((a,b)=>b.length-a.length).forEach(k=>{
-    s=s.replaceAll(k,fix[k]);
-  });
-
-  s=s.toUpperCase();
-  s=s.replace(/\s+/g," ").trim();
-  return s;
-}
-
-function tokenToHorse(tok,map){
-  tok=tok.trim().toUpperCase();
-
-  if(map[tok])return map[tok];
-
-  const direct={
-    "A":"4",
-    "B":"8",
-    "H":"9",
-    "E":"5",
-    "O":"6",
-    "S":"7",
-    "M":"10",
-    "I":"11",
-    "N":"12",
-    "HF":"3",
-    "EH":"4",
-    "OH":"5",
-    "OI":"6",
-    "SO":"7",
-    "OM":"8",
-    "OB":"9",
-    "AO":"10",
-    "AI":"11",
-    "IN":"12"
-  };
-
-  if(direct[tok])return direct[tok];
-
-  if(/^\d+$/.test(tok)){
-    const n=Number(tok);
-    if(n>=1 && n<=18)return tok;
-  }
-
-  return "";
-}
-
 function makeSanpuku(){
-  const map=buildMap();
-
-  const raw =
-    sanTexts.length
-    ? sanTexts.join("\n")
-    : document.getElementById("sanRaw").value;
+  const raw=sanTexts.length?sanTexts.join("\n"):document.getElementById("sanRaw").value;
 
   let out="[SANPUKU]\n";
+  const used=new Set();
 
   raw.split(/\n/).forEach(line=>{
-    let base=cleanLine(line);
-    if(!base)return;
+    let s=cleanLine(line);
+    if(!s)return;
 
-    const oddsMatch=base.match(/(\d+(?:\.\d+)?)\s*$/);
-    if(!oddsMatch)return;
+    // netkeiba三連複用：5-7-12 7.2 / 5 - 7 - 12 7.2
+    let m=s.match(/(\d{1,2})\s*-\s*(\d{1,2})\s*-\s*(\d{1,2})\s+(\d+(?:\.\d+)?)/);
 
-    const odds=Number(oddsMatch[1]);
-    if(isNaN(odds) || odds<=0 || odds>=9999)return;
-
-    let horsePart=base.replace(/(\d+(?:\.\d+)?)\s*$/,"").trim();
-
-    horsePart=horsePart.replace(/^\d+\s+/,"").trim();
-
-    horsePart=fixHorseText(horsePart);
-
-    const parts=horsePart
-      .split(/[-\s]+/)
-      .map(x=>x.trim())
-      .filter(Boolean);
-
-    const horses=[];
-
-    parts.forEach(p=>{
-      const h=tokenToHorse(p,map);
-      if(h && !horses.includes(h)){
-        horses.push(h);
+    // OCRがハイフンを落とした時用：5 7 12 7.2
+    if(!m){
+      const nums=s.match(/\d+(?:\.\d+)?/g);
+      if(nums && nums.length>=4){
+        m=[null,nums[0],nums[1],nums[2],nums[nums.length-1]];
       }
-    });
+    }
 
-    if(horses.length>=3){
-      const trio=horses
-        .slice(0,3)
-        .map(Number)
-        .sort((a,b)=>a-b)
-        .join("-");
+    if(!m)return;
 
-      out += trio + " " + odds + "\n";
+    const a=Number(m[1]);
+    const b=Number(m[2]);
+    const c=Number(m[3]);
+    const odds=Number(m[4]);
+
+    if(
+      a>=1&&a<=18&&
+      b>=1&&b<=18&&
+      c>=1&&c<=18&&
+      a!==b&&b!==c&&a!==c&&
+      odds>0&&odds<9999
+    ){
+      const trio=[a,b,c].sort((x,y)=>x-y).join("-");
+      if(!used.has(trio)){
+        out+=trio+" "+odds+"\n";
+        used.add(trio);
+      }
     }
   });
 
@@ -538,17 +381,13 @@ function makeSanpuku(){
 
 function section(id,head){
   let t=document.getElementById(id).value.trim();
-
   if(!t)return head+"\n";
-
   t=t.replace(head,"").trim();
-
   return head+"\n"+t;
 }
 
 function makeAll(){
   let out="";
-
   let r=document.getElementById("race").value.trim();
 
   if(r){
