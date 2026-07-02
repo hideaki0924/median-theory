@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピーOCR統合版 V1.1 修正版</title>
+<title>チャッピーOCR統合版 V1.2</title>
 <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <style>
@@ -26,12 +26,12 @@ textarea{width:100%;height:190px;font-size:15px;border-radius:12px;padding:10px;
 
 <body>
 
-<h1>🏇チャッピーOCR統合版 V1.1</h1>
+<h1>🏇チャッピーOCR統合版 V1.2</h1>
 <p>単複・馬連・ワイド・三連複 → メジアンアプリコード自動生成</p>
 
 <div class="box">
 <h2>レース名</h2>
-<input id="race" placeholder="例：【園田5R】">
+<input id="race" placeholder="例：園田6R または 【園田6R】">
 </div>
 
 <div class="grid">
@@ -60,7 +60,7 @@ textarea{width:100%;height:190px;font-size:15px;border-radius:12px;padding:10px;
 
 <div class="box">
 <h2>② 馬連OCR</h2>
-<div class="small">SPAT4/JRA-VAN表画像を左から順番に複数選択</div>
+<div class="small">表画像を左から順番に複数選択</div>
 <input id="umaN" value="12" placeholder="出走頭数">
 <input id="umaStart" value="1" placeholder="画像1枚目の先頭列">
 <input id="umaCols" value="3" placeholder="1画像あたり列数">
@@ -172,13 +172,35 @@ async function runSanpuku(){
 
   for(let i=0;i<files.length;i++){
     all+="\n--- 画像"+(i+1)+" ---\n";
-    const t=await ocrFile(files[i],"jpn+eng");
+
+    const r=await Tesseract.recognize(
+      files[i],
+      "eng",
+      {
+        tessedit_pageseg_mode:"6",
+        preserve_interword_spaces:"1",
+        tessedit_char_whitelist:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.-|｜目詳占男 "
+      }
+    );
+
+    const t=r.data.text;
     sanTexts.push(t);
     all+=t+"\n";
     document.getElementById("sanRaw").value=all;
   }
 
   makeSanpuku();
+}
+
+function normalizeOddToken(x){
+  x=String(x).trim();
+  if(x.includes("."))return x;
+
+  if(x.length===2)return x[0]+"."+x[1];
+  if(x.length===3)return x.slice(0,2)+"."+x.slice(2);
+  if(x.length===4)return x.slice(0,3)+"."+x.slice(3);
+
+  return x;
 }
 
 function extractTanfukuOdds(raw){
@@ -209,7 +231,9 @@ function extractTanfukuOdds(raw){
       place=nums[nums.length-1];
     }
 
-    if(!win || !place)return;
+    win=normalizeOddToken(win);
+    place=normalizeOddToken(place);
+
     if(Number(win)<=0 || Number(place)<=0)return;
 
     rows.push({win,place,line:s});
@@ -219,13 +243,10 @@ function extractTanfukuOdds(raw){
 }
 
 function fixTanfukuOdd(win,place,horse){
-  // netkeiba単複で起きやすい誤読補正
-  // 61.9 が 5.1 になる事故対策
   if(String(horse)==="5" && String(win)==="5.1" && String(place)==="9.2"){
     return "61.9";
   }
 
-  // 101.9 の先頭が欠ける事故対策
   if(String(horse)==="10" && Number(win)<20 && Number(place)>=20){
     return "101.9";
   }
@@ -244,14 +265,14 @@ function makeTanfuku(){
     const horse=horses[i];
     const win=fixTanfukuOdd(odds[i].win,odds[i].place,horse);
     const place=odds[i].place;
-
     out+=horse+" "+win+" "+place+"\n";
   }
 
   document.getElementById("tanfuku").value=out.trim();
   autoMapFromHorses();
 }
-  function autoMapFromHorses(){
+
+function autoMapFromHorses(){
   const hs=document.getElementById("horses").value.trim().split(/\s+/);
   let m=[];
 
@@ -475,7 +496,6 @@ function makeSanpuku(){
     let base=cleanLine(line);
     if(!base)return;
 
-    // オッズを先に抜く。0/1はここでは絶対に変換しない
     const oddsMatch=base.match(/(\d+(?:\.\d+)?)\s*$/);
     if(!oddsMatch)return;
 
@@ -484,7 +504,6 @@ function makeSanpuku(){
 
     let horsePart=base.replace(/(\d+(?:\.\d+)?)\s*$/,"").trim();
 
-    // 人気順位を削除
     horsePart=horsePart.replace(/^\d+\s+/,"").trim();
 
     horsePart=fixHorseText(horsePart);
@@ -510,13 +529,13 @@ function makeSanpuku(){
         .sort((a,b)=>a-b)
         .join("-");
 
-      // 重複でも消さずに出す
       out += trio + " " + odds + "\n";
     }
   });
 
   document.getElementById("sanpuku").value=out.trim();
 }
+
 function section(id,head){
   let t=document.getElementById(id).value.trim();
 
@@ -530,8 +549,12 @@ function section(id,head){
 function makeAll(){
   let out="";
 
-  const r=document.getElementById("race").value.trim();
-  if(r)out+=r+"\n";
+  let r=document.getElementById("race").value.trim();
+
+  if(r){
+    r=r.replace(/[【】]/g,"").trim();
+    out+="【"+r+"】\n";
+  }
 
   out+=section("tanfuku","[TANFUKU]")+"\n\n";
   out+=section("umaren","[UMAREN]")+"\n\n";
