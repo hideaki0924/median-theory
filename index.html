@@ -872,7 +872,23 @@ function renderBabaTenka(d,sig,centerIndex){
   );
 
   if(fakeUltra){
-    const anaTop=ana.slice(0,4);
+    const medAna=[...new Set([
+
+  ...sig.winMed,
+
+  ...sig.placeMed
+
+])].filter(h=>ana.includes(h));
+
+const otherAna=ana.filter(h=>!medAna.includes(h));
+
+const anaTop=[...new Set([
+
+  ...medAna,
+
+  ...otherAna
+
+])].slice(0,5);
     const honTop=honmei.slice(0,2);
 
     fakeHtml=`
