@@ -872,54 +872,88 @@ function renderBabaTenka(d,sig,centerIndex){
   );
 
   if(fakeUltra){
-    const medAna=[...new Set([
 
-  ...sig.winMed,
+  const honTop=honmei.slice(0,2);
 
-  ...sig.placeMed
+  const medAna=[...new Set([
 
-])].filter(h=>ana.includes(h));
+    ...sig.winMed,
 
-const otherAna=ana.filter(h=>!medAna.includes(h));
+    ...sig.placeMed
 
-const anaTop=[...new Set([
+  ])].filter(h=>ana.includes(h));
 
-  ...medAna,
+  const wallAna=[...new Set([
 
-  ...otherAna
+    ...sig.fuku15Before,
 
-])].slice(0,5);
-    const honTop=honmei.slice(0,2);
+    ...sig.fuku10Before
 
-    fakeHtml=`
-    <div class="fakeUltra">
-      <h2>🚨🚨🚨<br>💣偽本命超勝負ランプ発動💣<br>🚨🚨🚨</h2>
-      <div class="big">本命固定禁止</div>
-      <div class="gold">本命：${honTop.join("・")||"なし"}</div>
-      <div class="hot">穴：${anaTop.join("・")||"なし"}</div>
+  ])].filter(h=>ana.includes(h));
 
-      <div class="fakeBuy">
-        💰ワイド<br>
-        ${anaTop[0]||""}-${anaTop[1]||""}<br>
-        ${anaTop[0]||""}-${anaTop[2]||""}<br>
-        ${anaTop[1]||""}-${anaTop[2]||""}
-      </div>
+  const otherAna=ana.filter(h=>!medAna.includes(h) && !wallAna.includes(h));
 
-      <div class="fakeBuy">
-        🔥三連複<br>
-        ${anaTop[0]||""}-${anaTop[1]||""}-${anaTop[2]||""}<br>
-        ${anaTop[0]||""}-${anaTop[1]||""}-${honTop[0]||""}<br>
-        ${anaTop[0]||""}-${anaTop[2]||""}-${honTop[0]||""}
-      </div>
+  const fakeCore=[...new Set([
 
-      <div class="fakeBuy">
-        💣三連単<br>
-        ${anaTop[0]||""}→${anaTop[1]||""}→${anaTop[2]||""}<br>
-        ${anaTop[0]||""}→${anaTop[2]||""}→${anaTop[1]||""}<br>
-        ${anaTop[1]||""}→${anaTop[0]||""}→${anaTop[2]||""}
-      </div>
-    </div>`;
-  }
+    ...medAna,
+
+    ...wallAna,
+
+    ...otherAna
+
+  ])].slice(0,5);
+
+  fakeHtml=`
+
+  <div class="fakeUltra">
+
+    <h2>🚨🚨🚨<br>💣偽本命超勝負ランプ発動💣<br>🚨🚨🚨</h2>
+
+    <div class="big">本命固定禁止</div>
+
+    <div class="gold">本命：${honTop.join("・")||"なし"}</div>
+
+    <div class="hot">穴：${fakeCore.join("・")||"なし"}</div>
+
+    <div class="fakeBuy">
+
+      💰ワイド<br>
+
+${fakeCore[0]||""}-${fakeCore[1]||""}<br>
+
+${fakeCore[0]||""}-${fakeCore[3]||""}<br>
+
+${fakeCore[1]||""}-${fakeCore[3]||""}
+
+    </div>
+
+    <div class="fakeBuy">
+
+      🔥三連複<br>
+
+${fakeCore[0]||""}-${fakeCore[1]||""}-${fakeCore[3]||""}<br>
+
+${fakeCore[0]||""}-${fakeCore[1]||""}-${fakeCore[2]||""}<br>
+
+${fakeCore[0]||""}-${fakeCore[3]||""}-${fakeCore[2]||""}
+
+    </div>
+
+    <div class="fakeBuy">
+
+      💣三連単<br>
+
+${fakeCore[0]||""}→${fakeCore[3]||""}→${fakeCore[1]||""}<br>
+
+${fakeCore[0]||""}→${fakeCore[1]||""}→${fakeCore[3]||""}<br>
+
+${fakeCore[1]||""}→${fakeCore[0]||""}→${fakeCore[3]||""}
+
+    </div>
+
+  </div>`;
+
+}
 
   return `${fakeHtml}
   <div class="box warningBox">
