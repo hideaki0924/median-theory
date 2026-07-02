@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピーOCR 三連複V0.3</title>
+<title>チャッピーOCR 三連複V0.4</title>
 <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 body{background:#07101f;color:white;font-family:sans-serif;padding:16px}
@@ -15,18 +15,21 @@ textarea{width:100%;height:220px;font-size:16px;border-radius:12px;padding:10px;
 .small{font-size:14px;color:#cbd5e1}
 </style>
 </head>
+
 <body>
 
-<h1>📸三連複OCR V0.3</h1>
+<h1>📸三連複OCR V0.4</h1>
 <p>文字化け馬番を対応表で変換 → [SANPUKU]</p>
 
 <div class="box">
 <h2>馬番対応表</h2>
-<div class="small">例：A=4 B=8 H=9 1H=11</div>
-<textarea id="map" style="height:100px">A=4
+<div class="small">例：A=4 / B=8 / H=9 / 1H=11 / 1=11</div>
+<textarea id="map" style="height:120px">A=4
 B=8
 H=9
-1H=11</textarea>
+1H=11
+1=11
+</textarea>
 </div>
 
 <div class="box">
@@ -50,14 +53,20 @@ H=9
 <script>
 async function runOCR(){
   const file=document.getElementById("img").files[0];
-  if(!file){alert("画像を選択してください");return;}
+  if(!file){
+    alert("画像を選択してください");
+    return;
+  }
+
   document.getElementById("raw").value="読み取り中...";
+
   const result=await Tesseract.recognize(file,"jpn+eng");
   document.getElementById("raw").value=result.data.text;
 }
 
 function buildMap(){
   const m={};
+
   document.getElementById("map").value
     .split(/\n/)
     .forEach(line=>{
@@ -66,6 +75,7 @@ function buildMap(){
         m[p[0].trim()]=p[1].trim();
       }
     });
+
   return m;
 }
 
@@ -81,11 +91,12 @@ function cleanLine(s){
 
 function tokenToHorse(tok,map){
   tok=tok.trim();
-  if(map[tok])return map[tok];
 
-  // 直接数字ならそのまま
-  if(/^\d+$/.test(tok) && Number(tok)>=1 && Number(tok)<=18){
-    return tok;
+  if(map[tok]) return map[tok];
+
+  if(/^\d+$/.test(tok)){
+    const n=Number(tok);
+    if(n>=1 && n<=18) return tok;
   }
 
   return "";
@@ -100,21 +111,26 @@ function makeSanpuku(){
 
   lines.forEach(line=>{
     let s=cleanLine(line);
-    if(!s)return;
+    if(!s) return;
 
     const oddsMatch=s.match(/\d+(?:\.\d+)?\s*$/);
-    if(!oddsMatch)return;
+    if(!oddsMatch) return;
 
     const odds=oddsMatch[0].trim();
+
     s=s.replace(/\d+(?:\.\d+)?\s*$/,"").trim();
 
     // 人気順位を削除
     s=s.replace(/^\d+\s+/,"").trim();
 
-    // A-H-B / A-8B-1H のような崩れ対策
+    // OCR崩れ補正
     s=s.replace(/A-H B/g,"A H B");
-    s=s.replace(/8B/g,"8 B"); 
+    s=s.replace(/A-8B-1H/g,"A 8 B 1H");
+    s=s.replace(/A-H-1H/g,"A H 1H");
+    s=s.replace(/B-H-1H/g,"B H 1H");
+    s=s.replace(/8B/g,"8 B");
     s=s.replace(/1H/g,"1H");
+
     const parts=s
       .split(/[-\s]+/)
       .map(x=>x.trim())
@@ -124,11 +140,18 @@ function makeSanpuku(){
 
     parts.forEach(p=>{
       const h=tokenToHorse(p,map);
-      if(h && !horses.includes(h))horses.push(h);
+      if(h && !horses.includes(h)){
+        horses.push(h);
+      }
     });
 
     if(horses.length>=3){
-      const trio=horses.slice(0,3).map(Number).sort((a,b)=>a-b).join("-");
+      const trio=horses
+        .slice(0,3)
+        .map(Number)
+        .sort((a,b)=>a-b)
+        .join("-");
+
       if(!used.has(trio)){
         out+=trio+" "+odds+"\n";
         used.add(trio);
