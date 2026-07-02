@@ -397,15 +397,20 @@ function fixHorseText(s){
   s=cleanLine(s);
 
   const fix={
-    "目":"E",
-    "詳":"H",
-    "占":"B",
-    "mb":"M",
-    "MB":"M",
     "HFd":"HF",
     "HFD":"HF",
     "HFe":"HF",
     "HFE":"HF",
+    "mb":"M",
+    "MB":"M",
+    "目":"E",
+    "詳":"H",
+    "占":"B",
+    "男":"O",
+    "ge":"B",
+    "GE":"B",
+    "at":"B",
+    "AT":"B",
     "|":"",
     "｜":""
   };
@@ -465,13 +470,12 @@ function makeSanpuku(){
     : document.getElementById("sanRaw").value;
 
   let out="[SANPUKU]\n";
-  const used=new Set();
 
   raw.split(/\n/).forEach(line=>{
     let base=cleanLine(line);
     if(!base)return;
 
-    // 先にオッズだけ抜く。ここでは0や1を文字に変換しない
+    // オッズを先に抜く。0/1はここでは絶対に変換しない
     const oddsMatch=base.match(/(\d+(?:\.\d+)?)\s*$/);
     if(!oddsMatch)return;
 
@@ -494,7 +498,9 @@ function makeSanpuku(){
 
     parts.forEach(p=>{
       const h=tokenToHorse(p,map);
-      if(h && !horses.includes(h))horses.push(h);
+      if(h && !horses.includes(h)){
+        horses.push(h);
+      }
     });
 
     if(horses.length>=3){
@@ -504,10 +510,8 @@ function makeSanpuku(){
         .sort((a,b)=>a-b)
         .join("-");
 
-      if(!used.has(trio)){
-        out+=trio+" "+odds+"\n";
-        used.add(trio);
-      }
+      // 重複でも消さずに出す
+      out += trio + " " + odds + "\n";
     }
   });
 
