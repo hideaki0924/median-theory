@@ -386,23 +386,71 @@ function makeWide(){
 
 function buildMap(){
   const m={};
-
-  document.getElementById("map").value
-    .split(/\n/)
-    .forEach(line=>{
-      const p=line.trim().split("=");
-      if(p.length===2){
-        m[p[0].trim()]=p[1].trim();
-      }
-    });
-
+  document.getElementById("map").value.split(/\n/).forEach(line=>{
+    const p=line.trim().split("=");
+    if(p.length===2)m[p[0].trim()]=p[1].trim();
+  });
   return m;
 }
 
+function normalizeSanLine(s){
+  s=cleanLine(s);
+
+  const fix={
+    "目":"E",
+    "詳":"H",
+    "占":"B",
+    "mb":"M",
+    "HFd":"HF",
+    "HFe":"HF",
+    "at":"A",
+    "0":"O",
+    "1":"I",
+    "|":"",
+    "｜":""
+  };
+
+  Object.keys(fix)
+    .sort((a,b)=>b.length-a.length)
+    .forEach(k=>{
+      s=s.replaceAll(k,fix[k]);
+    });
+
+  s=s.replace(/[^\w.\-\s]/g," ");
+  s=s.replace(/\s+/g," ").trim();
+  s=s.toUpperCase();
+
+  return s;
+}
+
 function tokenToHorse(tok,map){
-  tok=tok.trim();
+  tok=tok.trim().toUpperCase();
 
   if(map[tok])return map[tok];
+
+  const direct={
+    "A":"4",
+    "B":"8",
+    "H":"9",
+    "E":"5",
+    "O":"6",
+    "S":"7",
+    "M":"10",
+    "I":"11",
+    "N":"12",
+    "HF":"3",
+    "EH":"4",
+    "OH":"5",
+    "OI":"6",
+    "SO":"7",
+    "OM":"8",
+    "OB":"9",
+    "AO":"10",
+    "AI":"11",
+    "IN":"12"
+  };
+
+  if(direct[tok])return direct[tok];
 
   if(/^\d+$/.test(tok)){
     const n=Number(tok);
@@ -412,34 +460,11 @@ function tokenToHorse(tok,map){
   return "";
 }
 
-function normalizeSanLine(s){
-  s=cleanLine(s);
+function parseSanpukuLines(raw,map){
+  const list=[];
+  const lines=raw.split(/\n/);
 
-  // 人気順位を削除
-  s=s.replace(/^\d+\s+/,"").trim();
-
-  // SPAT4三連複のOCR崩れ補正
-  s=s.replace(/A-H B/g,"A H B");
-  s=s.replace(/A-8B-1H/g,"A 8 B 1H");
-  s=s.replace(/A-H-1H/g,"A H 1H");
-  s=s.replace(/B-H-1H/g,"B H 1H");
-  s=s.replace(/8B/g,"8 B");
-  s=s.replace(/1H/g,"1H");
-
-  return s;
-}
-
-function makeSanpuku(){
-  const map=buildMap();
-  let out="[SANPUKU]\n";
-  const used=new Set();
-
-  const raw =
-    sanTexts.length
-    ? sanTexts.join("\n")
-    : document.getElementById("sanRaw").value;
-
-  raw.split(/\n/).forEach(line=>{
+  lines.forEach(line=>{
     let s=normalizeSanLine(line);
     if(!s)return;
 
@@ -447,8 +472,10 @@ function makeSanpuku(){
     if(!oddsMatch)return;
 
     const odds=oddsMatch[0].trim();
-
     s=s.replace(/\d+(?:\.\d+)?\s*$/,"").trim();
+
+    // 人気順位削除
+    s=s.replace(/^\d+\s+/,"").trim();
 
     const parts=s
       .split(/[-\s]+/)
@@ -471,16 +498,38 @@ function makeSanpuku(){
         .sort((a,b)=>a-b)
         .join("-");
 
-      if(!used.has(trio)){
-        out+=trio+" "+odds+"\n";
-        used.add(trio);
-      }
+      list.push({
+        trio,
+        odds:Number(odds)
+      });
+    }
+  });
+
+  return list;
+}
+
+function makeSanpuku(){
+  const map=buildMap();
+
+  const raw =
+    sanTexts.length
+    ? sanTexts.join("\n")
+    : document.getElementById("sanRaw").value;
+
+  const parsed=parseSanpukuLines(raw,map);
+
+  const used=new Set();
+  let out="[SANPUKU]\n";
+
+  parsed.forEach(x=>{
+    if(!used.has(x.trio)){
+      out+=x.trio+" "+x.odds+"\n";
+      used.add(x.trio);
     }
   });
 
   document.getElementById("sanpuku").value=out.trim();
 }
-
 function section(id,head){
   let t=document.getElementById(id).value.trim();
 
