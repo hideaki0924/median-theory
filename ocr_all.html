@@ -251,3 +251,265 @@ function makeTanfuku(){
   document.getElementById("tanfuku").value=out.trim();
   autoMapFromHorses();
 }
+  function autoMapFromHorses(){
+  const hs=document.getElementById("horses").value.trim().split(/\s+/);
+  let m=[];
+
+  if(hs[0])m.push("A="+hs[0]);
+  if(hs[1])m.push("B="+hs[1]);
+  if(hs[2])m.push("H="+hs[2]);
+  if(hs[3]){
+    m.push("1H="+hs[3]);
+    m.push("1="+hs[3]);
+  }
+
+  document.getElementById("map").value=m.join("\n");
+}
+
+function usefulOddsLines(text){
+  return text
+    .split(/\n/)
+    .map(cleanLine)
+    .filter(line=>{
+      const odds=line.match(/\d+\.\d+/g);
+      return odds && odds.length;
+    });
+}
+
+function makeUmaren(){
+  const N=Number(document.getElementById("umaN").value);
+  const start=Number(document.getElementById("umaStart").value);
+  const cols=Number(document.getElementById("umaCols").value);
+
+  let rows=[];
+
+  umaTexts.forEach((text,imgIndex)=>{
+    const baseStart=start+imgIndex*cols;
+    const lines=usefulOddsLines(text);
+
+    lines.forEach((line,lineIdx)=>{
+      const odds=line.match(/\d+\.\d+/g);
+      if(!odds)return;
+
+      odds.forEach((od,idx)=>{
+        const base=baseStart+idx;
+        const opponent=base+lineIdx+1;
+
+        if(base>=1 && base<N && opponent>base && opponent<=N){
+          rows.push({
+            pair:base+"-"+opponent,
+            odds:Number(od)
+          });
+        }
+      });
+    });
+  });
+
+  const map=new Map();
+
+  rows.forEach(r=>{
+    if(!map.has(r.pair) || r.odds<map.get(r.pair).odds){
+      map.set(r.pair,r);
+    }
+  });
+
+  let out="[UMAREN]\n";
+
+  [...map.values()]
+    .filter(x=>x.odds>=1 && x.odds<9999)
+    .sort((a,b)=>a.odds-b.odds)
+    .slice(0,20)
+    .forEach(x=>{
+      out+=x.pair+" "+x.odds+"\n";
+    });
+
+  document.getElementById("umaren").value=out.trim();
+}
+
+function makeWide(){
+  const N=Number(document.getElementById("wideN").value);
+  const start=Number(document.getElementById("wideStart").value);
+  const cols=Number(document.getElementById("wideCols").value);
+
+  let rows=[];
+
+  wideTexts.forEach((text,imgIndex)=>{
+    const baseStart=start+imgIndex*cols;
+    const lines=text
+      .split(/\n/)
+      .map(cleanLine)
+      .filter(line=>{
+        const r=line.match(/\d+\.\d+\s*-\s*\d+\.\d+/g);
+        return r && r.length;
+      });
+
+    lines.forEach((line,lineIdx)=>{
+      const ranges=line.match(/\d+\.\d+\s*-\s*\d+\.\d+/g);
+      if(!ranges)return;
+
+      ranges.forEach((range,idx)=>{
+        const base=baseStart+idx;
+        const opponent=base+lineIdx+1;
+
+        if(base>=1 && base<N && opponent>base && opponent<=N){
+          const upper=Number(range.split("-")[1].trim());
+
+          rows.push({
+            pair:base+"-"+opponent,
+            range,
+            upper
+          });
+        }
+      });
+    });
+  });
+
+  const map=new Map();
+
+  rows.forEach(r=>{
+    if(!map.has(r.pair) || r.upper<map.get(r.pair).upper){
+      map.set(r.pair,r);
+    }
+  });
+
+  let out="[WIDE]\n";
+
+  [...map.values()]
+    .sort((a,b)=>a.upper-b.upper)
+    .slice(0,20)
+    .forEach(x=>{
+      out+=x.pair+" "+x.range+"\n";
+    });
+
+  document.getElementById("wide").value=out.trim();
+}
+
+function buildMap(){
+  const m={};
+
+  document.getElementById("map").value
+    .split(/\n/)
+    .forEach(line=>{
+      const p=line.trim().split("=");
+      if(p.length===2){
+        m[p[0].trim()]=p[1].trim();
+      }
+    });
+
+  return m;
+}
+
+function tokenToHorse(tok,map){
+  tok=tok.trim();
+
+  if(map[tok])return map[tok];
+
+  if(/^\d+$/.test(tok)){
+    const n=Number(tok);
+    if(n>=1 && n<=18)return tok;
+  }
+
+  return "";
+}
+
+function normalizeSanLine(s){
+  s=cleanLine(s);
+
+  // 人気順位を削除
+  s=s.replace(/^\d+\s+/,"").trim();
+
+  // SPAT4三連複のOCR崩れ補正
+  s=s.replace(/A-H B/g,"A H B");
+  s=s.replace(/A-8B-1H/g,"A 8 B 1H");
+  s=s.replace(/A-H-1H/g,"A H 1H");
+  s=s.replace(/B-H-1H/g,"B H 1H");
+  s=s.replace(/8B/g,"8 B");
+  s=s.replace(/1H/g,"1H");
+
+  return s;
+}
+
+function makeSanpuku(){
+  const map=buildMap();
+  let out="[SANPUKU]\n";
+  const used=new Set();
+
+  const raw =
+    sanTexts.length
+    ? sanTexts.join("\n")
+    : document.getElementById("sanRaw").value;
+
+  raw.split(/\n/).forEach(line=>{
+    let s=normalizeSanLine(line);
+    if(!s)return;
+
+    const oddsMatch=s.match(/\d+(?:\.\d+)?\s*$/);
+    if(!oddsMatch)return;
+
+    const odds=oddsMatch[0].trim();
+
+    s=s.replace(/\d+(?:\.\d+)?\s*$/,"").trim();
+
+    const parts=s
+      .split(/[-\s]+/)
+      .map(x=>x.trim())
+      .filter(Boolean);
+
+    const horses=[];
+
+    parts.forEach(p=>{
+      const h=tokenToHorse(p,map);
+      if(h && !horses.includes(h)){
+        horses.push(h);
+      }
+    });
+
+    if(horses.length>=3){
+      const trio=horses
+        .slice(0,3)
+        .map(Number)
+        .sort((a,b)=>a-b)
+        .join("-");
+
+      if(!used.has(trio)){
+        out+=trio+" "+odds+"\n";
+        used.add(trio);
+      }
+    }
+  });
+
+  document.getElementById("sanpuku").value=out.trim();
+}
+
+function section(id,head){
+  let t=document.getElementById(id).value.trim();
+
+  if(!t)return head+"\n";
+
+  t=t.replace(head,"").trim();
+
+  return head+"\n"+t;
+}
+
+function makeAll(){
+  let out="";
+
+  const r=document.getElementById("race").value.trim();
+  if(r)out+=r+"\n";
+
+  out+=section("tanfuku","[TANFUKU]")+"\n\n";
+  out+=section("umaren","[UMAREN]")+"\n\n";
+  out+=section("wide","[WIDE]")+"\n\n";
+  out+=section("sanpuku","[SANPUKU]");
+
+  document.getElementById("all").value=out.trim();
+}
+
+function copyAll(){
+  navigator.clipboard.writeText(document.getElementById("all").value);
+  alert("コピーしました");
+}
+</script>
+
+</body>
+</html>
