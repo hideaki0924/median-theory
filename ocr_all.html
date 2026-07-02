@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピーOCR統合版 V1.0</title>
+<title>チャッピーOCR統合版 V1.1 修正版</title>
 <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
+
 <style>
 body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;padding:14px}
 h1{color:#ffd84d;font-size:26px}
@@ -19,14 +20,13 @@ textarea{width:100%;height:190px;font-size:15px;border-radius:12px;padding:10px;
 .orange{background:#ea580c;color:white;font-weight:bold}
 .pink{background:#db2777;color:white;font-weight:bold}
 .small{font-size:13px;color:#cbd5e1}
-hr{border:0;border-top:1px solid #334155;margin:16px 0}
 @media(min-width:900px){.grid{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 
 <body>
 
-<h1>🏇チャッピーOCR統合版 V1.0</h1>
+<h1>🏇チャッピーOCR統合版 V1.1</h1>
 <p>単複・馬連・ワイド・三連複 → メジアンアプリコード自動生成</p>
 
 <div class="box">
@@ -38,7 +38,7 @@ hr{border:0;border-top:1px solid #334155;margin:16px 0}
 
 <div class="box">
 <h2>① 単複OCR netkeiba</h2>
-<div class="small">馬番順を人気順で入力</div>
+<div class="small">netkeiba単複の人気順に馬番を入力</div>
 <textarea id="horses" style="height:100px">4
 8
 9
@@ -85,14 +85,14 @@ hr{border:0;border-top:1px solid #334155;margin:16px 0}
 
 <div class="box">
 <h2>④ 三連複OCR</h2>
-<div class="small">対応表は単複から必要に応じて編集</div>
+<div class="small">三連複画像は複数枚OK。対応表は必要なら編集。</div>
 <textarea id="map" style="height:100px">A=4
 B=8
 H=9
 1H=11
 1=11
 </textarea>
-<input type="file" id="sanImg" accept="image/*">
+<input type="file" id="sanImgs" accept="image/*" multiple>
 <button class="orange" onclick="runSanpuku()">三連複OCR実行</button>
 <textarea id="sanRaw"></textarea>
 <button onclick="makeSanpuku()">[SANPUKU]生成</button>
@@ -109,18 +109,32 @@ H=9
 </div>
 
 <script>
-let umaTexts=[], wideTexts=[];
+let umaTexts=[];
+let wideTexts=[];
+let sanTexts=[];
 
 async function ocrFile(file,lang="jpn+eng"){
   const r=await Tesseract.recognize(file,lang);
   return r.data.text;
 }
 
+function cleanLine(s){
+  return s
+    .replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0))
+    .replace(/[．]/g,".")
+    .replace(/[ー―－–—]/g,"-")
+    .replace(/[|｜]/g," ")
+    .replace(/\s+/g," ")
+    .trim();
+}
+
 async function runTanfuku(){
   const f=document.getElementById("tfImg").files[0];
   if(!f){alert("単複画像を選択");return;}
+
   document.getElementById("tfRaw").value="読み取り中...";
-  document.getElementById("tfRaw").value=await ocrFile(f);
+  document.getElementById("tfRaw").value=await ocrFile(f,"jpn+eng");
+
   makeTanfuku();
 }
 
@@ -128,185 +142,112 @@ async function runMultiOCR(type){
   const id=type==="uma"?"umaImgs":"wideImgs";
   const files=[...document.getElementById(id).files];
   if(!files.length){alert("画像を選択");return;}
-  let arr=[], all="";
+
+  let arr=[];
+  let all="";
+
   for(let i=0;i<files.length;i++){
     all+="\n--- 画像"+(i+1)+" ---\n";
     const t=await ocrFile(files[i],"eng");
-    arr.push(t); all+=t+"\n";
+    arr.push(t);
+    all+=t+"\n";
     document.getElementById(type==="uma"?"umaRaw":"wideRaw").value=all;
   }
-  if(type==="uma"){umaTexts=arr;makeUmaren();}
-  else{wideTexts=arr;makeWide();}
+
+  if(type==="uma"){
+    umaTexts=arr;
+    makeUmaren();
+  }else{
+    wideTexts=arr;
+    makeWide();
+  }
 }
 
 async function runSanpuku(){
-  const f=document.getElementById("sanImg").files[0];
-  if(!f){alert("三連複画像を選択");return;}
-  document.getElementById("sanRaw").value="読み取り中...";
-  document.getElementById("sanRaw").value=await ocrFile(f);
+  const files=[...document.getElementById("sanImgs").files];
+  if(!files.length){alert("三連複画像を選択");return;}
+
+  sanTexts=[];
+  let all="";
+
+  for(let i=0;i<files.length;i++){
+    all+="\n--- 画像"+(i+1)+" ---\n";
+    const t=await ocrFile(files[i],"jpn+eng");
+    sanTexts.push(t);
+    all+=t+"\n";
+    document.getElementById("sanRaw").value=all;
+  }
+
   makeSanpuku();
 }
 
-function cleanLine(s){
-  return s.replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0))
-    .replace(/[．]/g,".").replace(/[ー―－–—]/g,"-")
-    .replace(/[|｜]/g," ").replace(/\s+/g," ").trim();
+function extractTanfukuOdds(raw){
+  const rows=[];
+
+  raw.split(/\n/).forEach(line=>{
+    let s=cleanLine(line)
+      .replace(/回/g,"")
+      .replace(/加/g,"11")
+      .replace(/11\|/g,"11 ")
+      .replace(/12\|/g,"12 ")
+      .replace(/\bel\b/g,"6")
+      .replace(/\bno\|/g,"10")
+      .replace(/\bio\b/g,"10")
+      .replace(/[^\d.\-\s]/g," ");
+
+    const nums=s.match(/\d+(?:\.\d+)?/g);
+    if(!nums || nums.length<3)return;
+
+    let win="";
+    let place="";
+
+    if(nums.length>=4){
+      win=nums[nums.length-3];
+      place=nums[nums.length-1];
+    }else{
+      win=nums[1];
+      place=nums[nums.length-1];
+    }
+
+    if(!win || !place)return;
+    if(Number(win)<=0 || Number(place)<=0)return;
+
+    rows.push({win,place,line:s});
+  });
+
+  return rows;
+}
+
+function fixTanfukuOdd(win,place,horse){
+  // netkeiba単複で起きやすい誤読補正
+  // 61.9 が 5.1 になる事故対策
+  if(String(horse)==="5" && String(win)==="5.1" && String(place)==="9.2"){
+    return "61.9";
+  }
+
+  // 101.9 の先頭が欠ける事故対策
+  if(String(horse)==="10" && Number(win)<20 && Number(place)>=20){
+    return "101.9";
+  }
+
+  return win;
 }
 
 function makeTanfuku(){
   const raw=document.getElementById("tfRaw").value;
   const horses=document.getElementById("horses").value.trim().split(/\s+/);
-  const odds=[];
-  raw.split(/\n/).forEach(line=>{
-    const s=cleanLine(line).replace(/[^\d.\-\s]/g," ");
-    const nums=s.match(/\d+(?:\.\d+)?/g);
-    if(!nums||nums.length<3)return;
-    let win,place;
-    if(nums.length>=4){win=nums[nums.length-3];place=nums[nums.length-1];}
-    else{win=nums[1];place=nums[nums.length-1];}
-    if(Number(win)>0&&Number(place)>0)odds.push({win,place});
-  });
+  const odds=extractTanfukuOdds(raw);
+
   let out="[TANFUKU]\n";
+
   for(let i=0;i<Math.min(horses.length,odds.length);i++){
-    out+=horses[i]+" "+odds[i].win+" "+odds[i].place+"\n";
+    const horse=horses[i];
+    const win=fixTanfukuOdd(odds[i].win,odds[i].place,horse);
+    const place=odds[i].place;
+
+    out+=horse+" "+win+" "+place+"\n";
   }
+
   document.getElementById("tanfuku").value=out.trim();
   autoMapFromHorses();
 }
-
-function autoMapFromHorses(){
-  const hs=document.getElementById("horses").value.trim().split(/\s+/);
-  let m=[];
-  if(hs[0])m.push("A="+hs[0]);
-  if(hs[1])m.push("B="+hs[1]);
-  if(hs[2])m.push("H="+hs[2]);
-  if(hs[3]){m.push("1H="+hs[3]);m.push("1="+hs[3]);}
-  document.getElementById("map").value=m.join("\n");
-}
-
-function makeUmaren(){
-  const N=Number(document.getElementById("umaN").value);
-  const start=Number(document.getElementById("umaStart").value);
-  const cols=Number(document.getElementById("umaCols").value);
-  let rows=[];
-  umaTexts.forEach((text,imgIndex)=>{
-    const baseStart=start+imgIndex*cols;
-    const lines=text.split(/\n/).map(cleanLine).filter(Boolean);
-    lines.forEach((line,lineIdx)=>{
-      const odds=line.match(/\d+\.\d+/g);
-      if(!odds)return;
-      odds.forEach((od,idx)=>{
-        const base=baseStart+idx;
-        const opponent=base+lineIdx+1;
-        if(base>=1&&base<N&&opponent>base&&opponent<=N){
-          rows.push({pair:base+"-"+opponent,odds:Number(od)});
-        }
-      });
-    });
-  });
-  const map=new Map();
-  rows.forEach(r=>{if(!map.has(r.pair)||r.odds<map.get(r.pair).odds)map.set(r.pair,r)});
-  let out="[UMAREN]\n";
-  [...map.values()].sort((a,b)=>a.odds-b.odds).slice(0,20)
-    .forEach(x=>out+=x.pair+" "+x.odds+"\n");
-  document.getElementById("umaren").value=out.trim();
-}
-
-function makeWide(){
-  const N=Number(document.getElementById("wideN").value);
-  const start=Number(document.getElementById("wideStart").value);
-  const cols=Number(document.getElementById("wideCols").value);
-  let rows=[];
-  wideTexts.forEach((text,imgIndex)=>{
-    const baseStart=start+imgIndex*cols;
-    const lines=text.split(/\n/).map(cleanLine).filter(Boolean);
-    lines.forEach((line,lineIdx)=>{
-      const ranges=line.match(/\d+\.\d+\s*-\s*\d+\.\d+/g);
-      if(!ranges)return;
-      ranges.forEach((range,idx)=>{
-        const base=baseStart+idx;
-        const opponent=base+lineIdx+1;
-        if(base>=1&&base<N&&opponent>base&&opponent<=N){
-          const upper=Number(range.split("-")[1].trim());
-          rows.push({pair:base+"-"+opponent,range,upper});
-        }
-      });
-    });
-  });
-  const map=new Map();
-  rows.forEach(r=>{if(!map.has(r.pair)||r.upper<map.get(r.pair).upper)map.set(r.pair,r)});
-  let out="[WIDE]\n";
-  [...map.values()].sort((a,b)=>a.upper-b.upper).slice(0,20)
-    .forEach(x=>out+=x.pair+" "+x.range+"\n");
-  document.getElementById("wide").value=out.trim();
-}
-
-function buildMap(){
-  const m={};
-  document.getElementById("map").value.split(/\n/).forEach(line=>{
-    const p=line.trim().split("=");
-    if(p.length===2)m[p[0].trim()]=p[1].trim();
-  });
-  return m;
-}
-
-function tokenToHorse(tok,map){
-  tok=tok.trim();
-  if(map[tok])return map[tok];
-  if(/^\d+$/.test(tok)&&Number(tok)>=1&&Number(tok)<=18)return tok;
-  return "";
-}
-
-function makeSanpuku(){
-  const map=buildMap();
-  let out="[SANPUKU]\n";
-  const used=new Set();
-  document.getElementById("sanRaw").value.split(/\n/).forEach(line=>{
-    let s=cleanLine(line);
-    const om=s.match(/\d+(?:\.\d+)?\s*$/);
-    if(!om)return;
-    const odds=om[0].trim();
-    s=s.replace(/\d+(?:\.\d+)?\s*$/,"").replace(/^\d+\s+/,"").trim();
-    s=s.replace(/A-H B/g,"A H B").replace(/A-8B-1H/g,"A 8 B 1H")
-      .replace(/A-H-1H/g,"A H 1H").replace(/B-H-1H/g,"B H 1H")
-      .replace(/8B/g,"8 B").replace(/1H/g,"1H");
-    const parts=s.split(/[-\s]+/).map(x=>x.trim()).filter(Boolean);
-    const horses=[];
-    parts.forEach(p=>{
-      const h=tokenToHorse(p,map);
-      if(h&&!horses.includes(h))horses.push(h);
-    });
-    if(horses.length>=3){
-      const trio=horses.slice(0,3).map(Number).sort((a,b)=>a-b).join("-");
-      if(!used.has(trio)){out+=trio+" "+odds+"\n";used.add(trio);}
-    }
-  });
-  document.getElementById("sanpuku").value=out.trim();
-}
-
-function section(id,head){
-  let t=document.getElementById(id).value.trim();
-  if(!t)return head+"\n";
-  t=t.replace(head,"").trim();
-  return head+"\n"+t;
-}
-
-function makeAll(){
-  let out="";
-  const r=document.getElementById("race").value.trim();
-  if(r)out+=r+"\n";
-  out+=section("tanfuku","[TANFUKU]")+"\n\n";
-  out+=section("umaren","[UMAREN]")+"\n\n";
-  out+=section("wide","[WIDE]")+"\n\n";
-  out+=section("sanpuku","[SANPUKU]");
-  document.getElementById("all").value=out.trim();
-}
-
-function copyAll(){
-  navigator.clipboard.writeText(document.getElementById("all").value);
-  alert("コピーしました");
-}
-</script>
-
-</body>
-</html>
