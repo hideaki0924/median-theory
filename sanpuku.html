@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピーOCR 三連複V0.1</title>
+<title>チャッピーOCR 三連複V0.2</title>
 <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 body{background:#07101f;color:white;font-family:sans-serif;padding:16px}
@@ -17,12 +17,11 @@ textarea{width:100%;height:240px;font-size:16px;border-radius:12px;padding:10px;
 </head>
 <body>
 
-<h1>📸三連複OCR V0.1</h1>
-<p>三連複上位表 → [SANPUKU]</p>
+<h1>📸三連複OCR V0.2</h1>
+<p>1行ずつ読む：最初の3数字＝馬番、最後＝オッズ</p>
 
 <div class="box">
 <h2>三連複画像</h2>
-<div class="small">上位10組が写っている画像を選択</div>
 <input type="file" id="img" accept="image/*">
 <button onclick="runOCR()">画像を読み取る</button>
 </div>
@@ -43,35 +42,36 @@ textarea{width:100%;height:240px;font-size:16px;border-radius:12px;padding:10px;
 async function runOCR(){
   const file=document.getElementById("img").files[0];
   if(!file){alert("画像を選択してください");return;}
-
   document.getElementById("raw").value="読み取り中...";
-
   const result=await Tesseract.recognize(file,"jpn+eng");
   document.getElementById("raw").value=result.data.text;
 }
 
-function clean(s){
+function cleanLine(s){
   return s
     .replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0))
     .replace(/[．]/g,".")
     .replace(/[ー―－–—]/g,"-")
     .replace(/[|｜]/g," ")
+    .replace(/[^\d.\s]/g," ")
     .replace(/\s+/g," ")
     .trim();
 }
 
 function makeSanpuku(){
-  const raw=clean(document.getElementById("raw").value);
-  const nums=raw.match(/\d+(?:\.\d+)?/g) || [];
-
+  const lines=document.getElementById("raw").value.split(/\n/);
   let out="[SANPUKU]\n";
   const used=new Set();
 
-  for(let i=0;i<nums.length-3;i++){
-    const a=Number(nums[i]);
-    const b=Number(nums[i+1]);
-    const c=Number(nums[i+2]);
-    const odds=Number(nums[i+3]);
+  lines.forEach(line=>{
+    const s=cleanLine(line);
+    const nums=s.match(/\d+(?:\.\d+)?/g);
+    if(!nums || nums.length<4)return;
+
+    const a=Number(nums[0]);
+    const b=Number(nums[1]);
+    const c=Number(nums[2]);
+    const odds=Number(nums[nums.length-1]);
 
     if(
       a>=1 && a<=18 &&
@@ -86,7 +86,7 @@ function makeSanpuku(){
         used.add(trio);
       }
     }
-  }
+  });
 
   document.getElementById("code").value=out;
 }
