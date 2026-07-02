@@ -2,39 +2,69 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-content="width=device-width,initial-scale=1">
-
-<title>チャッピーOCR V0.1</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>チャッピーOCR V1</title>
 
 <style>
 body{
-  font-family:sans-serif;
   background:#07101f;
   color:white;
+  font-family:sans-serif;
   padding:20px;
 }
-button{
+h1{
+  color:#ffd84d;
+}
+input,button{
+  width:100%;
   font-size:20px;
-  padding:12px;
-  border-radius:10px;
+  padding:15px;
+  margin:10px 0;
+  border-radius:12px;
+}
+pre{
+  background:#111827;
+  padding:15px;
+  border-radius:12px;
+  white-space:pre-wrap;
 }
 </style>
 </head>
-
 <body>
 
-<h1>📸チャッピーOCR V0.1</h1>
+<h1>📷 チャッピーOCR V1</h1>
 
-<p>OCR専用アプリです。</p>
+<input type="file" id="img">
 
-<input type="file">
-
-<br><br>
-
-<button>
-OCR開始
+<button onclick="runOCR()">
+画像を読み取る
 </button>
+
+<pre id="out">
+ここに結果が表示されます
+</pre>
+
+<script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
+
+<script>
+async function runOCR(){
+
+ const file=document.getElementById("img").files[0];
+ if(!file)return;
+
+ document.getElementById("out").textContent=
+ "読み取り中...";
+
+ const result=
+ await Tesseract.recognize(
+   file,
+   "jpn"
+ );
+
+ document.getElementById("out").textContent=
+ result.data.text;
+}
+</script>
 
 </body>
 </html>
