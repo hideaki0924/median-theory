@@ -877,31 +877,31 @@ function renderBabaTenka(d,sig,centerIndex){
 
   const medAna=[...new Set([
 
-    ...sig.winMed,
+  ...sig.winMed,
 
-    ...sig.placeMed
+  ...sig.placeMed
 
-  ])].filter(h=>ana.includes(h));
+])].filter(h=>ana.includes(h));
 
-  const wallAna=[...new Set([
+const wallAna=[...new Set([
 
-    ...sig.fuku15Before,
+  ...sig.fuku15Before.slice().reverse(),
 
-    ...sig.fuku10Before
+  ...sig.fuku10Before.slice().reverse()
 
-  ])].filter(h=>ana.includes(h));
+])].filter(h=>ana.includes(h));
 
-  const otherAna=ana.filter(h=>!medAna.includes(h) && !wallAna.includes(h));
+const otherAna=ana.filter(h=>!medAna.includes(h) && !wallAna.includes(h));
 
-  const fakeCore=[...new Set([
+const fakeCore=[...new Set([
 
-    ...medAna,
+  ...medAna,
 
-    ...wallAna,
+  ...wallAna,
 
-    ...otherAna
+  ...otherAna
 
-  ])].slice(0,5);
+])].slice(0,5);
 
   fakeHtml=`
 
