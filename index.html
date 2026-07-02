@@ -810,6 +810,8 @@ function renderBabaTenka(d,sig,centerIndex){
     ...sig.fuku10Before,
     ...sig.fuku15Before,
     ...sig.fuku15OverMed,
+    ...sig.winMed,
+    ...sig.placeMed,
     ...Object.keys(sig.tanshoScore||{}).filter(h=>!honmei.includes(h))
   ])].filter(h=>!honmei.includes(h));
 
@@ -820,6 +822,8 @@ function renderBabaTenka(d,sig,centerIndex){
     if(sig.fuku15Before.includes(h))anaPoint+=2;
     if(sig.fuku15OverMed.includes(h))anaPoint+=3;
     if(sig.tanshoSet.has(h))anaPoint+=2;
+    if(sig.winMed.includes(h))anaPoint+=3;
+    if(sig.placeMed.includes(h))anaPoint+=3;
   });
 
   let honmeiPoint=0;
@@ -848,11 +852,24 @@ function renderBabaTenka(d,sig,centerIndex){
 
   let fakeHtml="";
   const fakeUltra=
-    d.race.title==="本命戦" &&
-    anaPoint>=honmeiPoint+15 &&
-    sig.fuku15Before.length>=2 &&
-    sig.gekisoList.length>=2 &&
-    ana.length>=3;
+
+  d.race.title==="本命戦" &&
+
+  anaPoint>=honmeiPoint+10 &&
+
+  sig.gekisoSet.size>=2 &&
+
+  sig.tanshoSet.size>=2 &&
+
+  sig.fuku15Before.length>=2 &&
+
+  (
+
+    sig.winMed.some(h=>ana.includes(h)) ||
+
+    sig.placeMed.some(h=>ana.includes(h))
+
+  );
 
   if(fakeUltra){
     const anaTop=ana.slice(0,4);
