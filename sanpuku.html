@@ -112,9 +112,9 @@ function makeSanpuku(){
     s=s.replace(/^\d+\s+/,"").trim();
 
     // A-H-B / A-8B-1H のような崩れ対策
-    s=s.replace(/8B/g,"H-B");
-    s=s.replace(/1H/g," 1H ");
-
+    s=s.replace(/A-H B/g,"A H B");
+    s=s.replace(/8B/g,"8 B"); 
+    s=s.replace(/1H/g,"1H");
     const parts=s
       .split(/[-\s]+/)
       .map(x=>x.trim())
