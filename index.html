@@ -993,15 +993,9 @@ ${fakeCore[1]||""}→${fakeCore[0]||""}→${fakeCore[3]||""}
 
     d.race.title==="本命戦" &&
 
-    honmeiPoint >= anaPoint*2 &&
+    
 
-    honmei.length>=2 &&
-
-    sig.gekisoSet.size<=2 &&
-
-    sig.winMed.some(h=>honmei.includes(h)) &&
-
-    sig.placeMed.some(h=>honmei.includes(h));
+    honmei.length>=2;
 
   if(ultraIron){
 
