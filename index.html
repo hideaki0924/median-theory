@@ -183,6 +183,36 @@ h2{
     box-shadow:0 0 40px #ef4444,0 0 110px #ffffff;
   }
 }
+  /* 超超鉄板ランプ */
+.ultraIron{
+  background:#001407;
+  border:6px solid #ffffff;
+  border-radius:26px;
+  padding:18px;
+  margin:18px 0;
+  box-shadow:0 0 25px #ffffff,0 0 70px #22c55e;
+  animation:ultraIronFlash .4s infinite alternate;
+}
+.ultraIron h2{
+  color:#fff;
+  font-size:32px;
+  text-shadow:0 0 12px #22c55e,0 0 22px #ffffff;
+}
+.ultraIron .big{
+  color:#fff;
+  font-size:30px;
+  font-weight:900;
+}
+@keyframes ultraIronFlash{
+  from{
+    border-color:#ffffff;
+    box-shadow:0 0 25px #ffffff,0 0 45px #22c55e;
+  }
+  to{
+    border-color:#22c55e;
+    box-shadow:0 0 40px #22c55e,0 0 110px #ffffff;
+  }
+}
 </style>
 </head>
 
@@ -955,7 +985,44 @@ ${fakeCore[1]||""}→${fakeCore[0]||""}→${fakeCore[3]||""}
 
 }
 
-  return `${fakeHtml}
+   let ironHtml="";
+
+  const ultraIron =
+
+    !fakeUltra &&
+
+    d.race.title==="本命戦" &&
+
+    honmeiPoint >= anaPoint*2 &&
+
+    honmei.length>=2 &&
+
+    sig.gekisoSet.size<=2 &&
+
+    sig.winMed.some(h=>honmei.includes(h)) &&
+
+    sig.placeMed.some(h=>honmei.includes(h));
+
+  if(ultraIron){
+
+    ironHtml=`
+
+    <div class="ultraIron">
+
+      <h2>🟢⚪🟢<br>✨超超鉄板ランプ発動✨<br>🟢⚪🟢</h2>
+
+      <div class="big">穴狙い禁止<br>本命集中推奨</div>
+
+      <div class="gold">本命：${honmei.join("・")}</div>
+
+      <div class="small">本命点 ${honmeiPoint} ／ 穴点 ${anaPoint}</div>
+
+    </div>`;
+
+  }
+
+  return `${ironHtml}${fakeHtml}
+
   <div class="box warningBox">
     <h2>🚦馬場・展開警報</h2>
     <div class="${cls}" style="font-size:28px">${title}</div>
