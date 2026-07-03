@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 V10.2 偽本命超勝負版</title>
+<title>チャッピー神予想 V10.3 超超鉄板設定修正版</title>
 
 <style>
 body{
@@ -143,7 +143,8 @@ h2{
   font-size:22px;
   font-weight:900;
 }
-  /* V10.2追加：偽本命超勝負ランプ */
+
+/* 偽本命超勝負ランプ */
 .fakeUltra{
   background:#180000;
   border:6px solid #ffffff;
@@ -183,7 +184,8 @@ h2{
     box-shadow:0 0 40px #ef4444,0 0 110px #ffffff;
   }
 }
-  /* 超超鉄板ランプ */
+
+/* 超超鉄板ランプ */
 .ultraIron{
   background:#001407;
   border:6px solid #ffffff;
@@ -218,7 +220,7 @@ h2{
 
 <body>
 
-<h1>チャッピー神予想 V10.2<br>偽本命超勝負版</h1>
+<h1>チャッピー神予想 V10.3<br>超超鉄板設定修正版</h1>
 
 <div class="box">
 <textarea id="input" placeholder="【レース名】
@@ -440,7 +442,8 @@ function buildOtaniZone(winRank,umaren){
 
   return {axis,otaniList,walls,wallText,wallBefore,firstWallGroup,firstWallMed,zoneMed:firstWallMed};
 }
-  function buildSignals(winRank,placeRank,umaren,sanpuku){
+
+function buildSignals(winRank,placeRank,umaren,sanpuku){
   const ot=buildOtaniZone(winRank,umaren);
 
   const winWalls=wallIndexes(winRank,"win");
@@ -488,8 +491,7 @@ function buildOtaniZone(winRank,umaren){
     tanshoSet,gekisoSet,shobu
   };
 }
-
-function countCenterIndex(umaren,sanpuku){
+  function countCenterIndex(umaren,sanpuku){
   const umaMap={};
   const sanMap={};
 
@@ -642,7 +644,8 @@ function renderDiagnosis(d,topUmaren){
     <div class="hot">${d.warnings.length?d.warnings.join("・"):"特別警報なし"}</div>
   </div>`;
 }
-  function renderCenterIndex(list){
+
+function renderCenterIndex(list){
   const a=list[0],b=list[1],c=list[2],d=list[3];
 
   return `<div class="box">
@@ -672,8 +675,7 @@ function renderTanshoGekiso(sig){
     <div class="small">複勝10/15壁前・15超メジアン・馬連壁前・単勝10〜30倍が重なった馬</div>
   </div>`;
 }
-
-function renderOtani(sig){
+  function renderOtani(sig){
   const ot=sig.ot;
   const firstGroup=ot.firstWallGroup.map(x=>x.horse);
 
@@ -893,8 +895,16 @@ function renderBabaTenka(d,sig,centerIndex){
 
   const ultraIron =
     !fakeUltra &&
-    d.race.title==="本命戦" &&
-    honmei.length>=2;
+    (
+      d.race.title==="本命戦" ||
+      d.race.title==="中荒れ戦" ||
+      d.race.title==="荒れ戦"
+    ) &&
+    honmei.length>=2 &&
+    sig.ot.firstWallMed.length>=2 &&
+    sig.ot.wallBefore.length>=2 &&
+    sig.tanshoSet.size>=2 &&
+    anaPoint>=honmeiPoint*2;
 
   let lampHtml="";
 
@@ -946,7 +956,7 @@ function renderBabaTenka(d,sig,centerIndex){
     lampHtml=`
     <div class="ultraIron">
       <h2>🟢⚪🟢<br>✨超超鉄板ランプ発動✨<br>🟢⚪🟢</h2>
-      <div class="big">穴狙い禁止<br>本命集中推奨</div>
+      <div class="big">荒れる風で実は硬い<br>本命軸＋穴1頭型</div>
       <div class="gold">本命：${honmei.join("・")}</div>
       <div class="small">本命点 ${honmeiPoint} ／ 穴点 ${anaPoint}</div>
     </div>`;
@@ -962,7 +972,8 @@ function renderBabaTenka(d,sig,centerIndex){
     <div>💣穴グループ：<b class="hot">${ana.length?ana.slice(0,8).join("・"):"なし"}</b></div>
     <div class="small">本命点 ${honmeiPoint} ／ 穴点 ${anaPoint}</div>
   </div>`;
-}function renderBook(sig){
+}
+  function renderBook(sig){
   return `<div class="box">
     <h2>📚本の買い方</h2>
     <p>単勝メジアン：<b class="gold">${sig.winMed.join("・")||"なし"}</b></p>
@@ -1099,60 +1110,105 @@ function goBottom(){
 }
 
 function testData(){
-  document.getElementById("input").value=`【大井11Rテスト】
+  document.getElementById("input").value=`【福島2Rテスト】
 
 [TANFUKU]
-7 1.5 1.2
-9 4.1 2.0
-1 11.0 2.9
-3 12.1 2.9
-6 12.7 3.2
-5 17.6 4.1
-2 42.2 6.8
-10 62.4 17.0
-8 65.5 17.2
-4 80.2 12.9
+1 5.7 4.7
+3 5.8 3.5
+9 8.0 5.5
+7 9.5 1.9
+4 9.6 2.5
+13 10.7 4.2
+16 12.2 4.1
+2 14.7 7.3
+15 15.8 6.5
+6 17.0 4.0
+8 17.4 7.7
+10 18.7 4.3
+14 31.3 21.1
+11 39.6 10.9
+5 44.8 7.4
+12 56.1 16.3
 
 [UMAREN]
-7-9 3.2
-3-7 5.9
-6-7 6.8
-1-7 6.9
-5-7 13.8
-1-9 16.4
-5-9 16.7
-6-9 19.0
-3-9 24.9
-2-7 39.6
-3-6 45.7
-1-5 48.2
-5-6 54.5
-7-10 77.7
-2-9 85.8
+1-3 10.2
+3-7 15.7
+3-4 17.4
+3-6 20.7
+3-13 20.7
+1-4 22.1
+4-7 24.2
+1-6 25.5
+1-13 28.0
+1-7 28.7
+3-16 29.5
+2-3 33.3
+1-2 39.6
+1-16 39.6
+4-13 41.8
+6-7 41.8
+2-4 42.6
+7-16 44.2
+7-13 46.0
+1-15 46.9
+4-6 46.9
+3-15 50.0
+6-13 52.3
+2-7 53.5
+4-16 56.1
+7-15 56.1
+2-6 69.7
+2-13 69.7
+6-16 69.7
+2-16 74.2
 
 [WIDE]
-7-9 1.9
-3-7 2.3
-6-7 2.4
-1-7 2.7
-5-7 4.4
-6-9 4.5
-5-9 4.6
-1-9 5.0
-3-9 5.3
-1-6 6.7
+1-3 6.4
+3-4 6.9
+3-6 6.9
+6-16 7.3
+1-6 8.0
+3-7 8.9
+1-4 9.5
+3-13 10.0
+6-7 10.5
+4-6 10.9
+5-16 10.6
+1-7 12.1
+7-15 11.9
+3-16 13.1
+2-7 13.1
+3-15 13.5
+6-14 13.6
+4-7 14.5
+6-13 14.6
+2-3 14.8
+7-16 15.1
+1-16 15.4
+2-4 15.7
+11-15 24.2
+7-11 24.6
+1-2 17.1
+1-13 18.3
+2-6 18.4
+7-13 19.7
 
 [SANPUKU]
-1-7-9 7.2
-6-7-9 7.7
-3-7-9 9.0
-5-7-9 9.7
-1-6-7 11.0
-1-3-7 14.0
-3-6-7 14.8
-5-6-7 18.2
-1-5-7 20.3
-3-5-7 24.2`;
+1-3-7 22.5
+1-3-4 26.9
+1-3-6 28.2
+1-2-3 34.9
+3-4-7 37.0
+3-6-7 37.3
+1-3-13 45.3
+1-4-7 46.6
+2-3-4 47.1
+3-7-13 47.1
+1-6-7 48.0
+1-2-4 52.1
+2-3-7 52.1
+2-3-6 54.5
+1-2-6 56.4`;
 }
 </script>
 </body>
