@@ -866,157 +866,93 @@ function renderBabaTenka(d,sig,centerIndex){
   let cls="yellow";
   let msg="本命と穴が拮抗。ワイド・三連複向き。";
 
-  if(d.race.title==="本命戦" && anaPoint>=honmeiPoint+3){
+  if(d.race.title==="本命戦" && anaPoint>=honmeiPoint+10){
     title="💣偽本命警報";
     cls="red";
     msg="本命戦に見えるが、穴グループが強い。穴BOX警戒。";
-  }else if(anaPoint>=honmeiPoint+5){
-    title="🔴差し穴警報";
-    cls="red";
-    msg="穴グループ優勢。人気馬だけで決め打ちしない。";
   }else if(honmeiPoint>=anaPoint+4){
     title="🟢前残り・本命警報";
     cls="green";
     msg="本命グループ優勢。軸は堅め。";
+  }else if(anaPoint>=honmeiPoint+5){
+    title="🔴差し穴警報";
+    cls="red";
+    msg="穴グループ優勢。人気馬だけで決め打ちしない。";
   }
 
-  let fakeHtml="";
-  const fakeUltra=
-
-  d.race.title==="本命戦" &&
-
-  anaPoint>=honmeiPoint+10 &&
-
-  sig.gekisoSet.size>=2 &&
-
-  sig.tanshoSet.size>=2 &&
-
-  sig.fuku15Before.length>=2 &&
-
-  (
-
-    sig.winMed.some(h=>ana.includes(h)) ||
-
-    sig.placeMed.some(h=>ana.includes(h))
-
-  );
-
-  if(fakeUltra){
-
-  const honTop=honmei.slice(0,2);
-
-  const medAna=[...new Set([
-
-  ...sig.winMed,
-
-  ...sig.placeMed
-
-])].filter(h=>ana.includes(h));
-
-const wallAna=[...new Set([
-
-  ...sig.fuku15Before.slice().reverse(),
-
-  ...sig.fuku10Before.slice().reverse()
-
-])].filter(h=>ana.includes(h));
-
-const otherAna=ana.filter(h=>!medAna.includes(h) && !wallAna.includes(h));
-
-const fakeCore=[...new Set([
-
-  ...medAna,
-
-  ...wallAna,
-
-  ...otherAna
-
-])].slice(0,5);
-
-  fakeHtml=`
-
-  <div class="fakeUltra">
-
-    <h2>🚨🚨🚨<br>💣偽本命超勝負ランプ発動💣<br>🚨🚨🚨</h2>
-
-    <div class="big">本命固定禁止</div>
-
-    <div class="gold">本命：${honTop.join("・")||"なし"}</div>
-
-    <div class="hot">穴：${fakeCore.join("・")||"なし"}</div>
-
-    <div class="fakeBuy">
-
-      💰ワイド<br>
-
-${fakeCore[0]||""}-${fakeCore[1]||""}<br>
-
-${fakeCore[0]||""}-${fakeCore[3]||""}<br>
-
-${fakeCore[1]||""}-${fakeCore[3]||""}
-
-    </div>
-
-    <div class="fakeBuy">
-
-      🔥三連複<br>
-
-${fakeCore[0]||""}-${fakeCore[1]||""}-${fakeCore[3]||""}<br>
-
-${fakeCore[0]||""}-${fakeCore[1]||""}-${fakeCore[2]||""}<br>
-
-${fakeCore[0]||""}-${fakeCore[3]||""}-${fakeCore[2]||""}
-
-    </div>
-
-    <div class="fakeBuy">
-
-      💣三連単<br>
-
-${fakeCore[0]||""}→${fakeCore[3]||""}→${fakeCore[1]||""}<br>
-
-${fakeCore[0]||""}→${fakeCore[1]||""}→${fakeCore[3]||""}<br>
-
-${fakeCore[1]||""}→${fakeCore[0]||""}→${fakeCore[3]||""}
-
-    </div>
-
-  </div>`;
-
-}
-
-   let ironHtml="";
+  const fakeUltra =
+    d.race.title==="本命戦" &&
+    anaPoint>=honmeiPoint+10 &&
+    sig.gekisoSet.size>=2 &&
+    sig.tanshoSet.size>=2 &&
+    sig.fuku15Before.length>=2 &&
+    (
+      sig.winMed.some(h=>ana.includes(h)) ||
+      sig.placeMed.some(h=>ana.includes(h))
+    );
 
   const ultraIron =
-
     !fakeUltra &&
-
     d.race.title==="本命戦" &&
-
-    
-
     honmei.length>=2;
 
-  if(ultraIron){
+  let lampHtml="";
 
-    ironHtml=`
+  if(fakeUltra){
+    const honTop=honmei.slice(0,2);
 
-    <div class="ultraIron">
+    const medAna=[...new Set([
+      ...sig.winMed,
+      ...sig.placeMed
+    ])].filter(h=>ana.includes(h));
 
-      <h2>🟢⚪🟢<br>✨超超鉄板ランプ発動✨<br>🟢⚪🟢</h2>
+    const wallAna=[...new Set([
+      ...sig.fuku15Before.slice().reverse(),
+      ...sig.fuku10Before.slice().reverse()
+    ])].filter(h=>ana.includes(h));
 
-      <div class="big">穴狙い禁止<br>本命集中推奨</div>
+    const otherAna=ana.filter(h=>!medAna.includes(h) && !wallAna.includes(h));
 
-      <div class="gold">本命：${honmei.join("・")}</div>
+    const fakeCore=[...new Set([
+      ...medAna,
+      ...wallAna,
+      ...otherAna
+    ])].slice(0,5);
 
-      <div class="small">本命点 ${honmeiPoint} ／ 穴点 ${anaPoint}</div>
+    lampHtml=`
+    <div class="fakeUltra">
+      <h2>🚨🚨🚨<br>💣偽本命超勝負ランプ発動💣<br>🚨🚨🚨</h2>
+      <div class="big">本命固定禁止</div>
+      <div class="gold">本命：${honTop.join("・")||"なし"}</div>
+      <div class="hot">穴：${fakeCore.join("・")||"なし"}</div>
 
+      <div class="fakeBuy">
+        💰ワイド<br>
+        ${fakeCore[0]||""}-${fakeCore[1]||""}<br>
+        ${fakeCore[0]||""}-${fakeCore[2]||""}<br>
+        ${fakeCore[1]||""}-${fakeCore[2]||""}
+      </div>
+
+      <div class="fakeBuy">
+        🔥三連複<br>
+        ${fakeCore[0]||""}-${fakeCore[1]||""}-${fakeCore[2]||""}<br>
+        ${fakeCore[0]||""}-${fakeCore[1]||""}-${fakeCore[3]||""}<br>
+        ${fakeCore[0]||""}-${fakeCore[2]||""}-${fakeCore[3]||""}
+      </div>
     </div>`;
-
   }
 
-  return `${ironHtml}${fakeHtml}
+  if(ultraIron){
+    lampHtml=`
+    <div class="ultraIron">
+      <h2>🟢⚪🟢<br>✨超超鉄板ランプ発動✨<br>🟢⚪🟢</h2>
+      <div class="big">穴狙い禁止<br>本命集中推奨</div>
+      <div class="gold">本命：${honmei.join("・")}</div>
+      <div class="small">本命点 ${honmeiPoint} ／ 穴点 ${anaPoint}</div>
+    </div>`;
+  }
 
+  return `${lampHtml}
   <div class="box warningBox">
     <h2>🚦馬場・展開警報</h2>
     <div class="${cls}" style="font-size:28px">${title}</div>
@@ -1026,9 +962,7 @@ ${fakeCore[1]||""}→${fakeCore[0]||""}→${fakeCore[3]||""}
     <div>💣穴グループ：<b class="hot">${ana.length?ana.slice(0,8).join("・"):"なし"}</b></div>
     <div class="small">本命点 ${honmeiPoint} ／ 穴点 ${anaPoint}</div>
   </div>`;
-}
-
-function renderBook(sig){
+}function renderBook(sig){
   return `<div class="box">
     <h2>📚本の買い方</h2>
     <p>単勝メジアン：<b class="gold">${sig.winMed.join("・")||"なし"}</b></p>
