@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 オートV24</title>
+<title>チャッピー神予想 オートV25</title>
 <style>
 body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;padding:14px}
 h1{font-size:28px;color:#ffd84d}
@@ -26,24 +26,26 @@ hr{border:0;border-top:1px solid #334155}
 .roleHide{font-size:30px;font-weight:900;color:#38bdf8}
 .buyBox{border:2px solid #22c55e;border-radius:16px;padding:12px;margin-top:10px;background:#052e1a}
 .priority{border:3px solid #22c55e;background:#052e1a}
+.fake{border:3px solid #fb7185;background:#2a0712;box-shadow:0 0 18px rgba(251,113,133,.35)}
+.fakeTitle{font-size:32px;font-weight:900;color:#fb7185}
 </style>
 </head>
 <body>
-<h1>🏍️ チャッピー神予想 オートV24</h1>
+<h1>🏍️ チャッピー神予想 オートV25</h1>
 
-<textarea id="inp" placeholder="【川口8R】
+<textarea id="inp" placeholder="【山陽11R】
 
 [TAN]
-7 1.0
+7 2.3
 
 [NISHA]
-6-7 1.9
+1-7 4.2
 
 [WIDE]
-6-7 1.1
+1-7 1.3
 
 [SANREN]
-5-6-7 1.3"></textarea>
+1-4-7 5.2"></textarea>
 
 <button class="go" onclick="run()">解析</button>
 <button class="clear" onclick="inp.value='';out.innerHTML=''">リセット</button>
@@ -51,13 +53,15 @@ hr{border:0;border-top:1px solid #334155}
 
 <script>
 function n(x){return `<span class="num n${x}">${x}</span>`}
-function pair(s){return s.split('-').map(Number)}
+function normCombo(s){return String(s).replace(/[＝=]/g,'-').replace(/[－ー―–—]/g,'-')}
+function pair(s){return normCombo(s).split('-').map(Number).filter(v=>!isNaN(v))}
 function od(v){return parseFloat(String(v).split('-')[0])}
 function med(a){if(!a.length)return[];let m=Math.floor((a.length-1)/2);return a.length%2?[a[m]]:[a[m],a[m+1]]}
+function uniq(a){return [...new Set(a.filter(v=>v!==undefined&&v!==null&&!isNaN(v)))]}
 function add(map,c,pt,memo,label){map[c]=(map[c]||0)+pt;if(!memo[c])memo[c]=[];if(label&&!memo[c].includes(label))memo[c].push(label)}
 
 function parse(){
- let txt=inp.value.replace(/[－ー]/g,'-');
+ let txt=inp.value.replace(/[＝=]/g,'-').replace(/[－ー―–—]/g,'-');
  let sec='',tan=[],nisha=[],wide=[],san=[];
  txt.split(/\n/).forEach(l=>{
   l=l.trim();if(!l||/^【/.test(l))return;
@@ -67,9 +71,9 @@ function parse(){
   if(/\[SANREN\]/i.test(l)){sec='san';return}
   let a=l.split(/\s+/);
   if(sec==='tan'&&a.length>=2)tan.push({car:+a[0],od:od(a[1])});
-  if(sec==='nisha'&&a.length>=2)nisha.push({cars:pair(a[0]),od:od(a[1]),key:a[0]});
-  if(sec==='wide'&&a.length>=2)wide.push({cars:pair(a[0]),od:od(a[1]),key:a[0]});
-  if(sec==='san'&&a.length>=2)san.push({cars:pair(a[0]),od:od(a[1]),key:a[0]});
+  if(sec==='nisha'&&a.length>=2)nisha.push({cars:pair(a[0]),od:od(a[1]),key:normCombo(a[0])});
+  if(sec==='wide'&&a.length>=2)wide.push({cars:pair(a[0]),od:od(a[1]),key:normCombo(a[0])});
+  if(sec==='san'&&a.length>=2)san.push({cars:pair(a[0]),od:od(a[1]),key:normCombo(a[0])});
  });
  tan.sort((a,b)=>a.od-b.od);
  nisha.sort((a,b)=>a.od-b.od);
@@ -85,6 +89,7 @@ function pos(c,list){
 }
 
 function axisLine(axis,list){
+ if(!axis)return[];
  let line=[axis];
  list.forEach(x=>{
   if(x.cars.includes(axis)){
@@ -102,7 +107,7 @@ function wallBefore(list){
   let nx=list[i+1];if(!nx)return;
   if([10,20,50].some(w=>x.od<w&&nx.od>=w))x.cars.forEach(c=>s.push(c));
  });
- return[...new Set(s)];
+ return uniq(s);
 }
 
 function renOh(cars,nisha,wide,san){
@@ -172,15 +177,55 @@ function superAna(cars,tan,ren,wide,san){
   .sort((a,b)=>b.pt-a.pt);
 }
 
+function dedupeTickets(arr){
+ let set=new Set(),out=[];
+ arr.forEach(t=>{
+  let p=t.split('-').map(Number);
+  if(p.length!==3)return;
+  if(new Set(p).size!==3)return;
+  if(set.has(t))return;
+  set.add(t);out.push(t);
+ });
+ return out;
+}
+
 function tickets(list){
  let cs=list.slice(0,4).map(x=>x.c);
  if(cs.length<3)return[];
- return [
+ return dedupeTickets([
   `${cs[0]}-${cs[1]}-${cs[2]}`,
   `${cs[0]}-${cs[2]}-${cs[1]}`,
   `${cs[1]}-${cs[0]}-${cs[2]}`,
   `${cs[1]}-${cs[2]}-${cs[0]}`
- ];
+ ]);
+}
+
+function fakeTickets(fake){
+ let heads=fake.gyaku30.map(x=>x.c);
+ let w=fake.wideHoles.filter(c=>!heads.includes(c))[0];
+ let main=fake.main||[];
+ let arr=[];
+
+ if(heads.length>=2 && w){
+  arr.push(`${heads[0]}-${w}-${heads[1]}`);
+  arr.push(`${heads[0]}-${heads[1]}-${w}`);
+  arr.push(`${heads[1]}-${w}-${heads[0]}`);
+  arr.push(`${heads[1]}-${heads[0]}-${w}`);
+ }
+
+ main.forEach(m=>{
+  if(heads[0]&&w&&m){
+   arr.push(`${heads[0]}-${w}-${m}`);
+   arr.push(`${heads[0]}-${m}-${w}`);
+  }
+ });
+
+ if(heads.length>=2 && main[0]){
+  arr.push(`${heads[0]}-${heads[1]}-${main[0]}`);
+  arr.push(`${heads[0]}-${main[0]}-${heads[1]}`);
+ }
+
+ return dedupeTickets(arr).slice(0,8);
 }
 
 function autoRoleLamp(final,tan,nisha,wide,san,ijyo,ana){
@@ -199,7 +244,7 @@ function autoRoleLamp(final,tan,nisha,wide,san,ijyo,ana){
  let tansho=[];
  let kakure=[];
  let gyakuAtama=[];
- 
+
  final.forEach(x=>{
   let c=x.c;
   let od=tanMap[c]||999;
@@ -239,32 +284,90 @@ function autoRoleLamp(final,tan,nisha,wide,san,ijyo,ana){
  return {honmei,tansho,kakure,gyakuAtama};
 }
 
-function decidePriority(final,role,ren){
+function detectFakeHonsen(tan,nisha,wide,san,ren,role,tanMed,nMed,wMed,nBefore,wBefore){
+ let main=ren.slice(0,2).map(x=>x.c);
+ let mainSet=new Set(main);
+ let nishaTop=nisha[0]?nisha[0].od:999;
+ let renStrong=ren.length>=2 && ren[0].pt>=80 && ren[1].pt>=75;
+ let gyaku30=(role.gyakuAtama||[]).filter(x=>x.pt>=30);
+ let medOutside=uniq([...tanMed,...nMed].filter(c=>!mainSet.has(c)));
+ let wideHoles=uniq([...wMed,...wBefore].filter(c=>!mainSet.has(c)));
+ let sanOutside=san.slice(0,20).some(x=>{
+  let hasMainPair=main.length>=2 && x.cars.includes(main[0]) && x.cars.includes(main[1]);
+  let hasHole=x.cars.some(c=>!mainSet.has(c) && (gyaku30.some(g=>g.c===c)||wideHoles.includes(c)));
+  return !hasMainPair && hasHole;
+ });
+
+ let reasons=[];
+ if(nishaTop<=4.5)reasons.push(`2車複1番人気が低め：${nishaTop}倍`);
+ if(renStrong)reasons.push(`連王・相手王が強い：${ren[0].c} ${ren[0].pt}点 / ${ren[1].c} ${ren[1].pt}点`);
+ if(gyaku30.length>=2)reasons.push(`逆転頭30点以上が複数：${gyaku30.map(x=>x.c).join('・')}`);
+ if(medOutside.length)reasons.push(`本線外メジアン：${medOutside.join('・')}`);
+ if(wideHoles.length)reasons.push(`ワイド穴：${wideHoles.join('・')}`);
+ if(sanOutside)reasons.push(`3連系20位以内に本線外しあり`);
+
+ let optional=(medOutside.length?1:0)+(wideHoles.length?1:0)+(sanOutside?1:0);
+ let on=nishaTop<=4.5 && renStrong && gyaku30.length>=2 && optional>=2;
+
+ return {on,reasons,main,gyaku30,medOutside,wideHoles,sanOutside};
+}
+
+function decidePriority(final,role,ren,fake){
  let mode="NORMAL";
  let title="通常推奨";
  let msg="点数順で表示";
  let order=final.map(x=>x.c);
+ let customTickets=[];
 
- if(ren.length>=3 && ren[0].pt>=80 && ren[1].pt>=50 && ren[2].pt>=50){
-  mode="REN_STRONG";
-  title="👑連王80点超え優先発動";
-  msg="連王が強すぎるため、逆転頭より連王・相手王・穴王を優先";
-  order=[ren[0].c,ren[2].c,ren[1].c];
- }else{
-  let g=(role.gyakuAtama||[]).filter(x=>x.pt>=35);
+ if(fake.on){
+  mode="FAKE";
+  title="🚨偽本線崩壊ランプ発動";
+  msg="連王80点超え優先を解除。逆転頭を頭候補へ昇格し、ワイドメジアン馬を2・3着穴に残す";
+  let heads=fake.gyaku30.map(x=>x.c);
+  let wideHole=fake.wideHoles.filter(c=>!heads.includes(c))[0];
+  order=[];
+  if(heads[0])order.push(heads[0]);
+  if(wideHole)order.push(wideHole);
+  if(heads[1])order.push(heads[1]);
+  fake.main.forEach(c=>{if(!order.includes(c))order.push(c)});
+  customTickets=fakeTickets(fake);
+ }
+ else{
+  let g=(role.gyakuAtama||[]).filter(x=>x.pt>=30);
   if(g.length>=2){
    mode="GYAKU";
-   title="🚨逆転頭35点以上・2頭発動";
-   msg="逆転頭が2頭強いため、連王より逆転頭2頭を軸にする";
+   title="🚨逆転頭30点以上・2頭発動";
+   msg="逆転頭が2頭強いため、連王より逆転頭2頭を優先";
    order=[g[0].c,g[1].c];
-   if(ren[0] && !order.includes(ren[0].c))order.push(ren[0].c);
+   if(ren[0]&&!order.includes(ren[0].c))order.push(ren[0].c);
+   if(ren[1]&&!order.includes(ren[1].c))order.push(ren[1].c);
+  }
+  else if(ren.length>=3 && ren[0].pt>=80 && ren[1].pt>=50 && ren[2].pt>=50){
+   mode="REN_STRONG";
+   title="👑連王80点超え優先発動";
+   msg="連王が強いため、連王・相手王・穴王を優先";
+   order=[ren[0].c,ren[2].c,ren[1].c];
   }
  }
 
  let used=new Set(order);
  final.forEach(x=>{if(!used.has(x.c)){order.push(x.c);used.add(x.c)}});
  let sorted=order.map(c=>final.find(x=>x.c===c)).filter(Boolean);
- return {mode,title,msg,final:sorted};
+ return {mode,title,msg,final:sorted,tickets:customTickets,fake};
+}
+
+function renderFakeLamp(fake){
+ if(!fake.on)return '';
+ return `<div class="card fake">
+  <div class="fakeTitle">🚨偽本線崩壊ランプ</div>
+  <div class="big">本線に見える：${fake.main.map(n).join('・')}</div>
+  <div class="hot">逆転頭：${fake.gyaku30.map(x=>n(x.c)).join('・')}</div>
+  <div class="big yellow">ワイド穴：${fake.wideHoles.map(n).join('・')||'なし'}</div>
+  <hr>
+  <div class="small">${fake.reasons.join('<br>')}</div>
+  <hr>
+  <div>判定：連王80点超え優先を解除。逆転頭＋ワイド穴を優先。</div>
+ </div>`;
 }
 
 function renderPriority(p){
@@ -275,7 +378,7 @@ function renderPriority(p){
  </div>`;
 }
 
-function renderRoleLamp(role){
+function renderRoleLamp(role,priority){
  let html=`<div class="card roleBox">`;
  html+=`<div class="roleSSS">🚨逆転頭ランプ</div>`;
  if(!role.gyakuAtama || !role.gyakuAtama.length){
@@ -313,12 +416,28 @@ function renderRoleLamp(role){
   });
  }
 
+ let buyRen="見送り";
+ let guide="基本：連王80点超えは本線優先。ただし偽本線崩壊ランプ・逆転頭30点複数なら逆転優先。";
+
+ if(priority.mode==="FAKE"){
+  buyRen="偽本線崩壊で買い";
+  guide="偽本線崩壊中。連王・相手王は軸ではなく相手へ降格。逆転頭とワイド穴を優先。";
+ }else if(priority.mode==="GYAKU"){
+  buyRen="逆転頭モードで買い";
+  guide="逆転頭30点以上が複数。連王より逆転頭を優先。";
+ }else if(priority.mode==="REN_STRONG"){
+  buyRen="連王中心で買い";
+  guide="連王80点超え。偽本線崩壊が出ていないため本線優先。";
+ }else if(role.honmei.length){
+  buyRen=role.honmei.slice(0,2).map(x=>n(x.c)).join("・");
+ }
+
  html+=`<div class="buyBox">
   <div class="title">買い方</div>
-  <div>連系：${role.honmei.length?role.honmei.slice(0,2).map(x=>n(x.c)).join("・"):"見送り"}</div>
+  <div>連系：${buyRen}</div>
   <div>単勝：${role.tansho.length?role.tansho.slice(0,2).map(x=>n(x.c)).join("・"):"なし"}</div>
   <div>隠れ穴：${role.kakure.length?role.kakure.slice(0,2).map(x=>n(x.c)).join("・"):"なし"}</div>
-  <div class="small">基本：連王80点超えは本線優先。逆転頭35点以上が2頭なら逆転警戒。</div>
+  <div class="small">${guide}</div>
  </div>`;
 
  html+=`</div>`;
@@ -365,11 +484,13 @@ function run(){
 
  let final=cars.map(c=>({c,pt:finalScore[c]||0,memo:finalMemo[c]||[]})).sort((a,b)=>b.pt-a.pt);
  let role=autoRoleLamp(final,tan,nisha,wide,san,ijyo,ana);
- let priority=decidePriority(final,role,ren);
+ let fake=detectFakeHonsen(tan,nisha,wide,san,ren,role,tanMed,nMed,wMed,nBefore,wBefore);
+ let priority=decidePriority(final,role,ren,fake);
  final=priority.final;
 
  let html='';
- html+=renderRoleLamp(role);
+ html+=renderFakeLamp(fake);
+ html+=renderRoleLamp(role,priority);
  html+=renderPriority(priority);
 
  html+=`<div class=card><div class=title>🔥超勝負ランプ</div>`;
@@ -403,10 +524,12 @@ function run(){
  ijyo.slice(0,5).forEach(x=>html+=`<div>${n(x.c)} <span class=hot>${x.pt}点</span><br><span class=small>${x.memo.join(' / ')}</span></div><hr>`);
  html+=`</div>`;
 
+ let recTickets=priority.tickets&&priority.tickets.length?priority.tickets:tickets(final);
+
  html+=`<div class=card><div class=title>🎯チャッピー推奨</div>
  <div class=big>軸：${final.slice(0,2).map(x=>n(x.c)).join('・')}</div>
  <div class="big yellow">穴：${final.slice(2,5).map(x=>n(x.c)).join('・')}</div>
- <hr><div class=title>3連系候補</div>${tickets(final).map(t=>`<div class=big>${t}</div>`).join('')}
+ <hr><div class=title>3連系候補</div>${recTickets.map(t=>`<div class=big>${t}</div>`).join('')}
  </div>`;
 
  out.innerHTML=html;
