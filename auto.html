@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 オートV27</title>
+<title>チャッピー神予想 オートV28</title>
 <style>
 body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;padding:14px}
 h1{font-size:28px;color:#ffd84d}
@@ -31,10 +31,12 @@ hr{border:0;border-top:1px solid #334155}
 .supportTitle{font-size:32px;font-weight:900;color:#38bdf8}
 .anaBreak{border:3px solid #facc15;background:#2a2307;box-shadow:0 0 18px rgba(250,204,21,.35)}
 .anaTitle{font-size:32px;font-weight:900;color:#facc15}
+.tri{border:3px solid #22c55e;background:#062a17;box-shadow:0 0 18px rgba(34,197,94,.35)}
+.triTitle{font-size:32px;font-weight:900;color:#22c55e}
 </style>
 </head>
 <body>
-<h1>🏍️ チャッピー神予想 オートV27</h1>
+<h1>🏍️ チャッピー神予想 オートV28</h1>
 
 <textarea id="inp" placeholder="【山陽10R】
 
@@ -156,7 +158,7 @@ function superAna(cars,tan,ren,wide,san){
  tan.forEach((x,i)=>tanRank[x.car]=i+1);
 
  function addAna(c,pt,label){
-  sc[c]=(sc[c]||0)+pt;
+    sc[c]=(sc[c]||0)+pt;
   if(!memo[c])memo[c]=[];
   if(!memo[c].includes(label))memo[c].push(label);
  }
@@ -179,7 +181,8 @@ function superAna(cars,tan,ren,wide,san){
   .filter(x=>x.pt>=10)
   .sort((a,b)=>b.pt-a.pt);
 }
- function renSupport(tan,nisha,wide,san,ren,nMed){
+
+function renSupport(tan,nisha,wide,san,ren,nMed){
  if(!ren || ren.length<5)return [];
  if(ren[0].pt<80)return [];
 
@@ -293,24 +296,80 @@ function anaMedianTickets(anaMedian,support){
  let p=anaMedian.partner;
  let a=anaMedian.car;
  let arr=[
-  `${k}-${a}-${p}`,
-  `${k}-${p}-${a}`,
   `${a}-${k}-${p}`,
   `${a}-${p}-${k}`,
+  `${k}-${a}-${p}`,
+  `${k}-${p}-${a}`,
   `${p}-${k}-${a}`,
   `${p}-${a}-${k}`
  ];
  support.slice(0,2).forEach(s=>{
   let c=s.c;
   if(c!==a && c!==k && c!==p){
+   arr.push(`${a}-${k}-${c}`);
+   arr.push(`${a}-${c}-${k}`);
    arr.push(`${k}-${a}-${c}`);
    arr.push(`${k}-${c}-${a}`);
   }
  });
- return dedupeTickets(arr).slice(0,9);
+ return dedupeTickets(arr).slice(0,10);
 }
 
-function autoRoleLamp(final,tan,nisha,wide,san,ijyo,ana){
+function triangleTickets(triangle){
+ if(!triangle.on)return[];
+ let c=triangle.cars;
+ return dedupeTickets([
+  `${c[0]}-${c[1]}-${c[2]}`,
+  `${c[0]}-${c[2]}-${c[1]}`,
+  `${c[1]}-${c[0]}-${c[2]}`,
+  `${c[1]}-${c[2]}-${c[0]}`,
+  `${c[2]}-${c[0]}-${c[1]}`,
+  `${c[2]}-${c[1]}-${c[0]}`
+ ]);
+}
+
+function topPair(list,a,b,limit){
+ return list.slice(0,limit).some(x=>x.cars.includes(a)&&x.cars.includes(b));
+}
+
+function topTri(list,a,b,c,limit){
+ return list.slice(0,limit).some(x=>x.cars.includes(a)&&x.cars.includes(b)&&x.cars.includes(c));
+}
+
+function detectTriangleLock(ren,nisha,wide,san){
+ let empty={on:false,reasons:[],cars:[]};
+ if(!ren || ren.length<3)return empty;
+
+ let king=ren[0], partner=ren[1], hole=ren[2];
+ let cars=[king.c,partner.c,hole.c];
+
+ let strong = king.pt>=80 && partner.pt>=80 && hole.pt>=70;
+ if(!strong)return empty;
+
+ let pairs=[
+  [cars[0],cars[1]],
+  [cars[0],cars[2]],
+  [cars[1],cars[2]]
+ ];
+
+ let nCnt=pairs.filter(p=>topPair(nisha,p[0],p[1],12)).length;
+ let wCnt=pairs.filter(p=>topPair(wide,p[0],p[1],12)).length;
+ let sanHit=topTri(san,cars[0],cars[1],cars[2],12);
+
+ let on = nCnt>=2 && wCnt>=2 && sanHit;
+
+ let reasons=[
+  `連王：${king.c} ${king.pt}点`,
+  `相手王：${partner.c} ${partner.pt}点`,
+  `穴王：${hole.c} ${hole.pt}点`,
+  `2車複三角：${nCnt}/3`,
+  `ワイド三角：${wCnt}/3`,
+  `3連系上位同居：${sanHit?'あり':'なし'}`
+ ];
+
+ return {on,reasons,cars};
+}
+ function autoRoleLamp(final,tan,nisha,wide,san,ijyo,ana){
  let tanMap={},tanRank={};
  tan.forEach((x,i)=>{tanMap[x.car]=x.od;tanRank[x.car]=i+1});
 
@@ -357,7 +416,7 @@ function autoRoleLamp(final,tan,nisha,wide,san,ijyo,ana){
   if(od>=20 && (nr>=2 || wr>=2) && sr>=1){
    kakure.push({c,pt:x.pt,od,memo:[...memo,"隠れ穴"]});
   }
-   });
+ });
 
  honmei.sort((a,b)=>b.pt-a.pt);
  tansho.sort((a,b)=>b.pt-a.pt);
@@ -413,14 +472,29 @@ function detectAnaMedianBreak(ren,role,tanMed,nMed,wMed){
  return {on,reasons,car,king:king.c,partner:partner.c,hole:hole?hole.c:null,gyaku};
 }
 
-function decidePriority(final,role,ren,fake,support,anaMedian){
+function decidePriority(final,role,ren,fake,support,anaMedian,triangle){
  let mode="NORMAL";
  let title="通常推奨";
  let msg="点数順で表示";
  let order=final.map(x=>x.c);
  let customTickets=[];
 
- if(fake.on){
+ if(anaMedian.on){
+  mode="ANA_MEDIAN";
+  title="👑穴王頭昇格ランプ発動";
+  msg="穴王が単勝・2車複・ワイドのメジアンを独占。相手穴ではなく1着固定候補へ昇格";
+  order=[anaMedian.car,anaMedian.king,anaMedian.partner];
+  support.forEach(s=>{if(!order.includes(s.c))order.push(s.c)});
+  customTickets=anaMedianTickets(anaMedian,support);
+ }
+ else if(triangle.on){
+  mode="TRIANGLE_LOCK";
+  title="🔺三強三角ロックランプ発動";
+  msg="連王・相手王・穴王の三角が強い。3車ボックスを優先";
+  order=[...triangle.cars];
+  customTickets=triangleTickets(triangle);
+ }
+ else if(fake.on){
   mode="FAKE";
   title="🚨偽本線崩壊ランプ発動";
   msg="連王80点超え優先を解除。逆転頭を頭候補へ昇格し、ワイドメジアン馬を2・3着穴に残す";
@@ -432,14 +506,6 @@ function decidePriority(final,role,ren,fake,support,anaMedian){
   if(heads[1])order.push(heads[1]);
   fake.main.forEach(c=>{if(!order.includes(c))order.push(c)});
   customTickets=fakeTickets(fake);
- }
- else if(anaMedian.on){
-  mode="ANA_MEDIAN";
-  title="👑穴王メジアン一点突破ランプ発動";
-  msg="穴王が単勝・2車複・ワイドのメジアンを独占。本線軸より穴王メジアン車を1〜3着中心へ昇格";
-  order=[anaMedian.king,anaMedian.car,anaMedian.partner];
-  support.forEach(s=>{if(!order.includes(s.c))order.push(s.c)});
-  customTickets=anaMedianTickets(anaMedian,support);
  }
  else{
   let g=(role.gyakuAtama||[]).filter(x=>x.pt>=30);
@@ -470,10 +536,9 @@ function decidePriority(final,role,ren,fake,support,anaMedian){
  let used=new Set(order);
  final.forEach(x=>{if(!used.has(x.c)){order.push(x.c);used.add(x.c)}});
  let sorted=order.map(c=>final.find(x=>x.c===c)).filter(Boolean);
- return {mode,title,msg,final:sorted,tickets:customTickets,fake,support,anaMedian};
+ return {mode,title,msg,final:sorted,tickets:customTickets,fake,support,anaMedian,triangle};
 }
-
-function renderFakeLamp(fake){
+ function renderFakeLamp(fake){
  if(!fake.on)return '';
  return `<div class="card fake">
   <div class="fakeTitle">🚨偽本線崩壊ランプ</div>
@@ -503,13 +568,25 @@ function renderSupportLamp(support,ren){
 function renderAnaMedianLamp(anaMedian){
  if(!anaMedian.on)return '';
  return `<div class="card anaBreak">
-  <div class="anaTitle">👑穴王メジアン一点突破ランプ</div>
+  <div class="anaTitle">👑穴王頭昇格ランプ</div>
   <div class="big">本線：${n(anaMedian.king)}・${n(anaMedian.partner)}</div>
   <div class="hot">穴王メジアン：${n(anaMedian.car)}</div>
   <hr>
   <div class="small">${anaMedian.reasons.join('<br>')}</div>
   <hr>
-  <div>判定：穴王メジアン車を1〜3着中心へ昇格。</div>
+  <div>判定：穴王メジアン車を相手穴で止めず、1着固定候補へ昇格。</div>
+ </div>`;
+}
+
+function renderTriangleLamp(triangle){
+ if(!triangle.on)return '';
+ return `<div class="card tri">
+  <div class="triTitle">🔺三強三角ロックランプ</div>
+  <div class="hot">三強：${triangle.cars.map(n).join('・')}</div>
+  <hr>
+  <div class="small">${triangle.reasons.join('<br>')}</div>
+  <hr>
+  <div>判定：広げすぎ注意。3車ボックス・三角ロック優先。</div>
  </div>`;
 }
 
@@ -537,8 +614,7 @@ function renderRoleLamp(role,priority){
   html+=`<div class="small">該当なし</div>`;
  }else{
   role.honmei.slice(0,4).forEach(x=>{
-
-      html+=`<div>${n(x.c)} <span class="hot">${x.pt}点</span> <span class="small">単${x.od}</span><br><span class="small">${x.memo.join(" / ")}</span></div><hr>`;
+   html+=`<div>${n(x.c)} <span class="hot">${x.pt}点</span> <span class="small">単${x.od}</span><br><span class="small">${x.memo.join(" / ")}</span></div><hr>`;
   });
  }
 
@@ -561,14 +637,17 @@ function renderRoleLamp(role,priority){
  }
 
  let buyRen="見送り";
- let guide="基本：連王80点超えは本線優先。ただし偽本線崩壊・穴王メジアン一点突破・逆転頭30点複数・連王補佐ランプを上位判定。";
+ let guide="基本：連王80点超えは本線優先。ただし穴王頭昇格・三強三角ロック・偽本線崩壊・逆転頭30点複数・連王補佐ランプを上位判定。";
 
- if(priority.mode==="FAKE"){
+ if(priority.mode==="ANA_MEDIAN"){
+  buyRen="穴王頭昇格で買い";
+  guide="穴王が単勝・2車複・ワイドのメジアンを独占。穴王を1着固定候補へ昇格。";
+ }else if(priority.mode==="TRIANGLE_LOCK"){
+  buyRen="三強三角ロックで買い";
+  guide="連王・相手王・穴王の三角が強い。広げすぎず3車ボックスを優先。";
+ }else if(priority.mode==="FAKE"){
   buyRen="偽本線崩壊で買い";
   guide="偽本線崩壊中。連王・相手王は軸ではなく相手へ降格。逆転頭とワイド穴を優先。";
- }else if(priority.mode==="ANA_MEDIAN"){
-  buyRen="穴王メジアン一点突破で買い";
-  guide="穴王が単勝・2車複・ワイドのメジアンを独占。穴王を1〜3着中心へ昇格。";
  }else if(priority.mode==="GYAKU"){
   buyRen="逆転頭モードで買い";
   guide="逆転頭30点以上が複数。連王より逆転頭を優先。";
@@ -577,7 +656,7 @@ function renderRoleLamp(role,priority){
   guide="連王は強いが、補佐車が本線内に割り込む形。補佐車を3連系から消さない。";
  }else if(priority.mode==="REN_STRONG"){
   buyRen="連王中心で買い";
-  guide="連王80点超え。崩壊・穴王一点突破・補佐が出ていないため本線優先。";
+  guide="連王80点超え。崩壊・穴王頭昇格・三角ロック・補佐が出ていないため本線優先。";
  }else if(role.honmei.length){
   buyRen=role.honmei.slice(0,2).map(x=>n(x.c)).join("・");
  }
@@ -593,8 +672,7 @@ function renderRoleLamp(role,priority){
  html+=`</div>`;
  return html;
 }
-
-function run(){
+ function run(){
  let{tan,nisha,wide,san}=parse();
 
  if(!tan.length && !nisha.length && !wide.length && !san.length){
@@ -638,12 +716,14 @@ function run(){
  let role=autoRoleLamp(final,tan,nisha,wide,san,ijyo,ana);
  let fake=detectFakeHonsen(tan,nisha,wide,san,ren,role,tanMed,nMed,wMed,nBefore,wBefore);
  let anaMedian=detectAnaMedianBreak(ren,role,tanMed,nMed,wMed);
- let priority=decidePriority(final,role,ren,fake,support,anaMedian);
+ let triangle=detectTriangleLock(ren,nisha,wide,san);
+ let priority=decidePriority(final,role,ren,fake,support,anaMedian,triangle);
  final=priority.final;
 
  let html='';
- html+=renderFakeLamp(fake);
  html+=renderAnaMedianLamp(anaMedian);
+ html+=renderTriangleLamp(triangle);
+ html+=renderFakeLamp(fake);
  html+=renderSupportLamp(support,ren);
  html+=renderRoleLamp(role,priority);
  html+=renderPriority(priority);
@@ -689,9 +769,13 @@ function run(){
    <div>押さえ：${priority.fake.main.map(n).join('・')}</div>`;
  }else if(priority.mode==="ANA_MEDIAN"){
   recommendHead=`
+   <div class=hot>穴王1着固定：${n(priority.anaMedian.car)}</div>
    <div class=big>本線軸：${n(priority.anaMedian.king)}・${n(priority.anaMedian.partner)}</div>
-   <div class="hot">穴王メジアン：${n(priority.anaMedian.car)}</div>
-   <div class="big yellow">中心：${n(priority.anaMedian.king)}-${n(priority.anaMedian.car)}-${n(priority.anaMedian.partner)}</div>`;
+   <div class="big yellow">中心：${n(priority.anaMedian.car)}-${n(priority.anaMedian.king)}-${n(priority.anaMedian.partner)}</div>`;
+ }else if(priority.mode==="TRIANGLE_LOCK"){
+  recommendHead=`
+   <div class=big>三強ロック：${priority.triangle.cars.map(n).join('・')}</div>
+   <div class="big yellow">3車ボックス優先</div>`;
  }else if(priority.mode==="REN_SUPPORT"){
   recommendHead=`
    <div class=big>本線軸：${ren[0]?n(ren[0].c):''}・${ren[1]?n(ren[1].c):''}</div>
@@ -712,4 +796,4 @@ function run(){
 }
 </script>
 </body>
-</html>                              
+</html>
