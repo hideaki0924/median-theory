@@ -3,1212 +3,710 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 V10.3 超超鉄板設定修正版</title>
-
+<title>チャッピー神予想 V1 メジアン×大谷式</title>
 <style>
 body{
-  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;
-  background:linear-gradient(180deg,#031225,#08244a,#031225);
+  margin:0;
+  background:#07101f;
   color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
   padding:14px;
-  font-size:18px;
+  font-size:17px;
+}
+h1{
+  font-size:25px;
+  line-height:1.25;
+  color:#ffd84d;
+  margin:4px 0 12px;
 }
 textarea{
   width:100%;
-  height:300px;
-  font-size:17px;
+  height:310px;
+  box-sizing:border-box;
+  border:2px solid #31415f;
   border-radius:14px;
   padding:12px;
+  font-size:16px;
+  line-height:1.45;
   background:#f8fafc;
-  color:#000;
-  box-sizing:border-box;
+  color:#111;
+  font-family:ui-monospace,Menlo,monospace;
 }
 button{
-  font-size:20px;
-  padding:11px 15px;
-  margin:6px 4px 6px 0;
-  border-radius:14px;
   border:0;
-  background:#22c55e;
-  color:#fff;
-  font-weight:bold;
-}
-.btn2{background:#3b82f6}
-.btn3{background:#64748b}
-.btn4{background:#f59e0b}
-.btn5{background:#ef4444}
-
-.box{
-  background:#06295a;
-  border:1px solid #1d6fe8;
-  box-shadow:0 0 14px rgba(0,120,255,.22);
-  border-radius:18px;
-  padding:14px;
-  margin:12px 0;
-}
-.studyBox{
-  border:2px solid #a78bfa;
-  background:#1e1238;
-}
-.warningBox{
-  border:2px solid #fb7185;
-  background:#260716;
-}
-h1{font-size:27px}
-h2{
-  font-size:22px;
-  border-bottom:1px solid #60a5fa;
-  padding-bottom:6px;
-}
-.green{color:#22c55e;font-weight:bold}
-.yellow{color:#facc15;font-weight:bold}
-.red{color:#fb7185;font-weight:bold}
-.hot{color:#fb7185;font-size:24px;font-weight:bold}
-.gold{color:#facc15;font-size:24px;font-weight:bold}
-.small{font-size:15px;color:#dbeafe}
-.raceTitle{font-size:30px;font-weight:bold;color:#facc15}
-
-.rankWrap{overflow-x:auto;white-space:nowrap}
-.row{margin:12px 0;font-size:24px;font-weight:bold}
-.label{
-  display:inline-block;
-  width:80px;
-  color:#dbeafe;
+  border-radius:14px;
+  padding:13px 16px;
+  margin:8px 4px 8px 0;
   font-size:18px;
-}
-.cell{
-  display:inline-block;
-  min-width:34px;
-  text-align:center;
-  padding:4px 6px;
-  border-right:1px solid #60a5fa;
-}
-.wallUma{border-right:3px solid #ff3b30}
-.wallWin{border-right:3px solid #3b82f6}
-.wallPlace{border-right:3px solid #facc15}
-
-.ooana{
-  background:#020617;
-  border:3px solid #38bdf8;
-  border-radius:22px;
-  padding:16px;
-  margin:16px 0;
-  box-shadow:0 0 14px #38bdf8,0 0 34px #38bdf8;
-  animation:ooanaFlash 1.2s infinite alternate;
-}
-.ooana h2{
-  color:#7dd3fc;
-  text-shadow:0 0 10px #38bdf8;
-  font-size:28px;
-}
-.ooHit{
-  color:#7dd3fc;
-  font-size:26px;
-  font-weight:900;
-  margin:12px 0 4px;
-}
-.ooMemo{
-  color:#dbeafe;
-  font-size:16px;
-  margin-bottom:10px;
-}
-@keyframes ooanaFlash{
-  from{box-shadow:0 0 10px #38bdf8,0 0 24px #38bdf8}
-  to{box-shadow:0 0 24px #38bdf8,0 0 70px #38bdf8}
-}
-
-.tanpukuLamp{
-  background:#020617;
-  border:3px solid #ef4444;
-  border-radius:22px;
-  padding:16px;
-  margin:16px 0;
-  box-shadow:0 0 18px #ef4444,0 0 44px #ef4444;
-}
-.tanpukuLamp h2{
-  color:#fecaca;
-  text-shadow:0 0 10px #ef4444;
-  font-size:28px;
-}
-.lampSSS{color:#ff4d4d;font-size:34px;font-weight:900}
-.lampSS{color:#fb923c;font-size:30px;font-weight:900}
-.lampS{color:#facc15;font-size:28px;font-weight:900}
-.lampB{color:#94a3b8;font-size:26px;font-weight:900}
-.buyJudge{
-  background:#111827;
-  border:2px solid #facc15;
-  border-radius:16px;
-  padding:12px;
-  margin-top:12px;
-  font-size:22px;
-  font-weight:900;
-}
-
-/* 偽本命超勝負ランプ */
-.fakeUltra{
-  background:#180000;
-  border:6px solid #ffffff;
-  border-radius:26px;
-  padding:18px;
-  margin:18px 0;
-  box-shadow:0 0 25px #ffffff,0 0 70px #ef4444;
-  animation:fakeUltraFlash .38s infinite alternate;
-}
-.fakeUltra h2{
-  color:#fff;
-  font-size:32px;
-  text-shadow:0 0 12px #ef4444,0 0 22px #ffffff;
-}
-.fakeUltra .big{
-  color:#facc15;
-  font-size:30px;
-  font-weight:900;
-  margin:10px 0;
-}
-.fakeBuy{
-  background:#020617;
-  border:2px solid #facc15;
-  border-radius:16px;
-  padding:12px;
-  margin:12px 0;
-  font-size:21px;
   font-weight:800;
 }
-@keyframes fakeUltraFlash{
-  from{
-    border-color:#ffffff;
-    box-shadow:0 0 25px #ffffff,0 0 45px #ef4444;
-  }
-  to{
-    border-color:#ef4444;
-    box-shadow:0 0 40px #ef4444,0 0 110px #ffffff;
-  }
+.go{background:#22c55e;color:#052e16}
+.clear{background:#64748b;color:#fff}
+.sample{background:#facc15;color:#422006}
+.card{
+  background:#0f1b33;
+  border:1px solid #263653;
+  border-radius:16px;
+  padding:14px;
+  margin:12px 0;
+  box-shadow:0 6px 20px rgba(0,0,0,.25);
 }
-
-/* 超超鉄板ランプ */
-.ultraIron{
-  background:#001407;
-  border:6px solid #ffffff;
-  border-radius:26px;
-  padding:18px;
-  margin:18px 0;
-  box-shadow:0 0 25px #ffffff,0 0 70px #22c55e;
-  animation:ultraIronFlash .4s infinite alternate;
-}
-.ultraIron h2{
-  color:#fff;
-  font-size:32px;
-  text-shadow:0 0 12px #22c55e,0 0 22px #ffffff;
-}
-.ultraIron .big{
-  color:#fff;
-  font-size:30px;
+.title{
+  font-size:22px;
   font-weight:900;
+  color:#ffd84d;
+  margin-bottom:8px;
 }
-@keyframes ultraIronFlash{
-  from{
-    border-color:#ffffff;
-    box-shadow:0 0 25px #ffffff,0 0 45px #22c55e;
-  }
-  to{
-    border-color:#22c55e;
-    box-shadow:0 0 40px #22c55e,0 0 110px #ffffff;
-  }
+.sub{
+  font-size:19px;
+  font-weight:900;
+  color:#93c5fd;
+  margin:10px 0 6px;
 }
+.warn{color:#fb7185;font-weight:900}
+.good{color:#86efac;font-weight:900}
+.yellow{color:#fde68a;font-weight:900}
+.gray{color:#cbd5e1}
+.small{font-size:14px;color:#cbd5e1}
+hr{border:0;border-top:1px solid #334155;margin:12px 0}
+pre{
+  white-space:pre-wrap;
+  word-break:break-word;
+  background:#020617;
+  color:#e5e7eb;
+  padding:12px;
+  border-radius:12px;
+  overflow:auto;
+}
+table{
+  border-collapse:collapse;
+  min-width:720px;
+  font-size:14px;
+}
+th,td{
+  border:1px solid #334155;
+  padding:6px 8px;
+  text-align:center;
+}
+th{background:#1e293b;color:#fde68a}
+.scroll{
+  overflow-x:auto;
+  border-radius:12px;
+}
+.badge{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:999px;
+  background:#1e293b;
+  margin:2px;
+  font-weight:800;
+}
+.A{background:#14532d;color:#bbf7d0}
+.B{background:#78350f;color:#fde68a}
+.C{background:#581c87;color:#f5d0fe}
+.D{background:#3f1d1d;color:#fecaca}
 </style>
 </head>
-
 <body>
 
-<h1>チャッピー神予想 V10.3<br>超超鉄板設定修正版</h1>
+<h1>チャッピー神予想 V1<br>メジアン×大谷式・消しフィルター</h1>
 
-<div class="box">
-<textarea id="input" placeholder="【レース名】
+<textarea id="input" placeholder="ここにメジアンアプリコードを貼る
 
+例：
+【函館1R】
 [TANFUKU]
+2 1.8 1.1
+3 2.8 2.4
+7 7.0 4.9
 
 [UMAREN]
+2-3 1.9
+2-7 4.9
 
 [WIDE]
+2-3 1.2-1.4
+2-7 1.7-2.3
 
-[SANPUKU]"></textarea>
+[SANPUKU]
+2-3-7 3.4"></textarea>
+
 <br>
-<button onclick="analyze()">解析</button>
-<button class="btn2" onclick="testData()">テスト</button>
-<button class="btn3" onclick="resetInput()">リセット</button>
-<button class="btn4" onclick="copyResult()">結果コピー</button>
-<button class="btn5" onclick="goBottom()">最下部へ</button>
-</div>
+<button class="go" onclick="run()">診断する</button>
+<button class="clear" onclick="document.getElementById('input').value='';document.getElementById('out').innerHTML=''">クリア</button>
+<button class="sample" onclick="loadSample()">サンプル</button>
 
-<div id="result"></div>
-<div id="bottomAnchor"></div>
+<div id="out"></div>
 
 <script>
-function norm(s){
-  return s
-    .replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0))
-    .replace(/[－ー―–—]/g,"-")
-    .replace(/[．]/g,".");
+function zenToHan(str){
+  return String(str)
+    .replace(/[０-９]/g,s=>String.fromCharCode(s.charCodeAt(0)-0xFEE0))
+    .replace(/[．]/g,'.')
+    .replace(/[－ー―−]/g,'-')
+    .replace(/[　]/g,' ')
+    .replace(/[〜～]/g,'-');
 }
 
-function parseInput(text){
-  text=norm(text);
-  const lines=text.split(/\n/).map(x=>x.trim()).filter(Boolean);
+function nums(line){
+  const m = zenToHan(line).match(/\d+(?:\.\d+)?/g);
+  return m ? m.map(Number) : [];
+}
 
-  let mode="";
-  let raceName="レース名未入力";
+function parseOddsFromTail(line){
+  const n = nums(line);
+  if(!n.length) return null;
+  return n[n.length-1];
+}
 
-  const tanpuku=[];
-  const umaren=[];
-  const wide=[];
-  const sanpuku=[];
+function parseInput(raw){
+  const text = zenToHan(raw);
+  const lines = text.split(/\n/).map(x=>x.trim()).filter(Boolean);
+
+  let title = "レース";
+  let sec = "";
+  const tanfuku = [];
+  const umaren = [];
+  const wide = [];
+  const sanpuku = [];
 
   for(const line of lines){
-    if(line.match(/^【.*】$/)){
-      const t=line.replace(/[【】]/g,"");
-      if(!t.match(/TANFUKU|UMAREN|WIDE|SANPUKU|単勝|複勝|馬連|馬複|ワイド|三連複/i)){
-        raceName=t;
-      }
-      continue;
-    }
+    if(line.startsWith("【")) title = line;
+    if(/^\[TANFUKU\]/i.test(line)){sec="TANFUKU";continue;}
+    if(/^\[UMAREN\]/i.test(line)){sec="UMAREN";continue;}
+    if(/^\[WIDE\]/i.test(line)){sec="WIDE";continue;}
+    if(/^\[SANPUKU\]/i.test(line)){sec="SANPUKU";continue;}
 
-    if(line.match(/TANFUKU|単勝|複勝/i)){mode="TANFUKU";continue;}
-    if(line.match(/UMAREN|馬連|馬複/i)){mode="UMAREN";continue;}
-    if(line.match(/WIDE|ワイド/i)){mode="WIDE";continue;}
-    if(line.match(/SANPUKU|三連複/i)){mode="SANPUKU";continue;}
-
-    const p=line.split(/\s+/);
-
-    if(mode==="TANFUKU" && p.length>=3){
-      const win=parseFloat(p[1]);
-      const place=parseFloat(p[2]);
-      if(!isNaN(win)&&!isNaN(place)){
-        tanpuku.push({horse:p[0],win,place});
+    if(sec==="TANFUKU"){
+      const n = nums(line);
+      if(n.length>=3){
+        tanfuku.push({
+          h:String(Math.trunc(n[0])),
+          tan:n[1],
+          fuku:n[n.length-1]
+        });
       }
     }
 
-    if(mode==="UMAREN" && p.length>=2){
-      const odds=parseFloat(p[1]);
-      if(p[0].includes("-")&&!isNaN(odds)){
-        umaren.push({pair:p[0],odds});
+    if(sec==="UMAREN"){
+      const m = line.match(/(\d+)\s*-\s*(\d+)/);
+      const o = parseOddsFromTail(line);
+      if(m && o){
+        umaren.push({a:m[1],b:m[2],od:o,key:m[1]+"-"+m[2]});
       }
     }
 
-    if(mode==="WIDE" && p.length>=2){
-      const odds=parseFloat(p[1]);
-      if(p[0].includes("-")&&!isNaN(odds)){
-        wide.push({pair:p[0],odds});
+    if(sec==="WIDE"){
+      const m = line.match(/(\d+)\s*-\s*(\d+)/);
+      const o = parseOddsFromTail(line);
+      if(m && o){
+        wide.push({a:m[1],b:m[2],od:o,key:m[1]+"-"+m[2]});
       }
     }
 
-    if(mode==="SANPUKU" && p.length>=2){
-      const odds=parseFloat(p[1]);
-      if(p[0].includes("-")&&!isNaN(odds)){
-        sanpuku.push({trio:p[0],odds});
+    if(sec==="SANPUKU"){
+      const m = line.match(/(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/);
+      const o = parseOddsFromTail(line);
+      if(m && o){
+        sanpuku.push({a:m[1],b:m[2],c:m[3],od:o,key:m[1]+"-"+m[2]+"-"+m[3]});
       }
     }
   }
 
-  return {raceName,tanpuku,umaren,wide,sanpuku};
-}
-  function classify(topOdds){
-  if(topOdds<4)return{cls:"green",title:"本命戦",reason:"馬連1番人気が4倍未満"};
-  if(topOdds<9)return{cls:"yellow",title:"中荒れ戦",reason:"馬連1番人気が4倍以上9倍未満"};
-  if(topOdds<15)return{cls:"red",title:"荒れ戦",reason:"馬連1番人気が9倍以上15倍未満"};
-  return{cls:"red",title:"大荒れ戦",reason:"馬連1番人気が15倍以上"};
+  return {title,tanfuku,umaren,wide,sanpuku};
 }
 
-function wallIndexes(list,key){
-  const walls=new Set();
-  for(let i=0;i<list.length-1;i++){
-    const a=list[i][key];
-    const b=list[i+1][key];
-    if(a>0 && b/a>=1.8)walls.add(i);
+function sortByOd(arr){
+  return [...arr].sort((x,y)=>x.od-y.od);
+}
+
+function sortTanfuku(arr,key){
+  return [...arr].sort((x,y)=>x[key]-y[key]);
+}
+
+function horseList(data){
+  const s = new Set();
+  data.tanfuku.forEach(x=>s.add(x.h));
+  data.umaren.forEach(x=>{s.add(x.a);s.add(x.b);});
+  data.sanpuku.forEach(x=>{s.add(x.a);s.add(x.b);s.add(x.c);});
+  return [...s].sort((a,b)=>Number(a)-Number(b));
+}
+
+function middleItems(list){
+  if(!list.length) return [];
+  const n = list.length;
+  if(n===1) return [list[0]];
+  if(n%2===1) return [list[Math.floor(n/2)]];
+  return [list[n/2-1],list[n/2]];
+}
+
+function uniqueByOrder(arr){
+  const s = new Set();
+  const out = [];
+  for(const x of arr){
+    if(!s.has(x)){
+      s.add(x);
+      out.push(x);
+    }
+  }
+  return out;
+}
+
+function countPairs(pairs, topN){
+  const map = {};
+  sortByOd(pairs).slice(0,topN).forEach((p,i)=>{
+    [p.a,p.b].forEach(h=>{
+      if(!map[h]) map[h]={h,count:0,best:9999,rankSum:0};
+      map[h].count++;
+      map[h].best=Math.min(map[h].best,p.od);
+      map[h].rankSum+=i+1;
+    });
+  });
+  return Object.values(map).sort((x,y)=>y.count-x.count || x.best-y.best || x.rankSum-y.rankSum);
+}
+
+function countTriples(triples, topN){
+  const map = {};
+  sortByOd(triples).slice(0,topN).forEach((p,i)=>{
+    [p.a,p.b,p.c].forEach(h=>{
+      if(!map[h]) map[h]={h,count:0,best:9999,rankSum:0};
+      map[h].count++;
+      map[h].best=Math.min(map[h].best,p.od);
+      map[h].rankSum+=i+1;
+    });
+  });
+  return Object.values(map).sort((x,y)=>y.count-x.count || x.best-y.best || x.rankSum-y.rankSum);
+}
+
+function detectWalls(sortedOdds, maxRank, ratioTh, diffTh){
+  const arr = sortedOdds.slice(0,Math.min(maxRank,sortedOdds.length));
+  const walls = [];
+  for(let i=0;i<arr.length-1;i++){
+    const now = arr[i].od ?? arr[i].tan ?? arr[i].fuku;
+    const next = arr[i+1].od ?? arr[i+1].tan ?? arr[i+1].fuku;
+    const ratio = now>0 ? next/now : 0;
+    const diff = next-now;
+    if(ratio>=ratioTh || diff>=diffTh){
+      walls.push({
+        beforeRank:i+1,
+        afterRank:i+2,
+        before:arr[i],
+        after:arr[i+1],
+        ratio,
+        diff
+      });
+    }
+  }
+  if(!walls.length && arr.length>=2){
+    let best=null;
+    for(let i=0;i<arr.length-1;i++){
+      const now = arr[i].od ?? arr[i].tan ?? arr[i].fuku;
+      const next = arr[i+1].od ?? arr[i+1].tan ?? arr[i+1].fuku;
+      const ratio = now>0 ? next/now : 0;
+      const diff = next-now;
+      if(!best || ratio>best.ratio){
+        best={beforeRank:i+1,afterRank:i+2,before:arr[i],after:arr[i+1],ratio,diff};
+      }
+    }
+    if(best && best.ratio>=1.28) walls.push(best);
   }
   return walls;
 }
 
-function medianHorses(list){
-  if(!list.length)return[];
-  const n=list.length;
-  if(n%2===1)return [list[Math.floor(n/2)].horse];
-  return [list[n/2-1].horse,list[n/2].horse];
+function zoneFromWalls(sortedPairs,walls){
+  const top9 = sortedPairs.slice(0,Math.min(9,sortedPairs.length));
+  if(!top9.length) return [];
+
+  if(walls.length>=2){
+    const s = walls[0].afterRank-1;
+    const e = walls[1].beforeRank;
+    const z = top9.slice(s,e);
+    return z.length ? z : top9.slice(0,walls[0].beforeRank);
+  }
+
+  if(walls.length===1){
+    return top9.slice(0,walls[0].beforeRank);
+  }
+
+  return top9;
 }
 
-function addScore(map,h,pt=1){
-  if(!h)return;
-  map[h]=(map[h]||0)+pt;
-}
-
-function countMapAdd(map,h){
-  if(!h)return;
-  map[h]=(map[h]||0)+1;
-}
-
-function topList(map,min=1){
-  return Object.entries(map)
-    .filter(([h,p])=>p>=min)
-    .sort((a,b)=>b[1]-a[1])
-    .map(([h,p])=>`${h}(${p})`);
-}
-
-function beforeWallHorses(list,walls){
-  const s=new Set();
-  walls.forEach(i=>{
-    if(list[i])s.add(list[i].horse);
-    if(list[i-1])s.add(list[i-1].horse);
+function pairZoneHorses(pairs){
+  const seq=[];
+  pairs.forEach(p=>{
+    seq.push(p.a);
+    seq.push(p.b);
   });
-  return [...s];
+  return uniqueByOrder(seq);
 }
 
-function placeWallBefore(placeRank,limit){
-  const before=placeRank.filter(x=>x.place<limit);
-  if(!before.length)return[];
-  return before.slice(-2).map(x=>x.horse);
+function fukuWallFront(tanfuku,limit,count=2){
+  const arr = sortTanfuku(tanfuku,"fuku").filter(x=>x.fuku<=limit);
+  return arr.slice(Math.max(0,arr.length-count)).map(x=>x.h);
 }
 
-function placeWallAfter(placeRank,limit){
-  const after=placeRank.filter(x=>x.place>=limit);
-  if(!after.length)return[];
-  return after.slice(0,2).map(x=>x.horse);
+function fukuWallAfter(tanfuku,limit,count=2){
+  return sortTanfuku(tanfuku,"fuku").filter(x=>x.fuku>limit).slice(0,count).map(x=>x.h);
 }
 
-function placeWallOverMedian(placeRank,limit){
-  const over=placeRank.filter(x=>x.place>=limit);
-  return medianHorses(over);
+function tanWallFront(tanfuku,limit,count=2){
+  const arr = sortTanfuku(tanfuku,"tan").filter(x=>x.tan<=limit);
+  return arr.slice(Math.max(0,arr.length-count)).map(x=>x.h);
 }
 
-function rankLine(label,list,walls,type,highlight=[]){
-  let wallClass="";
-  if(type==="uma")wallClass="wallUma";
-  if(type==="win")wallClass="wallWin";
-  if(type==="place")wallClass="wallPlace";
+function hname(h){return h+"番";}
 
-  let html=`<div class="row"><span class="label">${label}</span>`;
-  list.forEach((x,i)=>{
-    let cls=walls.has(i)?`cell ${wallClass}`:"cell";
-    let style=highlight.includes(x.horse)
-      ? `style="color:#fff;background:#00aaff;border:2px solid #60a5fa;border-radius:8px;padding:2px 6px;font-weight:900"`
-      : "";
-    html+=`<span class="${cls}" ${style}>${x.horse}</span>`;
+function joinH(list){
+  return list && list.length ? list.map(h=>h+"番").join("・") : "なし";
+}
+
+function rankMap(list,key){
+  const m={};
+  list.forEach((x,i)=>{m[x.h]=i+1;});
+  return m;
+}
+
+function oddsOf(tanfuku,h,key){
+  const x=tanfuku.find(v=>v.h===h);
+  return x ? x[key] : null;
+}
+
+function makeTable(title,rows){
+  let html = '<div class="sub">'+title+'</div><div class="scroll"><table><tr>';
+  Object.keys(rows[0]||{}).forEach(k=>html+='<th>'+k+'</th>');
+  html+='</tr>';
+  rows.forEach(r=>{
+    html+='<tr>';
+    Object.values(r).forEach(v=>html+='<td>'+v+'</td>');
+    html+='</tr>';
   });
-  html+=`</div>`;
+  html+='</table></div>';
   return html;
 }
 
-function otaniLine(winRank,umaren){
-  if(!winRank.length||!umaren.length)return [];
-  const axis=winRank[0].horse;
-  const line=[axis];
-
-  [...umaren].sort((a,b)=>a.odds-b.odds).forEach(x=>{
-    const [a,b]=x.pair.split("-");
-    if(a===axis && !line.includes(b))line.push(b);
-    if(b===axis && !line.includes(a))line.push(a);
-  });
-
-  return line;
-}
-
-function buildOtaniZone(winRank,umaren){
-  const axis=winRank[0].horse;
-  const otani=otaniLine(winRank,umaren);
-
-  const oddsList=otani.slice(1).map(h=>{
-    const found=umaren.find(x=>{
-      const p=x.pair.split("-");
-      return p.includes(axis)&&p.includes(h);
-    });
-    return {horse:h,odds:found?found.odds:9999};
-  });
-
-  const otaniList=[{horse:axis,odds:0},...oddsList];
-  const rawWalls=wallIndexes(oddsList,"odds");
-  const walls=new Set([...rawWalls].map(i=>i+1));
-  const wallArr=[...walls].sort((a,b)=>a-b);
-
-  let wallText="馬連壁：なし";
-  let wallBefore=[];
-  let firstWallGroup=[];
-  let firstWallMed=[];
-
-  if(wallArr.length>0){
-    const w=wallArr[0];
-    firstWallGroup=otaniList.slice(0,w+1);
-    firstWallMed=medianHorses(firstWallGroup);
-    wallBefore=firstWallGroup.slice(-2).map(x=>x.horse);
-    wallText=`馬連壁：${wallArr.length}枚`;
-  }
-
-  return {axis,otaniList,walls,wallText,wallBefore,firstWallGroup,firstWallMed,zoneMed:firstWallMed};
-}
-
-function buildSignals(winRank,placeRank,umaren,sanpuku){
-  const ot=buildOtaniZone(winRank,umaren);
-
-  const winWalls=wallIndexes(winRank,"win");
-  const placeWalls=wallIndexes(placeRank,"place");
-
-  const winBefore=beforeWallHorses(winRank,winWalls);
-  const placeBefore=beforeWallHorses(placeRank,placeWalls);
-
-  const fuku10Before=placeWallBefore(placeRank,10);
-  const fuku10After=placeWallAfter(placeRank,10);
-  const fuku15Before=placeWallBefore(placeRank,15);
-  const fuku15After=placeWallAfter(placeRank,15);
-  const fuku15OverMed=placeWallOverMedian(placeRank,15);
-
-  const winMed=medianHorses(winRank);
-  const placeMed=medianHorses(placeRank);
-  const umaMed=ot.zoneMed;
-
-  const tanshoScore={};
-  [...winMed,...placeMed,...umaMed].forEach(h=>addScore(tanshoScore,h));
-  winBefore.forEach(h=>addScore(tanshoScore,h));
-  placeBefore.forEach(h=>addScore(tanshoScore,h));
-  ot.wallBefore.forEach(h=>addScore(tanshoScore,h));
-  fuku15OverMed.forEach(h=>addScore(tanshoScore,h));
-
-  const gekisoScore={};
-  fuku10Before.forEach(h=>addScore(gekisoScore,h,2));
-  fuku15Before.forEach(h=>addScore(gekisoScore,h,2));
-  fuku15OverMed.forEach(h=>addScore(gekisoScore,h,2));
-  ot.wallBefore.forEach(h=>addScore(gekisoScore,h,1));
-  winRank.filter(x=>x.win>=10&&x.win<=30).forEach(x=>addScore(gekisoScore,x.horse,1));
-
-  const tanshoList=topList(tanshoScore,2);
-  const gekisoList=topList(gekisoScore,2);
-
-  const tanshoSet=new Set(tanshoList.map(x=>x.split("(")[0]));
-  const gekisoSet=new Set(gekisoList.map(x=>x.split("(")[0]));
-  const shobu=[...tanshoSet].filter(h=>gekisoSet.has(h));
-
-  return {
-    ot,winWalls,placeWalls,winBefore,placeBefore,
-    fuku10Before,fuku10After,fuku15Before,fuku15After,fuku15OverMed,
-    winMed,placeMed,umaMed,
-    tanshoScore,gekisoScore,tanshoList,gekisoList,
-    tanshoSet,gekisoSet,shobu
-  };
-}
-  function countCenterIndex(umaren,sanpuku){
-  const umaMap={};
-  const sanMap={};
-
-  umaren.forEach(x=>{
-    x.pair.split("-").forEach(h=>countMapAdd(umaMap,h));
-  });
-
-  sanpuku.forEach(x=>{
-    x.trio.split("-").forEach(h=>countMapAdd(sanMap,h));
-  });
-
-  const all=[...new Set([...Object.keys(umaMap),...Object.keys(sanMap)])];
-
-  return all.map(h=>({
-    horse:h,
-    uma:umaMap[h]||0,
-    san:sanMap[h]||0,
-    total:(umaMap[h]||0)+(sanMap[h]||0)
-  })).sort((a,b)=>b.total-a.total);
-}
-
-function diagnosis(winRank,placeRank,topUmaren){
-  const race=classify(topUmaren.odds);
-
-  const tan10=winRank.filter(x=>x.win<10).length;
-  const tan30=winRank.filter(x=>x.win<30).length;
-  const fuku6=placeRank.filter(x=>x.place<6).length;
-  const fuku10=placeRank.filter(x=>x.place<10).length;
-  const fuku15=placeRank.filter(x=>x.place<15).length;
-
-  const warnings=[];
-  if(tan10>=6)warnings.push("7・8人気警報");
-  if(tan30>=8)warnings.push("単勝30倍未満が多い混戦");
-  if(fuku6>=7)warnings.push("複勝6倍未満が多い");
-  if(topUmaren.odds>=15)warnings.push("超大荒れ警報");
-  else if(topUmaren.odds>=9)warnings.push("荒れ注意");
-
-  return {race,tan10,tan30,fuku6,fuku10,fuku15,warnings};
-}
-
-function renderTanpukuLamp(sig,d,winRank,placeRank,topUmaren){
-  const score={};
-  const memo={};
-
-  function add(h,pt,label){
-    if(!h)return;
-    score[h]=(score[h]||0)+pt;
-    if(!memo[h])memo[h]=[];
-    if(!memo[h].includes(label))memo[h].push(label);
-  }
-
-  sig.fuku15Before.forEach(h=>add(h,4,"複勝15倍壁前"));
-  sig.fuku15After.forEach(h=>add(h,3,"複勝15倍壁直後"));
-  sig.fuku15OverMed.forEach(h=>add(h,5,"複勝15倍超メジアン"));
-  sig.ot.wallBefore.forEach(h=>add(h,3,"馬連壁前"));
-  [...sig.tanshoSet].forEach(h=>add(h,4,"単勝案件"));
-  [...sig.gekisoSet].forEach(h=>add(h,4,"超激走"));
-  sig.winMed.forEach(h=>add(h,2,"単勝メジアン"));
-  sig.placeMed.forEach(h=>add(h,2,"複勝メジアン"));
-
-  if(d.tan10>=6){
-    if(winRank[6])add(winRank[6].horse,4,"10倍未満6頭→7人気");
-    if(winRank[7])add(winRank[7].horse,4,"10倍未満6頭→8人気");
-  }
-
-  if(topUmaren.odds>=15){
-    Object.keys(score).forEach(h=>add(h,2,"馬連1人気15倍以上"));
-  }
-
-  const list=Object.entries(score)
-    .map(([horse,pt])=>({
-      horse,
-      pt,
-      memo:memo[horse]||[],
-      win:winRank.find(x=>x.horse===horse)?.win,
-      place:placeRank.find(x=>x.horse===horse)?.place
-    }))
-    .sort((a,b)=>b.pt-a.pt);
-
-  const top=list[0];
-
-  let rank="B";
-  let cls="lampB";
-  let buy="見送り";
-  let comment="条件不足。ここは無理に買わない。";
-  let judge="❌ 買わない";
-
-  if(top){
-    if(top.pt>=18){
-      rank="SSS";
-      cls="lampSSS";
-      buy="単勝20％・複勝80％";
-      comment="超大穴単複勝負。連系より単複で拾う形。";
-      judge="⭕ 勝負";
-    }else if(top.pt>=13){
-      rank="SS";
-      cls="lampSS";
-      buy="複勝中心";
-      comment="かなり怪しい。複勝だけで狙う価値あり。";
-      judge="⭕ 買う";
-    }else if(top.pt>=9){
-      rank="S";
-      cls="lampS";
-      buy="複勝少額";
-      comment="穴警戒。買うなら少額。";
-      judge="△ 少額";
-    }
-  }
-
-  let rows="";
-  list.slice(0,5).forEach((x,i)=>{
-    rows+=`
-      <div style="margin:10px 0;border-top:1px solid #334155;padding-top:8px">
-        <div class="gold">${i+1}位　${x.horse}番【${x.pt}】 単${x.win} / 複${x.place}</div>
-        <div class="small">${x.memo.join("・")}</div>
-      </div>
-    `;
-  });
-
-  return {
-    html:`<div class="tanpukuLamp">
-      <h2>🚨超大穴 単複勝負ランプ</h2>
-      <div class="${cls}">判定：${rank}</div>
-      <div class="hot">
-        ${top ? `最注目：${top.horse}番　単勝${top.win} / 複勝${top.place}` : "該当馬なし"}
-      </div>
-      <p class="gold">推奨：${buy}</p>
-      <p>${comment}</p>
-      <div class="buyJudge">${judge}</div>
-      <div class="small">基本方針：SSS・SSだけ勝負。Sは少額。Bは見送り。</div>
-      ${rows}
-    </div>`,
-    list
-  };
-}
-
-function renderDiagnosis(d,topUmaren){
-  return `<div class="box">
-    <h2>🩺レース診断</h2>
-    <div>馬連1番人気：<b>${topUmaren.pair}</b> ${topUmaren.odds}倍</div>
-    <div class="${d.race.cls}" style="font-size:28px">${d.race.title}</div>
-    <div class="small">${d.race.reason}</div>
-    <br>
-    <div>単勝10倍未満：<b>${d.tan10}頭</b></div>
-    <div>単勝30倍未満：<b>${d.tan30}頭</b></div>
-    <div>複勝6倍未満：<b>${d.fuku6}頭</b></div>
-    <div>複勝10倍未満：<b>${d.fuku10}頭</b></div>
-    <div>複勝15倍未満：<b>${d.fuku15}頭</b></div>
-    <br>
-    <div class="hot">${d.warnings.length?d.warnings.join("・"):"特別警報なし"}</div>
-  </div>`;
-}
-
-function renderCenterIndex(list){
-  const a=list[0],b=list[1],c=list[2],d=list[3];
-
-  return `<div class="box">
-    <h2>👑本表の王様</h2>
-    <div class="small">馬連＋三連複の出現数</div>
-    ${a?`<div class="hot" style="font-size:34px;margin:8px 0">🥇${a.horse}【${a.total}】</div>`:""}
-    ${b?`<div class="gold" style="font-size:30px;margin:8px 0">🥈${b.horse}【${b.total}】</div>`:""}
-    <div style="font-size:25px;font-weight:bold;margin:10px 0">
-      ${c?`🥉${c.horse}【${c.total}】`:""}
-      &nbsp;&nbsp;
-      ${d?`④${d.horse}【${d.total}】`:""}
-    </div>
-  </div>`;
-}
-
-function renderTanshoGekiso(sig){
-  return `
-  <div class="box">
-    <h2>🔥単勝案件</h2>
-    <div class="gold">${sig.tanshoList.length?sig.tanshoList.join("　"):"該当なし"}</div>
-    <div class="small">単勝・複勝・馬連メジアンや壁前が重なった馬</div>
-  </div>
-
-  <div class="box">
-    <h2>🚨超激走注意馬</h2>
-    <div class="hot">${sig.gekisoList.length?sig.gekisoList.join("　"):"該当なし"}</div>
-    <div class="small">複勝10/15壁前・15超メジアン・馬連壁前・単勝10〜30倍が重なった馬</div>
-  </div>`;
-}
-  function renderOtani(sig){
-  const ot=sig.ot;
-  const firstGroup=ot.firstWallGroup.map(x=>x.horse);
-
-  return `<div class="box">
-    <h2>🏇大谷式 馬連壁</h2>
-    <div>${ot.wallText}</div>
-    <div>壁前：<b class="gold">${ot.wallBefore.length?ot.wallBefore.join("・"):"なし"}</b></div>
-    <div>1番人気〜壁前：<b class="gold">${firstGroup.length?firstGroup.join("・"):"なし"}</b></div>
-    <div>壁内メジアン：<b class="hot">${ot.firstWallMed.length?ot.firstWallMed.join("・"):"なし"}</b></div>
-  </div>`;
-}
-
-function renderOoana(sig){
-  const score={};
-  const memo={};
-
-  function add(h,pt,label){
-    if(!h)return;
-    score[h]=(score[h]||0)+pt;
-    if(!memo[h])memo[h]=[];
-    if(!memo[h].includes(label))memo[h].push(label);
-  }
-
-  sig.shobu.forEach(h=>add(h,6,"勝負ランプ"));
-  [...sig.gekisoSet].forEach(h=>add(h,5,"超激走"));
-  [...sig.tanshoSet].forEach(h=>add(h,5,"単勝案件"));
-  sig.fuku15Before.forEach(h=>add(h,4,"複勝15倍壁前"));
-  sig.fuku15OverMed.forEach(h=>add(h,4,"複勝15倍超メジアン"));
-  sig.fuku10Before.forEach(h=>add(h,3,"複勝10倍壁前"));
-  sig.ot.wallBefore.forEach(h=>add(h,3,"馬連壁前"));
-  sig.winMed.forEach(h=>add(h,2,"単勝メジアン"));
-  sig.placeMed.forEach(h=>add(h,2,"複勝メジアン"));
-
-  const list=Object.entries(score)
-    .map(([horse,pt])=>({horse,pt,memo:memo[horse]||[]}))
-    .sort((a,b)=>b.pt-a.pt)
-    .slice(0,5);
-
-  let html=`<div class="box ooana"><h2>💣大穴一発逆転</h2>`;
-
-  if(!list.length) html+=`<div class="ooMemo">材料不足</div>`;
-
-  list.forEach((x,i)=>{
-    let mark="⭐";
-    let judge="三連複穴";
-
-    if(x.pt>=15){
-      mark="💥";
-      judge="単勝勝負";
-    }else if(x.pt>=10){
-      mark="🔥";
-      judge="馬連・ワイド";
-    }
-
-    html+=`
-      <div class="ooHit">${mark} ${i+1}位　${x.horse}【${x.pt}】 ${judge}</div>
-      <div class="ooMemo">${x.memo.join("・")}</div>`;
-  });
-
-  html+=`</div>`;
-  return html;
-}
-
-function renderExtremeMove(otaniList,winRank,placeRank){
-  const umaRank={},winMap={},placeMap={};
-
-  otaniList.forEach((x,i)=>umaRank[x.horse]=i+1);
-  winRank.forEach((x,i)=>winMap[x.horse]=i+1);
-  placeRank.forEach((x,i)=>placeMap[x.horse]=i+1);
-
-  const alerts=[];
-
-  Object.keys(umaRank).forEach(h=>{
-    if(winMap[h]){
-      const diff=winMap[h]-umaRank[h];
-      if(diff>=3)alerts.push(`${h}　単→馬 +${diff}`);
-    }
-
-    if(placeMap[h]){
-      const diff=placeMap[h]-umaRank[h];
-      if(diff>=3)alerts.push(`${h}　複→馬 +${diff}`);
-    }
-  });
-
-  Object.keys(placeMap).forEach(h=>{
-    if(winMap[h]){
-      const diff=winMap[h]-placeMap[h];
-      if(diff>=3)alerts.push(`${h}　単→複 +${diff}`);
-    }
-  });
-
-  return `<div class="box studyBox">
-    <h2>🔬極端移動</h2>
-    <div class="gold">${alerts.length?alerts.join("　"):"該当なし"}</div>
-  </div>`;
-}
-
-function renderStrangeMove(sig,winRank,umaren,sanpuku){
-  const winRankMap={};
-  winRank.forEach((x,i)=>winRankMap[x.horse]=i+1);
-
-  const umaRankMap={};
-  [...umaren].sort((a,b)=>a.odds-b.odds).forEach((x,i)=>{
-    x.pair.split("-").forEach(h=>{
-      if(!umaRankMap[h])umaRankMap[h]=i+1;
-    });
-  });
-
-  const sanRankMap={};
-  [...sanpuku].sort((a,b)=>a.odds-b.odds).forEach((x,i)=>{
-    x.trio.split("-").forEach(h=>{
-      if(!sanRankMap[h])sanRankMap[h]=i+1;
-    });
-  });
-
-  const alerts=[];
-
-  winRank.forEach(x=>{
-    const h=x.horse;
-    const wr=winRankMap[h]||99;
-    const ur=umaRankMap[h]||99;
-    const sr=sanRankMap[h]||99;
-
-    let pt=0;
-    let memo=[];
-
-    if(wr>=10 && ur<=12){pt+=5;memo.push("単勝弱いのに馬連上位");}
-    if(wr>=10 && sr<=15){pt+=4;memo.push("単勝弱いのに三連複上位");}
-    if((sig.fuku15After||[]).includes(h) && ur<=30){pt+=5;memo.push("複勝15壁直後×馬連");}
-    if((sig.fuku15After||[]).includes(h) && sr<=30){pt+=5;memo.push("複勝15壁直後×三連複");}
-    if((wr===7 || wr===8) && (ur<=20 || sr<=20)){pt+=3;memo.push("7・8人気警報");}
-
-    if(pt>=5) alerts.push({horse:h,pt,memo});
-  });
-
-  alerts.sort((a,b)=>b.pt-a.pt);
-
-  if(!alerts.length){
-    return `<div class="box studyBox">
-      <h2>🔬異様な動き</h2>
-      <div class="small">該当なし</div>
-    </div>`;
-  }
-
-  return `<div class="box studyBox">
-    <h2>🔬異様な動き</h2>
-    ${alerts.slice(0,5).map(x=>`
-      <div style="margin:10px 0;border-top:1px solid #334155;padding-top:8px">
-        <div class="hot">${x.horse}【${x.pt}】</div>
-        <div class="small">${x.memo.join("・")}</div>
-      </div>
-    `).join("")}
-  </div>`;
-}
-
-function renderBabaTenka(d,sig,centerIndex){
-  const honmei=[...new Set([
-    ...(sig.ot.firstWallMed||[]),
-    ...(centerIndex||[]).slice(0,2).map(x=>x.horse)
-  ])];
-
-  const ana=[...new Set([
-    ...[...sig.gekisoSet],
-    ...sig.fuku10Before,
-    ...sig.fuku15Before,
-    ...sig.fuku15OverMed,
-    ...sig.winMed,
-    ...sig.placeMed,
-    ...Object.keys(sig.tanshoScore||{}).filter(h=>!honmei.includes(h))
-  ])].filter(h=>!honmei.includes(h));
-
-  let anaPoint=0;
-  ana.forEach(h=>{
-    if(sig.gekisoSet.has(h))anaPoint+=3;
-    if(sig.fuku10Before.includes(h))anaPoint+=2;
-    if(sig.fuku15Before.includes(h))anaPoint+=2;
-    if(sig.fuku15OverMed.includes(h))anaPoint+=3;
-    if(sig.tanshoSet.has(h))anaPoint+=2;
-    if(sig.winMed.includes(h))anaPoint+=3;
-    if(sig.placeMed.includes(h))anaPoint+=3;
-  });
-
-  let honmeiPoint=0;
-  honmei.forEach(h=>{
-    if(sig.ot.firstWallMed.includes(h))honmeiPoint+=3;
-    if(sig.tanshoSet.has(h))honmeiPoint+=2;
-  });
-
-  let title="🟡混戦警報";
-  let cls="yellow";
-  let msg="本命と穴が拮抗。ワイド・三連複向き。";
-
-  if(d.race.title==="本命戦" && anaPoint>=honmeiPoint+10){
-    title="💣偽本命警報";
-    cls="red";
-    msg="本命戦に見えるが、穴グループが強い。穴BOX警戒。";
-  }else if(honmeiPoint>=anaPoint+4){
-    title="🟢前残り・本命警報";
-    cls="green";
-    msg="本命グループ優勢。軸は堅め。";
-  }else if(anaPoint>=honmeiPoint+5){
-    title="🔴差し穴警報";
-    cls="red";
-    msg="穴グループ優勢。人気馬だけで決め打ちしない。";
-  }
-
-  const fakeUltra =
-    d.race.title==="本命戦" &&
-    anaPoint>=honmeiPoint+10 &&
-    sig.gekisoSet.size>=2 &&
-    sig.tanshoSet.size>=2 &&
-    sig.fuku15Before.length>=2 &&
-    (
-      sig.winMed.some(h=>ana.includes(h)) ||
-      sig.placeMed.some(h=>ana.includes(h))
-    );
-
-  const ultraIron =
-    !fakeUltra &&
-    (
-      d.race.title==="本命戦" ||
-      d.race.title==="中荒れ戦" ||
-      d.race.title==="荒れ戦"
-    ) &&
-    honmei.length>=2 &&
-    sig.ot.firstWallMed.length>=2 &&
-    sig.ot.wallBefore.length>=2 &&
-    sig.tanshoSet.size>=2 &&
-    anaPoint>=honmeiPoint*2;
-
-  let lampHtml="";
-
-  if(fakeUltra){
-    const honTop=honmei.slice(0,2);
-
-    const medAna=[...new Set([
-      ...sig.winMed,
-      ...sig.placeMed
-    ])].filter(h=>ana.includes(h));
-
-    const wallAna=[...new Set([
-      ...sig.fuku15Before.slice().reverse(),
-      ...sig.fuku10Before.slice().reverse()
-    ])].filter(h=>ana.includes(h));
-
-    const otherAna=ana.filter(h=>!medAna.includes(h) && !wallAna.includes(h));
-
-    const fakeCore=[...new Set([
-      ...medAna,
-      ...wallAna,
-      ...otherAna
-    ])].slice(0,5);
-
-    lampHtml=`
-    <div class="fakeUltra">
-      <h2>🚨🚨🚨<br>💣偽本命超勝負ランプ発動💣<br>🚨🚨🚨</h2>
-      <div class="big">本命固定禁止</div>
-      <div class="gold">本命：${honTop.join("・")||"なし"}</div>
-      <div class="hot">穴：${fakeCore.join("・")||"なし"}</div>
-
-      <div class="fakeBuy">
-        💰ワイド<br>
-        ${fakeCore[0]||""}-${fakeCore[1]||""}<br>
-        ${fakeCore[0]||""}-${fakeCore[2]||""}<br>
-        ${fakeCore[1]||""}-${fakeCore[2]||""}
-      </div>
-
-      <div class="fakeBuy">
-        🔥三連複<br>
-        ${fakeCore[0]||""}-${fakeCore[1]||""}-${fakeCore[2]||""}<br>
-        ${fakeCore[0]||""}-${fakeCore[1]||""}-${fakeCore[3]||""}<br>
-        ${fakeCore[0]||""}-${fakeCore[2]||""}-${fakeCore[3]||""}
-      </div>
-    </div>`;
-  }
-
-  if(ultraIron){
-    lampHtml=`
-    <div class="ultraIron">
-      <h2>🟢⚪🟢<br>✨超超鉄板ランプ発動✨<br>🟢⚪🟢</h2>
-      <div class="big">荒れる風で実は硬い<br>本命軸＋穴1頭型</div>
-      <div class="gold">本命：${honmei.join("・")}</div>
-      <div class="small">本命点 ${honmeiPoint} ／ 穴点 ${anaPoint}</div>
-    </div>`;
-  }
-
-  return `${lampHtml}
-  <div class="box warningBox">
-    <h2>🚦馬場・展開警報</h2>
-    <div class="${cls}" style="font-size:28px">${title}</div>
-    <div>${msg}</div>
-    <br>
-    <div>👑本命グループ：<b class="gold">${honmei.length?honmei.join("・"):"なし"}</b></div>
-    <div>💣穴グループ：<b class="hot">${ana.length?ana.slice(0,8).join("・"):"なし"}</b></div>
-    <div class="small">本命点 ${honmeiPoint} ／ 穴点 ${anaPoint}</div>
-  </div>`;
-}
-  function renderBook(sig){
-  return `<div class="box">
-    <h2>📚本の買い方</h2>
-    <p>単勝メジアン：<b class="gold">${sig.winMed.join("・")||"なし"}</b></p>
-    <p>複勝メジアン：<b class="gold">${sig.placeMed.join("・")||"なし"}</b></p>
-    <p>馬連メジアン：<b class="gold">${sig.umaMed.join("・")||"なし"}</b></p>
-    <p>複勝10倍壁前2頭：<b class="gold">${sig.fuku10Before.join("・")||"なし"}</b></p>
-    <p>複勝10倍壁直後：<b class="hot">${sig.fuku10After.join("・")||"なし"}</b></p>
-    <p>複勝15倍壁前2頭：<b class="gold">${sig.fuku15Before.join("・")||"なし"}</b></p>
-    <p>複勝15倍壁直後：<b class="hot">${sig.fuku15After.join("・")||"なし"}</b></p>
-    <p>複勝15倍超メジアン：<b class="hot">${sig.fuku15OverMed.join("・")||"なし"}</b></p>
-    <p>馬連壁前：<b class="gold">${sig.ot.wallBefore.join("・")||"なし"}</b></p>
-    <p>壁内メジアン：<b class="hot">${sig.ot.firstWallMed.join("・")||"なし"}</b></p>
-    <p>単勝壁前：<b class="gold">${sig.winBefore.join("・")||"なし"}</b></p>
-    <p>複勝自然壁前：<b class="gold">${sig.placeBefore.join("・")||"なし"}</b></p>
-  </div>`;
-}
-
-function renderTable(sig,winRank,placeRank){
-  return `<div class="box">
-    <h2>本表</h2>
-    <div class="small">
-      馬連の壁＝赤線　単勝の壁＝青線　複勝の壁＝黄色線<br>
-      壁内メジアンは青背景
-    </div>
-    <div class="rankWrap">
-      ${rankLine("馬連",sig.ot.otaniList,sig.ot.walls,"uma",sig.ot.firstWallMed)}
-      ${rankLine("単勝",winRank,sig.winWalls,"win")}
-      ${rankLine("複勝",placeRank,sig.placeWalls,"place")}
-    </div>
-    <div id="bottomHere"></div>
-  </div>`;
-}
-
-function renderV101Check(sig,d,centerIndex){
-  const topKings=(centerIndex||[]).slice(0,4).map(x=>x.horse);
-  let notes=[];
-
-  if(d.race.title==="中荒れ戦" && d.fuku6>=7){
-    notes.push("中荒れ戦＋複勝6倍未満多め：超大穴より本表王・複勝6倍壁前も確認");
-  }
-
-  if(topKings.length) notes.push("本表王上位："+topKings.join("・"));
-  if(sig.winMed.length) notes.push("単勝メジアン："+sig.winMed.join("・"));
-  if(sig.placeMed.length) notes.push("複勝メジアン："+sig.placeMed.join("・"));
-  if(sig.fuku10Before.length) notes.push("複勝10倍壁前："+sig.fuku10Before.join("・"));
-  if(sig.fuku15Before.length) notes.push("複勝15倍壁前："+sig.fuku15Before.join("・"));
-
-  return `<div class="box studyBox">
-    <h2>🧭V10.1補助診断</h2>
-    <div class="small">※既存の点数・ランプは変更せず、見落とし防止だけ追加</div>
-    ${notes.map(x=>`<div style="margin:8px 0">・${x}</div>`).join("")}
-  </div>`;
-}
-
-function safeRender(fn){
-  try{
-    return fn();
-  }catch(e){
-    return `<div class="box red">エラー：${e.message}</div>`;
-  }
-}
-
-function analyze(){
-  const {raceName,tanpuku,umaren,wide,sanpuku}=parseInput(document.getElementById("input").value);
-  const result=document.getElementById("result");
-
-  if(tanpuku.length===0||umaren.length===0){
-    result.innerHTML=`<div class="box red">単勝複勝と馬連を入れてください</div>`;
+function run(){
+  const data = parseInput(document.getElementById("input").value);
+  const out = document.getElementById("out");
+
+  if(!data.tanfuku.length || !data.umaren.length){
+    out.innerHTML = '<div class="card warn">[TANFUKU] と [UMAREN] が必要です。</div>';
     return;
   }
 
-  const winRank=[...tanpuku].sort((a,b)=>a.win-b.win);
-  const placeRank=[...tanpuku].sort((a,b)=>a.place-b.place);
-  const topUmaren=[...umaren].sort((a,b)=>a.odds-b.odds)[0];
+  const horses = horseList(data);
+  const tanRank = sortTanfuku(data.tanfuku,"tan");
+  const fukuRank = sortTanfuku(data.tanfuku,"fuku");
+  const umaRank = sortByOd(data.umaren);
+  const wideRank = sortByOd(data.wide);
+  const sanRank = sortByOd(data.sanpuku);
 
-  const sig=buildSignals(winRank,placeRank,umaren,sanpuku);
-  const centerIndex=countCenterIndex(umaren,sanpuku);
-  const d=diagnosis(winRank,placeRank,topUmaren);
-  const lamp=renderTanpukuLamp(sig,d,winRank,placeRank,topUmaren);
+  const tanR = rankMap(tanRank,"tan");
+  const fukuR = rankMap(fukuRank,"fuku");
 
-  result.innerHTML=`
-    <div class="box"><div class="raceTitle">【${raceName}】</div></div>
+  const topUmaren = umaRank[0] ? umaRank[0].od : 999;
+  let raceType = "大荒れ戦";
+  if(topUmaren<4) raceType = "本命戦";
+  else if(topUmaren<9) raceType = "中荒れ戦";
+  else if(topUmaren<15) raceType = "荒れ戦";
 
-    ${safeRender(()=>renderDiagnosis(d,topUmaren))}
-    ${lamp.html}
+  const tanUnder10 = data.tanfuku.filter(x=>x.tan<10).length;
+  const tanUnder30 = data.tanfuku.filter(x=>x.tan<30).length;
+  const fukuUnder3 = data.tanfuku.filter(x=>x.fuku<3).length;
+  const fukuUnder6 = data.tanfuku.filter(x=>x.fuku<6).length;
+  const fukuUnder10 = data.tanfuku.filter(x=>x.fuku<10).length;
+  const fukuUnder15 = data.tanfuku.filter(x=>x.fuku<15).length;
 
-    <div class="box">
-      <h2>🎯実戦ゾーン</h2>
-      <div class="small">まずここだけ見ればOK</div>
-    </div>
+  const umaWalls = detectWalls(umaRank,9,1.55,8);
+  const umaZonePairs = zoneFromWalls(umaRank,umaWalls);
+  const umaZoneH = pairZoneHorses(umaZonePairs);
+  const umaZoneMedian = middleItems(umaZoneH);
 
-    ${safeRender(()=>renderCenterIndex(centerIndex))}
-    ${safeRender(()=>renderTanshoGekiso(sig))}
-    ${safeRender(()=>renderOtani(sig))}
-    ${safeRender(()=>renderOoana(sig))}
+  const tanMedian = middleItems(tanRank.map(x=>x.h));
+  const fukuMedian = middleItems(fukuRank.map(x=>x.h));
 
-    <div class="box studyBox">
-      <h2>🔬研究ゾーン</h2>
-      <div class="small">出た時だけ「もしかしたら」で見る</div>
-    </div>
+  const fuku3 = sortTanfuku(data.tanfuku,"fuku").filter(x=>x.fuku<3).map(x=>x.h);
+  const fuku6Front = fukuWallFront(data.tanfuku,6,2);
+  const fuku10Front = fukuWallFront(data.tanfuku,10,2);
+  const fuku15Front = fukuWallFront(data.tanfuku,15,2);
+  const fuku15After = fukuWallAfter(data.tanfuku,15,2);
+  const tan80Front = tanWallFront(data.tanfuku,80,2);
 
-    ${safeRender(()=>renderV101Check(sig,d,centerIndex))}
-    ${safeRender(()=>renderExtremeMove(sig.ot.otaniList,winRank,placeRank))}
-    ${safeRender(()=>renderStrangeMove(sig,winRank,umaren,sanpuku))}
-    ${safeRender(()=>renderBabaTenka(d,sig,centerIndex))}
-    ${safeRender(()=>renderBook(sig))}
-    ${safeRender(()=>renderTable(sig,winRank,placeRank))}
-  `;
-}
+  const umaCount = countPairs(data.umaren,10);
+  const wideCount = countPairs(data.wide,10);
+  const sanCount = countTriples(data.sanpuku,10);
 
-function resetInput(){
-  document.getElementById("input").value="";
-  document.getElementById("result").innerHTML="";
-}
+  const umaCountTop = umaCount.slice(0,4).map(x=>x.h);
+  const sanCountTop = sanCount.slice(0,4).map(x=>x.h);
+  const honpyoMap={};
+  horses.forEach(h=>honpyoMap[h]=0);
+  umaCount.forEach((x,i)=>{honpyoMap[x.h]+=(10-i>0?10-i:1);});
+  sanCount.forEach((x,i)=>{honpyoMap[x.h]+=(10-i>0?10-i:1);});
+  const honpyo = horses.map(h=>({h,score:honpyoMap[h]})).sort((a,b)=>b.score-a.score);
 
-function copyResult(){
-  const text=document.getElementById("result").innerText;
-  if(!text){
-    alert("コピーする結果がありません");
-    return;
+  const top9Tan = tanRank.slice(0,9).map(x=>x.h);
+  const top9Fuku = fukuRank.slice(0,9).map(x=>x.h);
+  const top9UmaH = pairZoneHorses(umaRank.slice(0,9));
+  const threeRank = horses.filter(h=>top9Tan.includes(h)&&top9Fuku.includes(h)&&top9UmaH.includes(h));
+
+  const favoritePair = umaRank[0] ? [umaRank[0].a, umaRank[0].b] : [];
+  const favScore = favoritePair.reduce((s,h)=>s+(honpyoMap[h]||0),0);
+  const holeBase = uniqueByOrder([...umaZoneMedian,...fuku6Front,...fuku10Front,...fuku15Front,...tanMedian,...fukuMedian]);
+  const holeScore = holeBase.filter(h=>!favoritePair.includes(h)).length * 5;
+
+  const fakeFavorite = topUmaren<4 && holeScore > favScore*0.55 && holeBase.filter(h=>!favoritePair.includes(h)).length>=3;
+
+  const f15Strong = fuku15Front.some(h=>{
+    let c=0;
+    if(umaZoneH.includes(h)) c++;
+    if(umaZoneMedian.includes(h)) c++;
+    if(fuku6Front.includes(h)) c++;
+    if(fuku10Front.includes(h)) c++;
+    if(tanMedian.includes(h)) c++;
+    if(fukuMedian.includes(h)) c++;
+    if(threeRank.includes(h)) c++;
+    if(honpyo.slice(0,5).map(x=>x.h).includes(h)) c++;
+    return c>=2;
+  });
+
+  const release15 = fakeFavorite || f15Strong || topUmaren>=9;
+
+  const scores = {};
+  horses.forEach(h=>{
+    const reasons=[];
+    let s=0;
+
+    if(honpyo.slice(0,4).map(x=>x.h).includes(h)){s+=8;reasons.push("本表王上位");}
+    if(threeRank.includes(h)){s+=8;reasons.push("三ランキング一致");}
+    if(umaZoneH.includes(h)){s+=6;reasons.push("馬連壁内");}
+    if(umaZoneMedian.includes(h)){s+=8;reasons.push("馬連ゾーンメジアン");}
+    if(tanMedian.includes(h)){s+=4;reasons.push("単勝メジアン");}
+    if(fukuMedian.includes(h)){s+=4;reasons.push("複勝メジアン");}
+    if(fuku6Front.includes(h)){s+=6;reasons.push("複勝6倍壁前");}
+    if(fuku10Front.includes(h)){s+=5;reasons.push("複勝10倍壁前");}
+    if(fuku15Front.includes(h)){s+= release15 ? 7 : 2; reasons.push(release15?"複勝15倍解放":"複勝15倍参考");}
+    if(fuku15After.includes(h)){s+= release15 ? 4 : 0; reasons.push(release15?"複勝15倍直後解放":"15倍直後参考");}
+    if(tan80Front.includes(h)){s+=3;reasons.push("単勝80倍壁内");}
+    if(umaCountTop.includes(h)){s+=5;reasons.push("馬連出現上位");}
+    if(sanCountTop.includes(h)){s+=4;reasons.push("三連複出現上位");}
+
+    const tan = oddsOf(data.tanfuku,h,"tan");
+    const fuku = oddsOf(data.tanfuku,h,"fuku");
+
+    if(tan!==null && tan>=80 && !release15){s-=4;reasons.push("単勝80倍超で弱め");}
+    if(fuku!==null && fuku>15 && !release15){s-=4;reasons.push("複勝15倍外で弱め");}
+    if(!umaZoneH.includes(h) && !threeRank.includes(h) && !umaCountTop.includes(h)){s-=2;reasons.push("馬連壁外寄り");}
+
+    scores[h]={h,score:s,reasons,tan,fuku};
+  });
+
+  const ranked = Object.values(scores).sort((a,b)=>b.score-a.score);
+
+  const axis = ranked.filter(x=>x.score>=14).slice(0,2);
+  const partners = ranked.filter(x=>x.score>=9 && !axis.map(a=>a.h).includes(x.h)).slice(0,3);
+  const holes = ranked.filter(x=>x.score>=7 && !axis.map(a=>a.h).includes(x.h) && !partners.map(a=>a.h).includes(x.h)).slice(0,3);
+
+  let decision = "見送り";
+  let decisionClass = "warn";
+  if(axis.length && partners.length && ranked[0].score>=16){
+    decision = "買う";
+    decisionClass = "good";
+  }else if(ranked[0] && ranked[0].score>=11){
+    decision = "少額";
+    decisionClass = "yellow";
   }
-  navigator.clipboard.writeText(text)
-    .then(()=>alert("結果をコピーしました"))
-    .catch(()=>alert("コピーできませんでした"));
-}
 
-function goBottom(){
-  const el=document.getElementById("bottomHere") || document.getElementById("bottomAnchor");
-  if(el){
-    el.scrollIntoView({behavior:"smooth",block:"end"});
+  let buyMode = "";
+  if(decision==="見送り"){
+    buyMode = "根拠が分散。無理に買わない。";
+  }else if(fakeFavorite){
+    buyMode = "偽本命寄り。本命固定禁止。馬連・ワイドは穴寄せ。";
+  }else if(topUmaren<4){
+    buyMode = "本命戦。軸＋壁一致穴を少点数。";
+  }else if(topUmaren<9){
+    buyMode = "中荒れ戦。馬連壁内メジアン＋複勝6倍壁前を重視。";
   }else{
-    window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"});
+    buyMode = "荒れ戦。複勝15倍解放は有効だが、重複馬だけ。";
   }
+
+  const pickH = uniqueByOrder([...axis.map(x=>x.h),...partners.map(x=>x.h),...holes.map(x=>x.h)]).slice(0,4);
+
+  const bets = makeBets(axis,partners,holes,umaRank,wideRank,sanRank,decision);
+
+  let html = "";
+  html += '<div class="card"><div class="title">'+data.title+'</div>';
+  html += '<div>🩺 レース診断：<span class="yellow">'+raceType+'</span></div>';
+  html += '<div>馬連1番人気：<span class="yellow">'+(umaRank[0]?umaRank[0].key+" "+umaRank[0].od+"倍":"なし")+'</span></div>';
+  html += '<div class="small">単勝10倍未満 '+tanUnder10+'頭 ／ 単勝30倍未満 '+tanUnder30+'頭</div>';
+  html += '<div class="small">複勝3倍未満 '+fukuUnder3+'頭 ／ 6倍未満 '+fukuUnder6+'頭 ／ 10倍未満 '+fukuUnder10+'頭 ／ 15倍未満 '+fukuUnder15+'頭</div>';
+  html += '<hr>';
+  html += '<div>🎯 結論：<span class="'+decisionClass+'" style="font-size:22px">'+decision+'</span></div>';
+  html += '<div>'+buyMode+'</div>';
+  html += '</div>';
+
+  html += '<div class="card"><div class="title">🧱大谷式・馬連オッズの壁</div>';
+  html += '<div>馬連9位以内の壁：'+(umaWalls.length?umaWalls.map(w=>w.beforeRank+"位→"+w.afterRank+"位").join(" / "):"明確な壁なし")+'</div>';
+  html += '<div>見るゾーン：<span class="yellow">'+(umaZonePairs.length?umaZonePairs.map(p=>p.key+"("+p.od+")").join(" / "):"なし")+'</span></div>';
+  html += '<div>壁内馬：'+joinH(umaZoneH)+'</div>';
+  html += '<div>馬連ゾーンメジアン：<span class="good">'+joinH(umaZoneMedian)+'</span></div>';
+  html += '</div>';
+
+  html += '<div class="card"><div class="title">🧠メジアン×壁</div>';
+  html += '<div>単勝メジアン：'+joinH(tanMedian)+'</div>';
+  html += '<div>複勝メジアン：'+joinH(fukuMedian)+'</div>';
+  html += '<div>複勝3倍未満：'+joinH(fuku3)+' '+(fuku3.length>=4?'<span class="warn">多め＝波乱注意</span>':'')+'</div>';
+  html += '<div>複勝6倍壁前：<span class="yellow">'+joinH(fuku6Front)+'</span></div>';
+  html += '<div>複勝10倍壁前：'+joinH(fuku10Front)+'</div>';
+  html += '<div>複勝15倍壁前：'+joinH(fuku15Front)+'</div>';
+  html += '<div>複勝15倍直後：'+joinH(fuku15After)+'</div>';
+  html += '<div>単勝80倍壁内：'+joinH(tan80Front)+'</div>';
+  html += '</div>';
+
+  html += '<div class="card"><div class="title">🚨ランプ</div>';
+  html += '<div>👑三ランキング一致：<span class="good">'+joinH(threeRank)+'</span></div>';
+  html += '<div>🚨偽本命ランプ：'+(fakeFavorite?'<span class="warn">発動</span>':'非発動')+'</div>';
+  html += '<div>🚨複勝15倍解放：'+(release15?'<span class="warn">発動</span>':'非発動')+'</div>';
+  html += '<div>🔥三壁一致候補：'+joinH(fuku15Front.filter(h=>fuku6Front.includes(h)||umaZoneH.includes(h)||umaZoneMedian.includes(h)))+'</div>';
+  html += '</div>';
+
+  html += '<div class="card"><div class="title">👑最終候補</div>';
+  html += '<div>軸候補：<span class="good">'+joinH(axis.map(x=>x.h))+'</span></div>';
+  html += '<div>相手候補：<span class="yellow">'+joinH(partners.map(x=>x.h))+'</span></div>';
+  html += '<div>穴候補：<span class="warn">'+joinH(holes.map(x=>x.h))+'</span></div>';
+  html += '<hr>';
+  ranked.slice(0,8).forEach((x,i)=>{
+    let cls = x.score>=14 ? "A" : x.score>=9 ? "B" : x.score>=6 ? "C" : "D";
+    html += '<div><span class="badge '+cls+'">'+(i+1)+'位 '+x.h+'番【'+x.score+'】</span> ';
+    html += '<span class="small">単'+(x.tan??"-")+' / 複'+(x.fuku??"-")+'　'+x.reasons.join("・")+'</span></div>';
+  });
+  html += '</div>';
+
+  html += '<div class="card"><div class="title">💰買い目 最大3点</div>';
+  html += '<pre>'+bets+'</pre>';
+  html += '</div>';
+
+  html += makeTable("📊本表ランキング", horses.map(h=>({
+    "馬番":h,
+    "単勝順位":tanR[h]||"-",
+    "単勝":oddsOf(data.tanfuku,h,"tan")??"-",
+    "複勝順位":fukuR[h]||"-",
+    "複勝":oddsOf(data.tanfuku,h,"fuku")??"-",
+    "本表点":honpyoMap[h]||0,
+    "最終点":scores[h].score
+  })).replace('<div class="sub">','<div class="card"><div class="sub">') + '</div>';
+
+  out.innerHTML = html;
 }
 
-function testData(){
-  document.getElementById("input").value=`【福島2Rテスト】
+function makeBets(axis,partners,holes,umaRank,wideRank,sanRank,decision){
+  if(decision==="見送り") return "見送り\n理由：最終候補の重なり不足。";
 
+  const A = axis.map(x=>x.h);
+  const B = partners.map(x=>x.h);
+  const C = holes.map(x=>x.h);
+
+  let lines=[];
+
+  if(A.length){
+    lines.push("◎ 軸："+A.map(h=>h+"番").join("・"));
+  }
+  if(B.length){
+    lines.push("○ 相手："+B.map(h=>h+"番").join("・"));
+  }
+  if(C.length){
+    lines.push("▲ 穴："+C.map(h=>h+"番").join("・"));
+  }
+
+  const wide = [];
+  const uma = [];
+  const tri = [];
+
+  if(A[0] && B[0]) wide.push(sortPair(A[0],B[0]));
+  if(A[0] && B[1]) wide.push(sortPair(A[0],B[1]));
+  if(A[0] && C[0]) wide.push(sortPair(A[0],C[0]));
+
+  if(A[0] && B[0]) uma.push(sortPair(A[0],B[0]));
+  if(A[0] && B[1]) uma.push(sortPair(A[0],B[1]));
+  if(A[1] && B[0]) uma.push(sortPair(A[1],B[0]));
+
+  if(A[0] && B[0] && B[1]) tri.push(sortTriple(A[0],B[0],B[1]));
+  if(A[0] && B[0] && C[0]) tri.push(sortTriple(A[0],B[0],C[0]));
+  if(A[0] && A[1] && B[0]) tri.push(sortTriple(A[0],A[1],B[0]));
+
+  lines.push("");
+  lines.push("ワイド：");
+  lines.push(uniqueByOrder(wide).slice(0,3).join("\n") || "なし");
+
+  lines.push("");
+  lines.push("馬連：");
+  lines.push(uniqueByOrder(uma).slice(0,3).join("\n") || "なし");
+
+  lines.push("");
+  lines.push("三連複：");
+  lines.push(uniqueByOrder(tri).slice(0,3).join("\n") || "なし");
+
+  lines.push("");
+  lines.push("※単勝は、軸候補が単勝メジアン・馬連ゾーンメジアン・三ランキング一致のどれか2つ以上なら少額。");
+
+  return lines.join("\n");
+}
+
+function sortPair(a,b){
+  return [a,b].map(Number).sort((x,y)=>x-y).join("-");
+}
+
+function sortTriple(a,b,c){
+  return [a,b,c].map(Number).sort((x,y)=>x-y).join("-");
+}
+
+function loadSample(){
+  document.getElementById("input").value =
+`【函館1R】
 [TANFUKU]
-1 5.7 4.7
-3 5.8 3.5
-9 8.0 5.5
-7 9.5 1.9
-4 9.6 2.5
-13 10.7 4.2
-16 12.2 4.1
-2 14.7 7.3
-15 15.8 6.5
-6 17.0 4.0
-8 17.4 7.7
-10 18.7 4.3
-14 31.3 21.1
-11 39.6 10.9
-5 44.8 7.4
-12 56.1 16.3
+2 1.8 1.1
+3 2.8 2.4
+7 7.0 4.9
+5 10.0 6.7
+4 30.3 17.9
+6 33.5 12.7
+1 46.2 19.8
+9 107.9 55.5
+8 124.1 41.7
 
 [UMAREN]
-1-3 10.2
-3-7 15.7
-3-4 17.4
-3-6 20.7
-3-13 20.7
-1-4 22.1
-4-7 24.2
-1-6 25.5
-1-13 28.0
-1-7 28.7
-3-16 29.5
-2-3 33.3
-1-2 39.6
-1-16 39.6
-4-13 41.8
-6-7 41.8
-2-4 42.6
-7-16 44.2
-7-13 46.0
-1-15 46.9
-4-6 46.9
-3-15 50.0
-6-13 52.3
-2-7 53.5
-4-16 56.1
-7-15 56.1
-2-6 69.7
-2-13 69.7
-6-16 69.7
-2-16 74.2
+2-3 1.9
+2-7 4.9
+2-5 8.1
+3-7 12.0
+3-5 20.1
+2-6 23.0
+5-7 24.5
+2-4 30.1
+3-6 37.1
+1-2 37.4
 
 [WIDE]
-1-3 6.4
-3-4 6.9
-3-6 6.9
-6-16 7.3
-1-6 8.0
-3-7 8.9
-1-4 9.5
-3-13 10.0
-6-7 10.5
-4-6 10.9
-5-16 10.6
-1-7 12.1
-7-15 11.9
-3-16 13.1
-2-7 13.1
-3-15 13.5
-6-14 13.6
-4-7 14.5
-6-13 14.6
-2-3 14.8
-7-16 15.1
-1-16 15.4
-2-4 15.7
-11-15 24.2
-7-11 24.6
-1-2 17.1
-1-13 18.3
-2-6 18.4
-7-13 19.7
+2-3 1.2-1.4
+2-7 1.7-2.3
+2-5 2.8-3.8
+3-7 2.7-4.2
+5-7 4.3-5.3
+3-5 3.7-5.4
+2-6 4.9-6.8
+3-6 5.6-7.9
+2-4 6.3-8.6
+1-2 7.5-10.4
 
 [SANPUKU]
-1-3-7 22.5
-1-3-4 26.9
-1-3-6 28.2
-1-2-3 34.9
-3-4-7 37.0
-3-6-7 37.3
-1-3-13 45.3
-1-4-7 46.6
-2-3-4 47.1
-3-7-13 47.1
-1-6-7 48.0
-1-2-4 52.1
-2-3-7 52.1
-2-3-6 54.5
-1-2-6 56.4`;
+2-3-7 3.4
+2-3-5 4.6
+2-5-7 8.4
+2-3-6 11.3
+1-2-3 14.9
+2-3-4 17.5
+3-5-7 22.1
+2-4-7 27.5
+2-6-7 28.7
+2-3-8 40.9`;
 }
 </script>
 </body>
