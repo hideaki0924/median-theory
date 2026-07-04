@@ -237,33 +237,80 @@ function tickets(list){
 }
 
 function fakeTickets(fake){
- let heads=fake.gyaku30.map(x=>x.c);
- let w=fake.wideHoles.filter(c=>!heads.includes(c))[0];
- let main=fake.main||[];
+
+ let heads=fake.gyaku30.map(x=>x.c);      // 逆転頭 例：6・2
+
+ let w=fake.wideHoles.filter(c=>!heads.includes(c))[0]; // ワイド穴 例：3
+
+ let main=fake.main||[];                  // 本線 例：7・5
+
+ let renMain=main[0];                     // 連王 例：7
+
+ let partner=main[1];                     // 相手王 例：5
+
  let arr=[];
 
- if(heads.length>=2 && w){
+ // 逆転頭同士＋ワイド穴
+
+ if(heads[0] && w && heads[1]){
+
   arr.push(`${heads[0]}-${w}-${heads[1]}`);
+
   arr.push(`${heads[0]}-${heads[1]}-${w}`);
+
   arr.push(`${heads[1]}-${w}-${heads[0]}`);
+
   arr.push(`${heads[1]}-${heads[0]}-${w}`);
+
  }
 
- main.forEach(m=>{
-  if(heads[0]&&w&&m){
-   arr.push(`${heads[0]}-${w}-${m}`);
-   arr.push(`${heads[0]}-${m}-${w}`);
-  }
- });
+ // 🛡️相手王保護：相手王を2・3着に厚く残す
 
- if(heads.length>=2 && main[0]){
-  arr.push(`${heads[0]}-${heads[1]}-${main[0]}`);
-  arr.push(`${heads[0]}-${main[0]}-${heads[1]}`);
+ if(heads[0] && w && partner){
+
+  arr.push(`${heads[0]}-${w}-${partner}`);
+
+  arr.push(`${heads[0]}-${partner}-${w}`);
+
  }
 
- return dedupeTickets(arr).slice(0,8);
+ if(heads[0] && heads[1] && partner){
+
+  arr.push(`${heads[0]}-${heads[1]}-${partner}`);
+
+  arr.push(`${heads[0]}-${partner}-${heads[1]}`);
+
+ }
+
+ if(heads[1] && partner && heads[0]){
+
+  arr.push(`${heads[1]}-${partner}-${heads[0]}`);
+
+  arr.push(`${heads[1]}-${heads[0]}-${partner}`);
+
+ }
+
+ // 連王も押さえには残す
+
+ if(heads[0] && w && renMain){
+
+  arr.push(`${heads[0]}-${w}-${renMain}`);
+
+  arr.push(`${heads[0]}-${renMain}-${w}`);
+
+ }
+
+ if(heads[0] && heads[1] && renMain){
+
+  arr.push(`${heads[0]}-${heads[1]}-${renMain}`);
+
+  arr.push(`${heads[0]}-${renMain}-${heads[1]}`);
+
+ }
+
+ return dedupeTickets(arr).slice(0,14);
+
 }
-
 function supportTickets(ren,support){
  if(!ren.length || !support.length)return[];
  let king=ren[0].c;
@@ -495,17 +542,45 @@ function decidePriority(final,role,ren,fake,support,anaMedian,triangle){
   customTickets=triangleTickets(triangle);
  }
  else if(fake.on){
+
   mode="FAKE";
+
   title="🚨偽本線崩壊ランプ発動";
-  msg="連王80点超え優先を解除。逆転頭を頭候補へ昇格し、ワイドメジアン馬を2・3着穴に残す";
+
+  msg="連王80点超え優先を解除。ただし相手王は消さず、2・3着に保護する";
+
   let heads=fake.gyaku30.map(x=>x.c);
+
   let wideHole=fake.wideHoles.filter(c=>!heads.includes(c))[0];
+
+  let renMain=fake.main[0];
+
+  let partnerProtect=fake.main[1];
+
   order=[];
+
+  // 逆転頭を先に置く
+
   if(heads[0])order.push(heads[0]);
-  if(wideHole)order.push(wideHole);
-  if(heads[1])order.push(heads[1]);
+
+  if(heads[1]&&!order.includes(heads[1]))order.push(heads[1]);
+
+  // 🛡️相手王保護
+
+  if(partnerProtect&&!order.includes(partnerProtect))order.push(partnerProtect);
+
+  // ワイド穴
+
+  if(wideHole&&!order.includes(wideHole))order.push(wideHole);
+
+  // 連王は押さえ
+
+  if(renMain&&!order.includes(renMain))order.push(renMain);
+
   fake.main.forEach(c=>{if(!order.includes(c))order.push(c)});
+
   customTickets=fakeTickets(fake);
+
  }
  else{
   let g=(role.gyakuAtama||[]).filter(x=>x.pt>=30);
@@ -763,9 +838,15 @@ function renderRoleLamp(role,priority){
 
  let recommendHead='';
  if(priority.mode==="FAKE"){
+
   recommendHead=`
+
    <div class=big>頭候補：${priority.fake.gyaku30.map(x=>n(x.c)).join('・')}</div>
+
+   <div class="hot">🛡️相手王保護：${priority.fake.main[1]?n(priority.fake.main[1]):'なし'}</div>
+
    <div class="big yellow">2・3着穴：${priority.fake.wideHoles.map(n).join('・')||'なし'}</div>
+
    <div>押さえ：${priority.fake.main.map(n).join('・')}</div>`;
  }else if(priority.mode==="ANA_MEDIAN"){
   recommendHead=`
