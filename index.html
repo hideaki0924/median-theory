@@ -584,7 +584,7 @@ function run(){
   html += '<pre>'+bets+'</pre>';
   html += '</div>';
 
-  html += makeTable("📊本表ランキング", horses.map(h=>({
+    const tableRows = horses.map(h=>({
     "馬番":h,
     "単勝順位":tanR[h]||"-",
     "単勝":oddsOf(data.tanfuku,h,"tan")??"-",
@@ -592,10 +592,13 @@ function run(){
     "複勝":oddsOf(data.tanfuku,h,"fuku")??"-",
     "本表点":honpyoMap[h]||0,
     "最終点":scores[h].score
-  })).replace('<div class="sub">','<div class="card"><div class="sub">') + '</div>';
+  }));
+
+  let tableHtml = makeTable("📊本表ランキング", tableRows);
+  tableHtml = tableHtml.replace('<div class="sub">','<div class="card"><div class="sub">') + '</div>';
+  html += tableHtml;
 
   out.innerHTML = html;
-}
 
 function makeBets(axis,partners,holes,umaRank,wideRank,sanRank,decision){
   if(decision==="見送り") return "見送り\n理由：最終候補の重なり不足。";
