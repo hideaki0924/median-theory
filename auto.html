@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 オート V24.3 荒れ診断追加版</title>
+<title>チャッピー神予想 オート V24.4 買い目補正版</title>
 <style>
 body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:14px;font-size:17px}
 h1{font-size:27px;line-height:1.3;margin:4px 0 12px;color:#fff}
@@ -43,7 +43,7 @@ hr{border:0;border-top:1px solid #94a3b8;margin:14px 0}
 </style>
 </head>
 <body>
-<h1>チャッピー神予想 オート V24.2<br>荒れ診断追加版</h1>
+<h1>チャッピー神予想 オート V24.2<br>買い目補正版</h1>
 
 <textarea id="input" placeholder="【伊勢崎4R】
 
@@ -302,9 +302,11 @@ function makeAreDiag(data,ctx){
   }
 
   var favObj=ctx.tanRank[0],favOd=favObj?Number(favObj.od):null;
+  var fav2Obj=ctx.tanRank[1],fav2Od=fav2Obj?Number(fav2Obj.od):null;
   var t=ctx.tate||{};
   var noFav=t.noFavSan||null;
   var noFavRank=t.noFavRank||null;
+  var noFavOd=noFav?Number(noFav.od):null;
   var tateRatio=t.tateRatio||null;
 
   var risk=0,grounds=[];
@@ -315,16 +317,18 @@ function makeAreDiag(data,ctx){
   }
   if(favOd!==null){
     if(favOd<=1.2){risk+=2;grounds.push("単勝1人気が1.2倍以下で過剰人気");}
-    else if(favOd<=1.7){risk+=1;grounds.push("単勝1人気が1.7倍以下で頭飛び警戒");}
+    else if(favOd<=1.7){risk+=1;grounds.push("単勝1人気が1.7倍以下で頭固定危険");}
   }
   if(tateRatio!==null){
     if(tateRatio<3){risk+=2;grounds.push("タテ目倍率が3倍未満");}
     else if(tateRatio<4){risk+=1;grounds.push("タテ目倍率が4倍未満");}
+    else if(tateRatio>=7){grounds.push("タテ目倍率が高く、二強残し寄り");}
   }
   if(noFav){
-    if(noFavRank<=3 && Number(noFav.od)<=15){risk+=3;grounds.push("本命なし3連系が3位以内かつ15倍以内");}
-    else if(noFavRank<=6 && Number(noFav.od)<=15){risk+=2;grounds.push("本命なし3連系が6位以内かつ15倍以内");}
+    if(noFavRank<=3 && noFavOd<=15){risk+=3;grounds.push("本命なし3連系が3位以内かつ15倍以内");}
+    else if(noFavRank<=6 && noFavOd<=15){risk+=2;grounds.push("本命なし3連系が6位以内かつ15倍以内");}
     else if(noFavRank<=6){risk+=1;grounds.push("本命なし3連系が6位以内");}
+    else{grounds.push("本命なし3連系は下位寄り");}
   }
 
   var first=(ctx.baseZones.zones[1]&&ctx.baseZones.zones[1].horses)||[];
@@ -332,17 +336,38 @@ function makeAreDiag(data,ctx){
   if(first.length>=2){risk+=1;grounds.push("第1壁後に複数車");}
   if(second.length>=1){risk+=1;grounds.push("第2壁後が存在");}
 
+  var strongTwo = (ctx.fav1 && ctx.fav2 && favOd!==null && fav2Od!==null && favOd<=2.0 && fav2Od<=3.5);
+  var noFavWeak = (!noFav || noFavRank>6 || noFavOd>15);
+  var noFavVeryStrong = (noFav && noFavRank<=3 && noFavOd<=15);
+  var noFavStrong = (noFav && noFavRank<=6 && noFavOd<=15);
+
   var back="本線寄り";
   var backClass="good";
-  if(risk>=7){back="本命完全消しまで警戒";backClass="warn";}
-  else if(risk>=5){back="本命頭飛び＋3着残し警戒";backClass="orange";}
-  else if(risk>=3){back="本命頭飛び警戒";backClass="yellow";}
-  else if(risk>=1){back="軽いズレ注意";backClass="blue";}
 
-  // 1人気がかなり低く、かつ本命なし3連系が上位なら「完全消し」より「頭飛び/3着残し」を優先表示
-  if(favOd!==null && favOd<=1.7 && noFav && noFavRank<=6 && Number(noFav.od)<=15 && risk<7){
+  if(strongTwo && tateRatio!==null && tateRatio>=4 && noFavWeak){
+    back="二強残し＋第1壁後混入";
+    backClass="yellow";
+  }else if(strongTwo && first.length>=1 && !noFavVeryStrong){
+    back="本命残し＋第1壁後強反応";
+    backClass="yellow";
+  }else if(noFavVeryStrong && tateRatio!==null && tateRatio<3){
+    back="本命完全消しまで警戒";
+    backClass="warn";
+  }else if(noFavStrong && tateRatio!==null && tateRatio<4){
     back="本命頭飛び＋3着残し警戒";
     backClass="orange";
+  }else if(risk>=7){
+    back="本命完全消しまで警戒";
+    backClass="warn";
+  }else if(risk>=5){
+    back="本命頭飛び＋3着残し警戒";
+    backClass="orange";
+  }else if(risk>=3){
+    back="本命頭飛び警戒";
+    backClass="yellow";
+  }else if(risk>=1){
+    back="軽いズレ注意";
+    backClass="blue";
   }
 
   return{
@@ -359,6 +384,7 @@ function makeAreDiag(data,ctx){
     grounds:grounds
   };
 }
+
 
 function renderAreDiag(ctx){
   var d=ctx.areDiag;
@@ -382,7 +408,7 @@ function renderAreDiag(ctx){
   }else{
     html+='<span class="small">強い荒れ根拠は少なめです。</span>';
   }
-  html+='<span class="small">※診断は買い目を広げる目安。低オッズ本命は「完全消し」より「頭飛び・3着残し」から見る。</span>';
+  html+='<span class="small">※タテ目倍率が高く本命なし3連系が下位なら、頭飛びより「二強残し＋第1壁後混入」を優先。</span>';
   html+='</div>';
   return html;
 }
@@ -426,6 +452,10 @@ function makeContext(data){
 
 function scoreAll(data,ctx){
   var all=uniq(data.tansho.map(function(x){return x.h;})),scored=[];
+  var noFavHs=[];
+  if(ctx.tate&&ctx.tate.noFavSan){
+    noFavHs=[ctx.tate.noFavSan.a,ctx.tate.noFavSan.b,ctx.tate.noFavSan.c];
+  }
   for(var i=0;i<all.length;i++){
     var h=all[i],tf=getTan(data,h),score=0,reasons=[];
 
@@ -450,6 +480,11 @@ function scoreAll(data,ctx){
 
     if(ctx.tate&&ctx.tate.red&&zi>=1&&zi<=2){score+=5;reasons.push("本命飛び壁ランプ連動");}
 
+    if(noFavHs.indexOf(h)>=0){
+      if(ctx.tate.noFavRank<=3){score+=10;reasons.push("本命なし3連系上位構成");}
+      else if(ctx.tate.noFavRank<=6){score+=5;reasons.push("本命なし3連系構成");}
+    }
+
     if(tf&&Number(tf.od)>=8&&reasons.length>=2){score+=6;reasons.push("穴寄り重複");}
     if(tf&&Number(tf.od)>=20&&score<24){score-=3;reasons.push("単勝20倍以上で弱め");}
 
@@ -461,6 +496,7 @@ function scoreAll(data,ctx){
   });
   return scored;
 }
+
 
 function renderHonRow(label,row,medians,maxLen,wallInfo,zoneMap){
   var arr=row.slice();
@@ -537,15 +573,34 @@ function makeZoneCard(ctx){
 }
 
 function makeTickets(data,ctx,scored){
-  var wide=[],nisha=[],san=[];
+  var wide=[],nisha=[],sanMain=[],sanHole=[],sanBomb=[];
   function addPairTicket(a,b){
     if(!a||!b||a===b)return;
     add(wide,pairKey(a,b));
     add(nisha,pairKey(a,b));
   }
-  function addTriTicket(a,b,c){
+  function addTriTo(arr,a,b,c){
     if(!a||!b||!c||a===b||a===c||b===c)return;
-    add(san,triKey(a,b,c));
+    add(arr,triKey(a,b,c));
+  }
+  function addMain(a,b,c){addTriTo(sanMain,a,b,c);}
+  function addHole(a,b,c){addTriTo(sanHole,a,b,c);}
+  function addBomb(a,b,c){addTriTo(sanBomb,a,b,c);}
+  function zoneTop(horses,limit){
+    var out=[];
+    scored.forEach(function(x){
+      if(horses.indexOf(x.h)>=0 && out.indexOf(x.h)<0)out.push(x.h);
+    });
+    return out.slice(0,limit||10);
+  }
+  function medianishInZone(horses,limit){
+    var ms=uniq([].concat(ctx.tanM,ctx.nishaM,ctx.wideM,ctx.sanM,ctx.pseudoAM,ctx.pseudoBM,ctx.pseudoCM));
+    var out=[];
+    scored.forEach(function(x){
+      if(horses.indexOf(x.h)>=0 && ms.indexOf(x.h)>=0 && out.indexOf(x.h)<0)out.push(x.h);
+    });
+    if(!out.length)out=zoneTop(horses,limit||3);
+    return out.slice(0,limit||3);
   }
 
   var a=ctx.fav1,b=ctx.fav2;
@@ -553,35 +608,76 @@ function makeTickets(data,ctx,scored){
   var main=z[0]?z[0].horses:[];
   var first=z[1]?z[1].horses:[];
   var second=z[2]?z[2].horses:[];
+  var mainTop=zoneTop(main,4), firstTop=zoneTop(first,5), secondTop=zoneTop(second,3);
+  var firstMed=medianishInZone(first,4);
+  var secondMed=medianishInZone(second,3);
   var pa=ctx.pseudoAM.slice(),pb=ctx.pseudoBM.slice();
-  var top=scored.map(function(x){return x.h;}).filter(function(h){return h!==a&&h!==b;});
 
   pa.forEach(function(h){addPairTicket(a,h);});
   pb.forEach(function(h){addPairTicket(b,h);});
+  firstTop.slice(0,3).forEach(function(h){addPairTicket(a,h);});
+  firstTop.slice(0,2).forEach(function(h){addPairTicket(b,h);});
 
-  // 壁ゾーン保険：本線＋第1壁後、第2壁後は末席だけ
-  if(a&&main[0]&&first[0])addTriTicket(a,main[0],first[0]);
-  if(a&&main[0]&&first[1])addTriTicket(a,main[0],first[1]);
-  if(a&&b&&first[0])addTriTicket(a,b,first[0]);
-  if(a&&b&&first[1])addTriTicket(a,b,first[1]);
+  // 既存本線・二強残し
+  if(ctx.sanRank[0])addMain(ctx.sanRank[0].a,ctx.sanRank[0].b,ctx.sanRank[0].c);
+  if(a&&b&&firstTop[0])addMain(a,b,firstTop[0]);
+  if(a&&b&&firstTop[1])addMain(a,b,firstTop[1]);
+  if(a&&b&&firstTop[2])addHole(a,b,firstTop[2]);
 
-  // 第1壁後 × 第2壁後 × 基準車。伊勢崎4Rの 2-7-8 対策。
-  if(a&&first[0]&&second[0])addTriTicket(a,first[0],second[0]);
-  if(a&&first[1]&&second[0])addTriTicket(a,first[1],second[0]);
-  if(main[0]&&first[0]&&second[0])addTriTicket(main[0],first[0],second[0]);
-  if(main[0]&&first[1]&&second[0])addTriTicket(main[0],first[1],second[0]);
+  // 第1壁後上位 × 単勝1人気 × 単勝2人気
+  firstTop.slice(0,3).forEach(function(h){
+    addMain(a,b,h);
+  });
 
-  if(a&&pa[0]&&top[0])addTriTicket(a,pa[0],top[0]);
-  if(b&&pb[0]&&a)addTriTicket(a,b,pb[0]);
+  // 本線ゾーン2頭 × 第1壁後1位・2位
+  if(mainTop[0]&&mainTop[1]&&firstTop[0])addHole(mainTop[0],mainTop[1],firstTop[0]);
+  if(mainTop[0]&&mainTop[1]&&firstTop[1])addHole(mainTop[0],mainTop[1],firstTop[1]);
 
-  if(ctx.sanRank[0])add(san,ctx.sanRank[0].key);
-  // 荒れ診断用：本命なし3連系が上位なら保険で追加
-  if(ctx.tate&&ctx.tate.noFavSan&&ctx.tate.noFavRank<=6)add(san,ctx.tate.noFavSan.key);
-  // 本命頭飛び＋3着残し用：2車複タテ目相手2頭＋基準車
-  if(ctx.tate&&ctx.tate.tate&&a)addTriTicket(a,ctx.tate.tate[0],ctx.tate.tate[1]);
+  // 基準車 × 本線 × 第1壁後
+  if(a&&mainTop[0]&&firstTop[0])addMain(a,mainTop[0],firstTop[0]);
+  if(a&&mainTop[0]&&firstTop[1])addHole(a,mainTop[0],firstTop[1]);
+  if(a&&mainTop[1]&&firstTop[0])addHole(a,mainTop[1],firstTop[0]);
 
-  return{wide:wide.slice(0,6),nisha:nisha.slice(0,6),san:san.slice(0,12)};
+  // 第2壁後保険：基準 × 第1壁後メジアン持ち × 第2壁後
+  if(secondTop[0]){
+    firstMed.slice(0,3).forEach(function(h){addBomb(a,h,secondTop[0]);});
+    if(mainTop[0])addBomb(mainTop[0],firstMed[0],secondTop[0]);
+  }
+
+  // 危険本命3着残し：基準車 + 第1壁後2頭
+  if(ctx.areDiag && (ctx.areDiag.risk>=5 || (ctx.tate&&ctx.tate.noFavRank<=3))){
+    for(var i=0;i<Math.min(4,firstTop.length);i++){
+      for(var j=i+1;j<Math.min(4,firstTop.length);j++){
+        addBomb(a,firstTop[i],firstTop[j]);
+      }
+    }
+  }
+
+  // 本命なし3連系が上位なら保険で追加
+  if(ctx.tate&&ctx.tate.noFavSan){
+    if(ctx.tate.noFavRank<=3)addHole(ctx.tate.noFavSan.a,ctx.tate.noFavSan.b,ctx.tate.noFavSan.c);
+    else if(ctx.tate.noFavRank<=6)addBomb(ctx.tate.noFavSan.a,ctx.tate.noFavSan.b,ctx.tate.noFavSan.c);
+  }
+
+  // タテ目相手2頭＋基準車
+  if(ctx.tate&&ctx.tate.tate&&a)addHole(a,ctx.tate.tate[0],ctx.tate.tate[1]);
+
+  // 1〜2位候補の強制合成
+  var strong=scored.slice(0,3).map(function(x){return x.h;});
+  if(a&&strong[0]&&strong[1])addHole(a,strong[0],strong[1]);
+  if(b&&strong[0]&&strong[1])addBomb(b,strong[0],strong[1]);
+
+  var san=uniq([].concat(sanMain,sanHole,sanBomb)).slice(0,18);
+  return{
+    wide:wide.slice(0,8),
+    nisha:nisha.slice(0,8),
+    sanMain:sanMain.slice(0,6),
+    sanHole:sanHole.slice(0,8),
+    sanBomb:sanBomb.slice(0,8),
+    san:san
+  };
 }
+
 
 function makePseudoPairsText(p){
   if(!p||!p.pairs||!p.pairs.length)return "なし";
@@ -625,7 +721,7 @@ function run(){
     html+=renderAreDiag(ctx);
 
     html+='<div class="card lamp"><div class="title">発動・テストランプ</div>'+lamps.join('<br>')+'<hr>';
-    html+='<span class="small">V24.3では壁ゾーンに加えて、表面診断・裏診断・本命頭飛び警戒を表示します。</span></div>';
+    html+='<span class="small">V24.4では、二強残し・第1壁後強反応・第2壁後保険を買い目へ強制反映します。</span></div>';
 
     if(ctx.tate&&ctx.tate.red){
       html+='<div class="card lampRed"><div class="title">🚨本命飛び壁ランプ</div>';
@@ -652,10 +748,12 @@ function run(){
     html+='</div>';
 
     html+='<div class="card lamp2"><div class="title">💰テスト買い目候補</div><pre>';
-    html+='※擬似複勝＋壁ゾーン検証用。第2壁後は末席保険です。\n\n';
+    html+='※V24.4：本線 / 穴本線 / 大荒れ保険に分けて表示します。\n\n';
     html+='ワイド\n'+(tickets.wide.length?tickets.wide.join('\n'):'なし')+'\n\n';
     html+='2車複\n'+(tickets.nisha.length?tickets.nisha.join('\n'):'なし')+'\n\n';
-    html+='3連系\n'+(tickets.san.length?tickets.san.join('\n'):'なし');
+    html+='3連系・本線\n'+(tickets.sanMain.length?tickets.sanMain.join('\n'):'なし')+'\n\n';
+    html+='3連系・穴本線\n'+(tickets.sanHole.length?tickets.sanHole.join('\n'):'なし')+'\n\n';
+    html+='3連系・大荒れ保険\n'+(tickets.sanBomb.length?tickets.sanBomb.join('\n'):'なし');
     html+='</pre></div>';
 
     out.innerHTML=html;
@@ -668,7 +766,7 @@ function run(){
 function makeCopyText(title,ctx,scored,tickets,lamps){
   var t='';
   t+=title+'\n';
-  t+='オート擬似複勝テスト版 V24.3\n';
+  t+='オート擬似複勝テスト版 V24.4\n';
   t+='発動：'+lamps.join(' / ')+'\n\n';
 
   var z=ctx.baseZones.zones||[];
@@ -705,7 +803,9 @@ function makeCopyText(title,ctx,scored,tickets,lamps){
   t+='\nテスト買い目候補\n';
   t+='ワイド\n'+tickets.wide.join('\n')+'\n\n';
   t+='2車複\n'+tickets.nisha.join('\n')+'\n\n';
-  t+='3連系\n'+tickets.san.join('\n')+'\n';
+  t+='3連系・本線\n'+tickets.sanMain.join('\n')+'\n\n';
+  t+='3連系・穴本線\n'+tickets.sanHole.join('\n')+'\n\n';
+  t+='3連系・大荒れ保険\n'+tickets.sanBomb.join('\n')+'\n';
   return t;
 }
 
