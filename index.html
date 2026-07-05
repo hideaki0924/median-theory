@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 V20.3 大穴保険＋本線4頭拡張 安定補正版</title>
+<title>チャッピー神予想 V20.4 本線4頭＋三連単本線優先版</title>
 <style>
 body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:14px;font-size:17px}
 h1{color:#fff;font-size:27px;line-height:1.3}
@@ -35,7 +35,7 @@ hr{border:0;border-top:1px solid #94a3b8;margin:14px 0}
 </style>
 </head>
 <body>
-<h1>チャッピー神予想 V20.3<br>大穴保険＋本線4頭拡張 安定補正版</h1>
+<h1>チャッピー神予想 V20.4<br>本線4頭＋三連単本線優先版</h1>
 
 <textarea id="input" placeholder="【レース名】
 
@@ -799,6 +799,21 @@ function chooseFinal(data,ctx,scored){
   return{mode:mode,axisH:axisH,partnerH:partnerH,lamps:lamps,head3tanH:head3tanH,hole23H:hole23H,cluster3H:cluster3H,red15H:red15H,superIronH:superIronH,superIronActive:(ctx.superIron&&ctx.superIron.active),mainlineGuardActive:(ctx.mainlineGuard&&ctx.mainlineGuard.active),mainlineH:(ctx.mainlineGuard&&ctx.mainlineGuard.active?ctx.mainlineGuard.coreH:[]),mainlineHoleH:(ctx.mainlineGuard&&ctx.mainlineGuard.active?ctx.mainlineGuard.holeH:[])};
 }
 
+function splitSanrentanLines(lines,pick){
+  if(!pick||!pick.mainlineGuardActive||!pick.mainlineH||!pick.mainlineH.length)return lines.join('\n');
+  var core=pick.mainlineH.slice(0,4);
+  var main=[],hole=[];
+  for(var i=0;i<lines.length;i++){
+    var first=String(lines[i]).split('-')[0];
+    if(core.indexOf(first)>=0)main.push(lines[i]);
+    else hole.push(lines[i]);
+  }
+  var out='';
+  out+='本線\n'+(main.length?main.join('\n'):'なし');
+  out+='\n\n穴頭保険\n'+(hole.length?hole.join('\n'):'なし');
+  return out;
+}
+
 function makeTickets(data,ctx,pick){
   var wide=[],umaren=[],sanpuku=[],sanrentan=[];
   function add(arr,v){if(v&&arr.indexOf(v)<0)arr.push(v);}
@@ -809,8 +824,9 @@ function makeTickets(data,ctx,pick){
 
   var axis=pick.axisH[0],p=pick.partnerH;
 
-  // V20.3：本線4頭拡張＋穴頭保険。
-  // 本線4頭の三連複を先に作り、その後で穴絡みを足す。穴を◎単独にしない。
+  // V20.4：本線4頭拡張＋三連単本線優先。
+  // まず本線4頭の三連複・三連単を出す。
+  // 穴頭保険はその後ろに回す。穴を◎単独にしない。
   if(pick.mainlineGuardActive&&pick.mainlineH.length>=2){
     var core=pick.mainlineH.slice(0,4);
     var holes=uniq(pick.mainlineHoleH.concat(p)).filter(function(h){return core.indexOf(h)<0;}).slice(0,4);
@@ -845,7 +861,29 @@ function makeTickets(data,ctx,pick){
       }
     }
 
-    // 穴絡み：上位本線2頭＋穴、本線1・3頭目＋穴も追加。
+    // 本線三連単：本線4頭の中から、各馬が頭になる形を先に入れる。
+    // 福島1R型では10の頭も必ず残す。
+    if(core.length>=3){
+      var b0=core[0],b1=core[1],b2=core[2],b3=core[3]||null;
+
+      addTan(b0,b1,b2);
+      addTan(b0,b2,b1);
+      addTan(b1,b0,b2);
+      addTan(b1,b2,b0);
+      addTan(b2,b0,b1);
+      addTan(b2,b1,b0);
+
+      if(b3){
+        addTan(b3,b0,b1);
+        addTan(b3,b1,b0);
+        addTan(b0,b3,b1);
+        addTan(b1,b3,b0);
+        addTan(b0,b1,b3);
+        addTan(b1,b0,b3);
+      }
+    }
+
+    // 穴絡み：三連複には残す。三連単の穴頭は後ろに少しだけ。
     var a0=core[0],a1=core[1],a2=core[2]||null;
     for(var mh=0;mh<Math.min(3,holes.length);mh++){
       var h=holes[mh];
@@ -857,13 +895,18 @@ function makeTickets(data,ctx,pick){
       }
       add(sanpuku,addTri(a0,a1,h));
       if(a2)add(sanpuku,addTri(a0,a2,h));
-      addTan(a0,a1,h);
-      addTan(a1,a0,h);
-      if(mh===0)addTan(h,a0,a1);
-      if(a2)addTan(a0,h,a2);
+
+      // 穴頭保険は先頭に置かず、後ろに少量だけ追加。
+      if(mh===0){
+        addTan(h,a0,a1);
+        addTan(a0,h,a1);
+      }
+      if(mh===1){
+        addTan(h,a0,a1);
+      }
     }
 
-    return{wide:wide.slice(0,5),umaren:umaren.slice(0,5),sanpuku:sanpuku.slice(0,7),sanrentan:sanrentan.slice(0,8)};
+    return{wide:wide.slice(0,5),umaren:umaren.slice(0,5),sanpuku:sanpuku.slice(0,7),sanrentan:sanrentan.slice(0,10)};
   }
 
   // V20.1：超超鉄板は「本命2頭＋穴1頭型」を優先して買い目化
@@ -1060,7 +1103,7 @@ function run(){
       html+='ワイド\n'+(tickets.wide.length?tickets.wide.join('\n'):'なし')+'\n\n';
       html+='馬連\n'+(tickets.umaren.length?tickets.umaren.join('\n'):'なし')+'\n\n';
       html+='三連複\n'+(tickets.sanpuku.length?tickets.sanpuku.join('\n'):'なし')+'\n\n';
-      html+='三連単\n'+(tickets.sanrentan.length?tickets.sanrentan.join('\n'):'なし');
+      html+='三連単\n'+(tickets.sanrentan.length?splitSanrentanLines(tickets.sanrentan,pick):'なし');
     }
     html+='</pre></div>';
 
@@ -1091,7 +1134,7 @@ function makeCopyText(title,raceType,decision,pick,tickets,scored,ctx){
   t+='ワイド\n'+tickets.wide.join('\n')+'\n\n';
   t+='馬連\n'+tickets.umaren.join('\n')+'\n\n';
   t+='三連複\n'+tickets.sanpuku.join('\n')+'\n\n';
-  t+='三連単\n'+tickets.sanrentan.join('\n')+'\n\n';
+  t+='三連単\n'+splitSanrentanLines(tickets.sanrentan,pick)+'\n\n';
   if(ctx&&ctx.bigHoleItems&&ctx.bigHoleItems.length){
     t+='大穴保険ランキング\n';
     for(var bh=0;bh<Math.min(5,ctx.bigHoleItems.length);bh++){
