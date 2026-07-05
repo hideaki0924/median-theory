@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 V20.8 本命信頼度チェック復元版</title>
+<title>チャッピー神予想 V20.9 二重赤ランプ統合版</title>
 <style>
 body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:14px;font-size:17px}
 h1{color:#fff;font-size:27px;line-height:1.3}
@@ -39,7 +39,7 @@ hr{border:0;border-top:1px solid #94a3b8;margin:14px 0}
 </style>
 </head>
 <body>
-<h1>チャッピー神予想 V20.8<br>本命信頼度チェック復元版</h1>
+<h1>チャッピー神予想 V20.9<br>二重赤ランプ統合版</h1>
 
 <textarea id="input" placeholder="【レース名】
 
@@ -421,6 +421,61 @@ function detectFavoriteTrustCheck(data,ctx){
 }
 
 
+function detectDoubleRedBox(data,ctx){
+  // V20.9：偽本命赤信号＋1番人気飛び大荒れランプの同時点灯を統合。
+  // 危険本線だけに絞らず、複勝15倍関連・大穴保険・単勝10〜30倍帯をBOX候補へ戻す。
+  var empty={active:false,fav:null,boxH:[],dangerH:[],keepH:[],reason:""};
+  if(!(ctx.favoriteTrust&&ctx.favoriteTrust.active&&ctx.fakeRedSignal&&ctx.fakeRedSignal.active))return empty;
+
+  var fav=ctx.favoriteTrust.fav;
+
+  var noFavH=[];
+  if(ctx.favoriteTrust.noFavTri){
+    noFavH=[ctx.favoriteTrust.noFavTri.a,ctx.favoriteTrust.noFavTri.b,ctx.favoriteTrust.noFavTri.c];
+  }
+
+  var midHole=data.tanfuku.filter(function(x){
+    return x.h!==fav && x.tan>=10 && x.tan<=30 && x.fuku<=15;
+  }).sort(function(a,b){
+    // 単勝10〜30倍帯の中で複勝が売れている順を少し優先
+    return a.fuku-b.fuku || a.tan-b.tan;
+  }).map(function(x){return x.h;});
+
+  var deepFuku=data.tanfuku.filter(function(x){
+    // 複勝15倍内で、単勝だけ妙に売れていない馬も救済
+    return x.h!==fav && x.tan>=30 && x.fuku<=15;
+  }).sort(function(a,b){return a.fuku-b.fuku;}).map(function(x){return x.h;});
+
+  var boxH=uniq(
+    noFavH
+    .concat(ctx.favoriteTrust.otherH||[])
+    .concat(ctx.favoriteTrust.dangerH||[])
+    .concat(ctx.fakeRedSignal.rescueH||[])
+    .concat(ctx.bigHoleH||[])
+    .concat(midHole)
+    .concat(deepFuku)
+    .concat(ctx.fuku15||[])
+    .concat(ctx.fuku15a||[])
+    .concat(ctx.sanTop||[])
+  ).filter(function(h){
+    return h!==fav && !!getTf(data,h);
+  }).slice(0,10);
+
+  var keepH=uniq([fav].concat(ctx.favoriteTrust.topSanH||[]).concat(ctx.umaTop||[])).filter(function(h){
+    return boxH.indexOf(h)<0 && !!getTf(data,h);
+  }).slice(0,5);
+
+  return{
+    active:true,
+    fav:fav,
+    boxH:boxH,
+    dangerH:noFavH.length?noFavH:boxH.slice(0,3),
+    keepH:keepH,
+    reason:"偽本命赤信号＋1番人気飛び大荒れランプの同時点灯。危険本線だけでなく大荒れBOXへ広げる。"
+  };
+}
+
+
 
 // V20.1：超超鉄板の逆。硬そうに見えて本命が危ない時だけ赤白ランプを点灯。
 // 点灯時だけ、複勝15倍壁前・15倍直後を3着救済候補として表に出す。
@@ -576,29 +631,43 @@ function detectMainlineGuard(data,ctx){
 
 function makeSpecialLampCards(ctx){
   var html='';
-  if(ctx.favoriteTrust&&ctx.favoriteTrust.active){
-    var f=ctx.favoriteTrust;
-    html+='<div class="card lampRed"><div class="flashRW">🚨⚪🚨 1番人気飛び大荒れランプ 発動 🚨⚪🚨</div><hr>';
-    html+='<b>本の信頼度チェック復元。単勝1番人気を過信しない局面。</b><br>';
-    html+='単勝1番人気：<span class="yellow">'+f.fav+'番</span>（単'+f.favTan+' / 複'+f.favFuku+'）<br>';
-    html+='馬複1・2番人気チェック：<span class="yellow">'+(f.pair1?f.pair1.key+' '+f.pair1.od+'倍':'なし')+' / '+(f.pair2?f.pair2.key+' '+f.pair2.od+'倍':'なし')+'</span><br>';
-    html+='タテ目：<span class="yellow">'+(f.tatePair?f.tatePair.key+' '+f.tatePair.od+'倍':'なし')+'</span>';
-    html+=' / タテ目倍率：<span class="yellow">'+(f.tateRatio?f.tateRatio.toFixed(2)+'倍':'なし')+'</span><br>';
-    html+='本命なし三連複：<span class="yellow">'+(f.noFavTri?f.noFavRank+'位 '+f.noFavTri.key+'（'+f.noFavTri.od+'倍）':'なし')+'</span><br>';
-    html+='危険本線：<span class="yellow">'+joinH(f.dangerH)+'</span><br>';
-    html+='<span class="small">条件：タテ目倍率4倍未満、または本命なし三連複40倍未満。</span>';
+  if(ctx.doubleRed&&ctx.doubleRed.active){
+    var d=ctx.doubleRed, f=ctx.favoriteTrust, r=ctx.fakeRedSignal;
+    html+='<div class="card lampRed"><div class="flashRW">🚨⚪🚨 二重赤ランプ・大荒れBOX戦 🚨⚪🚨</div><hr>';
+    html+='<b>偽本命赤信号＋1番人気飛び大荒れランプの同時点灯。危険本線だけに絞らずBOX候補へ広げる。</b><br>';
+    html+='本命：<span class="yellow">'+d.fav+'番</span><br>';
+    html+='根拠1：馬複タテ目倍率 <span class="yellow">'+(f.tateRatio?f.tateRatio.toFixed(2)+'倍':'なし')+'</span> / タテ目 <span class="yellow">'+(f.tatePair?f.tatePair.key+' '+f.tatePair.od+'倍':'なし')+'</span><br>';
+    html+='根拠2：本命なし三連複 <span class="yellow">'+(f.noFavTri?f.noFavTri.key+'（'+f.noFavTri.od+'倍）':'なし')+'</span><br>';
+    html+='根拠3：複勝15倍関連 <span class="yellow">'+joinH(r.rescueH)+'</span><br>';
+    html+='大荒れBOX候補：<span class="yellow">'+joinH(d.boxH)+'</span><br>';
+    html+='本命残し：<span class="yellow">'+joinH(d.keepH)+'</span><br>';
+    html+='<span class="small">条件：偽本命赤信号と本命信頼度NGが同時点灯。買い目は本命固定ではなくBOX意識。</span>';
     html+='</div>';
-  }
-  if(ctx.fakeRedSignal&&ctx.fakeRedSignal.active){
-    var r=ctx.fakeRedSignal;
-    html+='<div class="card lampRed"><div class="flashRW">🔴⚪🔴 偽本命赤信号 発動 🔴⚪🔴</div><hr>';
-    html+='<b>硬そうに見えて本命が危ない。本命なし三連複＋複勝15倍関連を解放。</b><br>';
-    html+='本命：<span class="yellow">'+r.hero+'番</span><br>';
-    html+='本命なし三連複：<span class="yellow">'+(r.tri?r.tri.key+'（'+r.tri.od+'倍）':'なし')+'</span><br>';
-    html+='複勝15倍壁前：<span class="yellow">'+joinH(r.fuku15H)+'</span><br>';
-    html+='複勝15倍直後：<span class="yellow">'+joinH(r.fuku15AfterH)+'</span><br>';
-    html+='15倍関連3着救済：<span class="yellow">'+joinH(r.rescueH)+'</span>';
-    html+='</div>';
+  }else{
+    if(ctx.favoriteTrust&&ctx.favoriteTrust.active){
+      var f=ctx.favoriteTrust;
+      html+='<div class="card lampRed"><div class="flashRW">🚨⚪🚨 1番人気飛び大荒れランプ 発動 🚨⚪🚨</div><hr>';
+      html+='<b>本の信頼度チェック復元。単勝1番人気を過信しない局面。</b><br>';
+      html+='単勝1番人気：<span class="yellow">'+f.fav+'番</span>（単'+f.favTan+' / 複'+f.favFuku+'）<br>';
+      html+='馬複1・2番人気チェック：<span class="yellow">'+(f.pair1?f.pair1.key+' '+f.pair1.od+'倍':'なし')+' / '+(f.pair2?f.pair2.key+' '+f.pair2.od+'倍':'なし')+'</span><br>';
+      html+='タテ目：<span class="yellow">'+(f.tatePair?f.tatePair.key+' '+f.tatePair.od+'倍':'なし')+'</span>';
+      html+=' / タテ目倍率：<span class="yellow">'+(f.tateRatio?f.tateRatio.toFixed(2)+'倍':'なし')+'</span><br>';
+      html+='本命なし三連複：<span class="yellow">'+(f.noFavTri?f.noFavRank+'位 '+f.noFavTri.key+'（'+f.noFavTri.od+'倍）':'なし')+'</span><br>';
+      html+='危険本線：<span class="yellow">'+joinH(f.dangerH)+'</span><br>';
+      html+='<span class="small">条件：タテ目倍率4倍未満、または本命なし三連複40倍未満。</span>';
+      html+='</div>';
+    }
+    if(ctx.fakeRedSignal&&ctx.fakeRedSignal.active){
+      var r=ctx.fakeRedSignal;
+      html+='<div class="card lampRed"><div class="flashRW">🔴⚪🔴 偽本命赤信号 発動 🔴⚪🔴</div><hr>';
+      html+='<b>硬そうに見えて本命が危ない。本命なし三連複＋複勝15倍関連を解放。</b><br>';
+      html+='本命：<span class="yellow">'+r.hero+'番</span><br>';
+      html+='本命なし三連複：<span class="yellow">'+(r.tri?r.tri.key+'（'+r.tri.od+'倍）':'なし')+'</span><br>';
+      html+='複勝15倍壁前：<span class="yellow">'+joinH(r.fuku15H)+'</span><br>';
+      html+='複勝15倍直後：<span class="yellow">'+joinH(r.fuku15AfterH)+'</span><br>';
+      html+='15倍関連3着救済：<span class="yellow">'+joinH(r.rescueH)+'</span>';
+      html+='</div>';
+    }
   }
   if(ctx.superIron&&ctx.superIron.active){
     var g=ctx.superIron;
@@ -775,6 +844,8 @@ function makeContext(data){
   ctx.bigHoleItems=detectBigHoleInsuranceRanking(data,ctx);
   ctx.bigHoleH=ctx.bigHoleItems.map(function(x){return x.h;});
 
+  ctx.doubleRed=detectDoubleRedBox(data,ctx);
+
   ctx.superIron=detectSuperIronLamp(data,ctx);
 
   ctx.mainlineGuard=detectMainlineGuard(data,ctx);
@@ -822,7 +893,9 @@ function chooseFinal(data,ctx,scored){
   var red15H=(ctx.fakeRedSignal&&ctx.fakeRedSignal.active)?ctx.fakeRedSignal.rescueH:[];
   var superIronH=(ctx.superIron&&ctx.superIron.active)?ctx.superIron.holeH:[];
 
-  if(ctx.fakeRedSignal&&ctx.fakeRedSignal.active){
+  if(ctx.doubleRed&&ctx.doubleRed.active){
+    lamps.push("🚨二重赤ランプ・大荒れBOX戦：本命 "+ctx.doubleRed.fav+"番 / BOX "+joinH(ctx.doubleRed.boxH));
+  }else if(ctx.fakeRedSignal&&ctx.fakeRedSignal.active){
     lamps.push("🔴偽本命赤信号：本命なし三連複 "+ctx.fakeRedSignal.tri.key+"（"+ctx.fakeRedSignal.tri.od+"倍） / 複勝15倍関連 "+joinH(ctx.fakeRedSignal.rescueH));
   }
   if(ctx.superIron&&ctx.superIron.active){
@@ -833,14 +906,19 @@ function chooseFinal(data,ctx,scored){
   if(ctx.semiHeroH.length)lamps.push("🟧準本命保護："+joinH(ctx.semiHeroH));
   if(ctx.fukuMedianPair)lamps.push("🟣複勝メジアンペア保護："+joinH(ctx.fukuM));
   if(ctx.doubleMedian.length)lamps.push("🔥単複メジアン重複："+joinH(ctx.doubleMedian));
-  if(ctx.favoriteTrust&&ctx.favoriteTrust.active){
+  if(ctx.favoriteTrust&&ctx.favoriteTrust.active&&!(ctx.doubleRed&&ctx.doubleRed.active)){
     var ft=ctx.favoriteTrust;
     lamps.push("🚨1番人気飛び大荒れランプ：本命 "+ft.fav+"番 / "+ft.reason+" / タテ目 "+(ft.tatePair?ft.tatePair.key+" "+ft.tatePair.od+"倍":"なし")+" / 本命なし三連複 "+(ft.noFavTri?ft.noFavTri.key+" "+ft.noFavTri.od+"倍":"なし"));
   }
 
   // V20.7：超超鉄板は穴を◎にしない。
   // ◎は本命2頭固定、穴は☆候補として相手側へ出す。
-  if(ctx.favoriteTrust&&ctx.favoriteTrust.active){
+  if(ctx.doubleRed&&ctx.doubleRed.active){
+    mode="二重赤ランプ・大荒れBOX戦";
+    axisH=ctx.doubleRed.boxH.slice(0,10);
+    partnerH=ctx.doubleRed.keepH.slice(0,5);
+  }
+  else if(ctx.favoriteTrust&&ctx.favoriteTrust.active){
     mode="1番人気飛び大荒れランプ";
     axisH=ctx.favoriteTrust.dangerH.slice(0,4);
     if(!axisH.length&&ctx.favoriteTrust.noFavTri){
@@ -956,7 +1034,7 @@ function chooseFinal(data,ctx,scored){
     partnerH=uniq(red15H.concat(superIronH).concat(scored.slice(1,7).map(function(x){return x.h;}))).filter(function(h){return axisH.indexOf(h)<0;}).slice(0,6);
   }
 
-  if(ctx.fakeRedSignal&&ctx.fakeRedSignal.active&&!(ctx.favoriteTrust&&ctx.favoriteTrust.active))mode="偽本命赤信号";
+  if(ctx.fakeRedSignal&&ctx.fakeRedSignal.active&&!(ctx.favoriteTrust&&ctx.favoriteTrust.active)&&!(ctx.doubleRed&&ctx.doubleRed.active))mode="偽本命赤信号";
 
   return{
     mode:mode,
@@ -968,8 +1046,10 @@ function chooseFinal(data,ctx,scored){
     cluster3H:cluster3H,
     red15H:red15H,
     superIronH:superIronH,
+    doubleRedActive:(ctx.doubleRed&&ctx.doubleRed.active?true:false),
+    doubleRedBoxH:(ctx.doubleRed&&ctx.doubleRed.active?ctx.doubleRed.boxH:[]),
     favoriteTrustActive:(ctx.favoriteTrust&&ctx.favoriteTrust.active?true:false),
-    superIronActive:(ctx.superIron&&ctx.superIron.active&&!ctx.fakeRedSignal.active&&!(ctx.favoriteTrust&&ctx.favoriteTrust.active)),
+    superIronActive:(ctx.superIron&&ctx.superIron.active&&!ctx.fakeRedSignal.active&&!(ctx.favoriteTrust&&ctx.favoriteTrust.active)&&!(ctx.doubleRed&&ctx.doubleRed.active)),
     mainlineGuardActive:(ctx.mainlineGuard&&ctx.mainlineGuard.active?ctx.mainlineGuard.active:false),
     mainlineH:(ctx.mainlineGuard&&ctx.mainlineGuard.active?ctx.mainlineGuard.coreH:[]),
     mainlineHoleH:(ctx.mainlineGuard&&ctx.mainlineGuard.active?ctx.mainlineGuard.holeH:[])
@@ -1004,6 +1084,54 @@ function makeTickets(data,ctx,pick){
   function addTan(a,b,c){if(a&&b&&c&&a!==b&&a!==c&&b!==c)add(sanrentan,a+"-"+b+"-"+c);}
 
   var axis=pick.axisH[0],p=pick.partnerH;
+
+  // V20.9：二重赤ランプ専用。
+  // 危険本線だけに狭めず、BOX候補を表示しつつ、実オッズ上位の保険を残す。
+  if(pick.doubleRedActive&&ctx.doubleRed&&ctx.doubleRed.active){
+    var dr=ctx.doubleRed;
+    var ft=ctx.favoriteTrust||{};
+    var fav=dr.fav;
+    var box=dr.boxH.slice(0,10);
+    var boxAll=uniq(box.concat([fav]));
+
+    function inBoxPair(x){return boxAll.indexOf(x.a)>=0&&boxAll.indexOf(x.b)>=0;}
+    function inBoxTri(x){return boxAll.indexOf(x.a)>=0&&boxAll.indexOf(x.b)>=0&&boxAll.indexOf(x.c)>=0;}
+
+    if(ft.tatePair){
+      addFront(umaren,addPair(ft.tatePair.a,ft.tatePair.b));
+      addFront(wide,addPair(ft.tatePair.a,ft.tatePair.b));
+    }
+    if(ft.noFavTri){
+      addFront(sanpuku,addTri(ft.noFavTri.a,ft.noFavTri.b,ft.noFavTri.c));
+      add(wide,addPair(ft.noFavTri.a,ft.noFavTri.b));
+      add(wide,addPair(ft.noFavTri.a,ft.noFavTri.c));
+      add(wide,addPair(ft.noFavTri.b,ft.noFavTri.c));
+      addTan(ft.noFavTri.a,ft.noFavTri.b,ft.noFavTri.c);
+      addTan(ft.noFavTri.b,ft.noFavTri.a,ft.noFavTri.c);
+    }
+    if(ft.topSan)add(sanpuku,addTri(ft.topSan.a,ft.topSan.b,ft.topSan.c));
+    if(ft.pair1){add(umaren,addPair(ft.pair1.a,ft.pair1.b));add(wide,addPair(ft.pair1.a,ft.pair1.b));}
+    if(ft.pair2){add(umaren,addPair(ft.pair2.a,ft.pair2.b));add(wide,addPair(ft.pair2.a,ft.pair2.b));}
+
+    var ups=sortOdds(data.umaren).filter(inBoxPair);
+    for(var iu=0;iu<ups.length&&umaren.length<6;iu++)add(umaren,addPair(ups[iu].a,ups[iu].b));
+
+    var wps=sortOdds(data.wide).filter(inBoxPair);
+    for(var iw=0;iw<wps.length&&wide.length<8;iw++)add(wide,addPair(wps[iw].a,wps[iw].b));
+
+    var sps=sortOdds(data.sanpuku).filter(inBoxTri);
+    for(var is=0;is<sps.length&&sanpuku.length<10;is++)add(sanpuku,addTri(sps[is].a,sps[is].b,sps[is].c));
+
+    // 三連単は買いすぎ防止で、赤信号本線＋本命残しだけ
+    if(ft.noFavTri&&ft.noFavTri.a&&ft.noFavTri.b&&ft.noFavTri.c){
+      var a=ft.noFavTri.a,b=ft.noFavTri.b,c=ft.noFavTri.c;
+      addTan(a,b,c); addTan(b,a,c);
+      addTan(a,fav,b); addTan(b,fav,a);
+      addTan(fav,a,b); addTan(fav,b,a);
+    }
+
+    return{wide:wide.slice(0,8),umaren:umaren.slice(0,6),sanpuku:sanpuku.slice(0,10),sanrentan:sanrentan.slice(0,8)};
+  }
 
   // V20.8：本命信頼度NG専用。
   // 馬複タテ目・本命なし三連複・三連複1番人気を必ず残す。
@@ -1392,7 +1520,7 @@ function run(){
     html+=makeBigHoleCard(ctx);
 
     html+='<div class="card"><div class="title">👑最終候補</div>';
-    html+=(pick.favoriteTrustActive?'危険本線：':(pick.superIronActive?'本命固定：':'軸候補：'))+'<span class="good">'+joinH(pick.axisH)+'</span><br>';
+    html+=(pick.doubleRedActive?'大荒れBOX候補：':(pick.favoriteTrustActive?'危険本線：':(pick.superIronActive?'本命固定：':'軸候補：')))+'<span class="good">'+joinH(pick.axisH)+'</span><br>';
     if(pick.mainlineGuardActive){
       html+='本線4頭候補：<span class="good">'+joinH(pick.mainlineH)+'</span><br>';
       html+='穴頭保険：<span class="yellow">'+joinH(pick.mainlineHoleH)+'</span><br>';
@@ -1409,8 +1537,10 @@ function run(){
     if(decision==="見送り"){
       html+='見送り\n理由：重なり不足';
     }else{
-      html+=(pick.favoriteTrustActive?'◎ 危険本線 ':(pick.superIronActive?'◎ 本命固定 ':'◎ '))+joinH(pick.axisH)+'\n';
-      html+=(pick.favoriteTrustActive?'○ 本命残し・保険 ':(pick.superIronActive?'☆ 穴1頭 ':'○ '))+joinH(pick.partnerH)+'\n\n';
+      html+=(pick.doubleRedActive?'◎ 大荒れBOX候補 ':(pick.favoriteTrustActive?'◎ 危険本線 ':(pick.superIronActive?'◎ 本命固定 ':'◎ ')))+joinH(pick.axisH)+'\n';
+      html+=(pick.doubleRedActive?'○ 本命残し・押さえ ':(pick.favoriteTrustActive?'○ 本命残し・保険 ':(pick.superIronActive?'☆ 穴1頭 ':'○ ')))+joinH(pick.partnerH)+'\n';
+      if(pick.doubleRedActive)html+='※二重赤ランプ時は、危険本線1本ではなくBOX候補内のワイド・三連複を広めに検討\n';
+      html+='\n';
       html+='ワイド\n'+(tickets.wide.length?tickets.wide.join('\n'):'なし')+'\n\n';
       html+='馬連\n'+(tickets.umaren.length?tickets.umaren.join('\n'):'なし')+'\n\n';
       html+='三連複\n'+(tickets.sanpuku.length?tickets.sanpuku.join('\n'):'なし')+'\n\n';
@@ -1431,12 +1561,17 @@ function makeCopyText(title,raceType,decision,pick,tickets,scored,ctx){
   t+='診断：'+raceType+' / '+decision+'\n';
   t+='選択モード：'+pick.mode+'\n';
   if(pick.lamps.length)t+='発動：'+pick.lamps.join(' / ')+'\n';
-  if(ctx&&ctx.favoriteTrust&&ctx.favoriteTrust.active){
-    var ft=ctx.favoriteTrust;
-    t+='1番人気飛び大荒れ詳細：本命 '+ft.fav+'番 / 馬複1・2番人気 '+(ft.pair1?ft.pair1.key+' '+ft.pair1.od+'倍':'なし')+'・'+(ft.pair2?ft.pair2.key+' '+ft.pair2.od+'倍':'なし')+' / タテ目 '+(ft.tatePair?ft.tatePair.key+' '+ft.tatePair.od+'倍':'なし')+' / タテ目倍率 '+(ft.tateRatio?ft.tateRatio.toFixed(2)+'倍':'なし')+' / 本命なし三連複 '+(ft.noFavTri?ft.noFavTri.key+' '+ft.noFavTri.od+'倍':'なし')+'\n';
-  }
-  if(ctx&&ctx.fakeRedSignal&&ctx.fakeRedSignal.active){
-    t+='赤信号詳細：本命なし三連複 '+ctx.fakeRedSignal.tri.key+'（'+ctx.fakeRedSignal.tri.od+'倍） / 複勝15倍壁前 '+joinH(ctx.fakeRedSignal.fuku15H)+' / 15倍直後 '+joinH(ctx.fakeRedSignal.fuku15AfterH)+' / 15倍関連3着救済 '+joinH(ctx.fakeRedSignal.rescueH)+'\n';
+  if(ctx&&ctx.doubleRed&&ctx.doubleRed.active){
+    var dr=ctx.doubleRed, ft=ctx.favoriteTrust, rr=ctx.fakeRedSignal;
+    t+='二重赤ランプ詳細：本命 '+dr.fav+'番 / タテ目 '+(ft.tatePair?ft.tatePair.key+' '+ft.tatePair.od+'倍':'なし')+' / タテ目倍率 '+(ft.tateRatio?ft.tateRatio.toFixed(2)+'倍':'なし')+' / 本命なし三連複 '+(ft.noFavTri?ft.noFavTri.key+' '+ft.noFavTri.od+'倍':'なし')+' / 複勝15倍関連 '+joinH(rr.rescueH)+' / 大荒れBOX '+joinH(dr.boxH)+'\n';
+  }else{
+    if(ctx&&ctx.favoriteTrust&&ctx.favoriteTrust.active){
+      var ft=ctx.favoriteTrust;
+      t+='1番人気飛び大荒れ詳細：本命 '+ft.fav+'番 / 馬複1・2番人気 '+(ft.pair1?ft.pair1.key+' '+ft.pair1.od+'倍':'なし')+'・'+(ft.pair2?ft.pair2.key+' '+ft.pair2.od+'倍':'なし')+' / タテ目 '+(ft.tatePair?ft.tatePair.key+' '+ft.tatePair.od+'倍':'なし')+' / タテ目倍率 '+(ft.tateRatio?ft.tateRatio.toFixed(2)+'倍':'なし')+' / 本命なし三連複 '+(ft.noFavTri?ft.noFavTri.key+' '+ft.noFavTri.od+'倍':'なし')+'\n';
+    }
+    if(ctx&&ctx.fakeRedSignal&&ctx.fakeRedSignal.active){
+      t+='赤信号詳細：本命なし三連複 '+ctx.fakeRedSignal.tri.key+'（'+ctx.fakeRedSignal.tri.od+'倍） / 複勝15倍壁前 '+joinH(ctx.fakeRedSignal.fuku15H)+' / 15倍直後 '+joinH(ctx.fakeRedSignal.fuku15AfterH)+' / 15倍関連3着救済 '+joinH(ctx.fakeRedSignal.rescueH)+'\n';
+    }
   }
   if(ctx&&ctx.superIron&&ctx.superIron.active){
     t+='超超鉄板詳細：本命 '+joinH(ctx.superIron.coreH)+' / 穴1頭 '+joinH(ctx.superIron.holeH)+' / 本命点 '+ctx.superIron.corePoint+' / 穴点 '+ctx.superIron.holePoint+'\n';
@@ -1444,8 +1579,10 @@ function makeCopyText(title,raceType,decision,pick,tickets,scored,ctx){
   if(ctx&&ctx.mainlineGuard&&ctx.mainlineGuard.active){
     t+='穴ランプ軸奪い禁止補正：本線4頭候補 '+joinH(ctx.mainlineGuard.coreH)+' / 穴頭保険 '+joinH(ctx.mainlineGuard.holeH)+'\n';
   }
-  t+=(pick.favoriteTrustActive?'◎ 危険本線 ':(pick.superIronActive?'◎ 本命固定 ':'◎ '))+joinH(pick.axisH)+'\n';
-  t+=(pick.favoriteTrustActive?'○ 本命残し・保険 ':(pick.superIronActive?'☆ 穴1頭 ':'○ '))+joinH(pick.partnerH)+'\n\n';
+  t+=(pick.doubleRedActive?'◎ 大荒れBOX候補 ':(pick.favoriteTrustActive?'◎ 危険本線 ':(pick.superIronActive?'◎ 本命固定 ':'◎ ')))+joinH(pick.axisH)+'\n';
+  t+=(pick.doubleRedActive?'○ 本命残し・押さえ ':(pick.favoriteTrustActive?'○ 本命残し・保険 ':(pick.superIronActive?'☆ 穴1頭 ':'○ ')))+joinH(pick.partnerH)+'\n';
+  if(pick.doubleRedActive)t+='※二重赤ランプ時は、危険本線1本ではなくBOX候補内のワイド・三連複を広めに検討\n';
+  t+='\n';
   t+='ワイド\n'+tickets.wide.join('\n')+'\n\n';
   t+='馬連\n'+tickets.umaren.join('\n')+'\n\n';
   t+='三連複\n'+tickets.sanpuku.join('\n')+'\n\n';
