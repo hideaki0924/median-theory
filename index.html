@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 V20.9 二重赤ランプ統合版</title>
+<title>チャッピー神予想 V20.10 複勝多頭数15壁救済版</title>
 <style>
 body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:14px;font-size:17px}
 h1{color:#fff;font-size:27px;line-height:1.3}
@@ -39,7 +39,7 @@ hr{border:0;border-top:1px solid #94a3b8;margin:14px 0}
 </style>
 </head>
 <body>
-<h1>チャッピー神予想 V20.9<br>二重赤ランプ統合版</h1>
+<h1>チャッピー神予想 V20.10<br>複勝多頭数15壁救済版</h1>
 
 <textarea id="input" placeholder="【レース名】
 
@@ -629,6 +629,73 @@ function detectMainlineGuard(data,ctx){
 }
 
 
+
+function detectFukuMultiWallRescue(data,ctx){
+  // V20.10：金沢10R型。
+  // 複勝が広く売れている混戦では、複勝15倍壁前を三連複救済に戻す。
+  // 形：複勝メジアン馬 × 複勝15倍壁前馬 × 本線1頭
+  var f6Count=ctx.fukuRank.filter(function(x){return Number(x.fuku)<6;}).length;
+  var f15Count=ctx.fukuRank.filter(function(x){return Number(x.fuku)<15;}).length;
+
+  var active=(f6Count>=6||f15Count>=9);
+  if(!active||!ctx.fuku15||!ctx.fuku15.length||!ctx.fukuM||!ctx.fukuM.length){
+    return{active:false,f6Count:f6Count,f15Count:f15Count,medH:[],wallH:[],coreH:[],rescueH:[],triH:[],reason:""};
+  }
+
+  function fukuVal(h){
+    var tf=getTf(data,h);
+    return tf?Number(tf.fuku):999;
+  }
+  function tanVal(h){
+    var tf=getTf(data,h);
+    return tf?Number(tf.tan):999;
+  }
+
+  var medH=ctx.fukuM.slice().filter(function(h){return !!getTf(data,h);}).sort(function(a,b){
+    return fukuVal(a)-fukuVal(b) || tanVal(a)-tanVal(b);
+  });
+
+  var wallH=ctx.fuku15.slice().filter(function(h){return !!getTf(data,h);}).sort(function(a,b){
+    return fukuVal(a)-fukuVal(b) || tanVal(a)-tanVal(b);
+  });
+
+  var coreH=[];
+  if(ctx.mainlineGuard&&ctx.mainlineGuard.active){
+    coreH=ctx.mainlineGuard.coreH.slice(0,4);
+  }else{
+    coreH=uniq((ctx.sanTop||[]).concat(ctx.umaTop||[]).concat(ctx.wideTop||[])).slice(0,4);
+  }
+
+  coreH=coreH.filter(function(h){return !!getTf(data,h);});
+
+  var rescueH=uniq(medH.concat(wallH).concat(coreH));
+  var triH=[];
+  for(var w=0;w<Math.min(2,wallH.length);w++){
+    for(var m=0;m<Math.min(2,medH.length);m++){
+      for(var c=0;c<Math.min(4,coreH.length);c++){
+        var tri=triKey(wallH[w],medH[m],coreH[c]);
+        if(wallH[w]!==medH[m]&&wallH[w]!==coreH[c]&&medH[m]!==coreH[c]&&triH.indexOf(tri)<0){
+          triH.push(tri);
+        }
+      }
+    }
+  }
+
+  return{
+    active:true,
+    f6Count:f6Count,
+    f15Count:f15Count,
+    medH:medH.slice(0,2),
+    wallH:wallH.slice(0,2),
+    coreH:coreH.slice(0,4),
+    rescueH:rescueH.slice(0,8),
+    triH:triH.slice(0,8),
+    reason:"複勝6倍未満"+f6Count+"頭 / 複勝15倍未満"+f15Count+"頭。複勝メジアン×15倍壁前×本線を三連複救済。"
+  };
+}
+
+
+
 function makeSpecialLampCards(ctx){
   var html='';
   if(ctx.doubleRed&&ctx.doubleRed.active){
@@ -685,6 +752,17 @@ function makeSpecialLampCards(ctx){
     html+='本線4頭候補：<span class="yellow">'+joinH(m.coreH)+'</span><br>';
     html+='穴頭保険：<span class="yellow">'+joinH(m.holeH)+'</span><br>';
     html+='<span class="small">'+m.reason+'</span>';
+    html+='</div>';
+  }
+  if(ctx.fukuWallRescue&&ctx.fukuWallRescue.active){
+    var fr=ctx.fukuWallRescue;
+    html+='<div class="card"><div class="title">🟣複勝多頭数・15倍壁前救済</div>';
+    html+='<b>複勝が広く売れている混戦。15倍壁前を三連複救済へ戻す。</b><br>';
+    html+='複勝6倍未満：<span class="yellow">'+fr.f6Count+'頭</span> / 複勝15倍未満：<span class="yellow">'+fr.f15Count+'頭</span><br>';
+    html+='複勝メジアン：<span class="yellow">'+joinH(fr.medH)+'</span><br>';
+    html+='複勝15倍壁前：<span class="yellow">'+joinH(fr.wallH)+'</span><br>';
+    html+='本線：<span class="yellow">'+joinH(fr.coreH)+'</span><br>';
+    html+='三連複救済：<span class="yellow">'+(fr.triH.length?fr.triH.join(' / '):'なし')+'</span>';
     html+='</div>';
   }
   return html;
@@ -849,6 +927,7 @@ function makeContext(data){
   ctx.superIron=detectSuperIronLamp(data,ctx);
 
   ctx.mainlineGuard=detectMainlineGuard(data,ctx);
+  ctx.fukuWallRescue=detectFukuMultiWallRescue(data,ctx);
 
   return ctx;
 }
@@ -878,6 +957,7 @@ function scoreAll(data,ctx){
     if(ctx.superIron&&ctx.superIron.active&&ctx.superIron.holeH.indexOf(h)>=0){score+=8;reasons.push("超超鉄板の穴1頭候補");}
     if(ctx.mainlineGuard&&ctx.mainlineGuard.active&&ctx.mainlineGuard.coreH.indexOf(h)>=0){score+=7;reasons.push("本線保護");}
     if(ctx.mainlineGuard&&ctx.mainlineGuard.active&&ctx.mainlineGuard.holeH.indexOf(h)>=0){score+=5;reasons.push("穴頭保険");}
+    if(ctx.fukuWallRescue&&ctx.fukuWallRescue.active&&ctx.fukuWallRescue.rescueH.indexOf(h)>=0){score+=5;reasons.push("複勝多頭数15壁救済");}
     if(tf&&tf.fuku>15){score-=3;reasons.push("複勝15倍外で弱め");}
     scored.push({h:h,score:score,reasons:reasons,tan:tf?tf.tan:"-",fuku:tf?tf.fuku:"-"});
   }
@@ -906,6 +986,9 @@ function chooseFinal(data,ctx,scored){
   if(ctx.semiHeroH.length)lamps.push("🟧準本命保護："+joinH(ctx.semiHeroH));
   if(ctx.fukuMedianPair)lamps.push("🟣複勝メジアンペア保護："+joinH(ctx.fukuM));
   if(ctx.doubleMedian.length)lamps.push("🔥単複メジアン重複："+joinH(ctx.doubleMedian));
+  if(ctx.fukuWallRescue&&ctx.fukuWallRescue.active){
+    lamps.push("🟣複勝多頭数・15倍壁前救済：メジアン "+joinH(ctx.fukuWallRescue.medH)+" / 15壁前 "+joinH(ctx.fukuWallRescue.wallH)+" / 本線 "+joinH(ctx.fukuWallRescue.coreH));
+  }
   if(ctx.favoriteTrust&&ctx.favoriteTrust.active&&!(ctx.doubleRed&&ctx.doubleRed.active)){
     var ft=ctx.favoriteTrust;
     lamps.push("🚨1番人気飛び大荒れランプ：本命 "+ft.fav+"番 / "+ft.reason+" / タテ目 "+(ft.tatePair?ft.tatePair.key+" "+ft.tatePair.od+"倍":"なし")+" / 本命なし三連複 "+(ft.noFavTri?ft.noFavTri.key+" "+ft.noFavTri.od+"倍":"なし"));
@@ -1268,7 +1351,16 @@ function makeTickets(data,ctx,pick){
     var topSan=sortOdds(data.sanpuku)[0];
     if(topSan)addFront(sanpuku,addTri(topSan.a,topSan.b,topSan.c));
 
-    return{wide:wide.slice(0,5),umaren:umaren.slice(0,5),sanpuku:sanpuku.slice(0,8),sanrentan:sanrentan.slice(0,10)};
+    // V20.10：複勝多頭数・15倍壁前救済。
+    // 金沢10R型：複勝メジアン馬 × 複勝15倍壁前馬 × 本線1頭
+    if(ctx.fukuWallRescue&&ctx.fukuWallRescue.active&&ctx.fukuWallRescue.triH.length){
+      var frTri=ctx.fukuWallRescue.triH.slice(0,8);
+      for(var fr=frTri.length-1;fr>=0;fr--){
+        addFront(sanpuku,frTri[fr]);
+      }
+    }
+
+    return{wide:wide.slice(0,5),umaren:umaren.slice(0,5),sanpuku:sanpuku.slice(0,10),sanrentan:sanrentan.slice(0,10)};
   }
 
   // V20.7：超超鉄板は「本命2頭固定＋穴1頭」。
@@ -1303,6 +1395,14 @@ function makeTickets(data,ctx,pick){
     if(p.length>=2)add(sanpuku,addTri(axis,p[0],p[1]));
     if(p.length>=3)add(sanpuku,addTri(axis,p[0],p[2]));
     if(p.length>=4)add(sanpuku,addTri(axis,p[1],p[2]));
+  }
+
+  // V20.10：通常モードでも複勝多頭数・15倍壁前救済を三連複に足す。
+  if(ctx.fukuWallRescue&&ctx.fukuWallRescue.active&&ctx.fukuWallRescue.triH.length){
+    var fw=ctx.fukuWallRescue.triH.slice(0,5);
+    for(var fwI=fw.length-1;fwI>=0;fwI--){
+      addFront(sanpuku,fw[fwI]);
+    }
   }
 
   // 1倍台本命保護＋穴帯クラスターの3着救済
@@ -1501,9 +1601,9 @@ function run(){
     html+='単勝メジアン：<span class="red">'+joinH(ctx.tanM)+'</span><br>';
     html+='複勝メジアン：<span class="red">'+joinH(ctx.fukuM)+'</span><br>';
     html+='馬連壁内メジアン：<span class="red">'+joinH(ctx.zoneM)+'</span><br>';
-    html+='複勝6倍壁前：<span class="yellow">'+joinH(ctx.fuku6)+'</span><br>';
+    html+='複勝6倍未満：<span class="yellow">'+ctx.fukuRank.filter(function(x){return Number(x.fuku)<6;}).length+'頭</span> / 複勝6倍壁前：<span class="yellow">'+joinH(ctx.fuku6)+'</span><br>';
     html+='複勝10倍壁前：<span class="yellow">'+joinH(ctx.fuku10)+'</span><br>';
-    html+='複勝15倍壁前：<span class="yellow">'+joinH(ctx.fuku15)+'</span><br>';
+    html+='複勝15倍未満：<span class="yellow">'+ctx.fukuRank.filter(function(x){return Number(x.fuku)<15;}).length+'頭</span> / 複勝15倍壁前：<span class="yellow">'+joinH(ctx.fuku15)+'</span><br>';
     html+='複勝15倍直後：<span class="yellow">'+joinH(ctx.fuku15a)+'</span><br>';
     html+='人気ゾーン4〜9.9倍：<span class="blue">'+joinH(ctx.popularZoneH)+'</span><br>';
     html+='穴帯クラスター救済：<span class="yellow">'+joinH(ctx.holeClusterH||[])+'</span><br>';
@@ -1575,6 +1675,9 @@ function makeCopyText(title,raceType,decision,pick,tickets,scored,ctx){
   }
   if(ctx&&ctx.superIron&&ctx.superIron.active){
     t+='超超鉄板詳細：本命 '+joinH(ctx.superIron.coreH)+' / 穴1頭 '+joinH(ctx.superIron.holeH)+' / 本命点 '+ctx.superIron.corePoint+' / 穴点 '+ctx.superIron.holePoint+'\n';
+  }
+  if(ctx&&ctx.fukuWallRescue&&ctx.fukuWallRescue.active){
+    t+='複勝多頭数15壁救済：複勝6倍未満 '+ctx.fukuWallRescue.f6Count+'頭 / 複勝15倍未満 '+ctx.fukuWallRescue.f15Count+'頭 / メジアン '+joinH(ctx.fukuWallRescue.medH)+' / 15壁前 '+joinH(ctx.fukuWallRescue.wallH)+' / 本線 '+joinH(ctx.fukuWallRescue.coreH)+' / 救済三連複 '+ctx.fukuWallRescue.triH.join('・')+'\n';
   }
   if(ctx&&ctx.mainlineGuard&&ctx.mainlineGuard.active){
     t+='穴ランプ軸奪い禁止補正：本線4頭候補 '+joinH(ctx.mainlineGuard.coreH)+' / 穴頭保険 '+joinH(ctx.mainlineGuard.holeH)+'\n';
