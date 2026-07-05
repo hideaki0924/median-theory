@@ -1,86 +1,1357 @@
+【V1.8コード 1/3】
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 V1.7 三連複専用穴救済版</title>
+<title>チャッピー神予想 V1.8 人気ゾーン端頭残し版</title>
 <style>
-body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:14px;font-size:17px}
-h1{color:#fff;font-size:28px;line-height:1.3}
-textarea{width:100%;height:330px;box-sizing:border-box;border-radius:16px;border:2px solid #3b82f6;padding:12px;font-size:16px;line-height:1.45;font-family:monospace;background:#f8fafc;color:#111}
-button{font-size:20px;font-weight:900;border:0;border-radius:16px;padding:14px 18px;margin:10px 6px 10px 0}.go{background:#22c55e;color:#052e16}.test{background:#3b82f6;color:#fff}.clear{background:#64748b;color:#fff}.copy{background:#f59e0b;color:#fff}
-.card{background:#10224a;border:1px solid #3b82f6;border-radius:18px;padding:14px;margin:14px 0}.title{color:#ffd84d;font-size:24px;font-weight:900;margin-bottom:10px}.sub{color:#93c5fd;font-size:19px;font-weight:900;margin-top:10px}.good{color:#86efac;font-weight:900}.warn{color:#fb7185;font-weight:900}.yellow{color:#fde047;font-weight:900}.red{color:#fb7185;font-weight:900}.small{color:#cbd5e1;font-size:14px}pre{white-space:pre-wrap;word-break:break-word;background:#020617;color:#e5e7eb;padding:12px;border-radius:12px;font-size:18px}.badge{display:inline-block;padding:5px 10px;border-radius:999px;background:#1e293b;margin:4px 2px;font-weight:900}.honWrap{overflow-x:auto;background:#07101f;border-radius:14px;padding:10px;margin-top:10px}.honRow{display:flex;align-items:center;gap:0;min-width:680px;margin:12px 0}.honLabel{width:72px;font-weight:900;font-size:20px}.honNum{display:inline-block;min-width:44px;text-align:center;font-size:27px;font-weight:900;color:#fff}.honMed{color:#fb7185}.bar{display:inline-block;height:38px;width:3px;margin:0 6px;opacity:.95}.barNone{background:#35517a}.barUma{background:#ef4444}.barTan{background:#3b82f6}.barFuku{background:#fde047}.move{color:#ffd84d;font-size:22px;font-weight:900;margin-top:10px}.rankLine{margin:8px 0;line-height:1.55}hr{border:0;border-top:1px solid #94a3b8;margin:14px 0}
+body{
+  margin:0;
+  background:#07101f;
+  color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+  padding:14px;
+  font-size:17px;
+}
+h1{
+  color:#fff;
+  font-size:27px;
+  line-height:1.3;
+}
+textarea{
+  width:100%;
+  height:330px;
+  box-sizing:border-box;
+  border-radius:16px;
+  border:2px solid #3b82f6;
+  padding:12px;
+  font-size:16px;
+  line-height:1.45;
+  font-family:monospace;
+  background:#f8fafc;
+  color:#111;
+}
+button{
+  font-size:20px;
+  font-weight:900;
+  border:0;
+  border-radius:16px;
+  padding:14px 18px;
+  margin:10px 6px 10px 0;
+}
+.go{background:#22c55e;color:#052e16}
+.test{background:#3b82f6;color:#fff}
+.clear{background:#64748b;color:#fff}
+.copy{background:#f59e0b;color:#fff}
+.card{
+  background:#10224a;
+  border:1px solid #3b82f6;
+  border-radius:18px;
+  padding:14px;
+  margin:14px 0;
+}
+.title{
+  color:#ffd84d;
+  font-size:23px;
+  font-weight:900;
+  margin-bottom:10px;
+}
+.good{color:#86efac;font-weight:900}
+.warn{color:#fb7185;font-weight:900}
+.yellow{color:#fde047;font-weight:900}
+.red{color:#fb7185;font-weight:900}
+.blue{color:#93c5fd;font-weight:900}
+.small{
+  color:#cbd5e1;
+  font-size:14px;
+  line-height:1.45;
+}
+pre{
+  white-space:pre-wrap;
+  word-break:break-word;
+  background:#020617;
+  color:#e5e7eb;
+  padding:12px;
+  border-radius:12px;
+  font-size:17px;
+  line-height:1.45;
+}
+.badge{
+  display:inline-block;
+  padding:5px 10px;
+  border-radius:999px;
+  background:#1e293b;
+  margin:4px 2px;
+  font-weight:900;
+}
+.rankLine{
+  margin:8px 0;
+  line-height:1.55;
+}
+hr{
+  border:0;
+  border-top:1px solid #94a3b8;
+  margin:14px 0;
+}
+.honWrap{
+  overflow-x:auto;
+  background:#07101f;
+  border-radius:14px;
+  padding:10px;
+  margin-top:10px;
+}
+.honRow{
+  display:flex;
+  align-items:center;
+  gap:0;
+  min-width:680px;
+  margin:12px 0;
+}
+.honLabel{
+  width:72px;
+  font-weight:900;
+  font-size:20px;
+}
+.honNum{
+  display:inline-block;
+  min-width:44px;
+  text-align:center;
+  font-size:27px;
+  font-weight:900;
+  color:#fff;
+}
+.honMed{color:#fb7185}
+.bar{
+  display:inline-block;
+  height:38px;
+  width:3px;
+  margin:0 6px;
+  opacity:.95;
+}
+.barNone{background:#35517a}
+.barUma{background:#ef4444}
+.barTan{background:#3b82f6}
+.barFuku{background:#fde047}
 </style>
 </head>
+
 <body>
-<h1>チャッピー神予想 V1.7<br>三連複専用穴救済版</h1>
+<h1>チャッピー神予想 V1.8<br>人気ゾーン端頭残し＋複勝穴2・3着版</h1>
+
 <textarea id="input" placeholder="【レース名】
 
 [TANFUKU]
+馬番 単勝 複勝上限
 
 [UMAREN]
+馬番-馬番 オッズ
 
 [WIDE]
+馬番-馬番 オッズ
 
-[SANPUKU]"></textarea><br>
-<button class="go" id="btnRun">解析</button><button class="test" id="btnSample">テスト</button><button class="clear" id="btnClear">リセット</button><button class="copy" id="btnCopy">結果コピー</button>
+[SANPUKU]
+馬番-馬番-馬番 オッズ"></textarea><br>
+
+<button class="go" id="btnRun">解析</button>
+<button class="test" id="btnSample">テスト</button>
+<button class="clear" id="btnClear">リセット</button>
+<button class="copy" id="btnCopy">結果コピー</button>
+
 <div id="out"></div>
+
 <script>
-var latestCopyText = "";
-function zenToHan(str){return String(str).replace(/[０-９]/g,function(s){return String.fromCharCode(s.charCodeAt(0)-65248);}).replace(/．/g,'.').replace(/[－ー―−]/g,'-').replace(/[　]/g,' ').replace(/[〜～]/g,'-');}
-function nums(line){var m=zenToHan(line).match(/\d+(?:\.\d+)?/g);if(!m)return[];return m.map(function(x){return Number(x);});}
-function pairKey(a,b){return[a,b].map(Number).sort(function(x,y){return x-y;}).join('-');}
-function triKey(a,b,c){return[a,b,c].map(Number).sort(function(x,y){return x-y;}).join('-');}
-function sortOdds(arr){return arr.slice().sort(function(a,b){return a.od-b.od;});}
-function sortBy(arr,key){return arr.slice().sort(function(a,b){return a[key]-b[key];});}
-function uniq(arr){var s={},out=[];for(var i=0;i<arr.length;i++){var v=arr[i];if(v!==undefined&&v!==null&&v!==''&&!s[v]){s[v]=true;out.push(v);}}return out;}
-function mid(arr){if(!arr.length)return[];if(arr.length===1)return[arr[0]];var n=arr.length;if(n%2===1)return[arr[Math.floor(n/2)]];return[arr[n/2-1],arr[n/2]];}
-function midPair(arr){if(!arr.length)return[];if(arr.length===1)return[arr[0]];var n=arr.length;if(n%2===0)return[arr[n/2-1],arr[n/2]];var m=Math.floor(n/2);return uniq([arr[m],arr[Math.max(0,m-1)]]);}
-function joinH(arr){if(!arr||!arr.length)return'なし';return arr.map(function(x){return x+'番';}).join('・');}
-function rankMap(row){var m={};for(var i=0;i<row.length;i++)m[row[i]]=i+1;return m;}
-function parseData(raw){var text=zenToHan(raw),lines=text.split(/\n/),title='レース',sec='',tanfuku=[],umaren=[],wide=[],sanpuku=[];for(var i=0;i<lines.length;i++){var line=lines[i].trim();if(!line)continue;if(line.indexOf('【')===0)title=line;var up=line.toUpperCase();if(up.indexOf('[TANFUKU]')===0){sec='TANFUKU';continue;}if(up.indexOf('[UMAREN]')===0){sec='UMAREN';continue;}if(up.indexOf('[WIDE]')===0){sec='WIDE';continue;}if(up.indexOf('[SANPUKU]')===0){sec='SANPUKU';continue;}if(sec==='TANFUKU'){var n=nums(line);if(n.length>=3)tanfuku.push({h:String(Math.floor(n[0])),tan:n[1],fuku:n[n.length-1]});}if(sec==='UMAREN'){var m=line.match(/(\d+)\s*-\s*(\d+)/);var o=nums(line);if(m&&o.length)umaren.push({a:m[1],b:m[2],od:o[o.length-1],key:pairKey(m[1],m[2])});}if(sec==='WIDE'){var mw=line.match(/(\d+)\s*-\s*(\d+)/);var ow=nums(line);if(mw&&ow.length)wide.push({a:mw[1],b:mw[2],od:ow[ow.length-1],key:pairKey(mw[1],mw[2])});}if(sec==='SANPUKU'){var ms=line.match(/(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/);var os=nums(line);if(ms&&os.length)sanpuku.push({a:ms[1],b:ms[2],c:ms[3],od:os[os.length-1],key:triKey(ms[1],ms[2],ms[3])});}}return{title:title,tanfuku:tanfuku,umaren:umaren,wide:wide,sanpuku:sanpuku};}
-function fukuFront(tanfuku,limit){var arr=sortBy(tanfuku,'fuku').filter(function(x){return x.fuku<=limit;});return arr.slice(Math.max(0,arr.length-2)).map(function(x){return x.h;});}
-function fukuAfter(tanfuku,limit){var arr=sortBy(tanfuku,'fuku').filter(function(x){return x.fuku>limit;});return arr.slice(0,2).map(function(x){return x.h;});}
-function detectWalls(items){var arr=sortOdds(items).slice(0,12),walls=[];for(var i=0;i<arr.length-1;i++){var now=arr[i].od,next=arr[i+1].od,ratio=next/now,diff=next-now;if(ratio>=1.55||diff>=8)walls.push({before:i+1,after:i+2,ratio:ratio,diff:diff});}return walls;}
-function zonePairs(pairs,walls){var top=sortOdds(pairs).slice(0,12);if(!top.length)return[];if(walls.length>=2)return top.slice(walls[0].after-1,walls[1].before);if(walls.length===1)return top.slice(0,walls[0].before);return top.slice(0,5);}
-function pairHorses(pairs){var a=[];for(var i=0;i<pairs.length;i++){a.push(pairs[i].a);a.push(pairs[i].b);}return uniq(a);}
-function countPair(pairs,topN){var map={},arr=sortOdds(pairs).slice(0,topN);for(var i=0;i<arr.length;i++){[arr[i].a,arr[i].b].forEach(function(h){if(!map[h])map[h]={h:h,count:0};map[h].count++;});}var out=[];for(var k in map)out.push(map[k]);return out.sort(function(a,b){return b.count-a.count;});}
-function countTri(tris,topN){var map={},arr=sortOdds(tris).slice(0,topN);for(var i=0;i<arr.length;i++){[arr[i].a,arr[i].b,arr[i].c].forEach(function(h){if(!map[h])map[h]={h:h,count:0};map[h].count++;});}var out=[];for(var k in map)out.push(map[k]);return out.sort(function(a,b){return b.count-a.count;});}
-function makeOtaniRow(tanRank,umaRank,allHorses){var axis=tanRank[0]?tanRank[0].h:null,row=[],items=[];if(axis){row.push(axis);items=umaRank.filter(function(p){return p.a===axis||p.b===axis;});for(var i=0;i<items.length;i++){var other=items[i].a===axis?items[i].b:items[i].a;if(row.indexOf(other)<0)row.push(other);}}for(var j=0;j<umaRank.length;j++){if(row.indexOf(umaRank[j].a)<0)row.push(umaRank[j].a);if(row.indexOf(umaRank[j].b)<0)row.push(umaRank[j].b);}for(var k=0;k<allHorses.length;k++){if(row.indexOf(allHorses[k])<0)row.push(allHorses[k]);}return{axis:axis,row:row,items:items};}
-function wallPositionsForOtani(items){var walls=detectWalls(items);return walls.map(function(w){return w.before+1;});}
-function wallPositionsByOdds(rank,key){var walls=[];for(var i=0;i<rank.length-1;i++){var now=rank[i][key],next=rank[i+1][key];if(!now||!next)continue;var ratio=next/now,diff=next-now;if(ratio>=1.8||diff>=10)walls.push(i+1);}return walls;}
-function fukuWallPositions(fukuRank){var pos=[],p6=0,p15=0;for(var i=0;i<fukuRank.length;i++){if(fukuRank[i].fuku<=6)p6=i+1;if(fukuRank[i].fuku<=15)p15=i+1;}if(p6>0)pos.push(p6);if(p15>0&&p15!==p6)pos.push(p15);return pos;}
-function renderHonRow(label,row,walls,medians,barClass){var html='<div class="honRow"><div class="honLabel">'+label+'</div>';for(var i=0;i<row.length;i++){var h=row[i];var cls=medians.indexOf(h)>=0?'honNum honMed':'honNum';html+='<span class="'+cls+'">'+h+'</span>';var pos=i+1;var bcls=walls.indexOf(pos)>=0?barClass:'barNone';if(i<row.length-1)html+='<span class="bar '+bcls+'"></span>';}html+='</div>';return html;}
-function makeHonpyoCard(otaniRow,tanRow,fukuRow,umaWalls,tanWalls,fukuWalls,zoneM,tanM,fukuM,moves){var html='';html+='<div class="card"><div class="title">本表</div>';html+='<div class="small">大谷式馬連＝単勝1番人気を先頭にして馬連オッズ順<br>馬連の壁＝赤線　単勝の壁＝青線　複勝の壁＝黄色線<br>メジアン候補＝赤文字</div>';html+='<div class="honWrap">';html+=renderHonRow('馬連',otaniRow,umaWalls,zoneM,'barUma');html+=renderHonRow('単勝',tanRow,tanWalls,tanM,'barTan');html+=renderHonRow('複勝',fukuRow,fukuWalls,fukuM,'barFuku');html+='</div>';if(moves.length){html+='<div class="move">🚨 極端移動<br>'+moves.join('　')+'</div>';}else{html+='<div class="small">極端移動：該当なし</div>';}html+='</div>';return html;}
-function detectMoves(otaniRow,tanRow,fukuRow){var u=rankMap(otaniRow),t=rankMap(tanRow),f=rankMap(fukuRow),horses=uniq(otaniRow.concat(tanRow).concat(fukuRow)),out=[];for(var i=0;i<horses.length;i++){var h=horses[i];if(u[h]&&t[h]&&t[h]-u[h]>=3)out.push(h+' 単→馬 +'+(t[h]-u[h]));if(u[h]&&f[h]&&f[h]-u[h]>=3)out.push(h+' 複→馬 +'+(f[h]-u[h]));}return out.slice(0,6);}
-function getTf(tanfuku,h){for(var i=0;i<tanfuku.length;i++){if(tanfuku[i].h===h)return tanfuku[i];}return null;}
-function scoreAll(allHorses,data,ctx,specialOn){var scored=[];for(var i=0;i<allHorses.length;i++){var h=allHorses[i],tf=getTf(data.tanfuku,h),score=0,reasons=[];if(ctx.zoneH.indexOf(h)>=0){score+=6;reasons.push('馬連壁内');}if(ctx.zoneM.indexOf(h)>=0){score+=8;reasons.push('馬連ゾーンメジアン');}if(ctx.tanM.indexOf(h)>=0){score+=4;reasons.push('単勝メジアン');}if(ctx.fukuM.indexOf(h)>=0){score+=4;reasons.push('複勝メジアン');}if(ctx.fuku3.indexOf(h)>=0){score+=3;reasons.push('複勝3倍未満');}if(ctx.fuku6.indexOf(h)>=0){score+=6;reasons.push('複勝6倍壁前');}if(ctx.fuku10.indexOf(h)>=0){score+=5;reasons.push('複勝10倍壁前');}if(ctx.fuku15.indexOf(h)>=0){score+=ctx.release15?6:2;reasons.push(ctx.release15?'複勝15倍解放':'複勝15倍参考');}if(ctx.fuku15a.indexOf(h)>=0){score+=ctx.release15?3:0;reasons.push(ctx.release15?'15倍直後解放':'15倍直後参考');}if(ctx.umaTop.indexOf(h)>=0){score+=5;reasons.push('馬連出現上位');}if(ctx.sanTop.indexOf(h)>=0){score+=4;reasons.push('三連複出現上位');}if(specialOn){if(ctx.heroH.indexOf(h)>=0){score+=20;reasons.push('1倍台本命保護');}if(ctx.semiHeroH&&ctx.semiHeroH.indexOf(h)>=0&&ctx.heroH.indexOf(h)<0){score+=14;reasons.push('準本命保護');}if(ctx.fuku3Lock&&ctx.fuku3.indexOf(h)>=0){score+=6;reasons.push('複勝3倍未満ゾーンロック');}if(ctx.fukuMedianPair&&ctx.fukuM.indexOf(h)>=0){score+=8;reasons.push('複勝メジアンペア保護');}if(ctx.doubleMedian.indexOf(h)>=0){score+=10;reasons.push('単複メジアン重複');}if(ctx.sanRescueH&&ctx.sanRescueH.indexOf(h)>=0){score+=4;reasons.push('三連複出現救済');}}if(tf&&tf.fuku>15&&!ctx.release15){score-=4;reasons.push('複勝15倍外で弱め');}if(tf&&tf.tan>=100){score-=2;reasons.push('単勝100倍超で弱め');}scored.push({h:h,score:score,reasons:reasons,tan:tf?tf.tan:'-',fuku:tf?tf.fuku:'-'});}scored.sort(function(a,b){return b.score-a.score;});return scored;}
-function makeBaseAxisPartner(scored){var axis=scored.filter(function(x){return x.score>=14;}).slice(0,2);if(axis.length===0&&scored[0])axis=[scored[0]];var axisH=axis.map(function(x){return x.h;});var partner=scored.filter(function(x){return x.score>=8&&axisH.indexOf(x.h)<0;}).slice(0,3);return{axisH:axisH,partnerH:partner.map(function(x){return x.h;})};}
-function firstByScore(list,scored,exclude){exclude=exclude||[];var best=null;for(var i=0;i<list.length;i++){var h=list[i];if(exclude.indexOf(h)>=0)continue;var s=scored.filter(function(x){return x.h===h;})[0];if(s&&(!best||s.score>best.score||(s.score===best.score&&Number(s.fuku)<Number(best.fuku))))best=s;}return best?best.h:null;}
-function fillPartners(seed,axisH,lists,limit){var out=seed.slice();for(var i=0;i<lists.length;i++){for(var j=0;j<lists[i].length;j++){var h=lists[i][j];if(axisH.indexOf(h)<0&&out.indexOf(h)<0)out.push(h);if(out.length>=limit)return out;}}return out;}
-function chooseFinal(base,scored,rawScored,ctx){var lamps=[],axisH=base.axisH.slice(),partnerH=base.partnerH.slice(),mode='通常';if(ctx.heroH.length){lamps.push('🚨1倍台本命保護：'+joinH(ctx.heroH));}if(ctx.semiHeroH&&ctx.semiHeroH.length){lamps.push('🟧準本命保護：'+joinH(ctx.semiHeroH));}if(ctx.redTriH&&ctx.redTriH.length>=3){lamps.push('🚨超1番人気赤信号：本命なし三連複 '+ctx.redTriKey+'（'+ctx.redTriOdds+'倍）');}
-if(ctx.fuku3Lock){lamps.push('🟦複勝3倍未満ゾーンロック：'+joinH(ctx.fuku3));}
-if(ctx.fukuMedianPair){lamps.push('🟣複勝メジアンペア保護：'+joinH(ctx.fukuM));}
-if(ctx.doubleMedian.length){lamps.push('🔥単複メジアン重複：'+joinH(ctx.doubleMedian));}
-var hero=(ctx.heroH[0]||ctx.semiHeroH[0]);
-if(hero){mode='本命保護';axisH=[hero];if(ctx.fuku3Lock){var sub=firstByScore(ctx.fuku3,scored,[hero]);if(sub)axisH.push(sub);}partnerH=fillPartners([],axisH,[scored.map(function(x){return x.h;}),base.partnerH,base.axisH,ctx.fukuM,rawScored.map(function(x){return x.h;})],4);}
-else if(ctx.doubleMedian.length&&ctx.topUma>=4){mode='複勝メジアンペア';var dm=ctx.doubleMedian[0];var second=null;if(base.partnerH.indexOf(dm)>=0){for(var i=0;i<base.partnerH.length;i++){if(base.partnerH[i]!==dm){second=base.partnerH[i];break;}}}if(!second){for(var j=0;j<base.axisH.length;j++){if(base.axisH[j]!==dm){second=base.axisH[j];break;}}}axisH=uniq(second?[dm,second]:[dm]);partnerH=fillPartners([],axisH,[ctx.fukuM,base.axisH,base.partnerH,scored.map(function(x){return x.h;})],4);}
-else{partnerH=sortNormalPartners(partnerH,axisH,ctx,dataForSort);}
-if(ctx.fukuMedianPair&&mode!=='本命保護'){var linkedPair=ctx.fukuM.filter(function(h){return axisH.indexOf(h)<0;});if(linkedPair.length){lamps.push('🟣複勝メジアンペア連結ロック：'+joinH(ctx.fukuM));partnerH=uniq(linkedPair.concat(partnerH));if(mode==='通常')mode='複勝メジアン連結';}}
-var urameH=[];if(ctx.redTriH&&ctx.redTriH.length>=3){urameH=ctx.redTriH.slice(0,3);if(mode==='通常'||mode==='本命保護')mode='超1番人気赤信号';}else if(hero&&axisH[0]===hero&&axisH.length>=2&&partnerH.length>=3){var secondTf=getTf(dataForSort.tanfuku,axisH[1]);var chk=partnerH.slice(0,4),hole=0,solid=0;for(var ui=0;ui<chk.length;ui++){var tfu=getTf(dataForSort.tanfuku,chk[ui]);if(tfu&&(tfu.tan>=10||tfu.fuku>=5))hole++;if(tfu&&tfu.fuku<3)solid++;}if(secondTf&&secondTf.fuku>3&&hole>=2&&solid>=1){urameH=partnerH.slice(0,3);lamps.push('⚠️1倍台本命過信注意：裏目三連複 '+joinH(urameH));if(mode==='通常'||mode==='本命保護')mode='本命過信注意';}}
-var triRescue=findTriRescue(axisH,partnerH,ctx,scored);if(triRescue){lamps.push('🕳三連複3着穴救済：'+triRescue.h+'番（'+triRescue.key+' '+triRescue.od+'倍）');urameH=triRescue.triH;if(axisH.length>=2&&(ctx.fukuM.indexOf(triRescue.h)>=0||ctx.doubleMedian.indexOf(triRescue.h)>=0)){partnerH=uniq([triRescue.h].concat(partnerH));}}
-return{axisH:axisH.slice(0,2),partnerH:partnerH.slice(0,4),lamps:lamps,mode:mode,urameH:urameH};}
-var dataForSort=null;
-function sortNormalPartners(partnerH,axisH,ctx,data){var arr=partnerH.slice();arr.sort(function(a,b){var ta=getTf(data.tanfuku,a),tb=getTf(data.tanfuku,b);function p(h,tf){var pt=0;if(tf&&tf.fuku>3&&tf.fuku<=15)pt+=8;if(ctx.fuku10.indexOf(h)>=0||ctx.fuku15.indexOf(h)>=0)pt+=6;if(ctx.fukuM.indexOf(h)>=0||ctx.tanM.indexOf(h)>=0)pt+=4;if(tf&&tf.fuku<3)pt-=4;return pt;}return p(b,tb)-p(a,ta);});return arr;}
-function findTriRescue(axisH,partnerH,ctx,scored){if(!dataForSort||!dataForSort.sanpuku||!dataForSort.sanpuku.length)return null;var pair=[];if(axisH.length>=2){pair=[axisH[0],axisH[1]];}else if(axisH.length===1&&partnerH.length){pair=[axisH[0],partnerH[0]];}else{return null;}var tris=sortOdds(dataForSort.sanpuku).slice(0,30),best=null,bpt=-999;for(var i=0;i<tris.length;i++){var tr=tris[i],hs=[tr.a,tr.b,tr.c];if(hs.indexOf(pair[0])<0||hs.indexOf(pair[1])<0)continue;var other=null;for(var j=0;j<hs.length;j++){if(hs[j]!==pair[0]&&hs[j]!==pair[1])other=hs[j];}if(!other)continue;var od=Number(tr.od),pt=0;if(od>=18&&od<=40){pt+=20+(40-od)/2;}else if(od>=10&&od<18){pt+=6;}else if(od<10){pt-=5;}else if(od>40&&od<=65){pt+=2-(od-40)/10;}else{continue;}if(ctx.fukuM.indexOf(other)>=0)pt+=14;if(ctx.doubleMedian.indexOf(other)>=0)pt+=6;if(ctx.sanTop.indexOf(other)>=0)pt+=5;if(ctx.fuku6.indexOf(other)>=0||ctx.fuku10.indexOf(other)>=0)pt+=4;if(partnerH.indexOf(other)>=0)pt+=4;var tf=getTf(dataForSort.tanfuku,other);if(tf&&tf.tan>=50&&tf.tan<100)pt+=3;if(tf&&tf.fuku>20)pt-=10;if(pt>bpt){bpt=pt;best={h:other,triH:hs,key:tr.key,od:tr.od,pt:pt};}}return best&&best.pt>=8?best:null;}
-function makeTickets(axisH,partnerH,urameH){var wide=[],umaren=[],sanpuku=[];function add(arr,v){if(v&&arr.indexOf(v)<0)arr.push(v);}if(axisH.length>=2){add(wide,pairKey(axisH[0],axisH[1]));if(partnerH[0]){add(wide,pairKey(axisH[0],partnerH[0]));add(wide,pairKey(axisH[1],partnerH[0]));}add(umaren,pairKey(axisH[0],axisH[1]));if(partnerH[0])add(umaren,pairKey(axisH[0],partnerH[0]));if(partnerH[0])add(sanpuku,triKey(axisH[0],axisH[1],partnerH[0]));if(partnerH[1])add(sanpuku,triKey(axisH[0],axisH[1],partnerH[1]));}else if(axisH.length===1){for(var i=0;i<partnerH.length;i++){add(wide,pairKey(axisH[0],partnerH[i]));if(i<2)add(umaren,pairKey(axisH[0],partnerH[i]));}if(partnerH.length>=2)add(sanpuku,triKey(axisH[0],partnerH[0],partnerH[1]));if(partnerH.length>=3)add(sanpuku,triKey(axisH[0],partnerH[0],partnerH[2]));}if(urameH&&urameH.length>=3){var back=triKey(urameH[0],urameH[1],urameH[2]);sanpuku=uniq([back].concat(sanpuku));}return{wide:wide.slice(0,3),umaren:umaren.slice(0,3),sanpuku:sanpuku.slice(0,3)};}
-function safeRun(){try{run();}catch(e){document.getElementById('out').innerHTML='<div class="card"><div class="title warn">エラー</div><pre>'+String(e&&e.message?e.message:e)+'</pre></div>';}}
-function run(){var data=parseData(document.getElementById('input').value);dataForSort=data;var out=document.getElementById('out');if(data.tanfuku.length===0||data.umaren.length===0){out.innerHTML='<div class="card"><div class="title warn">入力不足</div>[TANFUKU] と [UMAREN] が必要です。</div>';return;}var tanRank=sortBy(data.tanfuku,'tan'),fukuRank=sortBy(data.tanfuku,'fuku'),umaRank=sortOdds(data.umaren),allHorses=uniq(data.tanfuku.map(function(x){return x.h;}));var topUma=umaRank[0]?umaRank[0].od:999,raceType='大荒れ戦';if(topUma<4)raceType='本命戦';else if(topUma<9)raceType='中荒れ戦';else if(topUma<15)raceType='荒れ戦';var mainWalls=detectWalls(data.umaren),zone=zonePairs(data.umaren,mainWalls),zoneH=pairHorses(zone),zoneM=mid(zoneH),tanM=mid(tanRank.map(function(x){return x.h;})),fukuM=midPair(fukuRank.map(function(x){return x.h;}));var fuku3=fukuRank.filter(function(x){return x.fuku<3;}).map(function(x){return x.h;}),fuku6=fukuFront(data.tanfuku,6),fuku10=fukuFront(data.tanfuku,10),fuku15=fukuFront(data.tanfuku,15),fuku15a=fukuAfter(data.tanfuku,15);var umaTop=countPair(data.umaren,10).slice(0,4).map(function(x){return x.h;}),sanTop=countTri(data.sanpuku,10).slice(0,4).map(function(x){return x.h;});var heroH=data.tanfuku.filter(function(x){return x.tan<=1.8&&x.fuku<=1.2;}).sort(function(a,b){return a.tan-b.tan;}).map(function(x){return x.h;});var semiHeroH=data.tanfuku.filter(function(x){return x.tan<=2.2&&x.fuku<=1.5&&heroH.indexOf(x.h)<0;}).sort(function(a,b){return a.tan-b.tan;}).map(function(x){return x.h;});var protectH=uniq(heroH.concat(semiHeroH));var release15=false;if(topUma>=9)release15=true;for(var r=0;r<fuku15.length;r++){var hh=fuku15[r],c=0;if(zoneH.indexOf(hh)>=0)c++;if(zoneM.indexOf(hh)>=0)c++;if(fuku6.indexOf(hh)>=0)c++;if(fuku10.indexOf(hh)>=0)c++;if(tanM.indexOf(hh)>=0)c++;if(fukuM.indexOf(hh)>=0)c++;if(c>=2)release15=true;}var doubleMedian=tanM.filter(function(h){return fukuM.indexOf(h)>=0;});var mainProtect=protectH[0]||null;var redTri=null,redTriH=[],redTriKey='',redTriOdds='';if(mainProtect&&data.sanpuku.length){var ss=sortOdds(data.sanpuku).slice(0,12);for(var ri=0;ri<ss.length;ri++){var tri=ss[ri];if(tri.od<=40&&[tri.a,tri.b,tri.c].indexOf(mainProtect)<0){redTri=tri;redTriH=[tri.a,tri.b,tri.c];redTriKey=tri.key;redTriOdds=tri.od;break;}}}var sanRescueH=countTri(data.sanpuku,12).map(function(x){return x.h;}).slice(0,8);var ctx={topUma:topUma,zoneH:zoneH,zoneM:zoneM,tanM:tanM,fukuM:fukuM,fuku3:fuku3,fuku6:fuku6,fuku10:fuku10,fuku15:fuku15,fuku15a:fuku15a,umaTop:umaTop,sanTop:sanTop,heroH:heroH,semiHeroH:semiHeroH,protectH:protectH,redTriH:redTriH,redTriKey:redTriKey,redTriOdds:redTriOdds,sanRescueH:sanRescueH,release15:release15,doubleMedian:doubleMedian,fuku3Lock:(protectH.length>0&&fuku3.length>=3&&fuku3.length<=4),fukuMedianPair:(topUma>=4&&fukuM.length>=2)};var rawScored=scoreAll(allHorses,data,ctx,false),rawBase=makeBaseAxisPartner(rawScored),scored=scoreAll(allHorses,data,ctx,true),finalPick=chooseFinal(rawBase,scored,rawScored,ctx);var axisH=finalPick.axisH,partnerH=finalPick.partnerH;var decision='見送り';if(axisH.length&&partnerH.length)decision='買う';else if(scored[0]&&scored[0].score>=10)decision='少額';var otani=makeOtaniRow(tanRank,umaRank,allHorses),otaniRow=otani.row,tanRow=tanRank.map(function(x){return x.h;}),fukuRow=fukuRank.map(function(x){return x.h;});var umaWallPos=wallPositionsForOtani(otani.items),tanWallPos=wallPositionsByOdds(tanRank,'tan'),fukuWallPos=fukuWallPositions(fukuRank),moves=detectMoves(otaniRow,tanRow,fukuRow);var html='';html+='<div class="card"><div class="title">'+data.title+'</div>';html+='🩺 レース診断：<span class="yellow">'+raceType+'</span><br>';html+='馬連1番人気：<span class="yellow">'+umaRank[0].key+' '+umaRank[0].od+'倍</span><br>';html+='結論：<span class="'+(decision==='買う'?'good':decision==='少額'?'yellow':'warn')+'">'+decision+'</span><br>';html+='選択モード：<span class="yellow">'+finalPick.mode+'</span>';html+='</div>';html+='<div class="card"><div class="title">🚨発動ランプ</div>';html+=(finalPick.lamps.length?finalPick.lamps.join('<br>'):'特別ランプなし');html+='</div>';html+='<div class="card"><div class="title">🧱馬連オッズの壁</div>';html+='壁：'+(mainWalls.length?mainWalls.map(function(w){return w.before+'位→'+w.after+'位';}).join(' / '):'明確な壁なし')+'<br>';html+='見るゾーン：'+(zone.length?zone.map(function(p){return p.key+'('+p.od+')';}).join(' / '):'なし')+'<br>';html+='壁内馬：'+joinH(zoneH)+'<br>';html+='壁内メジアン：<span class="red">'+joinH(zoneM)+'</span></div>';html+='<div class="card"><div class="title">🧠メジアン・壁</div>';html+='単勝メジアン：<span class="red">'+joinH(tanM)+'</span><br>';html+='複勝メジアン：<span class="red">'+joinH(fukuM)+'</span><br>';html+='複勝3倍未満：'+joinH(fuku3)+'<br>';html+='複勝6倍壁前：<span class="yellow">'+joinH(fuku6)+'</span><br>';html+='複勝10倍壁前：<span class="yellow">'+joinH(fuku10)+'</span><br>';html+='複勝15倍壁前：<span class="yellow">'+joinH(fuku15)+'</span><br>';html+='複勝15倍解放：'+(release15?'<span class="warn">発動</span>':'非発動')+'</div>';html+=makeHonpyoCard(otaniRow,tanRow,fukuRow,umaWallPos,tanWallPos,fukuWallPos,zoneM,tanM,fukuM,moves);html+='<div class="card"><div class="title">👑最終候補</div>';html+='軸候補：<span class="good">'+joinH(axisH)+'</span><br>';html+='相手候補：<span class="yellow">'+joinH(partnerH)+'</span><hr>';for(var s=0;s<Math.min(8,scored.length);s++){var x=scored[s];html+='<div class="rankLine"><span class="badge">'+(s+1)+'位 '+x.h+'番【'+x.score+'】</span> ';html+='<span class="small">単'+x.tan+' / 複'+x.fuku+'　'+x.reasons.join('・')+'</span></div>';}html+='</div>';var tickets=makeTickets(axisH,partnerH,finalPick.urameH);html+='<div class="card"><div class="title">💰買い目 最大3点</div><pre>';if(decision==='見送り'){html+='見送り\n理由：重なり不足';}else{html+='◎ '+joinH(axisH)+'\n';html+='○ '+joinH(partnerH)+'\n\n';html+='ワイド\n'+tickets.wide.join('\n')+'\n\n';html+='馬連\n'+tickets.umaren.join('\n')+'\n\n';html+='三連複\n'+tickets.sanpuku.join('\n');}html+='</pre></div>';out.innerHTML=html;latestCopyText=makeCopyText(data.title,raceType,decision,axisH,partnerH,tickets,scored,finalPick.lamps,finalPick.mode);}
-function makeCopyText(title,raceType,decision,axisH,partnerH,tickets,scored,lamps,mode){var t='';t+=title+'\n';t+='診断：'+raceType+' / '+decision+'\n';t+='選択モード：'+mode+'\n';if(lamps.length)t+='発動：'+lamps.join(' / ')+'\n';t+='◎ '+joinH(axisH)+'\n';t+='○ '+joinH(partnerH)+'\n\n';t+='ワイド\n'+tickets.wide.join('\n')+'\n\n';t+='馬連\n'+tickets.umaren.join('\n')+'\n\n';t+='三連複\n'+tickets.sanpuku.join('\n')+'\n\n';t+='最終候補\n';for(var i=0;i<Math.min(5,scored.length);i++){t+=(i+1)+'位 '+scored[i].h+'番【'+scored[i].score+'】 単'+scored[i].tan+' / 複'+scored[i].fuku+'\n';}return t;}
-function copyResult(){if(!latestCopyText){alert('先に解析してください');return;}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(latestCopyText).then(function(){alert('結果をコピーしました');}).catch(function(){fallbackCopy(latestCopyText);});}else{fallbackCopy(latestCopyText);}}
-function fallbackCopy(text){var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('結果をコピーしました');}
-function sample(){document.getElementById('input').value='【函館1R】\n[TANFUKU]\n2 1.8 1.1\n3 2.8 2.4\n7 7.0 4.9\n5 10.0 6.7\n4 30.3 17.9\n6 33.5 12.7\n1 46.2 19.8\n9 107.9 55.5\n8 124.1 41.7\n\n[UMAREN]\n2-3 1.9\n2-7 4.9\n2-5 8.1\n3-7 12.0\n3-5 20.1\n2-6 23.0\n5-7 24.5\n2-4 30.1\n3-6 37.1\n1-2 37.4\n1-3 58.5\n3-4 65.6\n2-8 71.1\n6-7 83.0\n2-9 87.5\n4-7 92.0\n5-6 107.4\n1-7 130.6\n3-9 142.3\n3-8 158.7\n4-5 171.4\n7-8 190.1\n1-5 191.8\n1-6 230.7\n7-9 235.8\n4-6 259.8\n5-8 293.5\n1-4 343.0\n5-9 425.2\n6-9 483.5\n\n[WIDE]\n2-3 1.2-1.4\n2-7 1.7-2.3\n2-5 2.8-3.8\n3-7 2.7-4.2\n5-7 4.3-5.3\n3-5 3.7-5.4\n2-6 4.9-6.8\n3-6 5.6-7.9\n2-4 6.3-8.6\n1-2 7.5-10.4\n1-3 8.8-12.3\n3-4 10.3-14.5\n4-7 14.2-16.9\n6-7 14.3-17.2\n2-8 14.6-20.0\n5-6 18.2-20.4\n1-7 20.9-24.7\n7-8 22.1-25.7\n4-5 25.2-28.0\n1-5 26.9-29.7\n2-9 22.1-30.2\n3-9 23.5-32.3\n5-8 33.4-36.5\n3-8 26.5-36.6\n1-6 38.0-40.5\n4-6 42.8-45.9\n7-9 42.8-49.4\n1-4 54.8-57.9\n5-9 73.2-79.3\n1-9 90.9-93.8\n\n[SANPUKU]\n2-3-7 3.4\n2-3-5 4.6\n2-5-7 8.4\n2-3-6 11.3\n1-2-3 14.9\n2-3-4 17.5\n3-5-7 22.1\n2-4-7 27.5\n2-6-7 28.7\n2-3-8 40.9\n2-3-9 43.1\n2-7-8 48.3\n2-5-6 49.5\n1-2-7 50.8\n3-6-7 58.6';}
-document.getElementById('btnRun').addEventListener('click',safeRun);document.getElementById('btnSample').addEventListener('click',sample);document.getElementById('btnClear').addEventListener('click',function(){document.getElementById('input').value='';document.getElementById('out').innerHTML='';latestCopyText='';});document.getElementById('btnCopy').addEventListener('click',copyResult);
+var latestCopyText="";
+
+function zenToHan(str){
+  return String(str)
+    .replace(/[０-９]/g,function(s){
+      return String.fromCharCode(s.charCodeAt(0)-65248);
+    })
+    .replace(/．/g,'.')
+    .replace(/[－ー―−]/g,'-')
+    .replace(/[　]/g,' ')
+    .replace(/[〜～]/g,'-');
+}
+
+function nums(line){
+  var m=zenToHan(line).match(/\d+(?:\.\d+)?/g);
+  if(!m)return[];
+  return m.map(function(x){return Number(x);});
+}
+
+function pairKey(a,b){
+  return [a,b].map(String).sort(function(x,y){
+    return Number(x)-Number(y);
+  }).join('-');
+}
+
+function triKey(a,b,c){
+  return [a,b,c].map(String).sort(function(x,y){
+    return Number(x)-Number(y);
+  }).join('-');
+}
+
+function uniq(arr){
+  var s={},out=[];
+  for(var i=0;i<arr.length;i++){
+    var v=String(arr[i]);
+    if(v && v!=="undefined" && !s[v]){
+      s[v]=true;
+      out.push(v);
+    }
+  }
+  return out;
+}
+
+function sortOdds(arr){
+  return arr.slice().sort(function(a,b){
+    return Number(a.od)-Number(b.od);
+  });
+}
+
+function sortBy(arr,key){
+  return arr.slice().sort(function(a,b){
+    return Number(a[key])-Number(b[key]);
+  });
+}
+
+function joinH(arr){
+  if(!arr || !arr.length)return"なし";
+  return arr.map(function(x){return x+"番";}).join("・");
+}
+
+function mid(arr){
+  if(!arr.length)return[];
+  if(arr.length===1)return[arr[0]];
+  var n=arr.length;
+  if(n%2===1)return[arr[Math.floor(n/2)]];
+  return[arr[n/2-1],arr[n/2]];
+}
+
+function midPair(arr){
+  if(!arr.length)return[];
+  if(arr.length===1)return[arr[0]];
+  var n=arr.length;
+  if(n%2===0)return[arr[n/2-1],arr[n/2]];
+  var m=Math.floor(n/2);
+  return uniq([arr[m],arr[Math.max(0,m-1)]]);
+}
+
+function getTf(data,h){
+  h=String(h);
+  for(var i=0;i<data.tanfuku.length;i++){
+    if(data.tanfuku[i].h===h)return data.tanfuku[i];
+  }
+  return null;
+}
+
+function findPair(arr,a,b){
+  var k=pairKey(a,b);
+  for(var i=0;i<arr.length;i++){
+    if(arr[i].key===k)return arr[i];
+  }
+  return null;
+}
+
+function findTri(arr,a,b,c){
+  var k=triKey(a,b,c);
+  for(var i=0;i<arr.length;i++){
+    if(arr[i].key===k)return arr[i];
+  }
+  return null;
+}
+
+function parseData(raw){
+  var text=zenToHan(raw);
+  var lines=text.split(/\n/);
+  var title="レース";
+  var sec="";
+  var tanfuku=[];
+  var umaren=[];
+  var wide=[];
+  var sanpuku=[];
+
+  for(var i=0;i<lines.length;i++){
+    var line=lines[i].trim();
+    if(!line)continue;
+
+    if(line.indexOf("【")===0)title=line;
+
+    var up=line.toUpperCase();
+
+    if(up.indexOf("[TANFUKU]")===0){
+      sec="TANFUKU";
+      continue;
+    }
+    if(up.indexOf("[UMAREN]")===0){
+      sec="UMAREN";
+      continue;
+    }
+    if(up.indexOf("[WIDE]")===0){
+      sec="WIDE";
+      continue;
+    }
+    if(up.indexOf("[SANPUKU]")===0){
+      sec="SANPUKU";
+      continue;
+    }
+
+    if(sec==="TANFUKU"){
+      var n=nums(line);
+      if(n.length>=3){
+        tanfuku.push({
+          h:String(Math.floor(n[0])),
+          tan:n[1],
+          fuku:n[n.length-1]
+        });
+      }
+    }
+
+    if(sec==="UMAREN"){
+      var m=line.match(/(\d+)\s*-\s*(\d+)/);
+      var o=nums(line);
+      if(m && o.length){
+        umaren.push({
+          a:m[1],
+          b:m[2],
+          od:o[o.length-1],
+          key:pairKey(m[1],m[2])
+        });
+      }
+    }
+
+    if(sec==="WIDE"){
+      var mw=line.match(/(\d+)\s*-\s*(\d+)/);
+      var ow=nums(line);
+      if(mw && ow.length){
+        wide.push({
+          a:mw[1],
+          b:mw[2],
+          od:ow[ow.length-1],
+          key:pairKey(mw[1],mw[2])
+        });
+      }
+    }
+
+    if(sec==="SANPUKU"){
+      var ms=line.match(/(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/);
+      var os=nums(line);
+      if(ms && os.length){
+        sanpuku.push({
+          a:ms[1],
+          b:ms[2],
+          c:ms[3],
+          od:os[os.length-1],
+          key:triKey(ms[1],ms[2],ms[3])
+        });
+      }
+    }
+  }
+
+  return{
+    title:title,
+    tanfuku:tanfuku,
+    umaren:umaren,
+    wide:wide,
+    sanpuku:sanpuku
+  };
+}
+
+function countPair(pairs,topN){
+  var map={};
+  var arr=sortOdds(pairs).slice(0,topN);
+  for(var i=0;i<arr.length;i++){
+    [arr[i].a,arr[i].b].forEach(function(h){
+      if(!map[h])map[h]={h:h,count:0};
+      map[h].count++;
+    });
+  }
+  var out=[];
+  for(var k in map)out.push(map[k]);
+  return out.sort(function(a,b){
+    return b.count-a.count;
+  });
+}
+  function countTri(tris,topN){
+  var map={};
+  var arr=sortOdds(tris).slice(0,topN);
+  for(var i=0;i<arr.length;i++){
+    [arr[i].a,arr[i].b,arr[i].c].forEach(function(h){
+      if(!map[h])map[h]={h:h,count:0};
+      map[h].count++;
+    });
+  }
+  var out=[];
+  for(var k in map)out.push(map[k]);
+  return out.sort(function(a,b){
+    return b.count-a.count;
+  });
+}
+
+function detectWalls(items){
+  var arr=sortOdds(items).slice(0,14);
+  var walls=[];
+  for(var i=0;i<arr.length-1;i++){
+    var now=arr[i].od;
+    var next=arr[i+1].od;
+    var ratio=next/now;
+    var diff=next-now;
+    if(ratio>=1.55 || diff>=8){
+      walls.push({
+        before:i+1,
+        after:i+2,
+        ratio:ratio,
+        diff:diff
+      });
+    }
+  }
+  return walls;
+}
+
+function zonePairs(pairs,walls){
+  var top=sortOdds(pairs).slice(0,14);
+  if(!top.length)return[];
+  if(walls.length>=2){
+    return top.slice(walls[0].after-1,walls[1].before);
+  }
+  if(walls.length===1){
+    return top.slice(0,walls[0].before);
+  }
+  return top.slice(0,6);
+}
+
+function pairHorses(pairs){
+  var a=[];
+  for(var i=0;i<pairs.length;i++){
+    a.push(pairs[i].a);
+    a.push(pairs[i].b);
+  }
+  return uniq(a);
+}
+
+function fukuFront(tanfuku,limit){
+  var arr=sortBy(tanfuku,"fuku").filter(function(x){
+    return x.fuku<=limit;
+  });
+  return arr.slice(Math.max(0,arr.length-2)).map(function(x){
+    return x.h;
+  });
+}
+
+function fukuAfter(tanfuku,limit){
+  var arr=sortBy(tanfuku,"fuku").filter(function(x){
+    return x.fuku>limit;
+  });
+  return arr.slice(0,2).map(function(x){
+    return x.h;
+  });
+}
+
+function connectionCount(data,h,topN){
+  h=String(h);
+  var u=sortOdds(data.umaren).slice(0,topN||12).filter(function(p){
+    return p.a===h || p.b===h;
+  }).length;
+
+  var w=sortOdds(data.wide).slice(0,topN||12).filter(function(p){
+    return p.a===h || p.b===h;
+  }).length;
+
+  var s=sortOdds(data.sanpuku).slice(0,topN||12).filter(function(t){
+    return t.a===h || t.b===h || t.c===h;
+  }).length;
+
+  return{
+    umaren:u,
+    wide:w,
+    sanpuku:s,
+    total:u+w+s
+  };
+}
+
+function detectEdgeHead(data,ctx){
+  if(ctx.topUma<4 || ctx.topUma>=9)return null;
+  if(ctx.heroH.length || ctx.semiHeroH.length)return null;
+
+  var tanRank=sortBy(data.tanfuku,"tan");
+
+  var zone=tanRank.filter(function(x){
+    return x.tan>=4 && x.tan<=9.9;
+  });
+
+  if(zone.length<3)return null;
+
+  var cand=zone[zone.length-1];
+  var con=connectionCount(data,cand.h,12);
+
+  if(con.umaren>=2 || con.wide>=2 || con.total>=4){
+    return{
+      h:cand.h,
+      tan:cand.tan,
+      fuku:cand.fuku,
+      zone:zone.map(function(x){return x.h;}),
+      con:con
+    };
+  }
+
+  return null;
+}
+
+function rankHoleForHead(data,head,holes,ctx){
+  return holes.slice().sort(function(a,b){
+    function pt(h){
+      var tf=getTf(data,h);
+      var p=0;
+
+      var u=findPair(data.umaren,head,h);
+      var w=findPair(data.wide,head,h);
+
+      if(u)p+=Math.max(0,40-Number(u.od));
+      if(w)p+=Math.max(0,25-Number(w.od));
+
+      if(ctx.sanTop.indexOf(h)>=0)p+=8;
+      if(ctx.umaTop.indexOf(h)>=0)p+=6;
+
+      if(tf){
+        p+=Math.max(0,25-tf.tan)/2;
+        p+=Math.max(0,10-tf.fuku);
+      }
+
+      return p;
+    }
+
+    return pt(b)-pt(a);
+  });
+}
+
+function makeContext(data){
+  var tanRank=sortBy(data.tanfuku,"tan");
+  var fukuRank=sortBy(data.tanfuku,"fuku");
+  var umaRank=sortOdds(data.umaren);
+
+  var topUma=umaRank[0]?umaRank[0].od:999;
+
+  var raceType="大荒れ戦";
+  if(topUma<4){
+    raceType="本命戦";
+  }else if(topUma<9){
+    raceType="中荒れ戦";
+  }else if(topUma<15){
+    raceType="荒れ戦";
+  }
+
+  var mainWalls=detectWalls(data.umaren);
+  var zone=zonePairs(data.umaren,mainWalls);
+  var zoneH=pairHorses(zone);
+  var zoneM=mid(zoneH);
+
+  var tanM=mid(tanRank.map(function(x){return x.h;}));
+  var fukuM=midPair(fukuRank.map(function(x){return x.h;}));
+
+  var fuku3=fukuRank.filter(function(x){
+    return x.fuku<3;
+  }).map(function(x){
+    return x.h;
+  });
+
+  var fuku6=fukuFront(data.tanfuku,6);
+  var fuku10=fukuFront(data.tanfuku,10);
+  var fuku15=fukuFront(data.tanfuku,15);
+  var fuku15a=fukuAfter(data.tanfuku,15);
+
+  var umaTop=countPair(data.umaren,10).slice(0,5).map(function(x){
+    return x.h;
+  });
+
+  var wideTop=countPair(data.wide,10).slice(0,5).map(function(x){
+    return x.h;
+  });
+
+  var sanTop=countTri(data.sanpuku,10).slice(0,5).map(function(x){
+    return x.h;
+  });
+
+  var heroH=data.tanfuku.filter(function(x){
+    return x.tan<=1.8 && x.fuku<=1.2;
+  }).sort(function(a,b){
+    return a.tan-b.tan;
+  }).map(function(x){
+    return x.h;
+  });
+
+  var semiHeroH=data.tanfuku.filter(function(x){
+    return x.tan<=2.2 && x.fuku<=1.5 && heroH.indexOf(x.h)<0;
+  }).sort(function(a,b){
+    return a.tan-b.tan;
+  }).map(function(x){
+    return x.h;
+  });
+
+  var doubleMedian=tanM.filter(function(h){
+    return fukuM.indexOf(h)>=0;
+  });
+
+  var fukuMedianPair=(topUma>=4 && fukuM.length>=2);
+
+  var medianHoleH=fukuM.filter(function(h){
+    var tf=getTf(data,h);
+    return tf && tf.tan>=15;
+  });
+
+  var popularZoneH=tanRank.filter(function(x){
+    return x.tan>=4 && x.tan<=9.9;
+  }).map(function(x){
+    return x.h;
+  });
+
+  var ctx={
+    tanRank:tanRank,
+    fukuRank:fukuRank,
+    umaRank:umaRank,
+    topUma:topUma,
+    raceType:raceType,
+    mainWalls:mainWalls,
+    zone:zone,
+    zoneH:zoneH,
+    zoneM:zoneM,
+    tanM:tanM,
+    fukuM:fukuM,
+    fuku3:fuku3,
+    fuku6:fuku6,
+    fuku10:fuku10,
+    fuku15:fuku15,
+    fuku15a:fuku15a,
+    umaTop:umaTop,
+    wideTop:wideTop,
+    sanTop:sanTop,
+    heroH:heroH,
+    semiHeroH:semiHeroH,
+    doubleMedian:doubleMedian,
+    fukuMedianPair:fukuMedianPair,
+    medianHoleH:medianHoleH,
+    popularZoneH:popularZoneH
+  };
+
+  ctx.edgeHead=detectEdgeHead(data,ctx);
+
+  if(ctx.edgeHead && medianHoleH.length){
+    ctx.medianHoleH=rankHoleForHead(
+      data,
+      ctx.edgeHead.h,
+      medianHoleH,
+      ctx
+    );
+  }else{
+    ctx.medianHoleH=medianHoleH;
+  }
+
+  return ctx;
+}
+
+function scoreAll(data,ctx){
+  var allHorses=uniq(data.tanfuku.map(function(x){
+    return x.h;
+  }));
+
+  var scored=[];
+
+  for(var i=0;i<allHorses.length;i++){
+    var h=allHorses[i];
+    var tf=getTf(data,h);
+    var score=0;
+    var reasons=[];
+
+    if(ctx.zoneH.indexOf(h)>=0){
+      score+=6;
+      reasons.push("馬連壁内");
+    }
+
+    if(ctx.zoneM.indexOf(h)>=0){
+      score+=8;
+      reasons.push("馬連ゾーンメジアン");
+    }
+
+    if(ctx.tanM.indexOf(h)>=0){
+      score+=5;
+      reasons.push("単勝メジアン");
+    }
+
+    if(ctx.fukuM.indexOf(h)>=0){
+      score+=5;
+      reasons.push("複勝メジアン");
+    }
+
+    if(ctx.fuku6.indexOf(h)>=0){
+      score+=6;
+      reasons.push("複勝6倍壁前");
+    }
+
+    if(ctx.fuku10.indexOf(h)>=0){
+      score+=5;
+      reasons.push("複勝10倍壁前");
+    }
+
+    if(ctx.fuku15.indexOf(h)>=0){
+      score+=3;
+      reasons.push("複勝15倍壁前");
+    }
+
+    if(ctx.umaTop.indexOf(h)>=0){
+      score+=5;
+      reasons.push("馬連出現上位");
+    }
+
+    if(ctx.wideTop.indexOf(h)>=0){
+      score+=4;
+      reasons.push("ワイド出現上位");
+    }
+
+    if(ctx.sanTop.indexOf(h)>=0){
+      score+=4;
+      reasons.push("三連複出現上位");
+    }
+
+    if(ctx.heroH.indexOf(h)>=0){
+      score+=20;
+      reasons.push("1倍台本命保護");
+    }
+
+    if(ctx.semiHeroH.indexOf(h)>=0){
+      score+=14;
+      reasons.push("準本命保護");
+    }
+
+    if(ctx.doubleMedian.indexOf(h)>=0){
+      score+=10;
+      reasons.push("単複メジアン重複");
+    }
+
+    if(ctx.edgeHead && ctx.edgeHead.h===h){
+      score+=18;
+      reasons.push("人気ゾーン端の頭残し");
+    }
+
+    if(ctx.medianHoleH.indexOf(h)>=0){
+      score+=8;
+      reasons.push("複勝メジアン穴2・3着");
+    }
+
+    if(tf && tf.fuku>15){
+      score-=3;
+      reasons.push("複勝15倍外で弱め");
+    }
+
+    scored.push({
+      h:h,
+      score:score,
+      reasons:reasons,
+      tan:tf?tf.tan:"-",
+      fuku:tf?tf.fuku:"-"
+    });
+  }
+
+  scored.sort(function(a,b){
+    if(b.score!==a.score)return b.score-a.score;
+    return Number(a.fuku)-Number(b.fuku);
+  });
+
+  return scored;
+}
+
+function chooseFinal(data,ctx,scored){
+  var lamps=[];
+  var mode="通常";
+  var axisH=[];
+  var partnerH=[];
+  var head3tanH=[];
+  var hole23H=[];
+
+  if(ctx.heroH.length){
+    lamps.push("🚨1倍台本命保護："+joinH(ctx.heroH));
+  }
+
+  if(ctx.semiHeroH.length){
+    lamps.push("🟧準本命保護："+joinH(ctx.semiHeroH));
+  }
+
+  if(ctx.fukuMedianPair){
+    lamps.push("🟣複勝メジアンペア保護："+joinH(ctx.fukuM));
+  }
+
+  if(ctx.doubleMedian.length){
+    lamps.push("🔥単複メジアン重複："+joinH(ctx.doubleMedian));
+  }
+
+  if(ctx.edgeHead){
+    mode="人気ゾーン端の頭残し";
+    axisH=[ctx.edgeHead.h];
+    head3tanH=[ctx.edgeHead.h];
+
+    lamps.push(
+      "🚩人気ゾーン端の頭残しランプ："+
+      ctx.edgeHead.h+"番 単"+ctx.edgeHead.tan+
+      " / 複"+ctx.edgeHead.fuku+
+      "（馬連"+ctx.edgeHead.con.umaren+
+      "・ワイド"+ctx.edgeHead.con.wide+
+      "・三連複"+ctx.edgeHead.con.sanpuku+"連結）"
+    );
+
+    if(ctx.medianHoleH.length){
+      hole23H=ctx.medianHoleH.slice(0,2);
+      lamps.push("🟣複勝メジアン穴 2・3着寄せ："+joinH(hole23H));
+    }
+
+    var pop=ctx.popularZoneH.filter(function(h){
+      return h!==axisH[0];
+    });
+
+    var top=uniq(
+      hole23H
+      .concat(pop)
+      .concat(ctx.umaTop)
+      .concat(ctx.sanTop)
+      .concat(scored.map(function(x){return x.h;}))
+    );
+
+    partnerH=top.filter(function(h){
+      return axisH.indexOf(h)<0;
+    }).slice(0,5);
+  }
+  else if(ctx.heroH.length || ctx.semiHeroH.length){
+    mode="本命保護";
+
+    var hero=(ctx.heroH[0] || ctx.semiHeroH[0]);
+    axisH=[hero];
+
+    partnerH=scored.map(function(x){
+      return x.h;
+    }).filter(function(h){
+      return h!==hero;
+    }).slice(0,5);
+
+    var ss=sortOdds(data.sanpuku).slice(0,12);
+    for(var i=0;i<ss.length;i++){
+      var tri=ss[i];
+      var hs=[tri.a,tri.b,tri.c];
+      if(tri.od<=45 && hs.indexOf(hero)<0){
+        lamps.push(
+          "🚨超1番人気赤信号：本命なし三連複 "+
+          tri.key+"（"+tri.od+"倍）"
+        );
+        break;
+      }
+    }
+  }
+  else if(ctx.doubleMedian.length && ctx.topUma>=4){
+    mode="複勝メジアンペア";
+
+    var dm=ctx.doubleMedian[0];
+    axisH=[dm];
+
+    partnerH=uniq(
+      ctx.fukuM
+      .concat(ctx.popularZoneH)
+      .concat(ctx.umaTop)
+      .concat(scored.map(function(x){return x.h;}))
+    ).filter(function(h){
+      return h!==dm;
+    }).slice(0,5);
+
+    if(ctx.medianHoleH.length){
+      hole23H=ctx.medianHoleH.slice(0,2);
+      lamps.push("🟣複勝メジアン穴 2・3着寄せ："+joinH(hole23H));
+    }
+  }
+  else{
+    mode="通常";
+    axisH=scored.slice(0,1).map(function(x){
+      return x.h;
+    });
+    partnerH=scored.slice(1,6).map(function(x){
+      return x.h;
+    });
+  }
+
+  return{
+    mode:mode,
+    axisH:axisH,
+    partnerH:partnerH,
+    lamps:lamps,
+    head3tanH:head3tanH,
+    hole23H:hole23H
+  };
+}
+  function makeTickets(data,ctx,pick){
+  var wide=[];
+  var umaren=[];
+  var sanpuku=[];
+  var sanrentan=[];
+
+  function add(arr,v){
+    if(v && arr.indexOf(v)<0)arr.push(v);
+  }
+
+  function addPair(a,b){
+    if(a && b && a!==b)return pairKey(a,b);
+    return null;
+  }
+
+  function addTri(a,b,c){
+    if(a && b && c && a!==b && a!==c && b!==c){
+      return triKey(a,b,c);
+    }
+    return null;
+  }
+
+  function addTan(a,b,c){
+    if(a && b && c && a!==b && a!==c && b!==c){
+      add(sanrentan,a+"-"+b+"-"+c);
+    }
+  }
+
+  var axis=pick.axisH[0];
+  var p=pick.partnerH;
+
+  if(axis){
+    for(var i=0;i<Math.min(3,p.length);i++){
+      add(wide,addPair(axis,p[i]));
+      if(i<2)add(umaren,addPair(axis,p[i]));
+    }
+
+    if(p.length>=2)add(sanpuku,addTri(axis,p[0],p[1]));
+    if(p.length>=3)add(sanpuku,addTri(axis,p[0],p[2]));
+    if(p.length>=4)add(sanpuku,addTri(axis,p[1],p[2]));
+  }
+
+  if(pick.head3tanH.length){
+    var head=pick.head3tanH[0];
+
+    var holes=pick.hole23H.slice();
+
+    var pops=ctx.popularZoneH.filter(function(h){
+      return h!==head && holes.indexOf(h)<0;
+    });
+
+    if(!holes.length && p.length){
+      holes=[p[0]];
+    }
+
+    var h1=holes[0];
+
+    if(h1){
+      for(var j=0;j<Math.min(3,pops.length);j++){
+        addTan(head,h1,pops[j]);
+        addTan(head,pops[j],h1);
+      }
+
+      if(holes[1]){
+        addTan(head,h1,holes[1]);
+        addTan(head,holes[1],h1);
+      }
+    }
+  }else{
+    if(axis && p.length>=2){
+      addTan(axis,p[0],p[1]);
+      addTan(axis,p[1],p[0]);
+      addTan(p[0],axis,p[1]);
+      addTan(p[0],p[1],axis);
+    }
+  }
+
+  return{
+    wide:wide.slice(0,3),
+    umaren:umaren.slice(0,3),
+    sanpuku:sanpuku.slice(0,4),
+    sanrentan:sanrentan.slice(0,8)
+  };
+}
+
+function makeOtaniRow(data,ctx){
+  var axis=ctx.tanRank[0]?ctx.tanRank[0].h:null;
+  var row=[];
+
+  if(axis){
+    row.push(axis);
+
+    var items=ctx.umaRank.filter(function(p){
+      return p.a===axis || p.b===axis;
+    });
+
+    for(var i=0;i<items.length;i++){
+      var other=items[i].a===axis?items[i].b:items[i].a;
+      if(row.indexOf(other)<0)row.push(other);
+    }
+  }
+
+  for(var j=0;j<ctx.umaRank.length;j++){
+    if(row.indexOf(ctx.umaRank[j].a)<0)row.push(ctx.umaRank[j].a);
+    if(row.indexOf(ctx.umaRank[j].b)<0)row.push(ctx.umaRank[j].b);
+  }
+
+  return row;
+}
+
+function renderHonRow(label,row,medians,barClass){
+  var html='<div class="honRow"><div class="honLabel">'+label+'</div>';
+
+  for(var i=0;i<row.length;i++){
+    var h=row[i];
+
+    var cls=medians.indexOf(h)>=0
+      ? 'honNum honMed'
+      : 'honNum';
+
+    html+='<span class="'+cls+'">'+h+'</span>';
+
+    if(i<row.length-1){
+      html+='<span class="bar '+barClass+'"></span>';
+    }
+  }
+
+  html+='</div>';
+  return html;
+}
+
+function makeHonpyo(data,ctx){
+  var otani=makeOtaniRow(data,ctx);
+
+  var tanRow=ctx.tanRank.map(function(x){
+    return x.h;
+  });
+
+  var fukuRow=ctx.fukuRank.map(function(x){
+    return x.h;
+  });
+
+  var html='';
+  html+='<div class="card"><div class="title">本表</div>';
+  html+='<div class="small">メジアン候補＝赤文字。馬連は大谷式。</div>';
+  html+='<div class="honWrap">';
+  html+=renderHonRow("馬連",otani,ctx.zoneM,"barUma");
+  html+=renderHonRow("単勝",tanRow,ctx.tanM,"barTan");
+  html+=renderHonRow("複勝",fukuRow,ctx.fukuM,"barFuku");
+  html+='</div>';
+  html+='</div>';
+
+  return html;
+}
+
+function run(){
+  try{
+    var data=parseData(document.getElementById("input").value);
+    var out=document.getElementById("out");
+
+    if(data.tanfuku.length===0 || data.umaren.length===0){
+      out.innerHTML=
+        '<div class="card"><div class="title warn">入力不足</div>'+
+        '[TANFUKU] と [UMAREN] が必要です。</div>';
+      return;
+    }
+
+    var ctx=makeContext(data);
+    var scored=scoreAll(data,ctx);
+    var pick=chooseFinal(data,ctx,scored);
+    var tickets=makeTickets(data,ctx,pick);
+
+    var decision="見送り";
+
+    if(pick.axisH.length && pick.partnerH.length){
+      decision="買う";
+    }else if(scored[0] && scored[0].score>=18){
+      decision="少額";
+    }
+
+    var html='';
+
+    html+='<div class="card"><div class="title">'+data.title+'</div>';
+    html+='🩺 レース診断：<span class="yellow">'+ctx.raceType+'</span><br>';
+
+    html+='馬連1番人気：<span class="yellow">'+
+      (ctx.umaRank[0]?ctx.umaRank[0].key+" "+ctx.umaRank[0].od+"倍":"なし")+
+      '</span><br>';
+
+    html+='結論：<span class="'+
+      (decision==="買う"?"good":decision==="少額"?"yellow":"warn")+
+      '">'+decision+'</span><br>';
+
+    html+='選択モード：<span class="yellow">'+pick.mode+'</span>';
+    html+='</div>';
+
+    html+='<div class="card"><div class="title">🚨発動ランプ</div>';
+    html+=(pick.lamps.length?pick.lamps.join('<br>'):'特別ランプなし');
+    html+='</div>';
+
+    html+='<div class="card"><div class="title">🧠メジアン・壁</div>';
+    html+='単勝メジアン：<span class="red">'+joinH(ctx.tanM)+'</span><br>';
+    html+='複勝メジアン：<span class="red">'+joinH(ctx.fukuM)+'</span><br>';
+    html+='馬連壁内メジアン：<span class="red">'+joinH(ctx.zoneM)+'</span><br>';
+    html+='複勝6倍壁前：<span class="yellow">'+joinH(ctx.fuku6)+'</span><br>';
+    html+='複勝10倍壁前：<span class="yellow">'+joinH(ctx.fuku10)+'</span><br>';
+    html+='複勝15倍壁前：<span class="yellow">'+joinH(ctx.fuku15)+'</span><br>';
+    html+='人気ゾーン4〜9.9倍：<span class="blue">'+joinH(ctx.popularZoneH)+'</span>';
+    html+='</div>';
+
+    html+='<div class="card"><div class="title">🧱馬連オッズの壁</div>';
+
+    html+='壁：'+
+      (ctx.mainWalls.length
+        ? ctx.mainWalls.map(function(w){
+            return w.before+'位→'+w.after+'位';
+          }).join(' / ')
+        : '明確な壁なし')+
+      '<br>';
+
+    html+='見るゾーン：'+
+      (ctx.zone.length
+        ? ctx.zone.map(function(p){
+            return p.key+'('+p.od+')';
+          }).join(' / ')
+        : 'なし')+
+      '<br>';
+
+    html+='壁内馬：'+joinH(ctx.zoneH);
+    html+='</div>';
+
+    html+=makeHonpyo(data,ctx);
+
+    html+='<div class="card"><div class="title">👑最終候補</div>';
+    html+='軸候補：<span class="good">'+joinH(pick.axisH)+'</span><br>';
+    html+='相手候補：<span class="yellow">'+joinH(pick.partnerH)+'</span><hr>';
+
+    for(var s=0;s<Math.min(8,scored.length);s++){
+      var x=scored[s];
+
+      html+='<div class="rankLine">';
+      html+='<span class="badge">'+
+        (s+1)+'位 '+x.h+'番【'+x.score+'】</span> ';
+
+      html+='<span class="small">単'+x.tan+
+        ' / 複'+x.fuku+
+        '　'+x.reasons.join('・')+
+        '</span>';
+
+      html+='</div>';
+    }
+
+    html+='</div>';
+
+    html+='<div class="card"><div class="title">💰買い目</div><pre>';
+
+    if(decision==="見送り"){
+      html+='見送り\n理由：重なり不足';
+    }else{
+      html+='◎ '+joinH(pick.axisH)+'\n';
+      html+='○ '+joinH(pick.partnerH)+'\n\n';
+
+      html+='ワイド\n'+
+        (tickets.wide.length?tickets.wide.join('\n'):'なし')+
+        '\n\n';
+
+      html+='馬連\n'+
+        (tickets.umaren.length?tickets.umaren.join('\n'):'なし')+
+        '\n\n';
+
+      html+='三連複\n'+
+        (tickets.sanpuku.length?tickets.sanpuku.join('\n'):'なし')+
+        '\n\n';
+
+      html+='三連単\n'+
+        (tickets.sanrentan.length?tickets.sanrentan.join('\n'):'なし');
+    }
+
+    html+='</pre></div>';
+
+    out.innerHTML=html;
+
+    latestCopyText=makeCopyText(
+      data.title,
+      ctx.raceType,
+      decision,
+      pick,
+      tickets,
+      scored
+    );
+
+  }catch(e){
+    document.getElementById("out").innerHTML=
+      '<div class="card"><div class="title warn">エラー</div><pre>'+
+      String(e && e.message ? e.message : e)+
+      '</pre></div>';
+  }
+}
+
+function makeCopyText(title,raceType,decision,pick,tickets,scored){
+  var t='';
+
+  t+=title+'\n';
+  t+='診断：'+raceType+' / '+decision+'\n';
+  t+='選択モード：'+pick.mode+'\n';
+
+  if(pick.lamps.length){
+    t+='発動：'+pick.lamps.join(' / ')+'\n';
+  }
+
+  t+='◎ '+joinH(pick.axisH)+'\n';
+  t+='○ '+joinH(pick.partnerH)+'\n\n';
+
+  t+='ワイド\n'+tickets.wide.join('\n')+'\n\n';
+  t+='馬連\n'+tickets.umaren.join('\n')+'\n\n';
+  t+='三連複\n'+tickets.sanpuku.join('\n')+'\n\n';
+  t+='三連単\n'+tickets.sanrentan.join('\n')+'\n\n';
+
+  t+='最終候補\n';
+
+  for(var i=0;i<Math.min(5,scored.length);i++){
+    t+=(i+1)+'位 '+scored[i].h+
+      '番【'+scored[i].score+'】 単'+scored[i].tan+
+      ' / 複'+scored[i].fuku+'\n';
+  }
+
+  return t;
+}
+
+function copyResult(){
+  if(!latestCopyText){
+    alert("先に解析してください");
+    return;
+  }
+
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(latestCopyText).then(function(){
+      alert("結果をコピーしました");
+    }).catch(function(){
+      fallbackCopy(latestCopyText);
+    });
+  }else{
+    fallbackCopy(latestCopyText);
+  }
+}
+
+function fallbackCopy(text){
+  var ta=document.createElement("textarea");
+  ta.value=text;
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand("copy");
+  document.body.removeChild(ta);
+  alert("結果をコピーしました");
+}
+
+function sample(){
+  document.getElementById("input").value=
+'【福島1R】\n'+
+'[TANFUKU]\n'+
+'5 4.4 2.2\n'+
+'13 4.5 2.1\n'+
+'15 5.4 2.2\n'+
+'10 7.5 2.9\n'+
+'14 8.9 4.3\n'+
+'2 11.3 3.6\n'+
+'11 16.6 4.7\n'+
+'3 17.3 4.8\n'+
+'6 20.4 8.0\n'+
+'12 33.3 8.4\n'+
+'1 38.7 15.9\n'+
+'9 38.8 10.6\n'+
+'8 51.5 14.5\n'+
+'7 78.7 22.1\n'+
+'4 95.8 19.9\n'+
+'\n'+
+'[UMAREN]\n'+
+'13-15 8.3\n'+
+'5-13 9.7\n'+
+'5-15 11.3\n'+
+'10-13 13.6\n'+
+'5-10 16.0\n'+
+'10-15 16.3\n'+
+'13-14 17.5\n'+
+'14-15 19.9\n'+
+'5-14 20.7\n'+
+'2-13 21.4\n'+
+'2-5 24.5\n'+
+'2-15 28.0\n'+
+'10-14 28.4\n'+
+'11-13 36.4\n'+
+'2-10 39.1\n'+
+'5-11 40.0\n'+
+'11-15 44.6\n'+
+'3-13 45.8\n'+
+'2-14 52.2\n'+
+'3-15 58.2\n'+
+'3-5 58.6\n'+
+'10-11 60.5\n'+
+'3-10 62.4\n'+
+'11-14 89.5\n'+
+'2-11 91.6\n'+
+'6-13 92.0\n'+
+'5-6 97.6\n'+
+'3-14 103.6\n'+
+'2-3 104.1\n'+
+'5-12 107.5\n'+
+'\n'+
+'[WIDE]\n'+
+'13-15 4.0\n'+
+'5-13 4.6\n'+
+'5-15 5.8\n'+
+'10-13 6.3\n'+
+'10-15 6.8\n'+
+'5-10 7.0\n'+
+'13-14 7.5\n'+
+'14-15 7.7\n'+
+'2-13 7.8\n'+
+'2-15 8.5\n'+
+'2-5 8.7\n'+
+'5-14 10.1\n'+
+'11-13 10.4\n'+
+'10-14 10.7\n'+
+'2-10 11.9\n'+
+'11-15 12.6\n'+
+'3-13 14.5\n'+
+'5-11 14.7\n'+
+'2-14 15.4\n'+
+'10-11 16.4\n'+
+'3-5 17.5\n'+
+'3-15 18.5\n'+
+'3-10 18.5\n'+
+'2-11 20.1\n'+
+'11-14 25.4\n'+
+'5-6 26.2\n'+
+'2-3 26.8\n'+
+'6-13 29.4\n'+
+'3-14 28.9\n'+
+'6-15 31.4\n'+
+'\n'+
+'[SANPUKU]\n'+
+'5-13-15 12.4\n'+
+'10-13-15 18.6\n'+
+'5-10-13 20.1\n'+
+'13-14-15 20.2\n'+
+'5-10-15 22.2\n'+
+'2-13-15 25.5\n'+
+'5-13-14 28.0\n'+
+'2-5-13 28.5\n'+
+'5-14-15 33.4\n'+
+'2-5-15 37.7\n'+
+'10-13-14 40.0\n'+
+'11-13-15 43.0\n'+
+'2-10-13 45.9\n'+
+'10-14-15 47.2\n'+
+'5-11-13 47.3';
+}
+
+document.getElementById("btnRun").addEventListener("click",run);
+
+document.getElementById("btnSample").addEventListener("click",sample);
+
+document.getElementById("btnClear").addEventListener("click",function(){
+  document.getElementById("input").value="";
+  document.getElementById("out").innerHTML="";
+  latestCopyText="";
+});
+
+document.getElementById("btnCopy").addEventListener("click",copyResult);
 </script>
 </body>
 </html>
