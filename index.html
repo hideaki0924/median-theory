@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 V20.5 本表ズレ修正版</title>
+<title>チャッピー神予想 V20.6 本表・壁色復元版</title>
 <style>
 body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:14px;font-size:17px}
 h1{color:#fff;font-size:27px;line-height:1.3}
@@ -25,10 +25,10 @@ hr{border:0;border-top:1px solid #94a3b8;margin:14px 0}
 .honMed{color:#fb7185}
 .honEmpty{color:transparent}
 .honBar{width:14px;min-width:14px;padding:0}
-.honBar::before{content:"";display:block;width:3px;height:38px;margin:0 auto;border-radius:2px}
-.honBarUma::before{background:#ef4444}
-.honBarTan::before{background:#3b82f6}
-.honBarFuku::before{background:#fde047}
+.honBar::before{content:"";display:block;width:3px;height:38px;margin:0 auto;border-radius:2px;background:rgba(255,255,255,.92)}
+.honWallUma::before{background:#ef4444;box-shadow:0 0 10px rgba(239,68,68,.9)}
+.honWallTan::before{background:#3b82f6;box-shadow:0 0 10px rgba(59,130,246,.9)}
+.honWallFuku::before{background:#fde047;box-shadow:0 0 10px rgba(253,224,71,.9)}
 .lampRed{border:3px solid #ff6b8a;background:linear-gradient(135deg,#2b0010,#5a001d,#2b0010);box-shadow:0 0 26px rgba(255,80,120,.7)}
 .lampGreen{border:3px solid #4ade80;background:linear-gradient(135deg,#002611,#063b19,#001b0c);box-shadow:0 0 26px rgba(74,222,128,.75)}
 .lampShield{border:3px solid #38bdf8;background:linear-gradient(135deg,#03172f,#0f315f,#03172f);box-shadow:0 0 24px rgba(56,189,248,.65)}
@@ -39,7 +39,7 @@ hr{border:0;border-top:1px solid #94a3b8;margin:14px 0}
 </style>
 </head>
 <body>
-<h1>チャッピー神予想 V20.5<br>本表ズレ修正版</h1>
+<h1>チャッピー神予想 V20.6<br>本表・壁色復元版</h1>
 
 <textarea id="input" placeholder="【レース名】
 
@@ -1012,8 +1012,59 @@ function padHonRow(row,maxLen){
   while(out.length<maxLen)out.push("");
   return out;
 }
-function renderHonTableRow(label,row,medians,barClass,maxLen){
+function uniqNum(a){
+  var m={},out=[];
+  for(var i=0;i<a.length;i++){
+    var n=Number(a[i]);
+    if(isNaN(n))continue;
+    if(!m[n]){m[n]=1;out.push(n);}
+  }
+  return out.sort(function(x,y){return x-y;});
+}
+function mapValue(items,key){
+  var m={};
+  for(var i=0;i<items.length;i++)m[items[i].h]=Number(items[i][key]);
+  return m;
+}
+function thresholdWallAfter(row,valMap,limits){
+  var pos=[];
+  for(var l=0;l<limits.length;l++){
+    var lim=limits[l],last=-1;
+    for(var i=0;i<row.length;i++){
+      var v=valMap[row[i]];
+      if(v!==undefined&&v<=lim)last=i;
+    }
+    if(last>=0&&last<row.length-1){
+      var next=valMap[row[last+1]];
+      if(next===undefined||next>lim)pos.push(last);
+    }
+  }
+  return uniqNum(pos);
+}
+function otaniWallAfter(row,data,ctx){
+  var pos=[];
+  var axis=ctx.tanRank[0]?ctx.tanRank[0].h:null;
+  for(var i=0;i<ctx.mainWalls.length;i++){
+    var w=ctx.mainWalls[i];
+    var p=ctx.umaRank[w.before-1];
+    if(!p)continue;
+
+    var target=null;
+    if(axis&&(p.a===axis||p.b===axis)){
+      target=(p.a===axis?p.b:p.a);
+    }else{
+      // 軸を含まない壁は、組の後ろ側を代表として置く
+      target=p.b;
+    }
+
+    var idx=row.indexOf(target);
+    if(idx>=0&&idx<row.length-1)pos.push(idx);
+  }
+  return uniqNum(pos);
+}
+function renderHonTableRow(label,row,medians,wallAfter,wallClass,maxLen){
   var arr=padHonRow(row,maxLen);
+  wallAfter=wallAfter||[];
   var html='<tr><th>'+label+'</th>';
   for(var i=0;i<maxLen;i++){
     var h=arr[i];
@@ -1022,7 +1073,9 @@ function renderHonTableRow(label,row,medians,barClass,maxLen){
     else if(medians.indexOf(h)>=0)cls+=' honMed';
     html+='<td class="'+cls+'">'+(h||'')+'</td>';
     if(i<maxLen-1){
-      html+='<td class="honBar '+barClass+'"></td>';
+      var bcls='honBar';
+      if(wallAfter.indexOf(i)>=0)bcls+=' '+wallClass;
+      html+='<td class="'+bcls+'"></td>';
     }
   }
   html+='</tr>';
@@ -1033,13 +1086,19 @@ function makeHonpyo(data,ctx){
   var tanRow=ctx.tanRank.map(function(x){return x.h;});
   var fukuRow=ctx.fukuRank.map(function(x){return x.h;});
   var maxLen=Math.max(otani.length,tanRow.length,fukuRow.length);
+
+  // 通常区切りは白。壁だけ色をつける。
+  var umaWalls=otaniWallAfter(otani,data,ctx);
+  var tanWalls=thresholdWallAfter(tanRow,mapValue(ctx.tanRank,"tan"),[10,30,100]);
+  var fukuWalls=thresholdWallAfter(fukuRow,mapValue(ctx.fukuRank,"fuku"),[6,10,15]);
+
   var html='<div class="card"><div class="title">本表</div>';
-  html+='<div class="small">メジアン候補＝赤文字。馬連は大谷式。</div>';
+  html+='<div class="small">メジアン候補＝赤文字。白線＝通常区切り。色線＝壁。馬連は大谷式。</div>';
   html+='<div class="honWrap">';
   html+='<table class="honTable">';
-  html+=renderHonTableRow("馬連",otani,ctx.zoneM,"honBarUma",maxLen);
-  html+=renderHonTableRow("単勝",tanRow,ctx.tanM,"honBarTan",maxLen);
-  html+=renderHonTableRow("複勝",fukuRow,ctx.fukuM,"honBarFuku",maxLen);
+  html+=renderHonTableRow("馬連",otani,ctx.zoneM,umaWalls,"honWallUma",maxLen);
+  html+=renderHonTableRow("単勝",tanRow,ctx.tanM,tanWalls,"honWallTan",maxLen);
+  html+=renderHonTableRow("複勝",fukuRow,ctx.fukuM,fukuWalls,"honWallFuku",maxLen);
   html+='</table>';
   html+='</div></div>';
   return html;
