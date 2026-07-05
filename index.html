@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 V20.2 大穴保険＋赤信号＋超超鉄板＋安定補正版</title>
+<title>チャッピー神予想 V20.3 大穴保険＋本線4頭拡張 安定補正版</title>
 <style>
 body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:14px;font-size:17px}
 h1{color:#fff;font-size:27px;line-height:1.3}
@@ -35,7 +35,7 @@ hr{border:0;border-top:1px solid #94a3b8;margin:14px 0}
 </style>
 </head>
 <body>
-<h1>チャッピー神予想 V20.2<br>大穴保険＋赤信号＋超超鉄板＋安定補正版</h1>
+<h1>チャッピー神予想 V20.3<br>大穴保険＋本線4頭拡張 安定補正版</h1>
 
 <textarea id="input" placeholder="【レース名】
 
@@ -397,14 +397,15 @@ function detectMainlineGuard(data,ctx){
   if(!ctx.edgeHead)return empty;
   if(ctx.topUma<4||ctx.topUma>=9)return empty; // 中荒れ戦だけ
 
-  var topPairs=sortOdds(data.umaren).slice(0,6);
+  var topPairs=sortOdds(data.umaren).slice(0,8);
   if(!topPairs.length)return empty;
 
   var map={};
   for(var i=0;i<topPairs.length;i++){
     [topPairs[i].a,topPairs[i].b].forEach(function(h){
-      if(!map[h])map[h]={h:h,count:0,best:999};
+      if(!map[h])map[h]={h:h,count:0,best:999,odSum:0};
       map[h].count++;
+      map[h].odSum+=Number(topPairs[i].od);
       if(Number(topPairs[i].od)<map[h].best)map[h].best=Number(topPairs[i].od);
     });
   }
@@ -416,9 +417,25 @@ function detectMainlineGuard(data,ctx){
     return a.best-b.best;
   });
 
-  // 上位6点の中で2回以上出る馬を本線扱い。足りなければ馬連1番人気の2頭を本線にする。
-  var core=arr.filter(function(x){return x.count>=2;}).map(function(x){return x.h;}).slice(0,3);
+  // 本線4頭拡張補正：
+  // 馬連上位に複数回出る馬は3頭で切らず、最大4頭まで本線に残す。
+  // 福島1R型では 13・15・5 に加えて、10も本線の4頭目に残す。
+  var core=arr.filter(function(x){return x.count>=2;}).map(function(x){return x.h;}).slice(0,4);
+
+  // 足りない場合は、馬連1番人気の2頭を必ず本線に戻す。
   if(core.length<2&&ctx.umaRank[0])core=uniq([ctx.umaRank[0].a,ctx.umaRank[0].b]);
+
+  // さらに単勝10倍未満・複勝3倍未満・馬連/ワイド/三連複上位に残る馬は、本線4頭目として救済。
+  if(core.length<4){
+    var addCands=ctx.tanRank.filter(function(x){
+      var h=x.h, tf=getTf(data,h);
+      if(!tf||core.indexOf(h)>=0)return false;
+      var con=connectionCount(data,h,12);
+      return Number(tf.tan)<10 && Number(tf.fuku)<=3.2 && (con.umaren>=2||con.wide>=2||con.sanpuku>=2);
+    }).map(function(x){return x.h;});
+    core=uniq(core.concat(addCands)).slice(0,4);
+  }
+
   if(core.length<2)return empty;
 
   var edge=ctx.edgeHead.h;
@@ -442,9 +459,10 @@ function detectMainlineGuard(data,ctx){
     coreH:core,
     holeH:holePool.slice(0,5),
     edgeH:edge,
-    reason:"馬連上位6点の本線を優先。人気ゾーン端は穴頭保険へ降格。"
+    reason:"馬連上位8点＋単複安定馬を本線4頭まで残す。人気ゾーン端は穴頭保険へ降格。"
   };
 }
+
 
 function makeSpecialLampCards(ctx){
   var html='';
@@ -472,7 +490,7 @@ function makeSpecialLampCards(ctx){
     var m=ctx.mainlineGuard;
     html+='<div class="card lampShield"><div class="title">🛡穴ランプ軸奪い禁止補正 発動</div>';
     html+='<b>穴は拾うが、◎単独にはしない。本線＋穴頭保険に分離。</b><br>';
-    html+='本線：<span class="yellow">'+joinH(m.coreH)+'</span><br>';
+    html+='本線4頭候補：<span class="yellow">'+joinH(m.coreH)+'</span><br>';
     html+='穴頭保険：<span class="yellow">'+joinH(m.holeH)+'</span><br>';
     html+='<span class="small">'+m.reason+'</span>';
     html+='</div>';
@@ -702,14 +720,13 @@ function chooseFinal(data,ctx,scored){
     if(ctx.medianHoleH.length){
       lamps.push("🟣複勝メジアン穴 2・3着寄せ："+joinH(ctx.medianHoleH.slice(0,2)));
     }
-    partnerH=uniq(ctx.mainlineGuard.coreH.slice(1)
-      .concat(ctx.mainlineGuard.holeH)
+    partnerH=uniq(ctx.mainlineGuard.holeH
       .concat(ctx.umaTop)
       .concat(ctx.wideTop)
       .concat(ctx.sanTop)
       .concat(ctx.fukuM)
       .concat(scored.map(function(x){return x.h;})))
-      .filter(function(h){return axisH[0]!==h;}).slice(0,8);
+      .filter(function(h){return axisH.indexOf(h)<0;}).slice(0,8);
   }
   else if(ctx.edgeHead){
     mode="人気ゾーン端の頭残し";
@@ -792,22 +809,44 @@ function makeTickets(data,ctx,pick){
 
   var axis=pick.axisH[0],p=pick.partnerH;
 
-  // V20.2：本線＋穴頭保険。穴を◎単独にせず、本線馬券＋穴絡みで組む。
+  // V20.3：本線4頭拡張＋穴頭保険。
+  // 本線4頭の三連複を先に作り、その後で穴絡みを足す。穴を◎単独にしない。
   if(pick.mainlineGuardActive&&pick.mainlineH.length>=2){
-    var core=pick.mainlineH.slice(0,3);
+    var core=pick.mainlineH.slice(0,4);
     var holes=uniq(pick.mainlineHoleH.concat(p)).filter(function(h){return core.indexOf(h)<0;}).slice(0,4);
-    var a0=core[0],a1=core[1],a2=core[2]||null;
 
-    add(wide,addPair(a0,a1));
-    add(umaren,addPair(a0,a1));
-    if(a2){
-      add(wide,addPair(a0,a2));
-      add(wide,addPair(a1,a2));
-      add(umaren,addPair(a0,a2));
-      add(umaren,addPair(a1,a2));
-      add(sanpuku,addTri(a0,a1,a2));
+    function pairOddsSafe(a,b){
+      var u=findPair(data.umaren,a,b);
+      return u?Number(u.od):9999;
+    }
+    function addCorePair(a,b){
+      add(wide,addPair(a,b));
+      add(umaren,addPair(a,b));
     }
 
+    // 本線馬連・ワイドは実オッズがあるものを優先。
+    var corePairs=[];
+    for(var pi=0;pi<core.length;pi++){
+      for(var pj=pi+1;pj<core.length;pj++){
+        corePairs.push({a:core[pi],b:core[pj],od:pairOddsSafe(core[pi],core[pj])});
+      }
+    }
+    corePairs.sort(function(x,y){return x.od-y.od;});
+    for(var cp=0;cp<Math.min(5,corePairs.length);cp++){
+      addCorePair(corePairs[cp].a,corePairs[cp].b);
+    }
+
+    // 本線三連複：4頭なら4通りを先に入れる。
+    for(var i0=0;i0<core.length;i0++){
+      for(var i1=i0+1;i1<core.length;i1++){
+        for(var i2=i1+1;i2<core.length;i2++){
+          add(sanpuku,addTri(core[i0],core[i1],core[i2]));
+        }
+      }
+    }
+
+    // 穴絡み：上位本線2頭＋穴、本線1・3頭目＋穴も追加。
+    var a0=core[0],a1=core[1],a2=core[2]||null;
     for(var mh=0;mh<Math.min(3,holes.length);mh++){
       var h=holes[mh];
       add(wide,addPair(a0,h));
@@ -820,11 +859,11 @@ function makeTickets(data,ctx,pick){
       if(a2)add(sanpuku,addTri(a0,a2,h));
       addTan(a0,a1,h);
       addTan(a1,a0,h);
-      addTan(h,a0,a1);
+      if(mh===0)addTan(h,a0,a1);
       if(a2)addTan(a0,h,a2);
     }
 
-    return{wide:wide.slice(0,5),umaren:umaren.slice(0,5),sanpuku:sanpuku.slice(0,5),sanrentan:sanrentan.slice(0,8)};
+    return{wide:wide.slice(0,5),umaren:umaren.slice(0,5),sanpuku:sanpuku.slice(0,7),sanrentan:sanrentan.slice(0,8)};
   }
 
   // V20.1：超超鉄板は「本命2頭＋穴1頭型」を優先して買い目化
@@ -1001,7 +1040,7 @@ function run(){
     html+='<div class="card"><div class="title">👑最終候補</div>';
     html+='軸候補：<span class="good">'+joinH(pick.axisH)+'</span><br>';
     if(pick.mainlineGuardActive){
-      html+='本線：<span class="good">'+joinH(pick.mainlineH)+'</span><br>';
+      html+='本線4頭候補：<span class="good">'+joinH(pick.mainlineH)+'</span><br>';
       html+='穴頭保険：<span class="yellow">'+joinH(pick.mainlineHoleH)+'</span><br>';
     }
     html+='相手候補：<span class="yellow">'+joinH(pick.partnerH)+'</span><hr>';
@@ -1045,7 +1084,7 @@ function makeCopyText(title,raceType,decision,pick,tickets,scored,ctx){
     t+='超超鉄板詳細：本命 '+joinH(ctx.superIron.coreH)+' / 穴1頭 '+joinH(ctx.superIron.holeH)+' / 本命点 '+ctx.superIron.corePoint+' / 穴点 '+ctx.superIron.holePoint+'\n';
   }
   if(ctx&&ctx.mainlineGuard&&ctx.mainlineGuard.active){
-    t+='穴ランプ軸奪い禁止補正：本線 '+joinH(ctx.mainlineGuard.coreH)+' / 穴頭保険 '+joinH(ctx.mainlineGuard.holeH)+'\n';
+    t+='穴ランプ軸奪い禁止補正：本線4頭候補 '+joinH(ctx.mainlineGuard.coreH)+' / 穴頭保険 '+joinH(ctx.mainlineGuard.holeH)+'\n';
   }
   t+='◎ '+joinH(pick.axisH)+'\n';
   t+='○ '+joinH(pick.partnerH)+'\n\n';
