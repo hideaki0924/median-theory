@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 オート V24 擬似複勝テスト版</title>
+<title>チャッピー神予想 オート V24.1 擬似複勝＋壁メジアン版</title>
 <style>
 body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:14px;font-size:17px}
 h1{font-size:27px;line-height:1.3;margin:4px 0 12px;color:#fff}
@@ -23,14 +23,20 @@ hr{border:0;border-top:1px solid #94a3b8;margin:14px 0}
 .honLabel{width:86px;min-width:86px;max-width:86px;font-weight:900;font-size:18px;line-height:1.05;white-space:nowrap}
 .honNum{display:inline-block;width:34px;min-width:34px;max-width:34px;text-align:center;font-size:23px;font-weight:900;color:#fff;line-height:1;box-sizing:border-box;white-space:nowrap;font-variant-numeric:tabular-nums;letter-spacing:-1px}
 .honMed{color:#fb7185}
+.honWallMed{color:#86efac;text-shadow:0 0 8px rgba(134,239,172,.65)}
+.honBothMed{color:#c084fc;text-shadow:0 0 9px rgba(192,132,252,.85)}
 .honEmpty{color:transparent}
 .bar{display:inline-block;height:30px;width:2px;min-width:2px;max-width:2px;margin:0 3px;opacity:.95;border-radius:2px;background:#35517a}
+.barWall{width:4px;min-width:4px;max-width:4px;background:#fb923c;box-shadow:0 0 10px rgba(251,146,60,.9)}
+.barSemiWall{width:3px;min-width:3px;max-width:3px;background:#fde047;box-shadow:0 0 8px rgba(253,224,71,.75)}
+.legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.legend span{display:inline-block;border-radius:999px;background:#1e293b;padding:4px 8px;font-size:13px;font-weight:900}
 .lamp{border:3px solid #a855f7;background:linear-gradient(135deg,#16002c,#2b075f,#16002c);box-shadow:0 0 24px rgba(168,85,247,.55)}
 .lamp2{border:3px solid #f97316;background:linear-gradient(135deg,#2b1000,#5a2500,#2b1000);box-shadow:0 0 24px rgba(249,115,22,.55)}
 </style>
 </head>
 <body>
-<h1>チャッピー神予想 オート V24<br>擬似複勝テスト版</h1>
+<h1>チャッピー神予想 オート V24.1<br>擬似複勝＋壁メジアン版</h1>
 
 <textarea id="input" placeholder="【山陽10R】
 
@@ -186,9 +192,55 @@ function detectWalls(items){
   var arr=sortOdds(items).slice(0,14),walls=[];
   for(var i=0;i<arr.length-1;i++){
     var now=Number(arr[i].od),next=Number(arr[i+1].od),ratio=next/now,diff=next-now;
-    if(ratio>=1.55||diff>=8)walls.push({before:i+1,after:i+2,ratio:ratio,diff:diff});
+    if(ratio>=1.8)walls.push({before:i+1,after:i+2,ratio:ratio,diff:diff,type:"wall"});
   }
   return walls;
+}
+function wallInfoFromOdds(odds){
+  var walls=[],semis=[];
+  for(var i=0;i<odds.length-1;i++){
+    var now=Number(odds[i]),next=Number(odds[i+1]);
+    if(!now||!next)continue;
+    var ratio=next/now,diff=next-now;
+    if(ratio>=1.8)walls.push({pos:i,ratio:ratio,diff:diff});
+    else if(ratio>=1.55)semis.push({pos:i,ratio:ratio,diff:diff});
+  }
+  return{walls:walls,semis:semis};
+}
+function wallPosList(info,type){
+  var arr=(type==="semi"?info.semis:info.walls),out=[];
+  for(var i=0;i<arr.length;i++)out.push(arr[i].pos);
+  return out;
+}
+function zoneMediansByWalls(row,wallPositions){
+  row=row||[];wallPositions=wallPositions||[];
+  var start=0,out=[];
+  for(var i=0;i<=wallPositions.length;i++){
+    var end=(i<wallPositions.length?wallPositions[i]+1:row.length);
+    var zone=row.slice(start,end).filter(function(h){return !!h;});
+    out=out.concat(mid(zone));start=end;
+  }
+  return uniq(out);
+}
+function makeAnchorPairRow(pairs,anchor){
+  var p=pseudoFromAnchor(pairs,anchor);
+  return{anchor:anchor,row:p.row,pairs:p.pairs,odds:p.pairs.map(function(x){return Number(x.od);})};
+}
+function makeWallMeta(label,row,med,odds){
+  var info=wallInfoFromOdds(odds||[]);
+  var wallMeds=zoneMediansByWalls(row||[],wallPosList(info,"wall"));
+  return{label:label,row:row||[],med:med||[],odds:odds||[],info:info,wallMeds:wallMeds};
+}
+function fmtWallLine(label,row,odds,info){
+  if(!info||(!info.walls.length&&!info.semis.length))return label+"：壁なし";
+  var lines=[];
+  function one(w,mark){
+    var before=row[w.pos],after=row[w.pos+1],bOd=odds[w.pos],aOd=odds[w.pos+1];
+    lines.push(label+" "+mark+" "+before+"→"+after+" / "+bOd+"→"+aOd+" / 倍率"+w.ratio.toFixed(2));
+  }
+  for(var i=0;i<info.walls.length;i++)one(info.walls[i],"🔥壁");
+  for(var j=0;j<info.semis.length;j++)one(info.semis[j],"⚠️準壁");
+  return lines.join("\n");
 }
 
 function makeContext(data){
@@ -209,16 +261,29 @@ function makeContext(data){
   var pseudoB=fav2?pseudoFromAnchor(data.wide,fav2):{anchor:null,row:[],pairs:[]};
   var pseudoC=pseudoWideCount(data.wide,10);
   var pseudoCRow=pseudoC.map(function(x){return x.h;});
+  var baseNisha=fav1?makeAnchorPairRow(data.nisha,fav1):{anchor:null,row:[],pairs:[],odds:[]};
+  var baseNishaM=mid(baseNisha.row);
 
-  return{
+  var ctx={
     tanRank:tanRank,nishaRank:nishaRank,wideRank:wideRank,sanRank:sanRank,
     tanRow:tanRow,nishaRow:nishaRow,wideRow:wideRow,sanRow:sanRow,
     tanM:mid(tanRow),nishaM:mid(nishaRow),wideM:mid(wideRow),sanM:mid(sanRow),
     fav1:fav1,fav2:fav2,
     pseudoA:pseudoA,pseudoB:pseudoB,pseudoC:pseudoC,pseudoCRow:pseudoCRow,
     pseudoAM:mid(pseudoA.row),pseudoBM:mid(pseudoB.row),pseudoCM:mid(pseudoCRow),
+    baseNisha:baseNisha,baseNishaM:baseNishaM,
     nishaWalls:detectWalls(data.nisha),wideWalls:detectWalls(data.wide),sanWalls:detectWalls(data.sanren)
   };
+  ctx.wallRows=[
+    makeWallMeta("単勝",ctx.tanRow,ctx.tanM,ctx.tanRank.map(function(x){return Number(x.od);})),
+    makeWallMeta("2複基準",ctx.baseNisha.row,ctx.baseNishaM,ctx.baseNisha.odds),
+    makeWallMeta("擬複A",ctx.pseudoA.row,ctx.pseudoAM,ctx.pseudoA.pairs.map(function(x){return Number(x.od);})),
+    makeWallMeta("擬複B",ctx.pseudoB.row,ctx.pseudoBM,ctx.pseudoB.pairs.map(function(x){return Number(x.od);}))
+  ];
+  ctx.baseNishaWallM=ctx.wallRows[1].wallMeds;
+  ctx.pseudoAWallM=ctx.wallRows[2].wallMeds;
+  ctx.pseudoBWallM=ctx.wallRows[3].wallMeds;
+  return ctx;
 }
 
 function scoreAll(data,ctx){
@@ -234,6 +299,9 @@ function scoreAll(data,ctx){
     if(ctx.pseudoAM.indexOf(h)>=0){score+=12;reasons.push("擬似複勝Aメジアン");}
     if(ctx.pseudoBM.indexOf(h)>=0){score+=8;reasons.push("擬似複勝Bメジアン");}
     if(ctx.pseudoCM.indexOf(h)>=0){score+=8;reasons.push("擬似複勝Cメジアン");}
+    if(ctx.baseNishaWallM&&ctx.baseNishaWallM.indexOf(h)>=0){score+=8;reasons.push("2複基準壁メジアン");}
+    if(ctx.pseudoAWallM&&ctx.pseudoAWallM.indexOf(h)>=0){score+=7;reasons.push("擬複A壁メジアン");}
+    if(ctx.pseudoBWallM&&ctx.pseudoBWallM.indexOf(h)>=0){score+=6;reasons.push("擬複B壁メジアン");}
     if(ctx.pseudoCRow.slice(0,3).indexOf(h)>=0){score+=6;reasons.push("ワイド出現上位");}
     if(ctx.pseudoA.row.slice(0,3).indexOf(h)>=0){score+=5;reasons.push("1人気連動上位");}
     if(ctx.pseudoB.row.slice(0,3).indexOf(h)>=0){score+=4;reasons.push("2人気連動上位");}
@@ -253,37 +321,65 @@ function scoreAll(data,ctx){
   return scored;
 }
 
-function renderHonRow(label,row,medians,maxLen){
+function renderHonRow(label,row,medians,maxLen,wallInfo,wallMeds){
   var arr=row.slice();
   while(arr.length<maxLen)arr.push("");
+  wallInfo=wallInfo||{walls:[],semis:[]};
+  wallMeds=wallMeds||[];
+  var wallPos=wallPosList(wallInfo,"wall"),semiPos=wallPosList(wallInfo,"semi");
   var html='<div class="honRow"><div class="honLabel">'+label+'</div>';
   for(var i=0;i<maxLen;i++){
     var h=arr[i],cls='honNum';
     if(!h)cls+=' honEmpty';
-    else if(medians.indexOf(h)>=0)cls+=' honMed';
+    else{
+      var isMed=medians.indexOf(h)>=0,isWallMed=wallMeds.indexOf(h)>=0;
+      if(isMed&&isWallMed)cls+=' honBothMed';
+      else if(isWallMed)cls+=' honWallMed';
+      else if(isMed)cls+=' honMed';
+    }
     html+='<span class="'+cls+'">'+(h||'')+'</span>';
-    if(i<maxLen-1)html+='<span class="bar"></span>';
+    if(i<maxLen-1){
+      var bcls='bar';
+      if(wallPos.indexOf(i)>=0)bcls+=' barWall';
+      else if(semiPos.indexOf(i)>=0)bcls+=' barSemiWall';
+      html+='<span class="'+bcls+'"></span>';
+    }
   }
   html+='</div>';
   return html;
 }
 function makeHonpyo(ctx){
+  var wr=ctx.wallRows||[];
   var rows=[
-    {label:"単勝",row:ctx.tanRow,m:ctx.tanM},
-    {label:"2車複",row:ctx.nishaRow,m:ctx.nishaM},
-    {label:"ワイド",row:ctx.wideRow,m:ctx.wideM},
-    {label:"擬複A",row:ctx.pseudoA.row,m:ctx.pseudoAM},
-    {label:"擬複B",row:ctx.pseudoB.row,m:ctx.pseudoBM},
-    {label:"擬複C",row:ctx.pseudoCRow,m:ctx.pseudoCM},
-    {label:"3連系",row:ctx.sanRow,m:ctx.sanM}
+    {label:"単勝",row:ctx.tanRow,m:ctx.tanM,info:wr[0]?wr[0].info:{walls:[],semis:[]},wm:wr[0]?wr[0].wallMeds:[]},
+    {label:"2複基準",row:ctx.baseNisha.row,m:ctx.baseNishaM,info:wr[1]?wr[1].info:{walls:[],semis:[]},wm:wr[1]?wr[1].wallMeds:[]},
+    {label:"ワイド",row:ctx.wideRow,m:ctx.wideM,info:{walls:[],semis:[]},wm:[]},
+    {label:"擬複A",row:ctx.pseudoA.row,m:ctx.pseudoAM,info:wr[2]?wr[2].info:{walls:[],semis:[]},wm:wr[2]?wr[2].wallMeds:[]},
+    {label:"擬複B",row:ctx.pseudoB.row,m:ctx.pseudoBM,info:wr[3]?wr[3].info:{walls:[],semis:[]},wm:wr[3]?wr[3].wallMeds:[]},
+    {label:"擬複C",row:ctx.pseudoCRow,m:ctx.pseudoCM,info:{walls:[],semis:[]},wm:[]},
+    {label:"3連系",row:ctx.sanRow,m:ctx.sanM,info:{walls:[],semis:[]},wm:[]}
   ];
   var maxLen=0;
   rows.forEach(function(r){if(r.row.length>maxLen)maxLen=r.row.length;});
-  var html='<div class="card"><div class="title">本表・擬似複勝表</div>';
-  html+='<div class="small">赤文字＝メジアン。擬複Aは単勝1人気からのワイド相手順、擬複Bは単勝2人気からのワイド相手順、擬複Cはワイド上位10点の出現回数順。</div>';
+  var html='<div class="card"><div class="title">本表・擬似複勝表＋壁</div>';
+  html+='<div class="small">赤文字＝通常メジアン。緑文字＝壁で区切ったゾーンのメジアン。紫文字＝通常メジアンと壁メジアン重複。橙線＝正式壁1.8以上。黄線＝準壁1.55〜1.79。</div>';
+  html+='<div class="legend"><span style="color:#fb7185">赤=メジアン</span><span style="color:#86efac">緑=壁メジアン</span><span style="color:#c084fc">紫=重複</span><span style="color:#fb923c">橙線=壁</span><span style="color:#fde047">黄線=準壁</span></div>';
   html+='<div class="honWrap">';
-  rows.forEach(function(r){html+=renderHonRow(r.label,r.row,r.m,maxLen);});
+  rows.forEach(function(r){html+=renderHonRow(r.label,r.row,r.m,maxLen,r.info,r.wm);});
   html+='</div></div>';
+  return html;
+}
+function makeWallCard(ctx){
+  var html='<div class="card"><div class="title">🧱壁・壁メジアン</div>';
+  var wr=ctx.wallRows||[];
+  if(!wr.length){html+='壁データなし</div>';return html;}
+  for(var i=0;i<wr.length;i++){
+    var r=wr[i];
+    html+='<b>'+r.label+'</b><br>';
+    html+='壁メジアン：<span class="yellow">'+joinC(r.wallMeds)+'</span><br>';
+    html+='<pre>'+fmtWallLine(r.label,r.row,r.odds,r.info)+'</pre>';
+  }
+  html+='</div>';
   return html;
 }
 
@@ -344,6 +440,9 @@ function run(){
     if(overlapA.length)lamps.push("🔥単勝×擬似複勝Aメジアン重複："+joinC(overlapA));
     var overlapW=ctx.wideM.filter(function(h){return ctx.pseudoAM.indexOf(h)>=0||ctx.pseudoBM.indexOf(h)>=0;});
     if(overlapW.length)lamps.push("🟣ワイド×擬似複勝メジアン重複："+joinC(overlapW));
+    if(ctx.baseNishaWallM&&ctx.baseNishaWallM.length)lamps.push("🧱2複基準壁メジアン："+joinC(ctx.baseNishaWallM));
+    if(ctx.pseudoAWallM&&ctx.pseudoAWallM.length)lamps.push("🧱擬複A壁メジアン："+joinC(ctx.pseudoAWallM));
+    if(ctx.pseudoBWallM&&ctx.pseudoBWallM.length)lamps.push("🧱擬複B壁メジアン："+joinC(ctx.pseudoBWallM));
     if(scored[0]&&scored[0].score>=30)lamps.push("🚨擬似複勝テスト強反応："+scored[0].h+"号車【"+scored[0].score+"】");
 
     var html='';
@@ -359,6 +458,7 @@ function run(){
     html+='<span class="small">これは検証用です。まだ買い目へ強制反映しすぎない設定です。</span></div>';
 
     html+=makeHonpyo(ctx);
+    html+=makeWallCard(ctx);
 
     html+='<div class="card"><div class="title">🧪擬似複勝の中身</div>';
     html+='<b>A：単勝1人気 '+ctx.fav1+'号車からのワイド相手順</b><pre>'+makePseudoPairsText(ctx.pseudoA)+'</pre>';
