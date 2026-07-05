@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 V20.4 本線4頭＋三連単本線優先版</title>
+<title>チャッピー神予想 V20.5 本表ズレ修正版</title>
 <style>
 body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:14px;font-size:17px}
 h1{color:#fff;font-size:27px;line-height:1.3}
@@ -18,13 +18,17 @@ pre{white-space:pre-wrap;word-break:break-word;background:#020617;color:#e5e7eb;
 .badge{display:inline-block;padding:5px 10px;border-radius:999px;background:#1e293b;margin:4px 2px;font-weight:900}
 .rankLine{margin:8px 0;line-height:1.55}
 hr{border:0;border-top:1px solid #94a3b8;margin:14px 0}
-.honWrap{overflow-x:auto;background:#07101f;border-radius:14px;padding:10px;margin-top:10px}
-.honRow{display:flex;align-items:center;gap:0;min-width:680px;margin:12px 0}
-.honLabel{width:72px;font-weight:900;font-size:20px}
-.honNum{display:inline-block;min-width:44px;text-align:center;font-size:27px;font-weight:900;color:#fff}
+.honWrap{overflow-x:auto;background:#07101f;border-radius:14px;padding:12px;margin-top:10px}
+.honTable{border-collapse:separate;border-spacing:0 12px;table-layout:fixed;min-width:max-content}
+.honTable th{width:72px;min-width:72px;text-align:left;vertical-align:middle;font-weight:900;font-size:20px;color:#fff;padding-right:8px;line-height:1.1}
+.honCell{width:52px;min-width:52px;text-align:center;vertical-align:middle;font-size:27px;font-weight:900;color:#fff;padding:0}
 .honMed{color:#fb7185}
-.bar{display:inline-block;height:38px;width:3px;margin:0 6px;opacity:.95}
-.barNone{background:#35517a}.barUma{background:#ef4444}.barTan{background:#3b82f6}.barFuku{background:#fde047}
+.honEmpty{color:transparent}
+.honBar{width:14px;min-width:14px;padding:0}
+.honBar::before{content:"";display:block;width:3px;height:38px;margin:0 auto;border-radius:2px}
+.honBarUma::before{background:#ef4444}
+.honBarTan::before{background:#3b82f6}
+.honBarFuku::before{background:#fde047}
 .lampRed{border:3px solid #ff6b8a;background:linear-gradient(135deg,#2b0010,#5a001d,#2b0010);box-shadow:0 0 26px rgba(255,80,120,.7)}
 .lampGreen{border:3px solid #4ade80;background:linear-gradient(135deg,#002611,#063b19,#001b0c);box-shadow:0 0 26px rgba(74,222,128,.75)}
 .lampShield{border:3px solid #38bdf8;background:linear-gradient(135deg,#03172f,#0f315f,#03172f);box-shadow:0 0 24px rgba(56,189,248,.65)}
@@ -35,7 +39,7 @@ hr{border:0;border-top:1px solid #94a3b8;margin:14px 0}
 </style>
 </head>
 <body>
-<h1>チャッピー神予想 V20.4<br>本線4頭＋三連単本線優先版</h1>
+<h1>チャッピー神予想 V20.5<br>本表ズレ修正版</h1>
 
 <textarea id="input" placeholder="【レース名】
 
@@ -1003,26 +1007,40 @@ function makeOtaniRow(data,ctx){
   }
   return row;
 }
-function renderHonRow(label,row,medians,barClass){
-  var html='<div class="honRow"><div class="honLabel">'+label+'</div>';
-  for(var i=0;i<row.length;i++){
-    var h=row[i],cls=medians.indexOf(h)>=0?'honNum honMed':'honNum';
-    html+='<span class="'+cls+'">'+h+'</span>';
-    if(i<row.length-1)html+='<span class="bar '+barClass+'"></span>';
+function padHonRow(row,maxLen){
+  var out=row.slice();
+  while(out.length<maxLen)out.push("");
+  return out;
+}
+function renderHonTableRow(label,row,medians,barClass,maxLen){
+  var arr=padHonRow(row,maxLen);
+  var html='<tr><th>'+label+'</th>';
+  for(var i=0;i<maxLen;i++){
+    var h=arr[i];
+    var cls='honCell';
+    if(!h)cls+=' honEmpty';
+    else if(medians.indexOf(h)>=0)cls+=' honMed';
+    html+='<td class="'+cls+'">'+(h||'')+'</td>';
+    if(i<maxLen-1){
+      html+='<td class="honBar '+barClass+'"></td>';
+    }
   }
-  html+='</div>';
+  html+='</tr>';
   return html;
 }
 function makeHonpyo(data,ctx){
   var otani=makeOtaniRow(data,ctx);
   var tanRow=ctx.tanRank.map(function(x){return x.h;});
   var fukuRow=ctx.fukuRank.map(function(x){return x.h;});
+  var maxLen=Math.max(otani.length,tanRow.length,fukuRow.length);
   var html='<div class="card"><div class="title">本表</div>';
   html+='<div class="small">メジアン候補＝赤文字。馬連は大谷式。</div>';
   html+='<div class="honWrap">';
-  html+=renderHonRow("馬連",otani,ctx.zoneM,"barUma");
-  html+=renderHonRow("単勝",tanRow,ctx.tanM,"barTan");
-  html+=renderHonRow("複勝",fukuRow,ctx.fukuM,"barFuku");
+  html+='<table class="honTable">';
+  html+=renderHonTableRow("馬連",otani,ctx.zoneM,"honBarUma",maxLen);
+  html+=renderHonTableRow("単勝",tanRow,ctx.tanM,"honBarTan",maxLen);
+  html+=renderHonTableRow("複勝",fukuRow,ctx.fukuM,"honBarFuku",maxLen);
+  html+='</table>';
   html+='</div></div>';
   return html;
 }
