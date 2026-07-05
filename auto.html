@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 オート V24.2 壁ゾーン整理版</title>
+<title>チャッピー神予想 オート V24.3 荒れ診断追加版</title>
 <style>
 body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:14px;font-size:17px}
 h1{font-size:27px;line-height:1.3;margin:4px 0 12px;color:#fff}
@@ -38,10 +38,12 @@ hr{border:0;border-top:1px solid #94a3b8;margin:14px 0}
 .lamp{border:3px solid #a855f7;background:linear-gradient(135deg,#16002c,#2b075f,#16002c);box-shadow:0 0 24px rgba(168,85,247,.55)}
 .lamp2{border:3px solid #f97316;background:linear-gradient(135deg,#2b1000,#5a2500,#2b1000);box-shadow:0 0 24px rgba(249,115,22,.55)}
 .lampRed{border:3px solid #fb7185;background:linear-gradient(135deg,#2b0010,#5a001d,#2b0010);box-shadow:0 0 24px rgba(251,113,133,.6)}
+.diag{border:3px solid #38bdf8;background:linear-gradient(135deg,#001827,#073b55,#001827);box-shadow:0 0 22px rgba(56,189,248,.45)}
+.diagWarn{border:3px solid #facc15;background:linear-gradient(135deg,#241a00,#4a3600,#241a00);box-shadow:0 0 22px rgba(250,204,21,.45)}
 </style>
 </head>
 <body>
-<h1>チャッピー神予想 オート V24.2<br>壁ゾーン整理版</h1>
+<h1>チャッピー神予想 オート V24.2<br>荒れ診断追加版</h1>
 
 <textarea id="input" placeholder="【伊勢崎4R】
 
@@ -288,6 +290,104 @@ function detectTateAndNoFav(data,ctx){
   return out;
 }
 
+
+function makeAreDiag(data,ctx){
+  var n1=ctx.nishaRank[0]?Number(ctx.nishaRank[0].od):null;
+  var surface="判定不可",surfaceClass="good";
+  if(n1!==null){
+    if(n1<4){surface="本命戦";surfaceClass="good";}
+    else if(n1<9){surface="中荒れ戦";surfaceClass="yellow";}
+    else if(n1<15){surface="荒れ戦";surfaceClass="orange";}
+    else{surface="大荒れ戦";surfaceClass="warn";}
+  }
+
+  var favObj=ctx.tanRank[0],favOd=favObj?Number(favObj.od):null;
+  var t=ctx.tate||{};
+  var noFav=t.noFavSan||null;
+  var noFavRank=t.noFavRank||null;
+  var tateRatio=t.tateRatio||null;
+
+  var risk=0,grounds=[];
+  if(n1!==null){
+    if(n1>=4&&n1<9){risk+=1;grounds.push("2車複1人気が4倍以上で中荒れ");}
+    else if(n1>=9&&n1<15){risk+=2;grounds.push("2車複1人気が9倍以上で荒れ");}
+    else if(n1>=15){risk+=3;grounds.push("2車複1人気が15倍以上で大荒れ");}
+  }
+  if(favOd!==null){
+    if(favOd<=1.2){risk+=2;grounds.push("単勝1人気が1.2倍以下で過剰人気");}
+    else if(favOd<=1.7){risk+=1;grounds.push("単勝1人気が1.7倍以下で頭飛び警戒");}
+  }
+  if(tateRatio!==null){
+    if(tateRatio<3){risk+=2;grounds.push("タテ目倍率が3倍未満");}
+    else if(tateRatio<4){risk+=1;grounds.push("タテ目倍率が4倍未満");}
+  }
+  if(noFav){
+    if(noFavRank<=3 && Number(noFav.od)<=15){risk+=3;grounds.push("本命なし3連系が3位以内かつ15倍以内");}
+    else if(noFavRank<=6 && Number(noFav.od)<=15){risk+=2;grounds.push("本命なし3連系が6位以内かつ15倍以内");}
+    else if(noFavRank<=6){risk+=1;grounds.push("本命なし3連系が6位以内");}
+  }
+
+  var first=(ctx.baseZones.zones[1]&&ctx.baseZones.zones[1].horses)||[];
+  var second=(ctx.baseZones.zones[2]&&ctx.baseZones.zones[2].horses)||[];
+  if(first.length>=2){risk+=1;grounds.push("第1壁後に複数車");}
+  if(second.length>=1){risk+=1;grounds.push("第2壁後が存在");}
+
+  var back="本線寄り";
+  var backClass="good";
+  if(risk>=7){back="本命完全消しまで警戒";backClass="warn";}
+  else if(risk>=5){back="本命頭飛び＋3着残し警戒";backClass="orange";}
+  else if(risk>=3){back="本命頭飛び警戒";backClass="yellow";}
+  else if(risk>=1){back="軽いズレ注意";backClass="blue";}
+
+  // 1人気がかなり低く、かつ本命なし3連系が上位なら「完全消し」より「頭飛び/3着残し」を優先表示
+  if(favOd!==null && favOd<=1.7 && noFav && noFavRank<=6 && Number(noFav.od)<=15 && risk<7){
+    back="本命頭飛び＋3着残し警戒";
+    backClass="orange";
+  }
+
+  return{
+    surface:surface,
+    surfaceClass:surfaceClass,
+    back:back,
+    backClass:backClass,
+    risk:risk,
+    nisha1:n1,
+    favOd:favOd,
+    tateRatio:tateRatio,
+    noFav:noFav,
+    noFavRank:noFavRank,
+    grounds:grounds
+  };
+}
+
+function renderAreDiag(ctx){
+  var d=ctx.areDiag;
+  var html='<div class="card '+(d.risk>=5?'diagWarn':'diag')+'"><div class="title">🩺オート荒れ診断</div>';
+  html+='表面：<span class="'+d.surfaceClass+'">'+d.surface+'</span><br>';
+  html+='裏診断：<span class="'+d.backClass+'">'+d.back+'</span><br>';
+  html+='荒れ警戒スコア：<span class="'+d.backClass+'">'+d.risk+'</span><br><hr>';
+  html+='根拠：<br>';
+  html+='2車複1人気：<span class="yellow">'+(ctx.nishaRank[0]?ctx.nishaRank[0].key+" "+ctx.nishaRank[0].od+"倍":"なし")+'</span><br>';
+  html+='単勝1人気：<span class="yellow">'+(ctx.tanRank[0]?ctx.tanRank[0].h+"号車 "+ctx.tanRank[0].od+"倍":"なし")+'</span><br>';
+  if(d.tateRatio!==null){
+    html+='タテ目倍率：<span class="yellow">'+d.tateRatio.toFixed(2)+'</span>';
+    if(ctx.tate.tatePair)html+='（'+ctx.tate.tate.join('-')+' '+ctx.tate.tatePair.od+'倍）';
+    html+='<br>';
+  }
+  if(d.noFav){
+    html+='本命なし3連系：<span class="yellow">'+d.noFavRank+'位 '+d.noFav.key+' '+d.noFav.od+'倍</span><br>';
+  }
+  if(d.grounds.length){
+    html+='<pre>'+d.grounds.join("\n")+'</pre>';
+  }else{
+    html+='<span class="small">強い荒れ根拠は少なめです。</span>';
+  }
+  html+='<span class="small">※診断は買い目を広げる目安。低オッズ本命は「完全消し」より「頭飛び・3着残し」から見る。</span>';
+  html+='</div>';
+  return html;
+}
+
+
 function makeContext(data){
   var tanRank=sortOdds(data.tansho);
   var nishaRank=sortOdds(data.nisha);
@@ -320,6 +420,7 @@ function makeContext(data){
     baseNisha:baseNisha,baseNishaM:mid(baseNisha.row),baseZones:baseZones
   };
   ctx.tate=detectTateAndNoFav(data,ctx);
+  ctx.areDiag=makeAreDiag(data,ctx);
   return ctx;
 }
 
@@ -463,15 +564,23 @@ function makeTickets(data,ctx,scored){
   if(a&&main[0]&&first[1])addTriTicket(a,main[0],first[1]);
   if(a&&b&&first[0])addTriTicket(a,b,first[0]);
   if(a&&b&&first[1])addTriTicket(a,b,first[1]);
+
+  // 第1壁後 × 第2壁後 × 基準車。伊勢崎4Rの 2-7-8 対策。
   if(a&&first[0]&&second[0])addTriTicket(a,first[0],second[0]);
+  if(a&&first[1]&&second[0])addTriTicket(a,first[1],second[0]);
   if(main[0]&&first[0]&&second[0])addTriTicket(main[0],first[0],second[0]);
+  if(main[0]&&first[1]&&second[0])addTriTicket(main[0],first[1],second[0]);
 
   if(a&&pa[0]&&top[0])addTriTicket(a,pa[0],top[0]);
   if(b&&pb[0]&&a)addTriTicket(a,b,pb[0]);
 
   if(ctx.sanRank[0])add(san,ctx.sanRank[0].key);
+  // 荒れ診断用：本命なし3連系が上位なら保険で追加
+  if(ctx.tate&&ctx.tate.noFavSan&&ctx.tate.noFavRank<=6)add(san,ctx.tate.noFavSan.key);
+  // 本命頭飛び＋3着残し用：2車複タテ目相手2頭＋基準車
+  if(ctx.tate&&ctx.tate.tate&&a)addTriTicket(a,ctx.tate.tate[0],ctx.tate.tate[1]);
 
-  return{wide:wide.slice(0,6),nisha:nisha.slice(0,6),san:san.slice(0,10)};
+  return{wide:wide.slice(0,6),nisha:nisha.slice(0,6),san:san.slice(0,12)};
 }
 
 function makePseudoPairsText(p){
@@ -513,8 +622,10 @@ function run(){
     html+='3連系1人気：<span class="yellow">'+(ctx.sanRank[0]?ctx.sanRank[0].key+" "+ctx.sanRank[0].od+"倍":"なし")+'</span>';
     html+='</div>';
 
+    html+=renderAreDiag(ctx);
+
     html+='<div class="card lamp"><div class="title">発動・テストランプ</div>'+lamps.join('<br>')+'<hr>';
-    html+='<span class="small">V24.2では壁メジアンを廃止して、本線 / 第1壁後 / 第2壁後 / 切りで表示します。</span></div>';
+    html+='<span class="small">V24.3では壁ゾーンに加えて、表面診断・裏診断・本命頭飛び警戒を表示します。</span></div>';
 
     if(ctx.tate&&ctx.tate.red){
       html+='<div class="card lampRed"><div class="title">🚨本命飛び壁ランプ</div>';
@@ -557,10 +668,18 @@ function run(){
 function makeCopyText(title,ctx,scored,tickets,lamps){
   var t='';
   t+=title+'\n';
-  t+='オート擬似複勝テスト版 V24.2\n';
+  t+='オート擬似複勝テスト版 V24.3\n';
   t+='発動：'+lamps.join(' / ')+'\n\n';
 
   var z=ctx.baseZones.zones||[];
+  t+='🩺オート荒れ診断\n';
+  t+='表面：'+ctx.areDiag.surface+'\n';
+  t+='裏診断：'+ctx.areDiag.back+'\n';
+  t+='荒れ警戒スコア：'+ctx.areDiag.risk+'\n';
+  if(ctx.areDiag.tateRatio!==null)t+='タテ目倍率：'+ctx.areDiag.tateRatio.toFixed(2)+'\n';
+  if(ctx.areDiag.noFav)t+='本命なし3連系：'+ctx.areDiag.noFavRank+'位 '+ctx.areDiag.noFav.key+' '+ctx.areDiag.noFav.od+'倍\n';
+  t+='\n';
+
   t+='2複基準壁ゾーン\n';
   t+='基準：'+ctx.fav1+'号車\n';
   for(var i=0;i<Math.min(4,z.length);i++)t+=z[i].label+'：'+joinC(z[i].horses)+'\n';
