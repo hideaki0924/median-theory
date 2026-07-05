@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 V1.9 穴帯クラスター3着救済版</title>
+<title>チャッピー神予想 V2.0 大穴保険ランキング統合版</title>
 <style>
 body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:14px;font-size:17px}
 h1{color:#fff;font-size:27px;line-height:1.3}
@@ -28,7 +28,7 @@ hr{border:0;border-top:1px solid #94a3b8;margin:14px 0}
 </style>
 </head>
 <body>
-<h1>チャッピー神予想 V1.8<br>人気ゾーン端頭残し＋穴帯クラスター救済版</h1>
+<h1>チャッピー神予想 V2.0<br>大穴保険ランキング統合版</h1>
 
 <textarea id="input" placeholder="【レース名】
 
@@ -305,6 +305,99 @@ function detectHoleClusterRescue(data,ctx){
   return out;
 }
 
+
+function insuranceGrade(score){
+  if(score>=70)return "保険SS";
+  if(score>=55)return "保険S";
+  if(score>=40)return "保険A";
+  return "3着救済";
+}
+
+function detectBigHoleInsuranceRanking(data,ctx){
+  var axes=uniq(
+    ctx.tanRank.slice(0,3).map(function(x){return x.h;})
+    .concat(ctx.fukuRank.slice(0,3).map(function(x){return x.h;}))
+    .concat(ctx.zoneM)
+  );
+
+  var out=[];
+  for(var i=0;i<data.tanfuku.length;i++){
+    var x=data.tanfuku[i],h=x.h;
+    if(ctx.heroH.indexOf(h)>=0||ctx.semiHeroH.indexOf(h)>=0)continue;
+    if(Number(x.tan)<8||Number(x.tan)>=60)continue;
+
+    var score=0,reasons=[],conn=0;
+
+    if(Number(x.fuku)<=15){score+=10;reasons.push("複勝15倍内");}
+    if(Number(x.fuku)>15){score-=8;reasons.push("複勝15倍外");}
+    if(Number(x.fuku)>=3&&Number(x.fuku)<=10){score+=6;reasons.push("中穴複勝帯");}
+    if(Number(x.tan)>=10&&Number(x.tan)<=30){score+=6;reasons.push("単勝10〜30倍");}
+    if(Number(x.tan)>30&&Number(x.tan)<60){score+=2;reasons.push("単勝30〜60倍");}
+
+    if(ctx.fukuM.indexOf(h)>=0){score+=12;reasons.push("複勝メジアン");}
+    if(ctx.tanM.indexOf(h)>=0){score+=8;reasons.push("単勝メジアン");}
+    if(ctx.doubleMedian.indexOf(h)>=0){score+=14;reasons.push("単複メジアン重複");}
+    if(ctx.edgeHead&&ctx.edgeHead.h===h){score+=16;reasons.push("人気ゾーン端");}
+    if(ctx.holeClusterH&&ctx.holeClusterH.indexOf(h)>=0){score+=14;reasons.push("穴帯クラスター");}
+    if(ctx.fuku10.indexOf(h)>=0){score+=5;reasons.push("複勝10倍壁前");}
+    if(ctx.fuku15.indexOf(h)>=0){score+=4;reasons.push("複勝15倍壁前");}
+    if(ctx.umaTop.indexOf(h)>=0){score+=5;reasons.push("馬連出現上位");}
+    if(ctx.wideTop.indexOf(h)>=0){score+=5;reasons.push("ワイド出現上位");}
+    if(ctx.sanTop.indexOf(h)>=0){score+=6;reasons.push("三連複出現上位");}
+
+    for(var a=0;a<axes.length;a++){
+      var ax=axes[a];
+      if(ax===h)continue;
+      var u=findPair(data.umaren,ax,h);
+      var w=findPair(data.wide,ax,h);
+      var tr=bestTriWithTwo(data,ax,h,80);
+
+      if(u&&Number(u.od)<=50){score+=10;conn++;}
+      else if(u&&Number(u.od)<=90){score+=4;conn++;}
+
+      if(w&&Number(w.od)<=15){score+=10;conn++;}
+      else if(w&&Number(w.od)<=25){score+=5;conn++;}
+
+      if(tr&&Number(tr.od)<=45){score+=10;conn++;}
+      else if(tr&&Number(tr.od)<=70){score+=4;conn++;}
+    }
+
+    if(conn>=5){score+=18;reasons.push("上位軸強連結");}
+    else if(conn>=3){score+=12;reasons.push("上位軸連結");}
+    else if(conn>=2){score+=6;reasons.push("上位軸小連結");}
+
+    if(conn===0&&ctx.fukuM.indexOf(h)<0&&(!ctx.holeClusterH||ctx.holeClusterH.indexOf(h)<0))continue;
+    if(score<18)continue;
+
+    out.push({h:h,score:Math.round(score),tan:x.tan,fuku:x.fuku,conn:conn,grade:insuranceGrade(score),reasons:uniq(reasons).slice(0,6),use:""});
+  }
+
+  out.sort(function(a,b){
+    if(b.score!==a.score)return b.score-a.score;
+    return Number(a.tan)-Number(b.tan);
+  });
+  for(var r=0;r<out.length;r++){
+    out[r].use=(r<3?"単勝100円まで":"三連系3着救済");
+  }
+  return out.slice(0,5);
+}
+
+function makeBigHoleCard(ctx){
+  var html='<div class="card"><div class="title">💣大穴保険ランキング</div>';
+  if(!ctx.bigHoleItems||!ctx.bigHoleItems.length){
+    html+='該当なし<br><span class="small">保険単勝で買うほどの穴サインは弱めです。</span></div>';
+    return html;
+  }
+  html+='<div class="small">1〜3位＝単勝保険候補。4〜5位＝三連複・三連単の3着救済候補。</div><hr>';
+  for(var i=0;i<ctx.bigHoleItems.length;i++){
+    var x=ctx.bigHoleItems[i];
+    html+='<div class="rankLine"><span class="badge">'+(i+1)+'位 '+x.h+'番【'+x.grade+'】</span> ';
+    html+='<span class="small">単'+x.tan+' / 複'+x.fuku+'　'+x.reasons.join('・')+'　推奨：'+x.use+'</span></div>';
+  }
+  html+='</div>';
+  return html;
+}
+
 function makeContext(data){
   var tanRank=sortBy(data.tanfuku,"tan"),fukuRank=sortBy(data.tanfuku,"fuku"),umaRank=sortOdds(data.umaren);
   var topUma=umaRank[0]?umaRank[0].od:999;
@@ -359,6 +452,9 @@ function makeContext(data){
   ctx.holeClusterItems=detectHoleClusterRescue(data,ctx);
   ctx.holeClusterH=ctx.holeClusterItems.map(function(x){return x.h;}).slice(0,3);
 
+  ctx.bigHoleItems=detectBigHoleInsuranceRanking(data,ctx);
+  ctx.bigHoleH=ctx.bigHoleItems.map(function(x){return x.h;});
+
   return ctx;
 }
 
@@ -382,6 +478,7 @@ function scoreAll(data,ctx){
     if(ctx.edgeHead&&ctx.edgeHead.h===h){score+=18;reasons.push("人気ゾーン端の頭残し");}
     if(ctx.medianHoleH.indexOf(h)>=0){score+=8;reasons.push("複勝メジアン穴2・3着");}
     if(ctx.holeClusterH&&ctx.holeClusterH.indexOf(h)>=0){score+=7;reasons.push("穴帯クラスター3着救済");}
+    if(ctx.bigHoleH&&ctx.bigHoleH.indexOf(h)>=0){score+=6;reasons.push("大穴保険ランキング");}
     if(tf&&tf.fuku>15){score-=3;reasons.push("複勝15倍外で弱め");}
     scored.push({h:h,score:score,reasons:reasons,tan:tf?tf.tan:"-",fuku:tf?tf.fuku:"-"});
   }
@@ -611,7 +708,8 @@ function run(){
     html+='複勝10倍壁前：<span class="yellow">'+joinH(ctx.fuku10)+'</span><br>';
     html+='複勝15倍壁前：<span class="yellow">'+joinH(ctx.fuku15)+'</span><br>';
     html+='人気ゾーン4〜9.9倍：<span class="blue">'+joinH(ctx.popularZoneH)+'</span><br>';
-    html+='穴帯クラスター救済：<span class="yellow">'+joinH(ctx.holeClusterH||[])+'</span>';
+    html+='穴帯クラスター救済：<span class="yellow">'+joinH(ctx.holeClusterH||[])+'</span><br>';
+    html+='大穴保険候補：<span class="yellow">'+joinH(ctx.bigHoleH||[])+'</span>';
     html+='</div>';
 
     html+='<div class="card"><div class="title">🧱馬連オッズの壁</div>';
@@ -621,6 +719,7 @@ function run(){
     html+='</div>';
 
     html+=makeHonpyo(data,ctx);
+    html+=makeBigHoleCard(ctx);
 
     html+='<div class="card"><div class="title">👑最終候補</div>';
     html+='軸候補：<span class="good">'+joinH(pick.axisH)+'</span><br>';
@@ -646,13 +745,13 @@ function run(){
     html+='</pre></div>';
 
     out.innerHTML=html;
-    latestCopyText=makeCopyText(data.title,ctx.raceType,decision,pick,tickets,scored);
+    latestCopyText=makeCopyText(data.title,ctx.raceType,decision,pick,tickets,scored,ctx);
   }catch(e){
     document.getElementById("out").innerHTML='<div class="card"><div class="title warn">エラー</div><pre>'+String(e&&e.message?e.message:e)+'</pre></div>';
   }
 }
 
-function makeCopyText(title,raceType,decision,pick,tickets,scored){
+function makeCopyText(title,raceType,decision,pick,tickets,scored,ctx){
   var t='';
   t+=title+'\n';
   t+='診断：'+raceType+' / '+decision+'\n';
@@ -664,6 +763,14 @@ function makeCopyText(title,raceType,decision,pick,tickets,scored){
   t+='馬連\n'+tickets.umaren.join('\n')+'\n\n';
   t+='三連複\n'+tickets.sanpuku.join('\n')+'\n\n';
   t+='三連単\n'+tickets.sanrentan.join('\n')+'\n\n';
+  if(ctx&&ctx.bigHoleItems&&ctx.bigHoleItems.length){
+    t+='大穴保険ランキング\n';
+    for(var bh=0;bh<Math.min(5,ctx.bigHoleItems.length);bh++){
+      var bx=ctx.bigHoleItems[bh];
+      t+=(bh+1)+'位 '+bx.h+'番【'+bx.grade+'】 単'+bx.tan+' / 複'+bx.fuku+' '+bx.reasons.join('・')+' 推奨:'+bx.use+'\n';
+    }
+    t+='\n';
+  }
   t+='最終候補\n';
   for(var i=0;i<Math.min(5,scored.length);i++){
     t+=(i+1)+'位 '+scored[i].h+'番【'+scored[i].score+'】 単'+scored[i].tan+' / 複'+scored[i].fuku+'\n';
