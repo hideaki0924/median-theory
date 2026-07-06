@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 オート V24.6 単勝100円＋本命残し強化版</title>
+<title>チャッピー神予想 オート V24.7 本命固定×第1壁後混入補正版</title>
 <style>
 body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:14px;font-size:17px}
 h1{font-size:27px;line-height:1.3;margin:4px 0 12px;color:#fff}
@@ -109,6 +109,11 @@ function getTan(data,h){
 }
 function findPair(arr,a,b){
   var k=pairKey(a,b);
+  for(var i=0;i<arr.length;i++){if(arr[i].key===k)return arr[i];}
+  return null;
+}
+function findTri(arr,a,b,c){
+  var k=triKey(a,b,c);
   for(var i=0;i<arr.length;i++){if(arr[i].key===k)return arr[i];}
   return null;
 }
@@ -414,13 +419,20 @@ function makeAreDiag(data,ctx){
 
   var strongTwo = (ctx.fav1 && ctx.fav2 && favOd!==null && fav2Od!==null && favOd<=2.0 && fav2Od<=3.5);
   var noFavWeak = (!noFav || noFavRank>6 || noFavOd>15);
+  var noFavVeryWeak = (!noFav || noFavRank>10 || noFavOd>=50);
   var noFavVeryStrong = (noFav && noFavRank<=3 && noFavOd<=15);
   var noFavStrong = (noFav && noFavRank<=6 && noFavOd<=15);
+  var favFixedHoleMix = (favOd!==null && favOd<=1.3 && tateRatio!==null && tateRatio>=7 && noFavVeryWeak);
 
   var back="本線寄り";
   var backClass="good";
 
-  if(strongTwo && tateRatio!==null && tateRatio>=4 && noFavWeak){
+  if(favFixedHoleMix){
+    back="本命固定＋本線×第1壁後混入";
+    backClass="good";
+    risk=Math.min(risk,2);
+    grounds.unshift("本命1.3倍以下＋タテ目倍率7倍以上＋本命なし3連系下位 → 本命固定優先");
+  }else if(strongTwo && tateRatio!==null && tateRatio>=4 && noFavWeak){
     back="二強残し＋第1壁後混入";
     backClass="yellow";
   }else if(strongTwo && first.length>=1 && !noFavVeryStrong){
@@ -484,7 +496,7 @@ function renderAreDiag(ctx){
   }else{
     html+='<span class="small">強い荒れ根拠は少なめです。</span>';
   }
-  html+='<span class="small">※タテ目倍率が高く本命なし3連系が下位なら、頭飛びより「二強残し＋第1壁後混入」を優先。</span>';
+  html+='<span class="small">※タテ目倍率が高く本命なし3連系が下位なら、頭飛びより「本命固定＋本線×第1壁後混入」を優先。</span>';
   html+='</div>';
   return html;
 }
@@ -696,6 +708,40 @@ function makeTickets(data,ctx,scored){
 
   // 既存本線・二強残し
   if(ctx.sanRank[0])addMain(ctx.sanRank[0].a,ctx.sanRank[0].b,ctx.sanRank[0].c);
+
+  // V24.7：本命固定 × 本線1頭 × 第1壁後1頭
+  // 単勝1人気が強烈で、タテ目倍率が高く、本命なし3連系が下位なら
+  // 本命飛びではなく「本命固定＋本線穴＋第1壁後穴」を先に追加する。
+  var favObj=getTan(data,a), favOd=favObj?Number(favObj.od):null;
+  var tateRatio=(ctx.tate&&ctx.tate.tateRatio)?ctx.tate.tateRatio:null;
+  var noFavRank=(ctx.tate&&ctx.tate.noFavRank)?ctx.tate.noFavRank:999;
+  var noFavOd=(ctx.tate&&ctx.tate.noFavSan)?Number(ctx.tate.noFavSan.od):999;
+  var favFixedMode=(favOd!==null && favOd<=1.3 && tateRatio!==null && tateRatio>=7 && (noFavRank>10 || noFavOd>=50));
+  if(favFixedMode && a && main.length && first.length){
+    var mf=[];
+    for(var mi=0;mi<main.length;mi++){
+      for(var fi=0;fi<first.length;fi++){
+        var tr=findTri(data.sanren,a,main[mi],first[fi]);
+        if(!tr)continue;
+        var rank=999;
+        for(var rr=0;rr<ctx.sanRank.length;rr++){if(ctx.sanRank[rr].key===tr.key){rank=rr+1;break;}}
+        var wo=findPair(data.wide,a,first[fi]);
+        var no=findPair(data.nisha,a,first[fi]);
+        if(rank<=10 || Number(tr.od)<=25 || (wo&&Number(wo.od)<=10) || (no&&Number(no.od)<=20)){
+          mf.push({m:main[mi],f:first[fi],od:Number(tr.od),rank:rank,key:tr.key});
+        }
+      }
+    }
+    mf.sort(function(x,y){
+      if(x.rank!==y.rank)return x.rank-y.rank;
+      return x.od-y.od;
+    });
+    mf.slice(0,5).forEach(function(x,i){
+      if(i<3)addMain(a,x.m,x.f);
+      else addHole(a,x.m,x.f);
+    });
+  }
+
   if(a&&b&&firstTop[0])addMain(a,b,firstTop[0]);
   if(a&&b&&firstTop[1])addMain(a,b,firstTop[1]);
   if(a&&b&&firstTop[2])addHole(a,b,firstTop[2]);
@@ -799,7 +845,7 @@ function run(){
     html+=renderAreDiag(ctx);
 
     html+='<div class="card lamp"><div class="title">発動・テストランプ</div>'+lamps.join('<br>')+'<hr>';
-    html+='<span class="small">V24.6では、二強残し・第1壁後強反応・第2壁後保険に加えて、単勝100円保険案件と本命残し優先を強化して表示します。</span></div>';
+    html+='<span class="small">V24.7では、本命1.0〜1.3倍＋タテ目倍率高＋本命なし3連系下位の時に「本命固定×本線×第1壁後混入」を優先して表示します。</span></div>';
 
     if(ctx.tate&&ctx.tate.red){
       html+='<div class="card lampRed"><div class="title">🚨本命飛び壁ランプ</div>';
@@ -827,7 +873,7 @@ function run(){
     html+='</div>';
 
     html+='<div class="card lamp2"><div class="title">💰テスト買い目候補</div><pre>';
-    html+='※V24.6：本線 / 穴本線 / 大荒れ保険 / 単勝100円保険に分けて表示します。\n\n';
+    html+='※V24.7：本線 / 穴本線 / 大荒れ保険 / 単勝100円保険に分けて表示します。\n\n';
     html+='ワイド\n'+(tickets.wide.length?tickets.wide.join('\n'):'なし')+'\n\n';
     html+='2車複\n'+(tickets.nisha.length?tickets.nisha.join('\n'):'なし')+'\n\n';
     html+='3連系・本線\n'+(tickets.sanMain.length?tickets.sanMain.join('\n'):'なし')+'\n\n';
@@ -846,13 +892,14 @@ function run(){
 function makeCopyText(title,ctx,scored,tickets,lamps){
   var t='';
   t+=title+'\n';
-  t+='オート擬似複勝テスト版 V24.6\n';
+  t+='オート擬似複勝テスト版 V24.7\n';
   t+='発動：'+lamps.join(' / ')+'\n\n';
 
   var z=ctx.baseZones.zones||[];
   t+='🩺オート荒れ診断\n';
   t+='表面：'+ctx.areDiag.surface+'\n';
   t+='裏診断：'+ctx.areDiag.back+'\n';
+  if(ctx.areDiag.back.indexOf('本命固定')>=0)t+='👑本命固定×本線×第1壁後補正 発動\n';
   t+='荒れ警戒スコア：'+ctx.areDiag.risk+'\n';
   if(ctx.areDiag.tateRatio!==null)t+='タテ目倍率：'+ctx.areDiag.tateRatio.toFixed(2)+'\n';
   if(ctx.areDiag.noFav)t+='本命なし3連系：'+ctx.areDiag.noFavRank+'位 '+ctx.areDiag.noFav.key+' '+ctx.areDiag.noFav.od+'倍\n';
