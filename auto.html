@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 オート V24.4 買い目補正版</title>
+<title>チャッピー神予想 オート V24.5 単勝100円保険版</title>
 <style>
 body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:14px;font-size:17px}
 h1{font-size:27px;line-height:1.3;margin:4px 0 12px;color:#fff}
@@ -40,10 +40,11 @@ hr{border:0;border-top:1px solid #94a3b8;margin:14px 0}
 .lampRed{border:3px solid #fb7185;background:linear-gradient(135deg,#2b0010,#5a001d,#2b0010);box-shadow:0 0 24px rgba(251,113,133,.6)}
 .diag{border:3px solid #38bdf8;background:linear-gradient(135deg,#001827,#073b55,#001827);box-shadow:0 0 22px rgba(56,189,248,.45)}
 .diagWarn{border:3px solid #facc15;background:linear-gradient(135deg,#241a00,#4a3600,#241a00);box-shadow:0 0 22px rgba(250,204,21,.45)}
+.tan100{border:3px solid #22c55e;background:linear-gradient(135deg,#021b0b,#064e3b,#021b0b);box-shadow:0 0 26px rgba(34,197,94,.55)}
 </style>
 </head>
 <body>
-<h1>チャッピー神予想 オート V24.2<br>買い目補正版</h1>
+<h1>チャッピー神予想 オート V24.5<br>単勝100円保険版</h1>
 
 <textarea id="input" placeholder="【伊勢崎4R】
 
@@ -254,6 +255,81 @@ function fmtWallDetails(rowObj){
   for(var i=0;i<info.walls.length;i++)one(info.walls[i],"🔥壁");
   for(var j=0;j<info.semis.length;j++)one(info.semis[j],"⚠️準壁");
   return lines.join("\n");
+}
+
+function pairInTop(row,h,n){
+  h=String(h);
+  return (row||[]).slice(0,n||4).indexOf(h)>=0;
+}
+function signalCountForTan100(data,ctx,h){
+  h=String(h);
+  var c=0,rs=[];
+  if(ctx.tanM.indexOf(h)>=0){c++;rs.push("単勝メジアン");}
+  if(ctx.nishaM.indexOf(h)>=0){c++;rs.push("2車複メジアン");}
+  if(ctx.wideM.indexOf(h)>=0){c++;rs.push("ワイドメジアン");}
+  if(ctx.sanM.indexOf(h)>=0){c++;rs.push("3連系メジアン");}
+  if(ctx.pseudoAM.indexOf(h)>=0){c++;rs.push("擬似複勝Aメジアン");}
+  if(ctx.pseudoBM.indexOf(h)>=0){c++;rs.push("擬似複勝Bメジアン");}
+  if(ctx.pseudoCM.indexOf(h)>=0){c++;rs.push("擬似複勝Cメジアン");}
+  if(pairInTop(ctx.pseudoA.row,h,4)){c++;rs.push("1人気連動上位");}
+  if(pairInTop(ctx.pseudoB.row,h,4)){c++;rs.push("2人気連動上位");}
+  if(pairInTop(ctx.pseudoCRow,h,5)){c++;rs.push("ワイド出現上位");}
+  var zi=zoneIndexOf(ctx.baseZones.zones,h);
+  if(zi===1){c+=2;rs.push("2複基準第1壁後");}
+  else if(zi===0){c++;rs.push("2複基準本線");}
+  else if(zi===2){c++;rs.push("2複基準第2壁後");}
+  return{count:c,reasons:uniq(rs),zone:zi};
+}
+function detectTan100Insurance(data,ctx,scored){
+  // 浜松1Rの1号車、浜松9Rの5号車型。
+  // 単勝を100円だけ置いておくと、単勝910円/1870円のように全体を黒字化する狙い。
+  var map={},out=[];
+  for(var i=0;i<scored.length;i++)map[scored[i].h]=scored[i];
+  for(var j=0;j<data.tansho.length;j++){
+    var tf=data.tansho[j],h=tf.h,od=Number(tf.od);
+    if(h===ctx.fav1||h===ctx.fav2)continue;
+    if(od<5||od>35)continue; // 100円保険はここまで。35倍超は単勝ではなく3連系末席。
+    var sc=map[h]?map[h].score:0;
+    var sig=signalCountForTan100(data,ctx,h);
+
+    var hasMedian=(ctx.tanM.indexOf(h)>=0||ctx.nishaM.indexOf(h)>=0||ctx.wideM.indexOf(h)>=0||ctx.sanM.indexOf(h)>=0||ctx.pseudoAM.indexOf(h)>=0||ctx.pseudoBM.indexOf(h)>=0||ctx.pseudoCM.indexOf(h)>=0);
+    var hasPseudo=(ctx.pseudoAM.indexOf(h)>=0||ctx.pseudoBM.indexOf(h)>=0||ctx.pseudoCM.indexOf(h)>=0||pairInTop(ctx.pseudoA.row,h,4)||pairInTop(ctx.pseudoB.row,h,4));
+    var hasWide=(ctx.wideM.indexOf(h)>=0||pairInTop(ctx.pseudoCRow,h,5));
+    var wallOK=(sig.zone===1||sig.zone===0);
+
+    if(!hasMedian||!hasPseudo||!hasWide||!wallOK)continue;
+    if(sc<35 && sig.count<6)continue;
+
+    var pt=sc + sig.count*3;
+    if(sig.zone===1)pt+=12;
+    if(od>=8&&od<=15)pt+=8;
+    if(od>15&&od<=30)pt+=10;
+    if(od>30)pt-=4;
+
+    var label=(od<=15?"🔥オート単勝案件":"🚀オート単勝保険案件");
+    out.push({h:h,tan:od,score:Math.round(pt),baseScore:sc,label:label,zone:sig.zone,reasons:sig.reasons.slice(0,8)});
+  }
+  out.sort(function(a,b){
+    if(b.score!==a.score)return b.score-a.score;
+    return Number(a.tan)-Number(b.tan);
+  });
+  return out.slice(0,4);
+}
+function renderTan100Card(ctx){
+  var items=ctx.tan100||[];
+  var html='<div class="card tan100"><div class="title">💴単勝100円保険</div>';
+  if(!items.length){
+    html+='該当なし<br><span class="small">単勝だけで黒字化を狙うほどの重なりは弱めです。</span></div>';
+    return html;
+  }
+  html+='<span class="small">単勝は厚張りではなく100円置き。的中時に浜松1R・浜松9Rみたいに全体を黒字化する保険です。</span><hr>';
+  for(var i=0;i<items.length;i++){
+    var x=items[i];
+    html+='<div class="rankLine"><span class="badge">'+(i+1)+'位 '+x.h+'号車</span> ';
+    html+='<span class="yellow">'+x.label+'</span> <span class="small">単'+x.tan+' / 指数'+x.score+'　'+x.reasons.join('・')+'</span></div>';
+  }
+  html+='</div>';
+  return html;
 }
 
 function detectTateAndNoFav(data,ctx){
@@ -697,6 +773,7 @@ function run(){
     }
     var ctx=makeContext(data);
     var scored=scoreAll(data,ctx);
+    ctx.tan100=detectTan100Insurance(data,ctx,scored);
     var tickets=makeTickets(data,ctx,scored);
 
     var lamps=[];
@@ -708,6 +785,7 @@ function run(){
     if(ctx.baseZones&&ctx.baseZones.zones&&ctx.baseZones.zones.length>1)lamps.push("🧱2複基準壁ゾーン：本線 "+joinC(ctx.baseZones.zones[0].horses)+" / 第1壁後 "+joinC(ctx.baseZones.zones[1].horses)+" / 第2壁後 "+joinC(ctx.baseZones.zones[2]?ctx.baseZones.zones[2].horses:[]));
     if(ctx.tate&&ctx.tate.red)lamps.push("🚨オート本命飛び壁ランプ：タテ目倍率 "+ctx.tate.tateRatio.toFixed(2)+" / 本命なし3連系 "+ctx.tate.noFavSan.key+" "+ctx.tate.noFavSan.od+"倍");
     if(scored[0]&&scored[0].score>=30)lamps.push("🚨擬似複勝テスト強反応："+scored[0].h+"号車【"+scored[0].score+"】");
+    if(ctx.tan100&&ctx.tan100.length)lamps.push("💴単勝100円保険："+ctx.tan100.map(function(x){return x.h+"号車 単"+x.tan;}).join("・"));
 
     var html='';
     html+='<div class="card"><div class="title">'+data.title+'</div>';
@@ -721,7 +799,7 @@ function run(){
     html+=renderAreDiag(ctx);
 
     html+='<div class="card lamp"><div class="title">発動・テストランプ</div>'+lamps.join('<br>')+'<hr>';
-    html+='<span class="small">V24.4では、二強残し・第1壁後強反応・第2壁後保険を買い目へ強制反映します。</span></div>';
+    html+='<span class="small">V24.5では、二強残し・第1壁後強反応・第2壁後保険に加えて、単勝100円保険案件を別ランプで表示します。</span></div>';
 
     if(ctx.tate&&ctx.tate.red){
       html+='<div class="card lampRed"><div class="title">🚨本命飛び壁ランプ</div>';
@@ -731,6 +809,7 @@ function run(){
     }
 
     html+=makeZoneCard(ctx);
+    html+=renderTan100Card(ctx);
     html+=makeHonpyo(ctx);
 
     html+='<div class="card"><div class="title">🧪擬似複勝の中身</div>';
@@ -748,12 +827,13 @@ function run(){
     html+='</div>';
 
     html+='<div class="card lamp2"><div class="title">💰テスト買い目候補</div><pre>';
-    html+='※V24.4：本線 / 穴本線 / 大荒れ保険に分けて表示します。\n\n';
+    html+='※V24.5：本線 / 穴本線 / 大荒れ保険 / 単勝100円保険に分けて表示します。\n\n';
     html+='ワイド\n'+(tickets.wide.length?tickets.wide.join('\n'):'なし')+'\n\n';
     html+='2車複\n'+(tickets.nisha.length?tickets.nisha.join('\n'):'なし')+'\n\n';
     html+='3連系・本線\n'+(tickets.sanMain.length?tickets.sanMain.join('\n'):'なし')+'\n\n';
     html+='3連系・穴本線\n'+(tickets.sanHole.length?tickets.sanHole.join('\n'):'なし')+'\n\n';
-    html+='3連系・大荒れ保険\n'+(tickets.sanBomb.length?tickets.sanBomb.join('\n'):'なし');
+    html+='3連系・大荒れ保険\n'+(tickets.sanBomb.length?tickets.sanBomb.join('\n'):'なし')+'\n\n';
+    html+='単勝100円保険\n'+(ctx.tan100&&ctx.tan100.length?ctx.tan100.map(function(x){return x.h+'　単'+x.tan+'　'+x.label;}).join('\n'):'なし');
     html+='</pre></div>';
 
     out.innerHTML=html;
@@ -766,7 +846,7 @@ function run(){
 function makeCopyText(title,ctx,scored,tickets,lamps){
   var t='';
   t+=title+'\n';
-  t+='オート擬似複勝テスト版 V24.4\n';
+  t+='オート擬似複勝テスト版 V24.5\n';
   t+='発動：'+lamps.join(' / ')+'\n\n';
 
   var z=ctx.baseZones.zones||[];
@@ -796,6 +876,15 @@ function makeCopyText(title,ctx,scored,tickets,lamps){
   t+='ワイド：'+joinC(ctx.wideM)+'\n';
   t+='3連系：'+joinC(ctx.sanM)+'\n\n';
 
+  if(ctx.tan100&&ctx.tan100.length){
+    t+='単勝100円保険\n';
+    for(var ti=0;ti<ctx.tan100.length;ti++){
+      var tx=ctx.tan100[ti];
+      t+=tx.h+'号車 単'+tx.tan+' '+tx.label+' '+tx.reasons.join('・')+'\n';
+    }
+    t+='\n';
+  }
+
   t+='検証候補\n';
   for(var i=0;i<Math.min(5,scored.length);i++){
     t+=(i+1)+'位 '+scored[i].h+'号車【'+scored[i].score+'】 単'+scored[i].tan+' '+scored[i].reasons.join('・')+'\n';
@@ -805,7 +894,8 @@ function makeCopyText(title,ctx,scored,tickets,lamps){
   t+='2車複\n'+tickets.nisha.join('\n')+'\n\n';
   t+='3連系・本線\n'+tickets.sanMain.join('\n')+'\n\n';
   t+='3連系・穴本線\n'+tickets.sanHole.join('\n')+'\n\n';
-  t+='3連系・大荒れ保険\n'+tickets.sanBomb.join('\n')+'\n';
+  t+='3連系・大荒れ保険\n'+tickets.sanBomb.join('\n')+'\n\n';
+  t+='単勝100円保険\n'+((ctx.tan100&&ctx.tan100.length)?ctx.tan100.map(function(x){return x.h+' 単'+x.tan;}).join('\n'):'なし')+'\n';
   return t;
 }
 
