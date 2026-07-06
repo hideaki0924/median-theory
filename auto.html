@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 オート V24.7 本命固定×第1壁後混入補正版</title>
+<title>チャッピー神予想 オート V24.8 三連系上位保護＋単勝未表示救済版</title>
 <style>
 body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:14px;font-size:17px}
 h1{font-size:27px;line-height:1.3;margin:4px 0 12px;color:#fff}
@@ -44,7 +44,7 @@ hr{border:0;border-top:1px solid #94a3b8;margin:14px 0}
 </style>
 </head>
 <body>
-<h1>チャッピー神予想 オート V24.6<br>単勝100円＋本命残し強化版</h1>
+<h1>チャッピー神予想 オート V24.8<br>上位三連系保護＋単勝未表示救済版</h1>
 
 <textarea id="input" placeholder="【伊勢崎4R】
 
@@ -265,6 +265,66 @@ function fmtWallDetails(rowObj){
 function pairInTop(row,h,n){
   h=String(h);
   return (row||[]).slice(0,n||4).indexOf(h)>=0;
+}
+function collectAllHorses(data){
+  var out=[];
+  function addH(h){if(h!==undefined&&h!==null)add(out,String(h));}
+  (data.tansho||[]).forEach(function(x){addH(x.h);});
+  (data.nisha||[]).forEach(function(x){addH(x.a);addH(x.b);});
+  (data.wide||[]).forEach(function(x){addH(x.a);addH(x.b);});
+  (data.sanren||[]).forEach(function(x){addH(x.a);addH(x.b);addH(x.c);});
+  return out;
+}
+function knownTanOdds(data,h){
+  var tf=getTan(data,String(h));
+  if(!tf)return null;
+  var od=Number(tf.od);
+  if(!isFinite(od)||od<=0)return null;
+  return od;
+}
+function safeTanSortVal(x){
+  var n=Number(x.tan);
+  if(!isFinite(n)||n<=0)return 9999;
+  return n;
+}
+function rankOfKey(arr,key){
+  for(var i=0;i<arr.length;i++){if(arr[i].key===key)return i+1;}
+  return 999;
+}
+function countAppearTop(list,h,n){
+  h=String(h);
+  var c=0;
+  (list||[]).slice(0,n||20).forEach(function(x){
+    if(x.a===h||x.b===h||x.c===h)c++;
+  });
+  return c;
+}
+function detectHiddenFloaters(data,ctx,scored){
+  // 飯塚5Rの1号車型。単勝が未入力/0.0でも、連系で浮いている車を3着救済へ。
+  var all=collectAllHorses(data), out=[];
+  var strong=scored.slice(0,4).map(function(x){return x.h;});
+  for(var i=0;i<all.length;i++){
+    var h=all[i];
+    if(knownTanOdds(data,h)!==null)continue;
+    var nCnt=countAppearTop(ctx.nishaRank,h,20);
+    var wCnt=countAppearTop(ctx.wideRank,h,20);
+    var sCnt=countAppearTop(ctx.sanRank,h,20);
+    var bestTri=null,bestRank=999;
+    for(var j=0;j<ctx.sanRank.length;j++){
+      var t=ctx.sanRank[j],hs=[t.a,t.b,t.c];
+      if(hs.indexOf(h)<0)continue;
+      var hasFav=(hs.indexOf(ctx.fav1)>=0||hs.indexOf(ctx.fav2)>=0);
+      var hasStrong=strong.some(function(x){return x!==h&&hs.indexOf(x)>=0;});
+      if(hasFav&&hasStrong){bestTri=t;bestRank=j+1;break;}
+    }
+    var pt=nCnt*2+wCnt*2+sCnt*3+(bestTri?18:0);
+    if(bestRank<=15)pt+=10;
+    if(pt>=22){
+      out.push({h:h,score:pt,nisha:nCnt,wide:wCnt,san:sCnt,bestTri:bestTri,bestRank:bestRank});
+    }
+  }
+  out.sort(function(a,b){return b.score-a.score;});
+  return out.slice(0,4);
 }
 function signalCountForTan100(data,ctx,h){
   h=String(h);
@@ -539,7 +599,7 @@ function makeContext(data){
 }
 
 function scoreAll(data,ctx){
-  var all=uniq(data.tansho.map(function(x){return x.h;})),scored=[];
+  var all=collectAllHorses(data),scored=[];
   var noFavHs=[];
   if(ctx.tate&&ctx.tate.noFavSan){
     noFavHs=[ctx.tate.noFavSan.a,ctx.tate.noFavSan.b,ctx.tate.noFavSan.c];
@@ -574,13 +634,18 @@ function scoreAll(data,ctx){
     }
 
     if(tf&&Number(tf.od)>=8&&reasons.length>=2){score+=6;reasons.push("穴寄り重複");}
+    if(!tf||!isFinite(Number(tf.od))||Number(tf.od)<=0){
+      var nc=countAppearTop(ctx.nishaRank,h,20), wc=countAppearTop(ctx.wideRank,h,20), sc=countAppearTop(ctx.sanRank,h,20);
+      if(nc+wc+sc>=3){score+=8;reasons.push("単勝未表示・連系浮上");}
+      if(sc>=2){score+=5;reasons.push("3連系複数出現");}
+    }
     if(tf&&Number(tf.od)>=20&&score<24){score-=3;reasons.push("単勝20倍以上で弱め");}
 
     scored.push({h:h,score:score,tan:tf?tf.od:"-",reasons:reasons,zone:zi});
   }
   scored.sort(function(a,b){
     if(b.score!==a.score)return b.score-a.score;
-    return Number(a.tan)-Number(b.tan);
+    return safeTanSortVal(a)-safeTanSortVal(b);
   });
   return scored;
 }
@@ -708,6 +773,8 @@ function makeTickets(data,ctx,scored){
 
   // 既存本線・二強残し
   if(ctx.sanRank[0])addMain(ctx.sanRank[0].a,ctx.sanRank[0].b,ctx.sanRank[0].c);
+  // V24.8：三連系上位2点は絶対保護。飯塚6Rの4-5-7型対策。
+  if(ctx.sanRank[1])addMain(ctx.sanRank[1].a,ctx.sanRank[1].b,ctx.sanRank[1].c);
 
   // V24.7：本命固定 × 本線1頭 × 第1壁後1頭
   // 単勝1人気が強烈で、タテ目倍率が高く、本命なし3連系が下位なら
@@ -786,14 +853,28 @@ function makeTickets(data,ctx,scored){
 
   // 1〜2位候補の強制合成
   var strong=scored.slice(0,3).map(function(x){return x.h;});
+  // V24.8：検証候補1位×単勝1人気×単勝2人気を本線保護。
+  // 飯塚6R 7-4-5の4-5-7を落とさない。
+  if(a&&b&&strong[0]&&strong[0]!==a&&strong[0]!==b)addMain(a,b,strong[0]);
   if(a&&strong[0]&&strong[1])addHole(a,strong[0],strong[1]);
   if(b&&strong[0]&&strong[1])addBomb(b,strong[0],strong[1]);
 
-  var san=uniq([].concat(sanMain,sanHole,sanBomb)).slice(0,18);
+  // V24.8：単勝未表示・連系浮上車を3着救済。
+  if(ctx.hiddenFloaters&&ctx.hiddenFloaters.length){
+    ctx.hiddenFloaters.forEach(function(x){
+      if(x.bestTri)addBomb(x.bestTri.a,x.bestTri.b,x.bestTri.c);
+      else{
+        if(a&&strong[0])addBomb(a,strong[0],x.h);
+        if(b&&strong[0])addBomb(b,strong[0],x.h);
+      }
+    });
+  }
+
+  var san=uniq([].concat(sanMain,sanHole,sanBomb)).slice(0,22);
   return{
     wide:wide.slice(0,8),
     nisha:nisha.slice(0,8),
-    sanMain:sanMain.slice(0,6),
+    sanMain:sanMain.slice(0,8),
     sanHole:sanHole.slice(0,8),
     sanBomb:sanBomb.slice(0,8),
     san:san
@@ -819,6 +900,7 @@ function run(){
     }
     var ctx=makeContext(data);
     var scored=scoreAll(data,ctx);
+    ctx.hiddenFloaters=detectHiddenFloaters(data,ctx,scored);
     ctx.tan100=detectTan100Insurance(data,ctx,scored);
     var tickets=makeTickets(data,ctx,scored);
 
@@ -832,6 +914,7 @@ function run(){
     if(ctx.tate&&ctx.tate.red)lamps.push("🚨オート本命飛び壁ランプ：タテ目倍率 "+ctx.tate.tateRatio.toFixed(2)+" / 本命なし3連系 "+ctx.tate.noFavSan.key+" "+ctx.tate.noFavSan.od+"倍");
     if(scored[0]&&scored[0].score>=30)lamps.push("🚨擬似複勝テスト強反応："+scored[0].h+"号車【"+scored[0].score+"】");
     if(ctx.tan100&&ctx.tan100.length)lamps.push("💴単勝100円保険："+ctx.tan100.map(function(x){return x.h+"号車 単"+x.tan;}).join("・"));
+    if(ctx.hiddenFloaters&&ctx.hiddenFloaters.length)lamps.push("🫥単勝未表示・連系浮上3着救済："+ctx.hiddenFloaters.map(function(x){return x.h+"号車"+(x.bestTri?"（"+x.bestTri.key+"）":"");}).join("・"));
 
     var html='';
     html+='<div class="card"><div class="title">'+data.title+'</div>';
@@ -845,7 +928,7 @@ function run(){
     html+=renderAreDiag(ctx);
 
     html+='<div class="card lamp"><div class="title">発動・テストランプ</div>'+lamps.join('<br>')+'<hr>';
-    html+='<span class="small">V24.7では、本命1.0〜1.3倍＋タテ目倍率高＋本命なし3連系下位の時に「本命固定×本線×第1壁後混入」を優先して表示します。</span></div>';
+    html+='<span class="small">V24.8では、三連系上位2点保護、検証候補1位×単勝1・2人気合成、単勝未表示の連系浮上3着救済を追加しています。</span></div>';
 
     if(ctx.tate&&ctx.tate.red){
       html+='<div class="card lampRed"><div class="title">🚨本命飛び壁ランプ</div>';
@@ -856,6 +939,13 @@ function run(){
 
     html+=makeZoneCard(ctx);
     html+=renderTan100Card(ctx);
+    if(ctx.hiddenFloaters&&ctx.hiddenFloaters.length){
+      html+='<div class="card lamp"><div class="title">🫥単勝未表示・連系浮上3着救済</div>';
+      ctx.hiddenFloaters.forEach(function(x,i){
+        html+='<div class="rankLine"><span class="badge">'+(i+1)+'位 '+x.h+'号車</span> <span class="small">2車複出現'+x.nisha+' / ワイド出現'+x.wide+' / 3連系出現'+x.san+(x.bestTri?' / 注目3連系 '+x.bestRank+'位 '+x.bestTri.key+' '+x.bestTri.od+'倍':'')+'</span></div>';
+      });
+      html+='</div>';
+    }
     html+=makeHonpyo(ctx);
 
     html+='<div class="card"><div class="title">🧪擬似複勝の中身</div>';
@@ -873,7 +963,7 @@ function run(){
     html+='</div>';
 
     html+='<div class="card lamp2"><div class="title">💰テスト買い目候補</div><pre>';
-    html+='※V24.7：本線 / 穴本線 / 大荒れ保険 / 単勝100円保険に分けて表示します。\n\n';
+    html+='※V24.8：本線 / 穴本線 / 大荒れ保険 / 単勝100円保険に分けて表示します。\n\n';
     html+='ワイド\n'+(tickets.wide.length?tickets.wide.join('\n'):'なし')+'\n\n';
     html+='2車複\n'+(tickets.nisha.length?tickets.nisha.join('\n'):'なし')+'\n\n';
     html+='3連系・本線\n'+(tickets.sanMain.length?tickets.sanMain.join('\n'):'なし')+'\n\n';
@@ -892,7 +982,7 @@ function run(){
 function makeCopyText(title,ctx,scored,tickets,lamps){
   var t='';
   t+=title+'\n';
-  t+='オート擬似複勝テスト版 V24.7\n';
+  t+='オート擬似複勝テスト版 V24.8\n';
   t+='発動：'+lamps.join(' / ')+'\n\n';
 
   var z=ctx.baseZones.zones||[];
@@ -928,6 +1018,14 @@ function makeCopyText(title,ctx,scored,tickets,lamps){
     for(var ti=0;ti<ctx.tan100.length;ti++){
       var tx=ctx.tan100[ti];
       t+=tx.h+'号車 単'+tx.tan+' '+tx.label+' '+tx.reasons.join('・')+'\n';
+    }
+    t+='\n';
+  }
+  if(ctx.hiddenFloaters&&ctx.hiddenFloaters.length){
+    t+='単勝未表示・連系浮上3着救済\n';
+    for(var hi=0;hi<ctx.hiddenFloaters.length;hi++){
+      var hx=ctx.hiddenFloaters[hi];
+      t+=hx.h+'号車 '+(hx.bestTri?hx.bestRank+'位 '+hx.bestTri.key+' '+hx.bestTri.od+'倍':'連系浮上')+'\n';
     }
     t+='\n';
   }
