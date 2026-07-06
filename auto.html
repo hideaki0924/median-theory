@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 オート V24.5 単勝100円保険版</title>
+<title>チャッピー神予想 オート V24.6 単勝100円＋本命残し強化版</title>
 <style>
 body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:14px;font-size:17px}
 h1{font-size:27px;line-height:1.3;margin:4px 0 12px;color:#fff}
@@ -44,7 +44,7 @@ hr{border:0;border-top:1px solid #94a3b8;margin:14px 0}
 </style>
 </head>
 <body>
-<h1>チャッピー神予想 オート V24.5<br>単勝100円保険版</h1>
+<h1>チャッピー神予想 オート V24.6<br>単勝100円＋本命残し強化版</h1>
 
 <textarea id="input" placeholder="【伊勢崎4R】
 
@@ -799,7 +799,7 @@ function run(){
     html+=renderAreDiag(ctx);
 
     html+='<div class="card lamp"><div class="title">発動・テストランプ</div>'+lamps.join('<br>')+'<hr>';
-    html+='<span class="small">V24.5では、二強残し・第1壁後強反応・第2壁後保険に加えて、単勝100円保険案件を別ランプで表示します。</span></div>';
+    html+='<span class="small">V24.6では、二強残し・第1壁後強反応・第2壁後保険に加えて、単勝100円保険案件と本命残し優先を強化して表示します。</span></div>';
 
     if(ctx.tate&&ctx.tate.red){
       html+='<div class="card lampRed"><div class="title">🚨本命飛び壁ランプ</div>';
@@ -827,7 +827,7 @@ function run(){
     html+='</div>';
 
     html+='<div class="card lamp2"><div class="title">💰テスト買い目候補</div><pre>';
-    html+='※V24.5：本線 / 穴本線 / 大荒れ保険 / 単勝100円保険に分けて表示します。\n\n';
+    html+='※V24.6：本線 / 穴本線 / 大荒れ保険 / 単勝100円保険に分けて表示します。\n\n';
     html+='ワイド\n'+(tickets.wide.length?tickets.wide.join('\n'):'なし')+'\n\n';
     html+='2車複\n'+(tickets.nisha.length?tickets.nisha.join('\n'):'なし')+'\n\n';
     html+='3連系・本線\n'+(tickets.sanMain.length?tickets.sanMain.join('\n'):'なし')+'\n\n';
@@ -846,7 +846,7 @@ function run(){
 function makeCopyText(title,ctx,scored,tickets,lamps){
   var t='';
   t+=title+'\n';
-  t+='オート擬似複勝テスト版 V24.5\n';
+  t+='オート擬似複勝テスト版 V24.6\n';
   t+='発動：'+lamps.join(' / ')+'\n\n';
 
   var z=ctx.baseZones.zones||[];
