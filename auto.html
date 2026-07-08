@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 オート V24.14 回収率フィルター版</title>
+<title>チャッピー神予想 オート V24.15 頭穴/3着穴分岐版</title>
 <style>
 body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:14px;font-size:17px}
 h1{font-size:27px;line-height:1.25;margin:4px 0 12px;color:#fff}
@@ -36,7 +36,7 @@ hr{border:0;border-top:1px solid #94a3b8;margin:14px 0}
 </style>
 </head>
 <body>
-<h1>チャッピー神予想 オート V24.14<br>単勝回収型・穴連れ相棒・通常時3点圧縮版</h1>
+<h1>チャッピー神予想 オート V24.15<br>頭穴/3着穴分岐・保護3連複1点版</h1>
 <textarea id="input" placeholder="【飯塚9R】
 
 [INFO]
@@ -339,19 +339,93 @@ function pickTriFinal(ctx,score,tickets,limit){
   var arr=pool.map(function(k){return triScore(ctx,score,k);}).sort(function(a,b){if(b.score!==a.score)return b.score-a.score;return safeNum(a.od)-safeNum(b.od);});
   return arr.slice(0,limit||3);
 }
+
+function isTopSideStrong(ctx){
+  var o1=safeNum(ctx.tanRank[0]?ctx.tanRank[0].od:null,999),o2=safeNum(ctx.tanRank[1]?ctx.tanRank[1].od:null,999),o3=safeNum(ctx.tanRank[2]?ctx.tanRank[2].od:null,999);
+  // 本命側が2〜3頭で強く残りやすい時。穴は頭より2〜3着残りに寄せる。
+  if(o1<=3.0&&o2<=3.5)return true;
+  if(o1<=3.0&&o2<=4.0&&o3<=5.0)return true;
+  return false;
+}
+function topRankOf(ctx,h){var tr=rankMap(ctx.tanRow);return tr[String(h)]||99;}
+function isHeadSS(ctx,x){
+  if(!isWinHole(ctx,x))return false;
+  var h=x.h;
+  // 第1壁後だけの候補で、本命側2〜3頭が強い時は頭SSにしない。
+  if(isTopSideStrong(ctx)&&hasCar(ctx.wall.w1,h)&&!hasCar(ctx.wall.line,h)&&topRankOf(ctx,h)>=4)return false;
+  // 本命側が強い時でも、2複本線＋単勝3人気以内なら頭SSとして残す。
+  if(isTopSideStrong(ctx)&&topRankOf(ctx,h)<=3&&hasCar(ctx.wall.line,h))return true;
+  // 通常はスコアと複数メジアン重複でSS。
+  var med=0;if(hasCar(ctx.tanM,h))med++;if(hasCar(ctx.nishaM,h))med++;if(hasCar(ctx.wideM,h))med++;if(hasCar(ctx.sanM,h))med++;if(isPseudoMedian(ctx,h))med++;
+  return x.score>=58&&med>=3;
+}
+function shouldDemoteWinToPlace(ctx,x){
+  if(!isWinHole(ctx,x))return false;
+  if(isHeadSS(ctx,x))return false;
+  var h=x.h;
+  // 浜松1R 2号車型：単勝/連系メジアン重複でも、本命側が強く第1壁後なら3着残りへ。
+  if(isTopSideStrong(ctx)&&hasCar(ctx.wall.w1,h)&&topRankOf(ctx,h)>=4)return true;
+  if(isTopSideStrong(ctx)&&countTop(ctx.sanRank,h,10)>=3&&topRankOf(ctx,h)>=4)return true;
+  return false;
+}
+function chooseTriWithAB(ctx,score,tickets,a,b){
+  a=String(a);b=String(b);
+  var pool=uniq([].concat(tickets.main,tickets.hole,tickets.bomb,ctx.sanRank.slice(0,12).map(function(t){return t.key;})));
+  var arr=[];
+  pool.forEach(function(k){var parts=k.split('-');if(parts.indexOf(a)>=0&&parts.indexOf(b)>=0){
+    var ts=triScore(ctx,score,k);ts.rank=pairRank(ctx.sanRank,a,b); // ダミー。下で実順位を入れる
+    for(var i=0;i<ctx.sanRank.length;i++){if(ctx.sanRank[i].key===k){ts.sanRank=i+1;break;}}
+    if(!ts.sanRank)ts.sanRank=999;
+    arr.push(ts);
+  }});
+  if(!arr.length)return null;
+  arr.sort(function(x,y){
+    // 三連系上位で、かつ回収が安すぎないものを優先
+    if((x.sanRank<=5)!==(y.sanRank<=5))return x.sanRank<=5?-1:1;
+    if(Math.abs(y.score-x.score)<=8)return x.sanRank-y.sanRank;
+    return y.score-x.score;
+  });
+  return arr[0];
+}
+
 function makeFinalPlan(ctx,score,diag,tickets){
   var plan={type:'通常少点数型',lines:[],skip:[],memo:[],rawTri:pickTriFinal(ctx,score,tickets,3)};
   var win=score.filter(function(x){return isWinHole(ctx,x);});
   var place=score.filter(function(x){return isPlaceHole(ctx,x);});
   if(win.length){
     var A=win[0],B=findBuddy(ctx,score,A.h),C=B?chooseThird(ctx,score,A.h,B.h):null;
-    plan.type='🔥単勝回収型';
-    plan.memo.push('1着ありランプ：単勝メジアン＋2車複/ワイド/擬似複勝メジアン＋本線/第1壁後');
-    plan.lines.push({kind:'単勝',key:A.h,stake:800,od:A.tan,reason:A.reason.slice(0,5).join('・')});
-    if(B)plan.lines.push({kind:'ワイド',key:pairKey(A.h,B.h),stake:200,od:B.wideOdd,reason:'穴連れ相棒：'+B.why.slice(0,4).join('・')});
-    if(C)plan.memo.push('3連複を追加するなら '+triKey(A.h,B.h,C.h)+' の1点だけ。基本は単勝＋ワイド優先。');
-    plan.skip.push('3連単多点：低配当または点数増えすぎのためカット');
-    plan.skip.push('1番人気相手ワイド：相棒が取れる場合は原則避ける');
+    // V24.15：1着ありランプでも、本命側2〜3頭が強く候補が第1壁後なら「3着残り型」へ降格。
+    if(shouldDemoteWinToPlace(ctx,A)){
+      plan.type='🧱ワイド＋保護3連複型';
+      plan.memo.push('頭穴ではなく3着残り型：本命側2〜3頭が強く、候補は第1壁後/連系メジアン重複。');
+      plan.memo.push('単勝800円固定をやめ、ワイド相棒＋保護3連複1点へ自動降格。');
+      if(B)plan.lines.push({kind:'ワイド',key:pairKey(A.h,B.h),stake:300,od:B.wideOdd,reason:'穴連れ相棒：'+B.why.slice(0,4).join('・')});
+      var tri=B?chooseTriWithAB(ctx,score,tickets,A.h,B.h):null;
+      if(!tri&&B&&C)tri={key:triKey(A.h,B.h,C.h),od:triOdd(ctx,triKey(A.h,B.h,C.h)),why:['穴候補＋相棒＋本命残り']};
+      if(tri)plan.lines.push({kind:'3連複',key:tri.key,stake:600,od:tri.od,reason:(tri.why||[]).slice(0,4).join('・')});
+      plan.lines.push({kind:'単勝',key:A.h,stake:100,od:A.tan,reason:'頭穴確認の保険だけ'});
+      plan.skip.push('単勝800円：本命側が強く頭より2〜3着寄りのためカット');
+      plan.skip.push('3連単多点：点数増えすぎのためカット');
+      return plan;
+    }
+    if(isHeadSS(ctx,A)){
+      plan.type='🔥単勝回収型SS';
+      plan.memo.push('1着ありSS：単勝メジアン＋連系メジアン重複＋本線/強支え。本命側の壁を越えて頭まで見る。');
+      plan.lines.push({kind:'単勝',key:A.h,stake:800,od:A.tan,reason:A.reason.slice(0,5).join('・')});
+      if(B)plan.lines.push({kind:'ワイド',key:pairKey(A.h,B.h),stake:200,od:B.wideOdd,reason:'穴連れ相棒：'+B.why.slice(0,4).join('・')});
+      if(C)plan.memo.push('3連複を追加するなら '+triKey(A.h,B.h,C.h)+' の1点だけ。基本は単勝＋ワイド優先。');
+      plan.skip.push('3連単多点：低配当または点数増えすぎのためカット');
+      plan.skip.push('1番人気相手ワイド：相棒が取れる場合は原則避ける');
+      return plan;
+    }
+    plan.type='🔥単勝回収型S';
+    plan.memo.push('1着ありS：厚張りは控えめ。単勝少額＋ワイド＋保護3連複で回収率を守る。');
+    plan.lines.push({kind:'単勝',key:A.h,stake:300,od:A.tan,reason:A.reason.slice(0,5).join('・')});
+    if(B)plan.lines.push({kind:'ワイド',key:pairKey(A.h,B.h),stake:300,od:B.wideOdd,reason:'穴連れ相棒：'+B.why.slice(0,4).join('・')});
+    var triS=B?chooseTriWithAB(ctx,score,tickets,A.h,B.h):null;
+    if(triS)plan.lines.push({kind:'3連複',key:triS.key,stake:400,od:triS.od,reason:(triS.why||[]).slice(0,4).join('・')});
+    plan.skip.push('単勝800円：SS条件未満のため見送り');
+    plan.skip.push('3連単多点：点数増えすぎのためカット');
     return plan;
   }
   if(place.length){
@@ -383,7 +457,7 @@ function makeFinalPlan(ctx,score,diag,tickets){
 function yen(n){return String(Math.round(n||0))+'円';}
 function lineReturn(line){var od=safeNum(line.od,null);return isFinite(od)?Math.round((line.stake||0)*od):null;}
 function renderFinalPlan(plan){
-  var html='<div class="card finalBuy"><div class="title">🔥最終勝負タイプ V24.14</div>';
+  var html='<div class="card finalBuy"><div class="title">🔥最終勝負タイプ V24.15</div>';
   html+='<div class="badge">'+plan.type+'</div><br>';
   if(plan.memo&&plan.memo.length)html+='<div class="small">'+plan.memo.join('<br>')+'</div><hr>';
   if(!plan.lines.length)html+='最終買い目なし';
@@ -395,25 +469,25 @@ function renderFinalPlan(plan){
 }
 function tan100(score){return score.filter(function(x){return x.reason.join(' ').indexOf('単勝100円保険候補')>=0&&x.h!==undefined;}).slice(0,3);}
 function renderTop(data,ctx){return '<div class="card"><div class="title">'+data.title+'</div>単勝1人気：<span class="yellow">'+(ctx.tanRank[0]?ctx.tanRank[0].h+'号車 '+ctx.tanRank[0].od:'なし')+'</span><br>単勝2人気：<span class="yellow">'+(ctx.tanRank[1]?ctx.tanRank[1].h+'号車 '+ctx.tanRank[1].od:'なし')+'</span><br>'+ctx.handi.desc+'</div>';}
-function renderDiag(diag,ctx,prot){var html='<div class="card '+(diag.risk>=4?'diagWarn':'diag')+'"><div class="title">🩺オート荒れ診断</div>';html+='表面：<span class="yellow">'+diag.surface+'</span><br>裏診断：<span class="orange">'+diag.back+'</span><br>荒れ警戒スコア：<span class="yellow">'+diag.risk+'</span><br>';if(diag.noFavTri)html+='本命なし3連系：'+diag.noFavTri.key+' '+diag.noFavTri.od+'倍<br>';html+='<hr>V24.14保護：<br><pre>'+((prot.length?prot.join('\n'):'なし'))+'</pre></div>';return html;}
+function renderDiag(diag,ctx,prot){var html='<div class="card '+(diag.risk>=4?'diagWarn':'diag')+'"><div class="title">🩺オート荒れ診断</div>';html+='表面：<span class="yellow">'+diag.surface+'</span><br>裏診断：<span class="orange">'+diag.back+'</span><br>荒れ警戒スコア：<span class="yellow">'+diag.risk+'</span><br>';if(diag.noFavTri)html+='本命なし3連系：'+diag.noFavTri.key+' '+diag.noFavTri.od+'倍<br>';html+='<hr>V24.15保護：<br><pre>'+((prot.length?prot.join('\n'):'なし'))+'</pre></div>';return html;}
 function renderWall(ctx){var html='<div class="card"><div class="title">🧱2複基準壁ゾーン</div>';html+='基準：'+ctx.wall.base+'号車<br>本線：<span class="yellow">'+joinCars(ctx.wall.line)+'</span><br>第1壁後：<span class="orange">'+joinCars(ctx.wall.w1)+'</span><br>第2壁後：<span class="red">'+joinCars(ctx.wall.w2)+'</span><br>切り：'+joinCars(ctx.wall.cut)+'<hr>壁：<br>';if(!ctx.wall.walls.length)html+='壁なし';else ctx.wall.walls.forEach(function(w){html+='🔥壁 '+w.from.h+'→'+w.to.h+' / '+w.from.od+'→'+w.to.od+' / 倍率'+w.ratio.toFixed(2)+'<br>';});html+='</div>';return html;}
 function renderPseudo(ctx){var html='<div class="card"><div class="title">🧪擬似複勝・メジアン</div><pre>';html+='擬似複勝A：単勝1人気 '+ctx.fav1+'号車から\n'+joinCars(ctx.pseudoA)+'\nAメジアン：'+joinCars(ctx.pseudoAM)+'\n\n';html+='擬似複勝B：単勝2人気 '+ctx.fav2+'号車から\n'+joinCars(ctx.pseudoB)+'\nBメジアン：'+joinCars(ctx.pseudoBM)+'\n\n';html+='擬似複勝C：ワイド出現回数\n'+joinCars(ctx.pseudoC)+'\nCメジアン：'+joinCars(ctx.pseudoCM)+'\n\n';html+='メジアン\n単勝：'+joinCars(ctx.tanM)+'\n2車複：'+joinCars(ctx.nishaM)+'\nワイド：'+joinCars(ctx.wideM)+'\n3連系：'+joinCars(ctx.sanM);html+='</pre></div>';return html;}
 function renderRank(score){var html='<div class="card switch"><div class="title">📚大谷式3壁スイッチ・検証候補</div>';score.slice(0,8).forEach(function(x,i){html+='<div class="rankLine"><span class="badge">'+(i+1)+'位 '+x.h+'号車【'+x.score+'】</span> 単'+(isFinite(x.tan)?x.tan:'-')+' <span class="small">'+x.reason.slice(0,10).join('・')+'</span></div>';});html+='</div>';return html;}
-function renderTan100(list){var html='<div class="card tan100"><div class="title">💴単勝候補・1着ありチェック</div>';if(!list.length)html+='なし';else list.forEach(function(x){html+='<div class="rankLine"><span class="badge">'+x.h+'号車</span> 単'+x.tan+' <span class="small">'+x.reason.slice(0,8).join('・')+'</span></div>';});html+='<hr><span class="small">V24.14：SS級は単勝100円ではなく「単勝回収型」へ昇格。弱い候補は100円まで。</span></div>';return html;}
+function renderTan100(list){var html='<div class="card tan100"><div class="title">💴単勝候補・1着ありチェック</div>';if(!list.length)html+='なし';else list.forEach(function(x){html+='<div class="rankLine"><span class="badge">'+x.h+'号車</span> 単'+x.tan+' <span class="small">'+x.reason.slice(0,8).join('・')+'</span></div>';});html+='<hr><span class="small">V24.15：SS級だけ単勝800円。S級/第1壁後型はワイド＋保護3連複へ降格。弱い候補は100円まで。</span></div>';return html;}
 function renderHonRow(label,row,med,marks,max){var arr=row.slice();while(arr.length<max)arr.push('');var html='<div class="honRow"><div class="honLabel">'+label+'</div>';for(var i=0;i<max;i++){var h=arr[i],cls='honNum';if(!h)cls+=' honEmpty';else if((marks.fav||[]).indexOf(h)>=0)cls+=' favc';else if((marks.w1||[]).indexOf(h)>=0)cls+=' wall1';else if((marks.w2||[]).indexOf(h)>=0)cls+=' wall2';else if((med||[]).indexOf(h)>=0)cls+=' honMed';html+='<span class="'+cls+'">'+(h||'')+'</span>';if(i<max-1)html+='<span class="bar"></span>';}return html+'</div>';}
 function renderHonpyo(ctx){var rows=[{l:'単勝',r:ctx.tanRow,m:ctx.tanM},{l:'2車複',r:ctx.nishaRow,m:ctx.nishaM},{l:'ワイド',r:ctx.wideRow,m:ctx.wideM},{l:'3連系',r:ctx.sanRow,m:ctx.sanM}];var max=0;rows.forEach(function(x){if(x.r.length>max)max=x.r.length;});var marks={fav:[ctx.fav1,ctx.fav2],w1:ctx.wall.w1,w2:ctx.wall.w2};var html='<div class="card"><div class="title">本表・壁色つき</div><div class="small">青=単勝1/2人気 黄=第1壁後 橙=第2壁後 赤=メジアン</div><div class="honWrap">';rows.forEach(function(x){html+=renderHonRow(x.l,x.r,x.m,marks,max);});html+='</div></div>';return html;}
-function renderBuy(t){var html='<div class="card buy"><div class="title">🎯検証用候補 V24.14</div><pre>';html+='ワイド候補\n'+(t.wide.length?t.wide.join('\n'):'なし')+'\n\n';html+='2車複候補\n'+(t.nisha.length?t.nisha.join('\n'):'なし')+'\n\n';html+='3連系・本線候補\n'+(t.main.length?t.main.join('\n'):'なし')+'\n\n';html+='3連系・穴本線候補\n'+(t.hole.length?t.hole.join('\n'):'なし')+'\n\n';html+='3連系・大荒れ保険候補\n'+(t.bomb.length?t.bomb.join('\n'):'なし')+'\n\n';html+='※ここは検証用。実際に買うのは上の「最終勝負タイプ」だけ。通常時は最大3点まで。';html+='</pre></div>';return html;}
+function renderBuy(t){var html='<div class="card buy"><div class="title">🎯検証用候補 V24.15</div><pre>';html+='ワイド候補\n'+(t.wide.length?t.wide.join('\n'):'なし')+'\n\n';html+='2車複候補\n'+(t.nisha.length?t.nisha.join('\n'):'なし')+'\n\n';html+='3連系・本線候補\n'+(t.main.length?t.main.join('\n'):'なし')+'\n\n';html+='3連系・穴本線候補\n'+(t.hole.length?t.hole.join('\n'):'なし')+'\n\n';html+='3連系・大荒れ保険候補\n'+(t.bomb.length?t.bomb.join('\n'):'なし')+'\n\n';html+='※ここは検証用。実際に買うのは上の「最終勝負タイプ」だけ。通常時は最大3点まで。';html+='</pre></div>';return html;}
 function makeCopy(title,ctx,diag,score,prot,t100,t,plan){
   var lines=[];
   lines.push(title);
-  lines.push('オート擬似複勝テスト版 V24.14 回収率フィルター＋穴連れ相棒');
+  lines.push('オート擬似複勝テスト版 V24.15 回収率フィルター＋穴連れ相棒');
   lines.push('');
   lines.push('🩺オート荒れ診断');
   lines.push('表面：'+diag.surface);
   lines.push('裏診断：'+diag.back);
   lines.push('荒れ警戒スコア：'+diag.risk);
   lines.push('ハンデ補正：'+ctx.handi.desc);
-  lines.push('V24.14保護：'+(prot.length?prot.join(' / '):'なし'));
+  lines.push('V24.15保護：'+(prot.length?prot.join(' / '):'なし'));
   lines.push('');
   lines.push('🔥最終勝負タイプ');
   lines.push(plan.type);
@@ -464,7 +538,7 @@ function makeCopy(title,ctx,diag,score,prot,t100,t,plan){
   (t.bomb.length?t.bomb:['なし']).forEach(function(x){lines.push(x);});
   return lines.join(String.fromCharCode(10));
 }
-function run(){try{var data=parseData(document.getElementById('input').value),out=document.getElementById('out');if(!data.tan.length){out.innerHTML='<div class="card err"><div class="title">入力不足</div>[TANSHO] が必要です。</div>';return;}var bad=validateCars(data);if(bad.length){out.innerHTML='<div class="card err"><div class="title">車番エラー</div><pre>'+bad.join(String.fromCharCode(10))+'</pre><span class="small">V24.14では存在しない車番が混入したら解析を止めます。</span></div>';return;}var ctx=makeContext(data),score=scoreAll(ctx),diag=makeDiag(ctx,score),prot=makeProtections(ctx,score),t100=tan100(score),tickets=makeTickets(ctx,score,prot),plan=makeFinalPlan(ctx,score,diag,tickets);var html='';html+=renderTop(data,ctx)+renderDiag(diag,ctx,prot)+renderFinalPlan(plan)+renderWall(ctx)+renderPseudo(ctx)+renderTan100(t100)+renderRank(score)+renderHonpyo(ctx)+renderBuy(tickets);out.innerHTML=html;latestCopyText=makeCopy(data.title,ctx,diag,score,prot,t100,tickets,plan);}catch(e){document.getElementById('out').innerHTML='<div class="card err"><div class="title">エラー</div><pre>'+String(e&&e.message?e.message:e)+'</pre></div>';}}
+function run(){try{var data=parseData(document.getElementById('input').value),out=document.getElementById('out');if(!data.tan.length){out.innerHTML='<div class="card err"><div class="title">入力不足</div>[TANSHO] が必要です。</div>';return;}var bad=validateCars(data);if(bad.length){out.innerHTML='<div class="card err"><div class="title">車番エラー</div><pre>'+bad.join(String.fromCharCode(10))+'</pre><span class="small">V24.15では存在しない車番が混入したら解析を止めます。</span></div>';return;}var ctx=makeContext(data),score=scoreAll(ctx),diag=makeDiag(ctx,score),prot=makeProtections(ctx,score),t100=tan100(score),tickets=makeTickets(ctx,score,prot),plan=makeFinalPlan(ctx,score,diag,tickets);var html='';html+=renderTop(data,ctx)+renderDiag(diag,ctx,prot)+renderFinalPlan(plan)+renderWall(ctx)+renderPseudo(ctx)+renderTan100(t100)+renderRank(score)+renderHonpyo(ctx)+renderBuy(tickets);out.innerHTML=html;latestCopyText=makeCopy(data.title,ctx,diag,score,prot,t100,tickets,plan);}catch(e){document.getElementById('out').innerHTML='<div class="card err"><div class="title">エラー</div><pre>'+String(e&&e.message?e.message:e)+'</pre></div>';}}
 function clearAll(){document.getElementById('input').value='';document.getElementById('out').innerHTML='';latestCopyText='';}
 function copyResult(){if(!latestCopyText){alert('先に解析してください');return;}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(latestCopyText).then(function(){alert('結果をコピーしました');}).catch(function(){fallbackCopy(latestCopyText);});}else fallbackCopy(latestCopyText);}function fallbackCopy(text){var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('結果をコピーしました');}
 function sample(){document.getElementById('input').value='【飯塚9R】\n\n[HANDI]\n1 0\n2 0\n3 10\n4 20\n5 20\n6 20\n7 20\n\n[TANSHO]\n7 1.2\n6 6.1\n2 6.9\n5 6.9\n1 8.6\n3 34.7\n4 78.7\n\n[NISHA]\n6-7 2.5\n5-7 4.4\n2-7 5.8\n1-7 6.7\n2-5 11.7\n1-2 11.7\n2-6 15.1\n3-7 19.6\n1-6 22.8\n1-5 27.2\n2-3 29.4\n5-6 46.0\n4-7 62.7\n1-3 75.5\n3-6 84.2\n2-4 95.0\n3-5 122.8\n1-4 327.5\n4-5 421.1\n4-6 421.1\n\n[WIDE]\n6-7 1.0\n5-7 2.2\n2-7 3.4\n1-7 3.6\n2-5 4.3\n1-2 5.2\n1-5 6.4\n2-6 8.3\n1-6 8.7\n3-7 8.8\n5-6 9.7\n3-5 13.3\n2-3 14.0\n3-6 14.2\n1-3 16.8\n4-7 60.5\n4-6 72.2\n1-4 79.6\n2-4 88.2\n4-5 113.1\n\n[SANREN]\n5-6-7 3.7\n2-6-7 5.0\n2-5-7 6.8\n1-2-7 7.2\n1-6-7 7.4\n1-5-7 10.0\n1-2-5 19.5\n3-6-7 20.3\n1-2-6 23.3\n2-3-7 24.3\n1-3-7 27.3\n3-5-7 33.0\n1-2-3 34.2\n2-5-6 34.6\n1-5-6 42.7\n2-3-6 67.2\n2-3-5 67.6\n4-6-7 85.2\n1-3-5 85.8\n1-3-6 92.5';}
