@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
-<title>チャッピー神予想 オート V24.18 結果コピー復活版</title>
+<title>チャッピー神予想 オート V24.19 予想家フォーメーション版</title>
 <style>
 :root{
   --bg:#07101f;--panel:#0c1b33;--panel2:#101f3b;--ink:#fff;--muted:#b8c4d8;
@@ -33,8 +33,8 @@ ul{padding-left:20px}.grid{display:grid;grid-template-columns:1fr;gap:10px}@medi
 </style>
 </head>
 <body>
-<h1>チャッピー神予想 オート V24.18<br>結果コピー復活版</h1>
-<div class="sub">壁色つき＋共通壁ロック＋ズレ壁警報＋壁またぎ受け皿＋メジアン祭り</div>
+<h1>チャッピー神予想 オート V24.19<br>予想家フォーメーション版</h1>
+<div class="sub">壁色つき＋メジアン祭り＋予想家風3連単フォーメーション＋結果コピー</div>
 <textarea id="input" placeholder="ここに貼り付け&#10;【飯塚8R】&#10;[HANDICAP]&#10;1 0 0.21 3.43&#10;...&#10;[TANSHO]&#10;2 1.2&#10;...&#10;[NIREN]&#10;2-3 1.5&#10;...&#10;[WIDE]&#10;2-6 1.4&#10;...&#10;[SANREN]&#10;2-3-6 2.5"></textarea>
 <div>
   <button class="go" onclick="run()">解析する</button>
@@ -210,13 +210,71 @@ function analyze({race,data}){
   return {race,data,cars,rows,wallsByName,med,candidates,wallInfo,medianFestival,allTableStrong,wallCross,overPop,protect};
 }
 function oddsOfSanren(data,key){const it=data.sanren.find(x=>x.key===key); return it?it.odds:null;}
+
+function uniquePush(arr,v){ if(v!=null && !arr.includes(Number(v))) arr.push(Number(v)); }
+function predictFormation(res){
+  const cs=res.candidates||[];
+  if(!cs.length) return null;
+  // 1着軸は総合1位を優先。メジアン祭りが上っ面警戒の時は頭固定ではなく2・3着箱へ落とす。
+  let head=cs[0].car;
+  const medCar=res.medianFestival?.[0]?.car;
+  const box=[];
+  // 2・3着箱：メジアン祭り、全表残り受け皿、壁またぎ、総合上位から3車
+  if(medCar && medCar!==head) uniquePush(box,medCar);
+  (res.wallCross||[]).forEach(x=>{ if(x.car!==head) uniquePush(box,x.car); });
+  (res.allTableStrong||[]).forEach(x=>{ if(x.car!==head) uniquePush(box,x.car); });
+  cs.forEach(x=>{ if(x.car!==head) uniquePush(box,x.car); });
+  const box3=box.slice(0,3).sort((a,b)=>a-b);
+  const boxStr=box3.join('');
+  // 抑え頭：箱に入らなかった上位人気/過剰人気/総合上位を1頭
+  let cover=(res.overPop||[]).find(x=>x.car!==head && !box3.includes(x.car))?.car;
+  if(!cover) cover=cs.find(x=>x.car!==head && !box3.includes(x.car))?.car;
+  if(!cover) cover=box3[0];
+  // 厚張り1点：本線フォメ内で3連系オッズが一番前に出ている組を、1着軸から表示
+  let one='';
+  const combos=[];
+  for(let i=0;i<box3.length;i++) for(let j=i+1;j<box3.length;j++) combos.push([head,box3[i],box3[j]]);
+  let best=null;
+  combos.forEach(c=>{
+    const key=comboKey(c);
+    const o=oddsOfSanren(res.data,key);
+    if(o!=null && (!best || o<best.odds)) best={cars:c,odds:o,key};
+  });
+  if(best){
+    // keyは昇順なので、頭だけ固定して残りはオッズ表の自然順（昇順）で表示
+    const rest=best.key.split('-').map(Number).filter(x=>x!==head);
+    one=String(head)+rest.join('');
+  }else if(box3.length>=2){
+    one=String(head)+box3.slice(0,2).join('');
+  }
+  return {
+    head,box:box3,boxStr,cover,one,
+    main:`${head}-${boxStr}-${boxStr}`,
+    osa:`${cover}-${head}-${boxStr}`,
+    note:`1着は総合1位・壁またぎ/連系中心を優先。メジアン祭りや上っ面警戒馬は消さずに2・3着箱へ残す。`
+  };
+}
+function formationText(form){
+  if(!form) return 'なし';
+  return `🎯3連単フォーメーション\n本線\n${form.main}\n\n抑え\n${form.osa}\n\n1点\n${form.one}`;
+}
+function formationHtml(form){
+  if(!form) return '<div>フォーメーションなし</div>';
+  return `<div class="card warn"><h2>🎯予想家風 3連単フォーメーション</h2>
+  <pre class="copybox">本線\n${form.main}\n\n抑え\n${form.osa}\n\n1点\n${form.one}</pre>
+  <div class="mini">${form.note}</div>
+  <div style="margin-top:8px">1着軸：${carSpan(form.head)} / 2・3着箱：${form.box.map(carSpan).join(' ')} / 抑え頭：${carSpan(form.cover)}</div>
+  </div>`;
+}
+
 function render(res){
   const {race,data,candidates}=res; const t1=data.tansho[0]; const n1=data.niren[0]; const s1=data.sanren[0];
   let html=`<div class="card"><h2>${race}</h2><div>単勝1人気：${t1?`${carSpan(t1.car)} ${t1.odds}倍`:'-'}<br>2車複1人気：${n1?`${n1.key} ${n1.odds}倍`:'-'}<br>3連系1人気：${s1?`${s1.key} ${s1.odds}倍`:'-'}</div></div>`;
   const warnLevel=(t1?.odds||99)<2 && (n1?.odds||99)<3 ? '本命戦' : (n1?.odds||0)>10 ? '荒れ戦':'中荒れ戦';
-  html+=`<div class="card warn"><h2>🩺オート荒れ診断 V24.18</h2><div>表面：<b>${warnLevel}</b><br>裏診断：${res.wallInfo.flags.some(f=>f.name.includes('ズレ'))?'本命頭飛び警戒 / 壁ズレあり':'通常'}<br>壁判定：${res.wallInfo.flags.map(f=>`<span class="badge yellow">${f.name}</span>`).join('')||'<span class="badge blue">通常</span>'}</div></div>`;
+  const form=predictFormation(res);
+  html+=`<div class="card warn"><h2>🩺オート荒れ診断 V24.19</h2><div>表面：<b>${warnLevel}</b><br>裏診断：${res.wallInfo.flags.some(f=>f.name.includes('ズレ'))?'本命頭飛び警戒 / 壁ズレあり':'通常'}<br>壁判定：${res.wallInfo.flags.map(f=>`<span class="badge yellow">${f.name}</span>`).join('')||'<span class="badge blue">通常</span>'}</div></div>`;
   html+=`<div class="card"><h2>本表・壁色つき</h2><div class="mini">青＝通常 / 黄＝第1壁 / 橙＝第2壁 / 桃＝急断層 / 赤＝特大壁</div>${rankTable(res.rows,res.wallsByName)}</div>`;
-  html+=`<div class="card orange"><h2>🧱壁位置判定 V24.18</h2>`;
+  html+=`<div class="card orange"><h2>🧱壁位置判定 V24.19</h2>`;
   for(const [name,walls] of Object.entries(res.wallsByName)){
     html+=`<div><b>${name}</b>：${walls.length?walls.map(w=>`${w.pos}位後ろ ${w.from}→${w.to}`).join(' / '):'大きな壁なし'}</div>`;
   }
@@ -232,9 +290,10 @@ function render(res){
   html+='</div>';
   html+=`<div class="card warn"><h2>🔥最終勝負タイプ</h2>`;
   const festival=res.medianFestival[0];
-  if(festival) html+=`<div><b>メジアン祭り核保護型 V24.18</b><br>${carSpan(festival.car)} が複数メジアン。相手は人気順ではなく、全表残り・壁またぎ・配当役を優先。</div>`;
-  else html+=`<div><b>通常3連系圧縮型 V24.18</b><br>壁色と壁またぎを優先して削る。</div>`;
+  if(festival) html+=`<div><b>メジアン祭り核保護型 V24.19</b><br>${carSpan(festival.car)} が複数メジアン。相手は人気順ではなく、全表残り・壁またぎ・配当役を優先。</div>`;
+  else html+=`<div><b>通常3連系圧縮型 V24.19</b><br>壁色と壁またぎを優先して削る。</div>`;
   html+='</div>';
+  html+=formationHtml(form);
   html+=`<div class="card"><h2>最終保護候補</h2>`;
   if(res.protect.length){html+='<table class="smallTable"><tr><th>組み合わせ</th><th class="right">オッズ</th><th>理由</th></tr>';res.protect.slice(0,8).forEach(p=>{const o=oddsOfSanren(data,p.key);html+=`<tr><td>${p.cars.map(carSpan).join('-')}</td><td class="right">${o??'-'}</td><td>${p.reason}</td></tr>`}); html+='</table>'} else html+='<div>保護候補なし</div>';
   html+='</div>';
@@ -251,13 +310,13 @@ function render(res){
     return `${i+1}位 ${x.car}号車【${x.score}】 単${x.odds}${hp} ${x.notes.join('・')}`;
   }).join('\n');
   const copy=`${race}
-オート擬似複勝テスト版 V24.18 結果コピー復活版
-壁色つき＋共通壁ロック＋ズレ壁警報＋壁またぎ受け皿＋メジアン祭り
+オート擬似複勝テスト版 V24.19 予想家フォーメーション版
+壁色つき＋メジアン祭り＋予想家風3連単フォーメーション＋結果コピー
 
 `+
     `🩺オート荒れ診断
 表面：${warnLevel}
-壁判定：${res.wallInfo.flags.join(' / ')||'通常'}
+壁判定：${res.wallInfo.flags.map(f=>f.name+'：'+f.txt).join(' / ')||'通常'}
 
 `+
     `メジアン
@@ -268,7 +327,7 @@ ${Object.entries(res.med).map(([k,v])=>`${k}：${v.map(c=>c+'号車').join('・'
 ${wallsText}
 
 `+
-    `V24.18ランプ
+    `V24.19ランプ
 `+
     `メジアン祭り：${res.medianFestival.map(x=>x.car+'号車').join('・')||'なし'}
 `+
@@ -277,6 +336,9 @@ ${wallsText}
     `壁またぎ受け皿：${res.wallCross.map(x=>x.car+'号車').join('・')||'なし'}
 `+
     `上っ面過剰人気警戒：${res.overPop.map(x=>x.car+'号車').join('・')||'なし'}
+
+`+
+    `${formationText(form)}
 
 `+
     `最終保護候補
