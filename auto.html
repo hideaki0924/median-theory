@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
-<title>チャッピー神予想 オート V24.18 壁ズレ判定</title>
+<title>チャッピー神予想 オート V24.18 結果コピー復活版</title>
 <style>
 :root{
   --bg:#07101f;--panel:#0c1b33;--panel2:#101f3b;--ink:#fff;--muted:#b8c4d8;
@@ -16,7 +16,7 @@ h1{font-size:27px;line-height:1.25;margin:4px 0 10px;color:#ffd84d;text-shadow:0
 .sub{color:var(--muted);font-weight:700;margin-bottom:12px}
 textarea{width:100%;height:345px;border-radius:16px;border:2px solid #3b82f6;background:#f8fafc;color:#111;padding:12px;font-size:16px;line-height:1.42;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;box-shadow:0 0 0 3px rgba(59,130,246,.18)}
 button{font-size:20px;font-weight:900;border:0;border-radius:16px;padding:13px 16px;margin:10px 6px 10px 0;color:#07101f;box-shadow:0 8px 20px rgba(0,0,0,.25)}
-.go{background:#22c55e}.clear{background:#94a3b8}.sample{background:#ffd84d}
+.go{background:#22c55e}.clear{background:#94a3b8}.sample{background:#ffd84d}.copybtn{background:#f59e0b;color:#fff}
 .card{background:rgba(12,27,51,.92);border:2px solid #2563eb;border-radius:22px;padding:14px;margin:14px 0;box-shadow:0 0 24px rgba(37,99,235,.18)}
 .card.hot{border-color:#ff2c86;background:linear-gradient(135deg,#220014,#4b0524 55%,#16000d);box-shadow:0 0 28px rgba(255,44,134,.28)}
 .card.warn{border-color:#ffd84d;background:linear-gradient(135deg,#211800,#382b05 60%,#150e00);box-shadow:0 0 24px rgba(255,216,77,.25)}
@@ -33,16 +33,18 @@ ul{padding-left:20px}.grid{display:grid;grid-template-columns:1fr;gap:10px}@medi
 </style>
 </head>
 <body>
-<h1>チャッピー神予想 オート V24.18</h1>
+<h1>チャッピー神予想 オート V24.18<br>結果コピー復活版</h1>
 <div class="sub">壁色つき＋共通壁ロック＋ズレ壁警報＋壁またぎ受け皿＋メジアン祭り</div>
 <textarea id="input" placeholder="ここに貼り付け&#10;【飯塚8R】&#10;[HANDICAP]&#10;1 0 0.21 3.43&#10;...&#10;[TANSHO]&#10;2 1.2&#10;...&#10;[NIREN]&#10;2-3 1.5&#10;...&#10;[WIDE]&#10;2-6 1.4&#10;...&#10;[SANREN]&#10;2-3-6 2.5"></textarea>
 <div>
   <button class="go" onclick="run()">解析する</button>
   <button class="clear" onclick="document.getElementById('input').value='';document.getElementById('out').innerHTML=''">クリア</button>
   <button class="sample" onclick="sample()">サンプル</button>
+  <button class="copybtn" onclick="copyResult()">結果コピー</button>
 </div>
 <div id="out"></div>
 <script>
+let latestCopyText='';
 const $=id=>document.getElementById(id);
 const carSpan=n=>`<span class="car c${Number(n)}">${n}</span>`;
 function norm(s){return String(s||'').replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[．]/g,'.').replace(/[－ー―–—]/g,'-').replace(/[＝]/g,'=').replace(/[〜～]/g,'~');}
@@ -239,14 +241,62 @@ function render(res){
   html+=`<div class="card hot"><h2>検証候補ランキング</h2>`;
   candidates.forEach((x,i)=>{html+=`<p><span class="badge ${i<3?'pink':'blue'}">${i+1}位 ${x.car}号車【${x.score}】</span> 単${x.odds} ${x.hp?` / H${x.hp.handicap} 試${x.hp.trial} ST${x.hp.st}`:''}<br>${x.notes.join('・')}</p>`});
   html+='</div>';
-  const copy=`${race}\nオート擬似複勝テスト版 V24.18 壁色つき＋共通壁ロック＋ズレ壁警報＋壁またぎ受け皿\n\n`+
-    `メジアン祭り：${res.medianFestival.map(x=>x.car+'号車').join('・')||'なし'}\n`+
-    `全表残り実力受け皿：${res.allTableStrong.map(x=>x.car+'号車').join('・')||'なし'}\n`+
-    `壁またぎ受け皿：${res.wallCross.map(x=>x.car+'号車').join('・')||'なし'}\n`+
-    `保護：${res.protect.slice(0,6).map(p=>p.key).join(' / ')||'なし'}\n`;
-  html+=`<div class="card"><h2>コピペ用ミニ結果</h2><pre class="copybox">${copy}</pre></div>`;
+  const wallsText=Object.entries(res.wallsByName).map(([name,walls])=>{
+    if(!walls.length)return `${name}：壁なし`;
+    return `${name}：`+walls.map(w=>`${w.pos}位後 ${w.from}→${w.to} L${w.level}`).join(' / ');
+  }).join('\n');
+  const protectText=res.protect.slice(0,8).map(p=>`${p.key} ${oddsOfSanren(data,p.key)?'オッズ'+oddsOfSanren(data,p.key):'オッズなし'} / ${p.reason}`).join('\n')||'なし';
+  const rankText=candidates.map((x,i)=>{
+    const hp=x.hp?` H${x.hp.handicap} 試${x.hp.trial} ST${x.hp.st}`:'';
+    return `${i+1}位 ${x.car}号車【${x.score}】 単${x.odds}${hp} ${x.notes.join('・')}`;
+  }).join('\n');
+  const copy=`${race}
+オート擬似複勝テスト版 V24.18 結果コピー復活版
+壁色つき＋共通壁ロック＋ズレ壁警報＋壁またぎ受け皿＋メジアン祭り
+
+`+
+    `🩺オート荒れ診断
+表面：${warnLevel}
+壁判定：${res.wallInfo.flags.join(' / ')||'通常'}
+
+`+
+    `メジアン
+${Object.entries(res.med).map(([k,v])=>`${k}：${v.map(c=>c+'号車').join('・')||'なし'}`).join('\n')}
+
+`+
+    `壁位置
+${wallsText}
+
+`+
+    `V24.18ランプ
+`+
+    `メジアン祭り：${res.medianFestival.map(x=>x.car+'号車').join('・')||'なし'}
+`+
+    `全表残り実力受け皿：${res.allTableStrong.map(x=>x.car+'号車').join('・')||'なし'}
+`+
+    `壁またぎ受け皿：${res.wallCross.map(x=>x.car+'号車').join('・')||'なし'}
+`+
+    `上っ面過剰人気警戒：${res.overPop.map(x=>x.car+'号車').join('・')||'なし'}
+
+`+
+    `最終保護候補
+${protectText}
+
+`+
+    `検証候補
+${rankText}
+`;
+  latestCopyText=copy;
+  html+=`<div class="card"><h2>コピペ用フル結果</h2><div class="mini">上の「結果コピー」ボタンで、この全文をコピーできます。ここを長押しコピーでもOK。</div><pre class="copybox">${copy}</pre></div>`;
   return html;
 }
+function copyResult(){
+  if(!latestCopyText){alert('先に解析してください');return;}
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(latestCopyText).then(()=>alert('結果をコピーしました')).catch(()=>fallbackCopy(latestCopyText));
+  }else fallbackCopy(latestCopyText);
+}
+function fallbackCopy(text){const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('結果をコピーしました');}
 function run(){try{const p=parseInput($('input').value); const res=analyze(p); $('out').innerHTML=render(res);}catch(e){$('out').innerHTML=`<div class="card hot"><h2>エラー</h2><pre>${e.stack||e}</pre></div>`}}
 function sample(){
 $('input').value=`【飯塚8R】\n[HANDICAP]\n1 0 0.21 3.43\n2 0 0.18 3.35\n3 10 0.16 3.35\n4 10 0.14 3.38\n5 20 0.24 3.38\n6 20 0.13 3.34\n7 20 0.20 3.34\n\n[TANSHO]\n2 1.2\n3 2.7\n6 8.1\n7 12.7\n4 22.5\n5 73.3\n1 87.9\n\n[NIREN]\n2-3 1.5\n2-6 4.2\n2-7 7.3\n2-4 8.7\n3-6 10.4\n3-7 22.2\n3-4 27.7\n6-7 31.6\n4-6 32.9\n4-7 80.6\n2-5 121.0\n1-7 141.1\n3-5 199.3\n5-6 199.3\n5-7 211.7\n1-2 260.6\n4-5 423.5\n1-3 484.1\n1-6 564.7\n1-4 1129\n\n[WIDE]\n2-6 1.4\n2-3 1.5\n2-7 2.0\n3-6 3.2\n2-4 3.6\n3-7 4.6\n3-4 6.0\n6-7 7.1\n4-7 8.5\n4-6 8.7\n2-5 23.4\n3-5 23.5\n4-5 24.6\n1-2 31.9\n5-6 32.2\n1-3 46.3\n5-7 56.9\n1-4 63.5\n1-7 72.9\n1-6 84.7\n\n[SANREN]\n2-3-6 2.5\n2-3-7 3.9\n2-3-4 4.3\n2-6-7 8.0\n2-4-6 11.6\n2-4-7 15.1\n3-6-7 20.3\n3-4-6 31.0\n2-3-5 38.7\n3-4-7 41.3\n1-2-3 62.8\n2-5-7 66.4\n4-6-7 71.0\n2-5-6 95.3\n2-4-5 115.7\n3-4-5 124.6\n3-5-6 128.6\n1-6-7 152.8\n5-6-7 168.7\n1-2-7 176.1`;
