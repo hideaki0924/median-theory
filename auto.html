@@ -1,160 +1,256 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 オート V24.17 前位置対抗頭昇格版</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+<title>チャッピー神予想 オート V24.18 壁ズレ判定</title>
 <style>
-body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:14px;font-size:17px}
-h1{font-size:27px;line-height:1.25;margin:4px 0 12px;color:#fff}
-textarea{width:100%;height:355px;box-sizing:border-box;border-radius:16px;border:2px solid #38bdf8;padding:12px;font-size:16px;line-height:1.45;font-family:monospace;background:#f8fafc;color:#111}
-button{font-size:20px;font-weight:900;border:0;border-radius:16px;padding:14px 18px;margin:10px 6px 10px 0}.go{background:#22c55e;color:#052e16}.test{background:#3b82f6;color:#fff}.clear{background:#64748b;color:#fff}.copy{background:#f59e0b;color:#fff}
-.card{background:#10224a;border:1px solid #3b82f6;border-radius:18px;padding:14px;margin:14px 0}.title{color:#ffd84d;font-size:23px;font-weight:900;margin-bottom:10px}.good{color:#86efac;font-weight:900}.warn{color:#fb7185;font-weight:900}.yellow{color:#fde047;font-weight:900}.red{color:#fb7185;font-weight:900}.blue{color:#93c5fd;font-weight:900}.orange{color:#fb923c;font-weight:900}.gray{color:#94a3b8;font-weight:900}.small{color:#cbd5e1;font-size:14px;line-height:1.5}pre{white-space:pre-wrap;word-break:break-word;background:#020617;color:#e5e7eb;padding:12px;border-radius:12px;font-size:16px;line-height:1.45}.badge{display:inline-block;padding:5px 10px;border-radius:999px;background:#1e293b;margin:4px 2px;font-weight:900}.rankLine{margin:8px 0;line-height:1.55}hr{border:0;border-top:1px solid #94a3b8;margin:14px 0}
-.diag{border:3px solid #38bdf8;background:linear-gradient(135deg,#001827,#073b55,#001827);box-shadow:0 0 22px rgba(56,189,248,.45)}.diagWarn{border:3px solid #facc15;background:linear-gradient(135deg,#241a00,#4a3600,#241a00);box-shadow:0 0 22px rgba(250,204,21,.45)}.switch{border:3px solid #ff2d75;background:linear-gradient(135deg,#260012,#5c0027,#260012);box-shadow:0 0 28px rgba(255,45,117,.65)}.tan100{border:3px solid #22c55e;background:linear-gradient(135deg,#021b0b,#064e3b,#021b0b);box-shadow:0 0 26px rgba(34,197,94,.55)}.finalBuy{border:4px solid #facc15;background:linear-gradient(135deg,#2b2200,#574400,#201900);box-shadow:0 0 34px rgba(250,204,21,.70)}.buy{border:3px solid #f97316;background:linear-gradient(135deg,#2b1000,#5a2500,#2b1000);box-shadow:0 0 24px rgba(249,115,22,.55)}.err{border:3px solid #fb7185;background:#2b0010}
-.honWrap{overflow-x:auto;background:#07101f;border-radius:14px;padding:8px 6px;margin-top:10px}.honRow{display:flex;align-items:center;gap:0;min-width:max-content;margin:8px 0}.honLabel{width:86px;min-width:86px;max-width:86px;font-weight:900;font-size:18px;line-height:1.05;white-space:nowrap}.honNum{display:inline-block;width:38px;min-width:38px;max-width:38px;text-align:center;font-size:23px;font-weight:900;color:#fff;line-height:1;box-sizing:border-box;white-space:nowrap;font-variant-numeric:tabular-nums;letter-spacing:-1px}.honMed{color:#fb7185;text-shadow:0 0 8px rgba(251,113,133,.75)}.wall1{color:#fde047;text-shadow:0 0 8px rgba(253,224,71,.65)}.wall2{color:#fb923c;text-shadow:0 0 8px rgba(251,146,60,.65)}.favc{color:#93c5fd;text-shadow:0 0 8px rgba(147,197,253,.7)}.honEmpty{color:transparent}.bar{display:inline-block;height:30px;width:2px;min-width:2px;max-width:2px;margin:0 3px;opacity:.95;border-radius:2px;background:#35517a}
-.tbl{width:100%;border-collapse:collapse;background:#020617;border-radius:12px;overflow:hidden;margin-top:8px}.tbl th,.tbl td{border-bottom:1px solid #334155;padding:8px;text-align:left;font-size:14px;vertical-align:top}.tbl th{color:#fde047;background:#0f172a}
+:root{
+  --bg:#07101f;--panel:#0c1b33;--panel2:#101f3b;--ink:#fff;--muted:#b8c4d8;
+  --blue:#60a5fa;--yellow:#fde047;--orange:#fb923c;--pink:#f472b6;--red:#fb7185;--green:#22c55e;
+  --line:#29456c;--wall1:#fde047;--wall2:#fb923c;--wall3:#f472b6;--wall4:#fb7185;
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#06101f,#08182e 45%,#040914);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:14px;font-size:17px;line-height:1.48}
+h1{font-size:27px;line-height:1.25;margin:4px 0 10px;color:#ffd84d;text-shadow:0 0 16px rgba(255,216,77,.25)}
+.sub{color:var(--muted);font-weight:700;margin-bottom:12px}
+textarea{width:100%;height:345px;border-radius:16px;border:2px solid #3b82f6;background:#f8fafc;color:#111;padding:12px;font-size:16px;line-height:1.42;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;box-shadow:0 0 0 3px rgba(59,130,246,.18)}
+button{font-size:20px;font-weight:900;border:0;border-radius:16px;padding:13px 16px;margin:10px 6px 10px 0;color:#07101f;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+.go{background:#22c55e}.clear{background:#94a3b8}.sample{background:#ffd84d}
+.card{background:rgba(12,27,51,.92);border:2px solid #2563eb;border-radius:22px;padding:14px;margin:14px 0;box-shadow:0 0 24px rgba(37,99,235,.18)}
+.card.hot{border-color:#ff2c86;background:linear-gradient(135deg,#220014,#4b0524 55%,#16000d);box-shadow:0 0 28px rgba(255,44,134,.28)}
+.card.warn{border-color:#ffd84d;background:linear-gradient(135deg,#211800,#382b05 60%,#150e00);box-shadow:0 0 24px rgba(255,216,77,.25)}
+.card.orange{border-color:#fb923c;background:linear-gradient(135deg,#241000,#3a1905 60%,#120700)}
+h2{font-size:24px;margin:0 0 10px;color:#ffd84d}.mini{font-size:14px;color:#dbeafe}.muted{color:var(--muted)}
+.badge{display:inline-block;border-radius:999px;padding:7px 10px;margin:3px 4px 3px 0;font-weight:900;background:#172a49;color:#fff;border:1px solid #335b92}
+.badge.blue{background:#123765;color:#bfe0ff}.badge.yellow{background:#3b3104;color:#fff1a8}.badge.orange{background:#4a2208;color:#ffd0aa}.badge.pink{background:#4d1233;color:#ffc6e5}.badge.green{background:#06361d;color:#baf7d0}.badge.red{background:#4b0614;color:#ffc1cc}
+pre{white-space:pre-wrap;background:#06101f;border:1px solid #263b5f;border-radius:14px;padding:12px;overflow:auto;font-size:15px;color:#e5edff}
+.tableWrap{overflow-x:auto;border-radius:18px;background:#050b16;border:1px solid #263b5f;padding:10px}.rankTable{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-weight:900}.rankTable th,.rankTable td{padding:9px 12px;text-align:center;border-right:3px solid var(--line);border-bottom:1px solid #1e3557;min-width:62px}.rankTable th:first-child,.rankTable td:first-child{position:sticky;left:0;background:#071529;text-align:left;min-width:86px;z-index:2}.rankTable th{color:#cfe3ff;background:#0c1b33}.rankTable .wall1{border-right-color:var(--wall1);box-shadow:inset -3px 0 0 rgba(253,224,71,.65)}.rankTable .wall2{border-right-color:var(--wall2);box-shadow:inset -3px 0 0 rgba(251,146,60,.72)}.rankTable .wall3{border-right-color:var(--wall3);box-shadow:inset -4px 0 0 rgba(244,114,182,.80)}.rankTable .wall4{border-right-color:var(--wall4);box-shadow:inset -4px 0 0 rgba(251,113,133,.85)}
+.car{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;font-size:22px;font-weight:1000;margin:1px 2px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.45)}
+.c1{background:#e5e7eb;color:#111}.c2{background:#111827}.c3{background:#dc2626}.c4{background:#2563eb}.c5{background:#facc15;color:#111}.c6{background:#16a34a}.c7{background:#ea580c}.c8{background:#d946ef}.c9{background:#ec4899}.c10{background:#f97316}.c11{background:#fb7185}.c12{background:#a855f7}.c13{background:#e879f9}.c14{background:#94a3b8;color:#111}
+ul{padding-left:20px}.grid{display:grid;grid-template-columns:1fr;gap:10px}@media(min-width:720px){.grid{grid-template-columns:1fr 1fr}}
+.smallTable{width:100%;border-collapse:collapse}.smallTable td,.smallTable th{border-bottom:1px solid #2b4268;padding:8px;text-align:left}.smallTable th{color:#ffd84d}.right{text-align:right!important}.strong{color:#ffd84d;font-weight:1000}.danger{color:#ff8bad;font-weight:1000}.ok{color:#86efac;font-weight:1000}.copybox{user-select:all}
 </style>
 </head>
 <body>
-<h1>チャッピー神予想 オート V24.17<br>前位置対抗頭昇格・中穴頭過大評価カット版</h1>
-<textarea id="input" placeholder="【川口1R】
-
-[HANDI]
-車番 ハンデ 試走 ST ランク
-
-[TAN]
-車番 オッズ
-
-[NISHA]
-車番-車番 オッズ
-
-[WIDE]
-車番-車番 オッズ
-
-[SANREN]
-車番-車番-車番 オッズ"></textarea><br>
-<button class="go" onclick="run()">解析</button>
-<button class="test" onclick="sample()">テスト</button>
-<button class="clear" onclick="clearAll()">リセット</button>
-<button class="copy" onclick="copyResult()">結果コピー</button>
+<h1>チャッピー神予想 オート V24.18</h1>
+<div class="sub">壁色つき＋共通壁ロック＋ズレ壁警報＋壁またぎ受け皿＋メジアン祭り</div>
+<textarea id="input" placeholder="ここに貼り付け&#10;【飯塚8R】&#10;[HANDICAP]&#10;1 0 0.21 3.43&#10;...&#10;[TANSHO]&#10;2 1.2&#10;...&#10;[NIREN]&#10;2-3 1.5&#10;...&#10;[WIDE]&#10;2-6 1.4&#10;...&#10;[SANREN]&#10;2-3-6 2.5"></textarea>
+<div>
+  <button class="go" onclick="run()">解析する</button>
+  <button class="clear" onclick="document.getElementById('input').value='';document.getElementById('out').innerHTML=''">クリア</button>
+  <button class="sample" onclick="sample()">サンプル</button>
+</div>
 <div id="out"></div>
 <script>
-var latestCopyText='';
-function zenToHan(str){return String(str||'').replace(/[０-９]/g,function(s){return String.fromCharCode(s.charCodeAt(0)-65248);}).replace(/．/g,'.').replace(/[－ー―−]/g,'-').replace(/[　]/g,' ').replace(/[〜～]/g,'-');}
-function nums(line){var m=zenToHan(line).match(/\d+(?:\.\d+)?/g);return m?m.map(Number):[];}
-function pairKey(a,b){return [a,b].map(String).sort(function(x,y){return Number(x)-Number(y);}).join('-');}
-function triKey(a,b,c){return [a,b,c].map(String).sort(function(x,y){return Number(x)-Number(y);}).join('-');}
-function add(arr,v){v=String(v);if(v&&v!=='undefined'&&arr.indexOf(v)<0)arr.push(v);}
-function uniq(arr){var out=[];(arr||[]).forEach(function(v){add(out,v);});return out;}
-function sortOdds(arr){return arr.slice().sort(function(a,b){return Number(a.od)-Number(b.od);});}
-function safeNum(x,d){x=Number(x);return isFinite(x)?x:(d===0?0:(d||9999));}
-function mid(arr){arr=arr||[];if(!arr.length)return[];var n=arr.length;if(n%2)return[arr[Math.floor(n/2)]];return[arr[n/2-1],arr[n/2]];}
-function joinCars(arr){return (!arr||!arr.length)?'なし':arr.map(function(x){return x+'号車';}).join('・');}
-function rankMap(row){var m={};row.forEach(function(h,i){m[h]=i+1;});return m;}
-function getTan(data,h){h=String(h);for(var i=0;i<data.tan.length;i++){if(data.tan[i].h===h)return data.tan[i].od;}return null;}
-function addP(arr,a,b){if(a&&b&&a!==b)add(arr,pairKey(a,b));}
-function addT(arr,a,b,c){if(a&&b&&c&&a!==b&&a!==c&&b!==c)add(arr,triKey(a,b,c));}
-function containsPair(p,h){return p.a===h||p.b===h;}
-function otherInPair(p,h){return p.a===h?p.b:(p.b===h?p.a:null);}
-function countTop(list,h,n){h=String(h);var c=0;(list||[]).slice(0,n||20).forEach(function(x){if(x.a===h||x.b===h||x.c===h)c++;});return c;}
-function bestRank(list,h,n){h=String(h);for(var i=0;i<Math.min(n||20,list.length);i++){var x=list[i];if(x.a===h||x.b===h||x.c===h)return i+1;}return 999;}
-function pairRow(pairs){var row=[];sortOdds(pairs).forEach(function(p){add(row,p.a);add(row,p.b);});return row;}
-function triRow(tris){var row=[];sortOdds(tris).forEach(function(t){add(row,t.a);add(row,t.b);add(row,t.c);});return row;}
-function findTri(list,key){for(var i=0;i<list.length;i++){if(list[i].key===key)return list[i];}return null;}
-function parseData(raw){
-  var text=zenToHan(raw),lines=text.split(/\n/),title='レース',sec='';
-  var info=[],handi=[],tan=[],nisha=[],wide=[],san=[];
-  for(var i=0;i<lines.length;i++){
-    var line=lines[i].trim();if(!line)continue;if(line.indexOf('【')===0)title=line;var up=line.toUpperCase();
-    if(up.indexOf('[')===0){
-      if(up.indexOf('INFO')>=0){sec='INFO';continue;} if(up.indexOf('HAND')>=0||up.indexOf('HND')>=0){sec='HANDI';continue;} if(up.indexOf('TAN')>=0||up.indexOf('単')>=0){sec='TAN';continue;}
-      if(up.indexOf('NIS')>=0||up.indexOf('NIR')>=0||up.indexOf('2')>=0||up.indexOf('二')>=0){sec='NISHA';continue;} if(up.indexOf('WIDE')>=0||up.indexOf('ワイド')>=0){sec='WIDE';continue;} if(up.indexOf('SAN')>=0||up.indexOf('3')>=0||up.indexOf('三')>=0){sec='SAN';continue;}
+const $=id=>document.getElementById(id);
+const carSpan=n=>`<span class="car c${Number(n)}">${n}</span>`;
+function norm(s){return String(s||'').replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[．]/g,'.').replace(/[－ー―–—]/g,'-').replace(/[＝]/g,'=').replace(/[〜～]/g,'~');}
+function parseNum(x){if(x==null)return NaN; const m=String(x).replace(/,/g,'').match(/\d+(?:\.\d+)?/); return m?parseFloat(m[0]):NaN;}
+function secName(line){const m=line.match(/^\s*\[([^\]]+)\]/);return m?m[1].toUpperCase():null;}
+function splitCombo(s){return norm(s).split(/[-=]/).map(x=>parseInt(x,10)).filter(n=>!isNaN(n));}
+function comboKey(arr){return arr.map(Number).sort((a,b)=>a-b).join('-');}
+function parseInput(txt){
+  txt=norm(txt); const lines=txt.split(/\n/).map(x=>x.trim()).filter(Boolean); let race='【オート】'; let sec='';
+  const data={handicap:{},tansho:[],niren:[],wide:[],sanren:[]};
+  for(const line of lines){
+    if(line.startsWith('【')){race=line; continue;}
+    const sn=secName(line); if(sn){sec=sn; continue;}
+    if(/^#/.test(line))continue;
+    const parts=line.split(/\s+/);
+    if(sec==='HANDICAP'){
+      if(parts.length>=4){ const car=parseInt(parts[0],10), han=parseInt(parts[1],10), st=parseNum(parts[2]), trial=parseNum(parts[3]); if(car) data.handicap[car]={handicap:han,st,trial}; }
+    }else if(sec==='TANSHO'||sec==='TANFUKU'){
+      if(parts.length>=2){ const car=parseInt(parts[0],10), odds=parseNum(parts[1]); if(car&&!isNaN(odds)) data.tansho.push({car,odds}); }
+    }else if(sec==='NIREN'||sec==='UMAREN'||sec==='2REN'||sec==='NISHA'){
+      if(parts.length>=2){ const c=splitCombo(parts[0]); const odds=parseNum(parts[1]); if(c.length===2&&!isNaN(odds)) data.niren.push({cars:c,odds,key:comboKey(c)}); }
+    }else if(sec==='WIDE'){
+      if(parts.length>=2){ const c=splitCombo(parts[0]); const odds=parseNum(parts.slice(1).join(' ')); if(c.length===2&&!isNaN(odds)) data.wide.push({cars:c,odds,key:comboKey(c)}); }
+    }else if(sec==='SANREN'||sec==='SANPUKU'||sec==='3REN'||sec==='SANRENP'){
+      if(parts.length>=2){ const c=splitCombo(parts[0]); const odds=parseNum(parts[1]); if(c.length===3&&!isNaN(odds)) data.sanren.push({cars:c,odds,key:comboKey(c)}); }
     }
-    if(sec==='INFO'||sec==='HANDI'){var n=nums(line);if(n.length>=2)(sec==='INFO'?info:handi).push({h:String(Math.floor(n[0])),handi:n[1],test:n.length>=3?n[2]:null,st:n.length>=4?n[3]:null,rank:n.length>=5?n[4]:null});}
-    else if(sec==='TAN'){var nt=nums(line);if(nt.length>=2)tan.push({h:String(Math.floor(nt[0])),od:nt[1]});}
-    else if(sec==='NISHA'){var m=line.match(/(\d+)\s*-\s*(\d+)/),o=nums(line);if(m&&o.length)nisha.push({a:m[1],b:m[2],od:o[o.length-1],key:pairKey(m[1],m[2])});}
-    else if(sec==='WIDE'){var mw=line.match(/(\d+)\s*-\s*(\d+)/),ow=nums(line);if(mw&&ow.length&&ow[ow.length-1]>0)wide.push({a:mw[1],b:mw[2],od:ow[ow.length-1],key:pairKey(mw[1],mw[2])});}
-    else if(sec==='SAN'){var ms=line.match(/(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/),os=nums(line);if(ms&&os.length)san.push({a:ms[1],b:ms[2],c:ms[3],od:os[os.length-1],key:triKey(ms[1],ms[2],ms[3])});}
   }
-  var map={};handi.forEach(function(x){map[x.h]=x;});info.forEach(function(x){map[x.h]=x;});var inf=[];Object.keys(map).sort(function(a,b){return Number(a)-Number(b);}).forEach(function(h){inf.push(map[h]);});
-  return{title:title,info:inf,tan:tan,nisha:nisha,wide:wide,san:san};
+  for(const k of ['tansho','niren','wide','sanren']) data[k].sort((a,b)=>a.odds-b.odds);
+  return {race,data};
 }
-function validateCars(data){var valid={};data.tan.forEach(function(x){valid[x.h]=true;});if(!Object.keys(valid).length)data.info.forEach(function(x){valid[x.h]=true;});var bad=[];function ck(h,src){if(!valid[h])bad.push(src+'に存在しない車番 '+h+'号車');}data.nisha.forEach(function(p){ck(p.a,'2車複');ck(p.b,'2車複');});data.wide.forEach(function(p){ck(p.a,'ワイド');ck(p.b,'ワイド');});data.san.forEach(function(t){ck(t.a,'3連系');ck(t.b,'3連系');ck(t.c,'3連系');});return uniq(bad);}
-function makeHandiGroups(data){var info=data.info.slice();if(!info.length)return{front:[],mid:[],heavy:[],desc:'ハンデ情報なし'};var vals=info.map(function(x){return x.handi;}).sort(function(a,b){return a-b;});var min=vals[0],max=vals[vals.length-1],front=[],mid=[],heavy=[];info.forEach(function(x){if(x.handi===min)add(front,x.h);else if(x.handi===max)add(heavy,x.h);else add(mid,x.h);});return{front:front,mid:mid,heavy:heavy,desc:'前 '+joinCars(front)+' / 中 '+joinCars(mid)+' / 重 '+joinCars(heavy)};}
-function partnerRowFor(car,pairs){var out=[];sortOdds(pairs).forEach(function(p){if(containsPair(p,car))add(out,otherInPair(p,car));});return out;}
-function wideCountRow(data){var counts={},best={};sortOdds(data.wide).slice(0,20).forEach(function(p,i){[p.a,p.b].forEach(function(h){counts[h]=(counts[h]||0)+1;if(best[h]===undefined)best[h]=i+1;});});return Object.keys(counts).sort(function(a,b){if(counts[b]!==counts[a])return counts[b]-counts[a];return (best[a]||99)-(best[b]||99);});}
-function wallZones(ctx){var fav=ctx.fav1,row=[],items=[];sortOdds(ctx.data.nisha).forEach(function(p){if(containsPair(p,fav))items.push({h:otherInPair(p,fav),od:p.od,key:p.key});});items.forEach(function(x){add(row,x.h);});var walls=[];for(var i=0;i<items.length-1;i++){var r=safeNum(items[i+1].od)/safeNum(items[i].od);if(r>=1.8)walls.push({idx:i,from:items[i],to:items[i+1],ratio:r});}var line=[],w1=[],w2=[],cut=[];if(!items.length)return{base:fav,line:[],w1:[],w2:[],cut:[],walls:[]};if(!walls.length){line=row.slice(0,4);w1=row.slice(4,6);w2=row.slice(6,8);cut=row.slice(8);}else{var a=walls[0].idx+1,b=walls[1]?walls[1].idx+1:Math.min(a+1,row.length),c=walls[2]?walls[2].idx+1:Math.min(b+2,row.length);line=row.slice(0,a);w1=row.slice(a,b);w2=row.slice(b,c);cut=row.slice(c);}return{base:fav,line:line,w1:w1,w2:w2,cut:cut,walls:walls,items:items};}
-function makeContext(data){var tanRank=sortOdds(data.tan),nishaRank=sortOdds(data.nisha),wideRank=sortOdds(data.wide),sanRank=sortOdds(data.san);var tanRow=tanRank.map(function(x){return x.h;}),nishaRow=pairRow(data.nisha),wideRow=pairRow(data.wide),sanRow=triRow(data.san);var fav1=tanRank[0]?tanRank[0].h:null,fav2=tanRank[1]?tanRank[1].h:null;var ctx={data:data,tanRank:tanRank,nishaRank:nishaRank,wideRank:wideRank,sanRank:sanRank,tanRow:tanRow,nishaRow:nishaRow,wideRow:wideRow,sanRow:sanRow,fav1:fav1,fav2:fav2,tanM:mid(tanRow),nishaM:mid(nishaRow),wideM:mid(wideRow),sanM:mid(sanRow),handi:makeHandiGroups(data)};ctx.pseudoA=partnerRowFor(fav1,data.nisha);ctx.pseudoB=partnerRowFor(fav2,data.nisha);ctx.pseudoC=wideCountRow(data);ctx.pseudoAM=mid(ctx.pseudoA);ctx.pseudoBM=mid(ctx.pseudoB);ctx.pseudoCM=mid(ctx.pseudoC);ctx.wall=wallZones(ctx);return ctx;}
-function pairOdd(list,a,b){var k=pairKey(a,b);for(var i=0;i<(list||[]).length;i++){if(list[i].key===k)return list[i].od;}return null;}
-function pairRank(list,a,b){var k=pairKey(a,b),s=sortOdds(list||[]);for(var i=0;i<s.length;i++){if(s[i].key===k)return i+1;}return 999;}
-function triOdd(ctx,key){var t=findTri(ctx.sanRank,key);return t?t.od:null;}
-function hasCar(arr,h){return (arr||[]).indexOf(String(h))>=0;}
-function isPseudoMedian(ctx,h){return hasCar(ctx.pseudoAM,h)||hasCar(ctx.pseudoBM,h)||hasCar(ctx.pseudoCM,h);}
-function pseudoCount(ctx,h){var c=0;if(hasCar(ctx.pseudoAM,h))c++;if(hasCar(ctx.pseudoBM,h))c++;if(hasCar(ctx.pseudoCM,h))c++;return c;}
-function medianCount(ctx,h){var c=0;if(hasCar(ctx.tanM,h))c++;if(hasCar(ctx.nishaM,h))c++;if(hasCar(ctx.wideM,h))c++;if(hasCar(ctx.sanM,h))c++;if(isPseudoMedian(ctx,h))c++;return c;}
-function isAnyMedian(ctx,h){return medianCount(ctx,h)>0;}
-function scoreAll(ctx){var all=[];ctx.tanRow.forEach(function(h){add(all,h);});ctx.nishaRow.forEach(function(h){add(all,h);});ctx.wideRow.forEach(function(h){add(all,h);});ctx.sanRow.forEach(function(h){add(all,h);});var out=[];all.forEach(function(h){var score=0,re=[];function hit(arr,pt,txt){if(hasCar(arr,h)){score+=pt;re.push(txt);}}hit(ctx.tanM,10,'単勝メジアン');hit(ctx.nishaM,11,'2車複メジアン');hit(ctx.wideM,10,'ワイドメジアン');hit(ctx.sanM,10,'3連系メジアン');hit(ctx.pseudoAM,9,'擬似複勝Aメジアン');hit(ctx.pseudoBM,9,'擬似複勝Bメジアン');hit(ctx.pseudoCM,8,'擬似複勝Cメジアン');hit(ctx.wall.line,8,'2複基準本線');hit(ctx.wall.w1,8,'第1壁後');hit(ctx.wall.w2,6,'第2壁後');if(hasCar(ctx.handi.front,h)){score+=8;re.push('前ハンデ候補');}if(hasCar(ctx.handi.heavy,h)){score+=5;re.push('重ハンデ候補');}if(h===ctx.fav1){score+=8;re.push('単勝1人気');}if(h===ctx.fav2){score+=8;re.push('単勝2人気');}var topS=countTop(ctx.sanRank,h,10),topW=countTop(ctx.wideRank,h,12),topN=countTop(ctx.nishaRank,h,10);if(topS>=2){score+=8;re.push('3連系上位出現'+topS+'回');}if(topW>=2){score+=7;re.push('ワイド上位出現'+topW+'回');}if(topN>=2){score+=6;re.push('2車複上位出現'+topN+'回');}var od=safeNum(getTan(ctx.data,h));if(od>=5&&od<=25&&score>=38){score+=8;re.push('単勝100円保険候補');}if(od>40&&pairRank(ctx.nishaRank,ctx.fav1,h)<=2){score+=22;re.push('V24.16単勝40倍超でも本命2車複2位以内で格上げ');}else if(od>40&&score<50){score-=5;re.push('単勝40倍超は3着穴寄り');}out.push({h:h,score:Math.round(score),tan:od,reason:re,sanBest:bestRank(ctx.sanRank,h,12)});});out.sort(function(a,b){if(b.score!==a.score)return b.score-a.score;return safeNum(a.tan)-safeNum(b.tan);});return out;}
-function makeDiag(ctx){var fav=safeNum(ctx.tanRank[0]?ctx.tanRank[0].od:null),top2=safeNum(ctx.tanRank[1]?ctx.tanRank[1].od:null);var surface='判定不可',risk=0,back='通常';if(fav<=1.8){surface='本命戦';risk+=1;}else if(fav<=3){surface='中荒れ戦';risk+=2;}else{surface='荒れ戦';risk+=3;}if(top2/fav>=3){risk+=2;back='本命頭飛び警戒';}if(ctx.wall.w1.length>=2){risk+=1;if(back==='通常')back='本命残し＋第1壁後混入';}var noFavTri=ctx.sanRank.filter(function(t){return t.a!==ctx.fav1&&t.b!==ctx.fav1&&t.c!==ctx.fav1;})[0]||null;if(noFavTri&&safeNum(noFavTri.od)<=25){risk+=1;back='本命頭飛び警戒';}return{surface:surface,risk:risk,back:back,noFavTri:noFavTri};}
-function makeProtections(ctx,score){var p=[];var top=score[0]?score[0].h:null;ctx.sanRank.forEach(function(t){if(top&&(t.a===top||t.b===top||t.c===top)&&safeNum(t.od)<=25)addT(p,t.a,t.b,t.c);});ctx.handi.front.forEach(function(fh){addT(p,ctx.fav1,ctx.fav2,fh);});ctx.wall.line.forEach(function(lh){ctx.handi.front.forEach(function(fh){addT(p,ctx.fav1,lh,fh);});});var hs=ctx.handi.heavy.map(Number).sort(function(a,b){return a-b;});for(var i=0;i<hs.length-2;i++){if(hs[i+2]-hs[i]===2)addT(p,String(hs[i]),String(hs[i+1]),String(hs[i+2]));}ctx.wall.line.forEach(function(h){addT(p,ctx.fav1,h,top);});return uniq(p).slice(0,20);}
-function makeTickets(ctx,score,prot){var wide=[],nisha=[],main=[],hole=[],bomb=[];function addBoth(a,b){addP(wide,a,b);addP(nisha,a,b);}ctx.sanRank.slice(0,7).forEach(function(t){addT(main,t.a,t.b,t.c);});prot.slice(0,7).forEach(function(k){var a=k.split('-');addT(main,a[0],a[1],a[2]);});prot.slice(7,15).forEach(function(k){var a=k.split('-');addT(hole,a[0],a[1],a[2]);});score.slice(0,6).forEach(function(x){addBoth(ctx.fav1,x.h);addBoth(ctx.fav2,x.h);});return{wide:uniq(wide).slice(0,10),nisha:uniq(nisha).slice(0,10),main:uniq(main).slice(0,12),hole:uniq(hole).slice(0,12),bomb:uniq(bomb).slice(0,12)};}
-function reasonText(x){return (x&&x.reason)?x.reason.join(' '):'';}function reasonHas(x,w){return reasonText(x).indexOf(w)>=0;}function ultraFav(ctx){return ctx.fav1&&safeNum(ctx.tanRank[0]?ctx.tanRank[0].od:null,999)<=1.2;}function scoreObj(score,h){h=String(h);for(var i=0;i<score.length;i++){if(score[i].h===h)return score[i];}return{h:h,score:0,tan:safeNum(getTan({tan:[]},h)),reason:[]};}
-function completeTan1000(ctx,score,diag){var A=score[0];if(!A)return null;var h=A.h,od=safeNum(A.tan);if(h===ctx.fav1)return null;if(A.score<70)return null;if(od<6||od>18)return null;if(diag.back.indexOf('本命頭飛び警戒')<0)return null;if(!reasonHas(A,'単勝メジアン'))return null;if(!reasonHas(A,'2車複メジアン'))return null;if(!reasonHas(A,'擬似複勝'))return null;if(!reasonHas(A,'2複基準本線'))return null;if(!reasonHas(A,'前ハンデ候補'))return null;return A;}
-
-// ===== V24.17 川口1R 4-8-5対応：前位置対抗頭昇格＋中穴頭過大評価カット =====
-function infoObj(ctx,h){h=String(h);for(var i=0;i<(ctx.data.info||[]).length;i++){if(ctx.data.info[i].h===h)return ctx.data.info[i];}return null;}
-function tanRankNo(ctx,h){h=String(h);for(var i=0;i<ctx.tanRank.length;i++){if(ctx.tanRank[i].h===h)return i+1;}return 999;}
-function isAheadOf(ctx,h,target){var a=infoObj(ctx,h),b=infoObj(ctx,target);if(!a||!b)return false;return safeNum(a.handi,999)<safeNum(b.handi,999);}
-function isGoodTrialSameGroup(ctx,h){var o=infoObj(ctx,h);if(!o||o.test===null||o.test===undefined)return false;var same=(ctx.data.info||[]).filter(function(x){return x.test!==null&&x.test!==undefined&&safeNum(x.handi)===safeNum(o.handi);});if(!same.length)return false;var mn=9999;same.forEach(function(x){mn=Math.min(mn,safeNum(x.test,9999));});return safeNum(o.test,9999)<=mn+0.03;}
-function isFastTrialHole(ctx,h){var o=infoObj(ctx,h);if(!o||o.test===null||o.test===undefined)return false;var mn=9999;(ctx.data.info||[]).forEach(function(x){if(x.test!==null&&x.test!==undefined)mn=Math.min(mn,safeNum(x.test,9999));});return safeNum(o.test,9999)<=mn+0.03;}
-function isMedianHeadOverValue(ctx,x){var h=String(x.h);if(h===ctx.fav1)return false;if(medianCount(ctx,h)<3)return false;var pr=pairRank(ctx.nishaRank,ctx.fav1,h);var wr=pairRank(ctx.wideRank,ctx.fav1,h);if(pr<=2)return false;if(wr<=2)return false;if(isAheadOf(ctx,h,ctx.fav1))return false;if(isGoodTrialSameGroup(ctx,h))return false;return true;}
-function findFrontRivalHead(ctx,score){var favOd=safeNum(ctx.tanRank[0]?ctx.tanRank[0].od:null,999);if(favOd>2.5)return null;var arr=[];score.forEach(function(x){var h=String(x.h);if(h===ctx.fav1)return;var tr=tanRankNo(ctx,h);if(tr<2||tr>4)return;if(!isAheadOf(ctx,h,ctx.fav1))return;var pr=pairRank(ctx.nishaRank,ctx.fav1,h);if(pr>2)return;var wc=countTop(ctx.wideRank,h,12);if(wc<2)return;var sr=bestRank(ctx.sanRank,h,5);if(sr>5)return;var trial=isGoodTrialSameGroup(ctx,h);if(pr>1&&!trial)return;var s=100;s+=x.score;s+=(3-pr)*22;s+=wc*4;s+=(6-sr)*8;if(trial)s+=24;arr.push({h:h,score:s,base:x,reason:['前位置対抗','単勝'+tr+'人気','本命との2車複'+pr+'位','ワイド上位出現'+wc+'回','3連系上位'+sr+'位以内',trial?'同ハンデ試走優秀':''].filter(Boolean)});});arr.sort(function(a,b){return b.score-a.score;});return arr[0]||null;}
-function thirdFromTriNeed(t,need){if(!t)return null;need=(need||[]).map(String);var cars=[t.a,t.b,t.c];for(var i=0;i<cars.length;i++){if(need.indexOf(cars[i])<0)return cars[i];}return null;}
-function bestTriWithNeed(ctx,need,avoidThirds){need=(need||[]).map(String);avoidThirds=(avoidThirds||[]).map(String);for(var i=0;i<ctx.sanRank.length;i++){var t=ctx.sanRank[i];var cars=[t.a,t.b,t.c];var ok=true;need.forEach(function(h){if(cars.indexOf(h)<0)ok=false;});if(!ok)continue;var th=thirdFromTriNeed(t,need);if(th&&avoidThirds.indexOf(th)>=0)continue;return t;}return null;}
-function findTrialHoleForHead(ctx,score,head){var arr=[];score.forEach(function(x){var h=String(x.h);if(h===ctx.fav1||h===String(head))return;var od=safeNum(x.tan,999);if(od<4||od>35)return;if(!isFastTrialHole(ctx,h))return;if(countTop(ctx.sanRank,h,12)<2)return;var s=x.score;s+=30;s+=countTop(ctx.sanRank,h,12)*4;s+=countTop(ctx.wideRank,h,12)*3;arr.push({h:h,score:s,base:x,reason:['試走最速級','3連系上位出現'+countTop(ctx.sanRank,h,12)+'回','3着穴保護']});});arr.sort(function(a,b){return b.score-a.score;});return arr[0]||null;}
-
-function findUltraLongPair(ctx,score){if(!ultraFav(ctx))return null;var arr=[];score.forEach(function(x){var h=x.h,od=safeNum(x.tan);if(h===ctx.fav1)return;var pr=pairRank(ctx.nishaRank,ctx.fav1,h);if(od>=40&&pr<=2){var s=80-pr*10+x.score;if(hasCar(ctx.wall.line,h))s+=20;if(countTop(ctx.sanRank,h,12)>=2)s+=10;arr.push({h:h,score:s,rank:pr,tan:od,reason:x.reason});}});arr.sort(function(a,b){return b.score-a.score;});return arr[0]||null;}
-function isWinHole(ctx,x){var h=x.h,od=safeNum(x.tan);if(h===ctx.fav1)return false;if(isMedianHeadOverValue(ctx,x))return false;return od>=4&&od<=30&&x.score>=42&&hasCar(ctx.tanM,h)&&(hasCar(ctx.nishaM,h)||hasCar(ctx.wall.line,h))&&(hasCar(ctx.wideM,h)||isPseudoMedian(ctx,h));}
-function isPlaceHole(ctx,x){var h=x.h,od=safeNum(x.tan),core=0;if(h===ctx.fav1)return false;if(hasCar(ctx.wideM,h))core+=2;if(isPseudoMedian(ctx,h))core+=2;if(hasCar(ctx.wall.w1,h)||hasCar(ctx.wall.w2,h))core++;if(countTop(ctx.sanRank,h,12)>=2)core++;if(countTop(ctx.wideRank,h,12)>=2)core++;return od>=12&&((x.score>=45&&core>=4)||(od>=25&&x.score>=35&&hasCar(ctx.wall.line,h)&&countTop(ctx.sanRank,h,12)>=2));}
-function bestPartner(ctx,score,used,preferTanMed){used=(used||[]).map(String);var pool=uniq([].concat(ctx.wall.line,ctx.wall.w1,ctx.sanM,ctx.nishaM,ctx.wideM,score.map(function(x){return x.h;})));var arr=[];pool.forEach(function(h){h=String(h);if(!h||used.indexOf(h)>=0)return;var so=scoreObj(score,h),s=Math.round(so.score/3),why=[];var pr=pairRank(ctx.nishaRank,ctx.fav1,h);if(pr===1){s+=32;why.push('本命との2車複1位');}else if(pr===2){s+=28;why.push('本命との2車複2位');}else if(pr<=4){s+=18;why.push('本命との2車複上位');}if(hasCar(ctx.wall.line,h)){s+=18;why.push('2複基準本線');}if(hasCar(ctx.tanM,h)){s+=28;why.push('単勝メジアン');}if(hasCar(ctx.nishaM,h)){s+=16;why.push('2車複メジアン');}if(hasCar(ctx.wideM,h)){s+=16;why.push('ワイドメジアン');}if(hasCar(ctx.sanM,h)){s+=18;why.push('3連系メジアン');}if(isPseudoMedian(ctx,h)){s+=12;why.push('擬似複勝メジアン');}if(hasCar(ctx.handi.front,h)){s+=10;why.push('前ハンデ');}if(hasCar(ctx.handi.heavy,h)){s+=6;why.push('重ハンデ');}if(preferTanMed&&!hasCar(ctx.tanM,h))s-=8;arr.push({h:h,score:s,why:why});});arr.sort(function(a,b){return b.score-a.score;});return arr[0]||null;}
-function triScore(ctx,score,key){var a=key.split('-'),sc=0,why=[];var od=triOdd(ctx,key);if(od!==null){if(od>=4&&od<=25){sc+=16;why.push('配当効率');}else if(od<=60){sc+=8;why.push('中穴');}}if(a.indexOf(ctx.fav1)>=0){sc+=10;why.push('本命残り');}if(a.indexOf(ctx.fav2)>=0){sc+=9;why.push('単勝2人気');}var med=0;a.forEach(function(h){if(isAnyMedian(ctx,h))med++;});sc+=med*7;if(med>=2)why.push('メジアン複数');var sum=0;a.forEach(function(h){sum+=scoreObj(score,h).score;});sc+=Math.round(sum/8);return{key:key,score:sc,od:od,why:why};}
-function pickTriFinal(ctx,score,tickets,limit){var pool=uniq([].concat(tickets.main,tickets.hole,tickets.bomb,ctx.sanRank.slice(0,12).map(function(t){return t.key;})));var arr=pool.map(function(k){return triScore(ctx,score,k);}).sort(function(a,b){if(b.score!==a.score)return b.score-a.score;return safeNum(a.od)-safeNum(b.od);});return arr.slice(0,limit||3);}
-function addLine(plan,kind,key,stake,od,reason){if(!key)return;for(var i=0;i<plan.lines.length;i++){if(plan.lines[i].kind===kind&&plan.lines[i].key===key)return;}plan.lines.push({kind:kind,key:key,stake:stake,od:od,reason:reason||''});}
-function makeFinalPlan(ctx,score,diag,tickets){var plan={type:'通常少点数型',lines:[],skip:[],memo:[],rawTri:pickTriFinal(ctx,score,tickets,3)};var tan1000=completeTan1000(ctx,score,diag);if(tan1000){plan.type='💴単勝1000円勝負型 V24.17';plan.memo.push('単勝回収型SS＋候補1位＋単勝/2車複/擬似複勝メジアン＋2複基準本線＋前ハンデ。');plan.memo.push('この形だけ単勝1000円。ワイド・3連複に散らさない。');addLine(plan,'単勝',tan1000.h,1000,tan1000.tan,tan1000.reason.slice(0,7).join('・'));plan.skip.push('ワイド/3連複：完全形なので買わない');return plan;}var win=score.filter(function(x){return isWinHole(ctx,x);});var place=score.filter(function(x){return isPlaceHole(ctx,x);});if(ultraFav(ctx)){var longHole=findUltraLongPair(ctx,score);if(longHole){var B=bestPartner(ctx,score,[ctx.fav1,longHole.h],true);plan.type='🕳️本命2車複上位穴格上げ型 V24.17';plan.memo.push('単勝40倍超でも、本命との2車複が2位以内なら3連複相手に格上げ。');if(B){var k=triKey(ctx.fav1,longHole.h,B.h);addLine(plan,'3連複',k,700,triOdd(ctx,k),'超本命＋2車複上位穴＋'+B.why.slice(0,3).join('・'));}var C=bestPartner(ctx,score,[ctx.fav1,longHole.h,B?B.h:null],false);if(C){var k2=triKey(ctx.fav1,longHole.h,C.h);addLine(plan,'3連複',k2,300,triOdd(ctx,k2),'超本命＋2車複上位穴＋第2相棒');}plan.skip.push('穴単勝：単勝40倍超なので単勝では買わない');return plan;}if(win.length){var A=win[0],P=bestPartner(ctx,score,[ctx.fav1,A.h],false);plan.type='🛡️単勝1.0級本命保護型 V24.17';plan.memo.push('単勝1.0級本命がいる時は、穴を頭固定しすぎず三連複で保護。');if(P){var k3=triKey(ctx.fav1,A.h,P.h);addLine(plan,'3連複',k3,700,triOdd(ctx,k3),'超本命＋穴候補＋2複基準本線');}var P2=bestPartner(ctx,score,[ctx.fav1,A.h,P?P.h:null],false);if(P2){var k4=triKey(ctx.fav1,A.h,P2.h);addLine(plan,'3連複',k4,300,triOdd(ctx,k4),'超本命＋穴候補＋第2相棒');}plan.skip.push('穴の単勝厚張り：単勝1.0級本命がいるためカット');return plan;}if(place.length){place.sort(function(a,b){return b.score-a.score;});var H=place[0],B1=bestPartner(ctx,score,[ctx.fav1,H.h],false),B2=bestPartner(ctx,score,[ctx.fav1,H.h,B1?B1.h:null],false);plan.type='🧱3連複厚張り型 V24.17';plan.memo.push('単勝1.0級本命＋候補1位穴核。穴の単勝ではなく3連複1〜2点厚張り。');if(B1){var k5=triKey(ctx.fav1,H.h,B1.h);addLine(plan,'3連複',k5,600,triOdd(ctx,k5),'超本命＋穴核＋相棒1');}if(B2){var k6=triKey(ctx.fav1,H.h,B2.h);addLine(plan,'3連複',k6,300,triOdd(ctx,k6),'超本命＋穴核＋相棒2');}if(B1)addLine(plan,'ワイド',pairKey(H.h,B1.h),100,pairOdd(ctx.wideRank,H.h,B1.h),'穴連れ相棒の確認');plan.skip.push('穴の単勝厚張り：頭より2〜3着寄り');return plan;}}
- // V24.17：前位置対抗・頭昇格補正
- var frontHead=findFrontRivalHead(ctx,score);
- if(frontHead){
-   plan.type='🔥前位置対抗・頭昇格型 V24.17';
-   plan.memo.push('川口1R型：強い1人気が後ろハンデ。本命より前位置の対抗が2車複・ワイド・3連系で強い場合は頭候補へ昇格。');
-   plan.memo.push('メジアン一致の中穴は単勝ではなく3連複保護へ回す。試走最速級の穴は3着穴で保護。');
-   addLine(plan,'単勝',frontHead.h,300,frontHead.base.tan,frontHead.reason.join('・'));
-   var avoid=[];
-   var t1=bestTriWithNeed(ctx,[ctx.fav1,frontHead.h],avoid);
-   if(t1){addLine(plan,'3連複',t1.key,300,t1.od,'強本命＋前位置対抗＋3連系上位');var th1=thirdFromTriNeed(t1,[ctx.fav1,frontHead.h]);if(th1)avoid.push(th1);}
-   var t2=bestTriWithNeed(ctx,[ctx.fav1,frontHead.h],avoid);
-   if(t2){addLine(plan,'3連複',t2.key,200,t2.od,'強本命＋前位置対抗＋第2本線');var th2=thirdFromTriNeed(t2,[ctx.fav1,frontHead.h]);if(th2)avoid.push(th2);}
-   var trialHole=findTrialHoleForHead(ctx,score,frontHead.h);
-   if(trialHole){var hk=triKey(ctx.fav1,frontHead.h,trialHole.h);addLine(plan,'3連複',hk,200,triOdd(ctx,hk),'試走最速級3着穴保護');}
-   plan.skip.push('メジアン一致だけの中穴単勝：頭過大評価カット');
-   return plan;
- }
- if(win.length){var W=win[0],B=bestPartner(ctx,score,[W.h],false);plan.type='🔥単勝回収型S V24.17';plan.memo.push('1着あり。ただし完全形ではないため単勝1000円にはしない。');addLine(plan,'単勝',W.h,400,W.tan,W.reason.slice(0,6).join('・'));if(B)addLine(plan,'ワイド',pairKey(W.h,B.h),300,pairOdd(ctx.wideRank,W.h,B.h),'穴連れ相棒');if(B){var k=triKey(ctx.fav1,W.h,B.h);addLine(plan,'3連複',k,300,triOdd(ctx,k),'本命残り保護');}return plan;}
- var raw=pickTriFinal(ctx,score,tickets,8);var stakes=diag.surface==='本命戦'?[600,300,100]:[500,300,200];plan.type=diag.surface==='本命戦'?'🟦通常3連複圧縮型 V24.17':'🟨中荒れ少点数型・見送り寄り V24.17';if(plan.type.indexOf('中荒れ')>=0){plan.memo.push('単勝厚張り条件なし＋軸割れ。基本は見送り優先。');}else{plan.memo.push('通常時は3連複を最大3点まで。');}raw.slice(0,3).forEach(function(t,i){addLine(plan,'3連複',t.key,stakes[i]||100,t.od,t.why.slice(0,4).join('・'));});plan.skip.push('3連単多点：点数増えすぎのためカット');return plan;}
-function tan100(score){return score.filter(function(x){return x.reason.join(' ').indexOf('単勝100円保険候補')>=0;}).slice(0,3);}function yen(n){return String(Math.round(n||0))+'円';}function lineReturn(line){var od=safeNum(line.od,null);return isFinite(od)?Math.round((line.stake||0)*od):null;}
-function renderFinalPlan(plan){var html='<div class="card finalBuy"><div class="title">🔥最終勝負タイプ V24.17</div><div class="badge">'+plan.type+'</div><br>';if(plan.memo&&plan.memo.length)html+='<div class="small">'+plan.memo.join('<br>')+'</div><hr>';if(!plan.lines.length)html+='最終買い目なし';else{var total=0;html+='<pre>';plan.lines.forEach(function(l){total+=l.stake||0;var ret=lineReturn(l);html+=l.kind+'　'+l.key+'　'+yen(l.stake);if(l.od!==null&&l.od!==undefined)html+='　オッズ'+l.od;if(ret!==null)html+='　想定戻り'+yen(ret);if(l.reason)html+='\n  └ '+l.reason;html+='\n';});html+='\n合計　'+yen(total)+'\n</pre>';}if(plan.skip&&plan.skip.length)html+='<hr><div class="small"><b>見送り/カット</b><br>'+plan.skip.join('<br>')+'</div>';html+='</div>';return html;}
-function renderTop(data,ctx){return '<div class="card"><div class="title">'+data.title+'</div>単勝1人気：<span class="yellow">'+(ctx.tanRank[0]?ctx.tanRank[0].h+'号車 '+ctx.tanRank[0].od:'なし')+'</span><br>単勝2人気：<span class="yellow">'+(ctx.tanRank[1]?ctx.tanRank[1].h+'号車 '+ctx.tanRank[1].od:'なし')+'</span><br>'+ctx.handi.desc+'</div>';}
-function renderDiag(diag,ctx,prot){var html='<div class="card '+(diag.risk>=4?'diagWarn':'diag')+'"><div class="title">🩺オート荒れ診断</div>';html+='表面：<span class="yellow">'+diag.surface+'</span><br>裏診断：<span class="orange">'+diag.back+'</span><br>荒れ警戒スコア：<span class="yellow">'+diag.risk+'</span><br>';if(diag.noFavTri)html+='本命なし3連系：'+diag.noFavTri.key+' '+diag.noFavTri.od+'倍<br>';html+='<hr>V24.17保護：<br><pre>'+((prot.length?prot.join('\n'):'なし'))+'</pre></div>';return html;}
-function renderWall(ctx){var html='<div class="card"><div class="title">🧱2複基準壁ゾーン</div>';html+='基準：'+ctx.wall.base+'号車<br>本線：<span class="yellow">'+joinCars(ctx.wall.line)+'</span><br>第1壁後：<span class="orange">'+joinCars(ctx.wall.w1)+'</span><br>第2壁後：<span class="red">'+joinCars(ctx.wall.w2)+'</span><br>切り：'+joinCars(ctx.wall.cut)+'<hr>オッズの壁：<br>';if(!ctx.wall.walls.length)html+='壁なし';else ctx.wall.walls.forEach(function(w){html+='🔥壁 '+w.from.h+'→'+w.to.h+' / '+w.from.od+'→'+w.to.od+' / 倍率'+w.ratio.toFixed(2)+'<br>';});html+='</div>';return html;}
-function renderPseudo(ctx){var html='<div class="card"><div class="title">🧪擬似複勝・メジアン</div><pre>';html+='擬似複勝A：単勝1人気 '+ctx.fav1+'号車から\n'+joinCars(ctx.pseudoA)+'\nAメジアン：'+joinCars(ctx.pseudoAM)+'\n\n';html+='擬似複勝B：単勝2人気 '+ctx.fav2+'号車から\n'+joinCars(ctx.pseudoB)+'\nBメジアン：'+joinCars(ctx.pseudoBM)+'\n\n';html+='擬似複勝C：ワイド出現回数\n'+joinCars(ctx.pseudoC)+'\nCメジアン：'+joinCars(ctx.pseudoCM)+'\n\n';html+='メジアン\n単勝：'+joinCars(ctx.tanM)+'\n2車複：'+joinCars(ctx.nishaM)+'\nワイド：'+joinCars(ctx.wideM)+'\n3連系：'+joinCars(ctx.sanM);html+='</pre></div>';return html;}
-function renderRank(score){var html='<div class="card switch"><div class="title">📚V24.17検証候補</div>';score.slice(0,8).forEach(function(x,i){html+='<div class="rankLine"><span class="badge">'+(i+1)+'位 '+x.h+'号車【'+x.score+'】</span> 単'+(isFinite(x.tan)?x.tan:'-')+' <span class="small">'+x.reason.slice(0,10).join('・')+'</span></div>';});html+='</div>';return html;}
-function renderTan100(list){var html='<div class="card tan100"><div class="title">💴単勝候補・厚張りチェック</div>';if(!list.length)html+='なし';else list.forEach(function(x){html+='<div class="rankLine"><span class="badge">'+x.h+'号車</span> 単'+x.tan+' <span class="small">'+x.reason.slice(0,8).join('・')+'</span></div>';});html+='<hr><span class="small">V24.17：完全形だけ単勝1000円。それ以外は単勝400円以下または3連複厚張りへ分岐。</span></div>';return html;}
-function renderHonRow(label,row,med,marks,max){var arr=row.slice();while(arr.length<max)arr.push('');var html='<div class="honRow"><div class="honLabel">'+label+'</div>';for(var i=0;i<max;i++){var h=arr[i],cls='honNum';if(!h)cls+=' honEmpty';else if(hasCar(marks.fav,h))cls+=' favc';else if(hasCar(marks.w1,h))cls+=' wall1';else if(hasCar(marks.w2,h))cls+=' wall2';else if(hasCar(med,h))cls+=' honMed';html+='<span class="'+cls+'">'+(h||'')+'</span>';if(i<max-1)html+='<span class="bar"></span>';}return html+'</div>';}
-function renderHonpyo(ctx){var rows=[{l:'単勝',r:ctx.tanRow,m:ctx.tanM},{l:'2車複',r:ctx.nishaRow,m:ctx.nishaM},{l:'ワイド',r:ctx.wideRow,m:ctx.wideM},{l:'3連系',r:ctx.sanRow,m:ctx.sanM}],max=0;rows.forEach(function(x){if(x.r.length>max)max=x.r.length;});var marks={fav:[ctx.fav1,ctx.fav2],w1:ctx.wall.w1,w2:ctx.wall.w2};var html='<div class="card"><div class="title">本表・壁色つき</div><div class="small">青=単勝1/2人気 黄=第1壁後 橙=第2壁後 赤=メジアン</div><div class="honWrap">';rows.forEach(function(x){html+=renderHonRow(x.l,x.r,x.m,marks,max);});html+='</div></div>';return html;}
-function renderBuy(t){var html='<div class="card buy"><div class="title">🎯検証用候補 V24.17</div><pre>';html+='ワイド候補\n'+(t.wide.length?t.wide.join('\n'):'なし')+'\n\n2車複候補\n'+(t.nisha.length?t.nisha.join('\n'):'なし')+'\n\n3連系・本線候補\n'+(t.main.length?t.main.join('\n'):'なし')+'\n\n3連系・穴本線候補\n'+(t.hole.length?t.hole.join('\n'):'なし')+'\n\n3連系・大荒れ保険候補\n'+(t.bomb.length?t.bomb.join('\n'):'なし')+'\n\n※実際に買うのは上の「最終勝負タイプ」だけ。';html+='</pre></div>';return html;}
-function makeCopy(title,ctx,diag,score,prot,t100,t,plan){var lines=[];lines.push(title);lines.push('オート擬似複勝テスト版 V24.17 前位置対抗頭昇格＋中穴頭過大評価カット');lines.push('');lines.push('🩺オート荒れ診断');lines.push('表面：'+diag.surface);lines.push('裏診断：'+diag.back);lines.push('荒れ警戒スコア：'+diag.risk);lines.push('ハンデ補正：'+ctx.handi.desc);lines.push('V24.17保護：'+(prot.length?prot.join(' / '):'なし'));lines.push('');lines.push('🔥最終勝負タイプ');lines.push(plan.type);(plan.memo||[]).forEach(function(m){lines.push(m);});lines.push('');lines.push('最終買い目');if(plan.lines&&plan.lines.length){var total=0;plan.lines.forEach(function(l){total+=l.stake||0;var ret=lineReturn(l);var row=l.kind+' '+l.key+' '+yen(l.stake);if(l.od!==null&&l.od!==undefined)row+=' オッズ'+l.od;if(ret!==null)row+=' 想定戻り'+yen(ret);if(l.reason)row+=' / '+l.reason;lines.push(row);});lines.push('合計 '+yen(total));}else lines.push('なし');if(plan.skip&&plan.skip.length){lines.push('');lines.push('見送り/カット');plan.skip.forEach(function(x){lines.push(x);});}lines.push('');lines.push('2複基準壁ゾーン');lines.push('基準：'+ctx.wall.base+'号車');lines.push('本線：'+joinCars(ctx.wall.line));lines.push('第1壁後：'+joinCars(ctx.wall.w1));lines.push('第2壁後：'+joinCars(ctx.wall.w2));lines.push('');lines.push('メジアン');lines.push('単勝：'+joinCars(ctx.tanM));lines.push('2車複：'+joinCars(ctx.nishaM));lines.push('ワイド：'+joinCars(ctx.wideM));lines.push('3連系：'+joinCars(ctx.sanM));lines.push('');lines.push('単勝候補');if(t100.length)t100.forEach(function(x){lines.push(x.h+' 単'+x.tan);});else lines.push('なし');lines.push('');lines.push('検証候補');score.slice(0,8).forEach(function(x,i){lines.push((i+1)+'位 '+x.h+'号車【'+x.score+'】 単'+(isFinite(x.tan)?x.tan:'-')+' '+x.reason.slice(0,9).join('・'));});return lines.join(String.fromCharCode(10));}
-function run(){try{var data=parseData(document.getElementById('input').value),out=document.getElementById('out');if(!data.tan.length){out.innerHTML='<div class="card err"><div class="title">入力不足</div>[TAN] が必要です。</div>';return;}var bad=validateCars(data);if(bad.length){out.innerHTML='<div class="card err"><div class="title">車番エラー</div><pre>'+bad.join('\n')+'</pre></div>';return;}var ctx=makeContext(data),score=scoreAll(ctx),diag=makeDiag(ctx),prot=makeProtections(ctx,score),t100=tan100(score),tickets=makeTickets(ctx,score,prot),plan=makeFinalPlan(ctx,score,diag,tickets);var html='';html+=renderTop(data,ctx)+renderDiag(diag,ctx,prot)+renderFinalPlan(plan)+renderWall(ctx)+renderPseudo(ctx)+renderTan100(t100)+renderRank(score)+renderHonpyo(ctx)+renderBuy(tickets);out.innerHTML=html;latestCopyText=makeCopy(data.title,ctx,diag,score,prot,t100,tickets,plan);}catch(e){document.getElementById('out').innerHTML='<div class="card err"><div class="title">エラー</div><pre>'+String(e&&e.message?e.message:e)+'</pre></div>';}}
-function clearAll(){document.getElementById('input').value='';document.getElementById('out').innerHTML='';latestCopyText='';}
-function copyResult(){if(!latestCopyText){alert('先に解析してください');return;}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(latestCopyText).then(function(){alert('結果をコピーしました');}).catch(function(){fallbackCopy(latestCopyText);});}else fallbackCopy(latestCopyText);}function fallbackCopy(text){var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('結果をコピーしました');}
-function sample(){document.getElementById('input').value='【川口1R】\n\n[HANDI]\n1 0 3.46 0.12 47.965\n2 0 3.45 0.19 49.579\n3 20 3.42 0.16 67.447\n4 20 3.39 0.14 79.059\n5 30 3.35 0.17 70.627\n6 30 3.40 0.15 68.498\n7 40 3.40 0.14 88.272\n8 40 3.36 0.14 104.064\n\n[TAN]\n8 1.9\n4 4.4\n3 6.5\n7 6.8\n5 8.9\n6 9.5\n2 10.2\n1 14.3\n\n[NISHA]\n4-8 3.8\n3-8 4.8\n7-8 5.1\n6-8 9.8\n3-7 10.6\n3-4 13.8\n5-8 15.6\n4-7 18.0\n2-3 23.5\n2-8 26.1\n1-3 33.6\n3-6 33.6\n2-7 39.2\n3-5 39.2\n1-2 47.0\n1-8 47.0\n4-6 47.0\n6-7 47.0\n2-5 58.8\n1-4 78.4\n\n[WIDE]\n3-4 2.6\n4-8 2.8\n3-8 3.2\n2-8 3.3\n5-8 3.3\n7-8 3.3\n6-8 3.9\n4-7 4.7\n3-7 6.0\n6-7 6.7\n4-6 8.4\n1-2 9.7\n2-6 9.7\n3-6 9.8\n1-8 11.0\n2-3 11.5\n2-4 11.4\n4-5 11.5\n2-7 14.3\n3-5 14.4\n\n[SANREN]\n3-4-8 4.9\n3-7-8 6.0\n4-7-8 7.8\n4-5-8 12.2\n4-6-8 12.6\n3-5-8 14.6\n2-4-8 15.6\n1-4-8 18.3\n3-6-8 18.8\n3-4-7 20.9\n6-7-8 21.5\n5-7-8 30.5\n2-3-8 33.3\n2-7-8 34.9\n3-6-7 43.1\n2-3-4 48.9\n1-3-8 52.4\n1-2-8 56.4\n5-6-8 61.1\n3-4-6 66.6';}
+function medianCars(list, kind){
+  if(!list.length)return [];
+  const mid=(list.length-1)/2; const idxs=Number.isInteger(mid)?[mid]:[Math.floor(mid),Math.ceil(mid)];
+  const set=new Set();
+  idxs.forEach(i=>{ const it=list[i]; if(!it)return; if(kind==='tansho')set.add(it.car); else it.cars.forEach(c=>set.add(c)); });
+  return [...set];
+}
+function freqTop(list, topN){const m={}; list.slice(0,topN).forEach(it=>it.cars.forEach(c=>m[c]=(m[c]||0)+1)); return m;}
+function rankCars(list, kind, topN=5){
+  if(kind==='tansho') return list.slice(0,topN).map(x=>x.car);
+  const f=freqTop(list, Math.min(topN,list.length));
+  return Object.entries(f).sort((a,b)=>b[1]-a[1] || Number(a[0])-Number(b[0])).map(([c])=>Number(c)).slice(0,topN);
+}
+function gapWalls(list, kind){
+  // returns wall after rank position. rankPos is 1-based after which wall appears
+  const odds=list.map(x=>x.odds); const walls=[];
+  for(let i=0;i<odds.length-1;i++){
+    const a=odds[i], b=odds[i+1]; if(!isFinite(a)||!isFinite(b))continue;
+    const diff=b-a, ratio=b/a;
+    let level=0;
+    if(ratio>=3.2 || diff>=80) level=4;
+    else if(ratio>=2.2 || diff>=35) level=3;
+    else if(ratio>=1.65 || diff>=16) level=2;
+    else if(ratio>=1.35 || diff>=7) level=1;
+    if(level) walls.push({pos:i+1,level,from:a,to:b,ratio,diff});
+  }
+  if(!walls.length && odds.length>=4){
+    // always show biggest natural gap as wall1 if meaningful
+    let best=null; for(let i=0;i<odds.length-1;i++){const a=odds[i],b=odds[i+1]; const score=(b/a)+(b-a)/10; if(!best||score>best.score)best={pos:i+1,level:1,from:a,to:b,ratio:b/a,diff:b-a,score};}
+    if(best && (best.ratio>=1.2||best.diff>=3)) walls.push(best);
+  }
+  return walls.sort((a,b)=>a.pos-b.pos);
+}
+function wallClass(pos,walls){ const w=walls.find(w=>w.pos===pos); return w?`wall${w.level}`:''; }
+function rankTable(rows,wallsByName){
+  const maxLen=Math.max(...Object.values(rows).map(r=>r.length)); let html='<div class="tableWrap"><table class="rankTable"><tr><th>本表</th>';
+  for(let i=1;i<=maxLen;i++) html+=`<th>${i}</th>`; html+='</tr>';
+  for(const [name,arr] of Object.entries(rows)){
+    html+=`<tr><th>${name}</th>`;
+    const walls=wallsByName[name]||[];
+    for(let i=0;i<maxLen;i++){
+      const cls=wallClass(i+1,walls); html+=`<td class="${cls}">${arr[i]?carSpan(arr[i]):''}</td>`;
+    }
+    html+='</tr>';
+  }
+  html+='</table></div>';return html;
+}
+function wallSummary(wallsByName){
+  const names=Object.keys(wallsByName); const posMap={};
+  names.forEach(n=>wallsByName[n].forEach(w=>{const k=w.pos; (posMap[k]||(posMap[k]=[])).push(n)}));
+  const common=Object.entries(posMap).filter(([p,ns])=>ns.length>=2).sort((a,b)=>b[1].length-a[1].length);
+  const positions=names.map(n=>wallsByName[n][0]?.pos||null).filter(x=>x!=null);
+  const unique=[...new Set(positions)];
+  const main=common[0];
+  let flags=[];
+  if(main && main[1].length>=3) flags.push({name:'共通壁ロック',txt:`${main[1].join('・')} が${main[0]}位後ろで壁。市場の合意が強い。`});
+  if(unique.length>=3) flags.push({name:'ズレ壁警報',txt:`壁位置が ${unique.join(' / ')} に分散。単勝評価と連系評価が割れている。`});
+  else if(unique.length===2) flags.push({name:'軽いズレ壁',txt:`壁位置が ${unique.join(' / ')} に分かれる。壁またぎ候補を確認。`});
+  return {common,flags};
+}
+function posIn(arr,car){const i=arr.indexOf(Number(car));return i>=0?i+1:999;}
+function analyze({race,data}){
+  const cars=[...new Set([...data.tansho.map(x=>x.car),...Object.keys(data.handicap).map(Number),...data.niren.flatMap(x=>x.cars),...data.wide.flatMap(x=>x.cars),...data.sanren.flatMap(x=>x.cars)])].sort((a,b)=>a-b);
+  const rows={
+    '単勝':rankCars(data.tansho,'tansho',Math.min(7,cars.length)),
+    '2車複':rankCars(data.niren,'niren',Math.min(7,cars.length)),
+    'ワイド':rankCars(data.wide,'wide',Math.min(7,cars.length)),
+    '3連系':rankCars(data.sanren,'sanren',Math.min(7,cars.length))
+  };
+  const wallsByName={
+    '単勝':gapWalls(data.tansho,'tansho'),
+    '2車複':gapWalls(data.niren,'niren'),
+    'ワイド':gapWalls(data.wide,'wide'),
+    '3連系':gapWalls(data.sanren,'sanren')
+  };
+  const med={
+    '単勝':medianCars(data.tansho,'tansho'),
+    '2車複':medianCars(data.niren,'niren'),
+    'ワイド':medianCars(data.wide,'wide'),
+    '3連系':medianCars(data.sanren,'sanren')
+  };
+  const topFreq={niren:freqTop(data.niren,10),wide:freqTop(data.wide,10),sanren:freqTop(data.sanren,20)};
+  const hvals=Object.values(data.handicap); const minTrial=Math.min(...hvals.map(x=>x.trial).filter(isFinite)); const minSt=Math.min(...hvals.map(x=>x.st).filter(isFinite)); const maxHan=Math.max(...hvals.map(x=>x.handicap).filter(isFinite));
+  const wallInfo=wallSummary(wallsByName);
+  const candidates=[];
+  for(const c of cars){
+    let score=0, notes=[];
+    const tan=data.tansho.find(x=>x.car===c); const odds=tan?.odds??999;
+    const medCount=Object.values(med).filter(a=>a.includes(c)).length;
+    if(medCount>=3){score+=35+medCount*8; notes.push(`メジアン祭り${medCount}表`)} else if(medCount){score+=medCount*8; notes.push(`${medCount}表メジアン`)}
+    const allRemain=Object.values(rows).every(r=>r.includes(c));
+    if(allRemain){score+=26; notes.push('全表残り')}
+    const posT=posIn(rows['単勝'],c), posN=posIn(rows['2車複'],c), posW=posIn(rows['ワイド'],c), posS=posIn(rows['3連系'],c);
+    const avgPos=[posT,posN,posW,posS].filter(x=>x<999).reduce((a,b)=>a+b,0)/[posT,posN,posW,posS].filter(x=>x<999).length;
+    if(posW<=3){score+=12; notes.push('ワイド上位')}
+    if(posS<=4){score+=10; notes.push('3連系上位')}
+    if(topFreq.sanren[c]>=5){score+=topFreq.sanren[c]*2; notes.push(`3連系上位出現${topFreq.sanren[c]}回`)}
+    if(topFreq.wide[c]>=4){score+=8; notes.push(`ワイド上位出現${topFreq.wide[c]}回`)}
+    if(topFreq.niren[c]>=4){score+=8; notes.push(`2車複上位出現${topFreq.niren[c]}回`)}
+    const hp=data.handicap[c];
+    if(hp){
+      if(isFinite(hp.trial)&&hp.trial<=minTrial+0.01){score+=16; notes.push('試走最上位級')}
+      else if(isFinite(hp.trial)&&hp.trial<=minTrial+0.03){score+=8; notes.push('試走上位')}
+      if(isFinite(hp.st)&&hp.st<=minSt+0.03){score+=10; notes.push('ST上位')}
+      if(isFinite(hp.handicap)&&hp.handicap===maxHan && maxHan>0){score+=5; notes.push('重ハンデ実力車')}
+    }
+    // wall crossing: outside single but inside relation tables
+    const tanWall=wallsByName['単勝'][0]?.pos||3; const relWall=Math.max(wallsByName['2車複'][0]?.pos||3,wallsByName['ワイド'][0]?.pos||3,wallsByName['3連系'][0]?.pos||3);
+    if(posT>tanWall && (posN<=relWall || posW<=relWall || posS<=relWall)){score+=20; notes.push('壁またぎ受け皿')}
+    if(posT<=tanWall && posN>relWall && posW>relWall && posS>relWall){score-=18; notes.push('単勝だけ過剰人気警戒')}
+    if(odds>=40 && (posW<=5||posS<=5)){score+=8; notes.push('単勝40倍超は3着穴寄り')}
+    if(odds<2 && score<45){notes.push('単勝1人気だが中身確認')}
+    candidates.push({car:c,score:Math.round(score),odds,notes,avgPos,posT,posN,posW,posS,hp});
+  }
+  candidates.sort((a,b)=>b.score-a.score || a.avgPos-b.avgPos || a.car-b.car);
+  const medianFestival=candidates.filter(x=>x.notes.some(n=>n.startsWith('メジアン祭り')));
+  const allTableStrong=candidates.filter(x=>x.notes.includes('全表残り') && (x.notes.includes('試走最上位級')||x.notes.includes('ST上位')||x.notes.includes('重ハンデ実力車')));
+  const wallCross=candidates.filter(x=>x.notes.includes('壁またぎ受け皿'));
+  const overPop=candidates.filter(x=>x.notes.includes('単勝だけ過剰人気警戒'));
+  const core=medianFestival[0]||candidates[0];
+  const receiver=allTableStrong.find(x=>x.car!==core.car)||wallCross.find(x=>x.car!==core.car)||candidates.find(x=>x.car!==core.car && x.score>=35);
+  const price=candidates.find(x=>x.car!==core.car && (!receiver||x.car!==receiver.car) && x.odds>=10 && x.score>=30)||candidates.find(x=>x.car!==core.car && (!receiver||x.car!==receiver.car));
+  const protect=[];
+  function addCombo(a,b,c,reason){if([a,b,c].every(Boolean)){const key=comboKey([a,b,c]); if(!protect.some(x=>x.key===key)) protect.push({key,reason,cars:key.split('-').map(Number)});}}
+  addCombo(core?.car,receiver?.car,price?.car,'メジアン祭り×全表残り実力受け皿×配当役');
+  if(core&&receiver){
+    const rel=[...candidates].filter(x=>x.car!==core.car&&x.car!==receiver.car).slice(0,4);
+    rel.forEach(x=>addCombo(core.car,receiver.car,x.car,'核×受け皿×候補上位'));
+  }
+  if(medianFestival[0]){
+    candidates.slice(1,6).forEach(a=>candidates.slice(1,6).forEach(b=>{if(a.car<b.car && (a.notes.includes('全表残り')||b.notes.includes('全表残り'))) addCombo(medianFestival[0].car,a.car,b.car,'メジアン祭り保護');}));
+  }
+  return {race,data,cars,rows,wallsByName,med,candidates,wallInfo,medianFestival,allTableStrong,wallCross,overPop,protect};
+}
+function oddsOfSanren(data,key){const it=data.sanren.find(x=>x.key===key); return it?it.odds:null;}
+function render(res){
+  const {race,data,candidates}=res; const t1=data.tansho[0]; const n1=data.niren[0]; const s1=data.sanren[0];
+  let html=`<div class="card"><h2>${race}</h2><div>単勝1人気：${t1?`${carSpan(t1.car)} ${t1.odds}倍`:'-'}<br>2車複1人気：${n1?`${n1.key} ${n1.odds}倍`:'-'}<br>3連系1人気：${s1?`${s1.key} ${s1.odds}倍`:'-'}</div></div>`;
+  const warnLevel=(t1?.odds||99)<2 && (n1?.odds||99)<3 ? '本命戦' : (n1?.odds||0)>10 ? '荒れ戦':'中荒れ戦';
+  html+=`<div class="card warn"><h2>🩺オート荒れ診断 V24.18</h2><div>表面：<b>${warnLevel}</b><br>裏診断：${res.wallInfo.flags.some(f=>f.name.includes('ズレ'))?'本命頭飛び警戒 / 壁ズレあり':'通常'}<br>壁判定：${res.wallInfo.flags.map(f=>`<span class="badge yellow">${f.name}</span>`).join('')||'<span class="badge blue">通常</span>'}</div></div>`;
+  html+=`<div class="card"><h2>本表・壁色つき</h2><div class="mini">青＝通常 / 黄＝第1壁 / 橙＝第2壁 / 桃＝急断層 / 赤＝特大壁</div>${rankTable(res.rows,res.wallsByName)}</div>`;
+  html+=`<div class="card orange"><h2>🧱壁位置判定 V24.18</h2>`;
+  for(const [name,walls] of Object.entries(res.wallsByName)){
+    html+=`<div><b>${name}</b>：${walls.length?walls.map(w=>`${w.pos}位後ろ ${w.from}→${w.to}`).join(' / '):'大きな壁なし'}</div>`;
+  }
+  if(res.wallInfo.flags.length){html+='<ul>'+res.wallInfo.flags.map(f=>`<li><b>${f.name}</b>：${f.txt}</li>`).join('')+'</ul>'}
+  html+='</div>';
+  html+=`<div class="card hot"><h2>🎆メジアン祭り・壁またぎ</h2>`;
+  const medLine=Object.entries(res.med).map(([k,v])=>`${k}：${v.map(carSpan).join(' ')||'-'}`).join('<br>');
+  html+=`<div>${medLine}</div>`;
+  if(res.medianFestival.length) html+=`<p><span class="badge pink">メジアン祭り</span> ${res.medianFestival.map(x=>carSpan(x.car)).join(' ')} は頭固定より車券内核。</p>`;
+  if(res.allTableStrong.length) html+=`<p><span class="badge green">全表残り実力受け皿</span> ${res.allTableStrong.map(x=>carSpan(x.car)).join(' ')} は候補順位が低くても削らない。</p>`;
+  if(res.wallCross.length) html+=`<p><span class="badge orange">壁またぎ受け皿</span> ${res.wallCross.map(x=>carSpan(x.car)).join(' ')} は単勝より連系で強い。</p>`;
+  if(res.overPop.length) html+=`<p><span class="badge red">上っ面過剰人気警戒</span> ${res.overPop.map(x=>carSpan(x.car)).join(' ')} は頭固定注意。</p>`;
+  html+='</div>';
+  html+=`<div class="card warn"><h2>🔥最終勝負タイプ</h2>`;
+  const festival=res.medianFestival[0];
+  if(festival) html+=`<div><b>メジアン祭り核保護型 V24.18</b><br>${carSpan(festival.car)} が複数メジアン。相手は人気順ではなく、全表残り・壁またぎ・配当役を優先。</div>`;
+  else html+=`<div><b>通常3連系圧縮型 V24.18</b><br>壁色と壁またぎを優先して削る。</div>`;
+  html+='</div>';
+  html+=`<div class="card"><h2>最終保護候補</h2>`;
+  if(res.protect.length){html+='<table class="smallTable"><tr><th>組み合わせ</th><th class="right">オッズ</th><th>理由</th></tr>';res.protect.slice(0,8).forEach(p=>{const o=oddsOfSanren(data,p.key);html+=`<tr><td>${p.cars.map(carSpan).join('-')}</td><td class="right">${o??'-'}</td><td>${p.reason}</td></tr>`}); html+='</table>'} else html+='<div>保護候補なし</div>';
+  html+='</div>';
+  html+=`<div class="card hot"><h2>検証候補ランキング</h2>`;
+  candidates.forEach((x,i)=>{html+=`<p><span class="badge ${i<3?'pink':'blue'}">${i+1}位 ${x.car}号車【${x.score}】</span> 単${x.odds} ${x.hp?` / H${x.hp.handicap} 試${x.hp.trial} ST${x.hp.st}`:''}<br>${x.notes.join('・')}</p>`});
+  html+='</div>';
+  const copy=`${race}\nオート擬似複勝テスト版 V24.18 壁色つき＋共通壁ロック＋ズレ壁警報＋壁またぎ受け皿\n\n`+
+    `メジアン祭り：${res.medianFestival.map(x=>x.car+'号車').join('・')||'なし'}\n`+
+    `全表残り実力受け皿：${res.allTableStrong.map(x=>x.car+'号車').join('・')||'なし'}\n`+
+    `壁またぎ受け皿：${res.wallCross.map(x=>x.car+'号車').join('・')||'なし'}\n`+
+    `保護：${res.protect.slice(0,6).map(p=>p.key).join(' / ')||'なし'}\n`;
+  html+=`<div class="card"><h2>コピペ用ミニ結果</h2><pre class="copybox">${copy}</pre></div>`;
+  return html;
+}
+function run(){try{const p=parseInput($('input').value); const res=analyze(p); $('out').innerHTML=render(res);}catch(e){$('out').innerHTML=`<div class="card hot"><h2>エラー</h2><pre>${e.stack||e}</pre></div>`}}
+function sample(){
+$('input').value=`【飯塚8R】\n[HANDICAP]\n1 0 0.21 3.43\n2 0 0.18 3.35\n3 10 0.16 3.35\n4 10 0.14 3.38\n5 20 0.24 3.38\n6 20 0.13 3.34\n7 20 0.20 3.34\n\n[TANSHO]\n2 1.2\n3 2.7\n6 8.1\n7 12.7\n4 22.5\n5 73.3\n1 87.9\n\n[NIREN]\n2-3 1.5\n2-6 4.2\n2-7 7.3\n2-4 8.7\n3-6 10.4\n3-7 22.2\n3-4 27.7\n6-7 31.6\n4-6 32.9\n4-7 80.6\n2-5 121.0\n1-7 141.1\n3-5 199.3\n5-6 199.3\n5-7 211.7\n1-2 260.6\n4-5 423.5\n1-3 484.1\n1-6 564.7\n1-4 1129\n\n[WIDE]\n2-6 1.4\n2-3 1.5\n2-7 2.0\n3-6 3.2\n2-4 3.6\n3-7 4.6\n3-4 6.0\n6-7 7.1\n4-7 8.5\n4-6 8.7\n2-5 23.4\n3-5 23.5\n4-5 24.6\n1-2 31.9\n5-6 32.2\n1-3 46.3\n5-7 56.9\n1-4 63.5\n1-7 72.9\n1-6 84.7\n\n[SANREN]\n2-3-6 2.5\n2-3-7 3.9\n2-3-4 4.3\n2-6-7 8.0\n2-4-6 11.6\n2-4-7 15.1\n3-6-7 20.3\n3-4-6 31.0\n2-3-5 38.7\n3-4-7 41.3\n1-2-3 62.8\n2-5-7 66.4\n4-6-7 71.0\n2-5-6 95.3\n2-4-5 115.7\n3-4-5 124.6\n3-5-6 128.6\n1-6-7 152.8\n5-6-7 168.7\n1-2-7 176.1`;
+}
 </script>
 </body>
 </html>
