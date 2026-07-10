@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>チャッピー競馬パターン研究所 V1</title>
+<title>チャッピー競馬パターン研究所 V1.1</title>
 <style>
 :root{
   --bg:#07101f;--card:#10224a;--card2:#08152d;--line:#35517a;--text:#fff;
@@ -46,7 +46,7 @@ th{color:var(--yellow);text-align:left;position:sticky;top:0;background:#10224a}
 </style>
 </head>
 <body>
-<h1>チャッピー競馬パターン研究所 V1<br>
+<h1>チャッピー競馬パターン研究所 V1.1<br>
 <span class="muted" style="font-size:16px">オッズの枠組み → 荒れ方 → 3着内馬の共通サインを自動集計</span></h1>
 
 <div class="notice">
@@ -134,7 +134,7 @@ function norm(s){return String(s||'').replace(/[０-９]/g,c=>String.fromCharCod
 function nums(line){const m=norm(line).match(/\d+(?:\.\d+)?/g);return m?m.map(Number):[]}
 function pairKey(a,b){return [String(a),String(b)].sort((x,y)=>Number(x)-Number(y)).join('-')}
 function triKey(a,b,c){return [String(a),String(b),String(c)].sort((x,y)=>Number(x)-Number(y)).join('-')}
-function uniq(a){return [...new Set((a||[]).map(String))}
+function uniq(a){return [...new Set((a||[]).map(String))]}
 function safe(x,d=9999){x=Number(x);return Number.isFinite(x)?x:d}
 function uid(){return 'r_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
