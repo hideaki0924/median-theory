@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
-<title>チャッピー神予想 オート V24.19 予想家フォーメーション版</title>
+<title>チャッピー神予想 オート V24.20 大荒れ5車BOX＋前位置単騎残り補正</title>
 <style>
 :root{
   --bg:#07101f;--panel:#0c1b33;--panel2:#101f3b;--ink:#fff;--muted:#b8c4d8;
@@ -33,8 +33,8 @@ ul{padding-left:20px}.grid{display:grid;grid-template-columns:1fr;gap:10px}@medi
 </style>
 </head>
 <body>
-<h1>チャッピー神予想 オート V24.19<br>予想家フォーメーション版</h1>
-<div class="sub">壁色つき＋メジアン祭り＋予想家風3連単フォーメーション＋結果コピー</div>
+<h1>チャッピー神予想 オート V24.20<br>大荒れ5車BOX＋前位置単騎残り補正</h1>
+<div class="sub">壁色つき＋メジアン祭り＋オート大荒れ5車BOX＋前位置単騎残り補正＋結果コピー</div>
 <textarea id="input" placeholder="ここに貼り付け&#10;【飯塚8R】&#10;[HANDICAP]&#10;1 0 0.21 3.43&#10;...&#10;[TANSHO]&#10;2 1.2&#10;...&#10;[NIREN]&#10;2-3 1.5&#10;...&#10;[WIDE]&#10;2-6 1.4&#10;...&#10;[SANREN]&#10;2-3-6 2.5"></textarea>
 <div>
   <button class="go" onclick="run()">解析する</button>
@@ -254,6 +254,124 @@ function predictFormation(res){
     note:`1着は総合1位・壁またぎ/連系中心を優先。メジアン祭りや上っ面警戒馬は消さずに2・3着箱へ残す。`
   };
 }
+
+function kumi2(a,b){return [a,b].map(Number).sort((x,y)=>x-y).join('-');}
+function kumi3(a,b,c){return [a,b,c].map(Number).sort((x,y)=>x-y).join('-');}
+function boxPairs(cars){const out=[]; for(let i=0;i<cars.length;i++) for(let j=i+1;j<cars.length;j++) out.push(kumi2(cars[i],cars[j])); return out;}
+function boxTris(cars){const out=[]; for(let i=0;i<cars.length;i++) for(let j=i+1;j<cars.length;j++) for(let k=j+1;k<cars.length;k++) out.push(kumi3(cars[i],cars[j],cars[k])); return out;}
+function detectAutoWild5Box(res){
+  const cs=res.candidates||[], data=res.data||{};
+  if(!cs.length) return {on:false,box:[],reason:[],front:null,frontAdded:false,signCount:0,types:0,targetCars:0,pairs:[],tris:[],single:[],frontIns:[]};
+  const reason=[], typeSet=new Set(), targetSet=new Set();
+  function mark(type, arr){ if(arr&&arr.length){typeSet.add(type); arr.forEach(x=>targetSet.add(Number(x.car||x)));} }
+  mark('メジアン祭り',res.medianFestival);
+  mark('全表残り',res.allTableStrong);
+  mark('壁またぎ',res.wallCross);
+  mark('過剰人気',res.overPop);
+  mark('3連系メジアン分散',(res.med&&res.med['3連系']||[]).map(c=>({car:c})));
+  cs.forEach(x=>{
+    const ns=(x.notes||[]).join('・');
+    if(ns.includes('単勝40倍超')){typeSet.add('単勝40倍超'); targetSet.add(x.car);}
+    if(ns.includes('試走最上位級')||ns.includes('試走上位')){typeSet.add('試走上位'); targetSet.add(x.car);}
+    if(ns.includes('ST上位')){typeSet.add('ST上位'); targetSet.add(x.car);}
+  });
+  const signCount=(res.medianFestival?.length||0)+(res.allTableStrong?.length||0)+(res.wallCross?.length||0)+(res.overPop?.length||0)+cs.filter(x=>(x.notes||[]).some(n=>/試走|ST|単勝40倍/.test(n))).length;
+  const fav=data.tansho&&data.tansho[0] ? data.tansho[0] : null;
+  const favObj=fav ? cs.find(x=>x.car===fav.car) : null;
+  const favLowRank = favObj ? (cs.findIndex(x=>x.car===fav.car)+1)>=4 : false;
+  const manyMedian=(res.medianFestival?.length||0)>=3;
+  const manyRemain=(res.allTableStrong?.length||0)>=4;
+  const manyWall=(res.wallCross?.length||0)>=5;
+  const sanSpread=((res.med&&res.med['3連系'])||[]).length>=5;
+  const favFly=(fav&&fav.odds<=1.5&&(manyWall||sanSpread||favLowRank));
+  const trigger = manyMedian || manyRemain || manyWall || sanSpread || favFly || (signCount>=10 && targetSet.size>=5 && typeSet.size>=5);
+  if(manyMedian) reason.push('メジアン祭りが3車以上');
+  if(manyRemain) reason.push('全表残り実力受け皿が4車以上');
+  if(manyWall) reason.push('壁またぎ受け皿が5車以上');
+  if(sanSpread) reason.push('3連系メジアンが5車以上に分散');
+  if(favFly) reason.push('単勝1人気1.5倍以下でも相手側サインが多く本命飛び警戒');
+  if(signCount>=10) reason.push('異常サイン密度が高い');
+  // 最前位置単騎補正
+  let front=null, frontAdded=false;
+  const hs=Object.entries(data.handicap||{}).map(([c,h])=>({car:Number(c),...h})).filter(x=>Number.isFinite(x.handicap));
+  if(hs.length){
+    const minH=Math.min(...hs.map(x=>x.handicap));
+    const fronts=hs.filter(x=>x.handicap===minH);
+    if(fronts.length===1){
+      const fc=fronts[0].car; const fo=(data.tansho||[]).find(x=>x.car===fc)?.odds ?? 999;
+      const fObj=cs.find(x=>x.car===fc);
+      const medHit=Object.values(res.med||{}).filter(a=>(a||[]).includes(fc)).length;
+      const wallHit=(res.wallCross||[]).some(x=>x.car===fc);
+      if(fo>=8 && fo<=45 && (wallHit || medHit>=1 || (fObj&&fObj.score>=35))){
+        front={car:fc,odds:fo,medHit,wallHit,score:fObj?fObj.score:0,reason:`最前位置${minH}m単騎・単勝${fo}・${medHit}表メジアン${wallHit?'・壁またぎ受け皿':''}`};
+        typeSet.add('前位置単騎残り'); targetSet.add(fc);
+        if(trigger || favFly || manyWall || manyMedian){ frontAdded=true; reason.push('前位置単騎残り補正'); }
+      }
+    }
+  }
+  if(!trigger && !frontAdded) return {on:false,box:[],reason,front,frontAdded:false,signCount,types:typeSet.size,targetCars:targetSet.size,pairs:[],tris:[],single:[],frontIns:[]};
+  // 基本候補：総合上位＋メジアン祭り＋全表残り＋壁またぎ＋配当穴
+  const pick=[];
+  function addCar(c){c=Number(c); if(c && !pick.includes(c)) pick.push(c);}
+  cs.slice(0,5).forEach(x=>addCar(x.car));
+  (res.medianFestival||[]).forEach(x=>addCar(x.car));
+  (res.allTableStrong||[]).slice(0,4).forEach(x=>addCar(x.car));
+  (res.wallCross||[]).slice(0,4).forEach(x=>addCar(x.car));
+  if(frontAdded) addCar(front.car);
+  // 5車へ圧縮。前位置単騎は固定、総合上位4頭を優先。残りはスコア順。
+  let box=[];
+  if(frontAdded) addCar(front.car);
+  cs.slice(0,4).forEach(x=>{ if(!(frontAdded&&x.car===front.car)) box.push(x.car); });
+  if(frontAdded) box.push(front.car);
+  pick.forEach(c=>{ if(!box.includes(c)) box.push(c); });
+  // 重複除去
+  box=[...new Set(box.map(Number))];
+  if(box.length>5){
+    const fixed=new Set(); if(frontAdded) fixed.add(front.car);
+    // 超本命がいる時は完全には消さず上位なら残すが、前位置単騎を優先して一番弱い非固定を落とす
+    const sorted=box.map(c=>cs.find(x=>x.car===c)||{car:c,score:0,odds:999,notes:[]}).sort((a,b)=>{
+      const af=fixed.has(a.car)?1:0, bf=fixed.has(b.car)?1:0; if(af!==bf) return bf-af;
+      return b.score-a.score || a.odds-b.odds;
+    });
+    box=sorted.slice(0,5).map(x=>x.car);
+  }
+  box=box.sort((a,b)=>a-b);
+  const single=box.map(c=>String(c));
+  const pairs=boxPairs(box);
+  const tris=boxTris(box);
+  const frontIns=[];
+  if(frontAdded){
+    const others=box.filter(c=>c!==front.car);
+    for(let i=0;i<others.length;i++) for(let j=i+1;j<others.length;j++) frontIns.push(kumi3(front.car,others[i],others[j]));
+  }
+  return {on:true,box,reason,front,frontAdded,signCount,types:typeSet.size,targetCars:targetSet.size,pairs,tris,single,frontIns};
+}
+function renderAutoWild5Box(wild){
+  if(!wild||!wild.on) return '';
+  const cost=2500;
+  return `<div class="card hot"><h2>🚨オート大荒れ5車BOX強制モード V24.20</h2>
+  <div><span class="badge pink">点灯</span> サイン${wild.signCount}件 / 対象${wild.targetCars}車 / 種類${wild.types}</div>
+  <div style="margin:8px 0">最終5車BOX：${wild.box.map(carSpan).join(' ')}</div>
+  ${wild.frontAdded?`<div><span class="badge yellow">前位置単騎残り補正</span> ${carSpan(wild.front.car)} ${wild.front.reason}</div>`:''}
+  <pre class="copybox">単勝5車
+${wild.single.join('\n')}
+
+ワイド5車BOX
+${wild.pairs.join('\n')}
+
+3連複5車BOX
+${wild.tris.join('\n')}
+
+合計25点。100円なら${cost}円</pre>
+  <div class="mini">理由：${wild.reason.join(' / ')}</div>
+  ${wild.frontIns&&wild.frontIns.length?`<div class="mini" style="margin-top:8px">前位置保険：${wild.frontIns.join(' / ')}</div>`:''}
+  </div>`;
+}
+function autoWildText(wild){
+  if(!wild||!wild.on) return 'なし';
+  return `🚨オート大荒れ5車BOX強制モード V24.20：点灯\nサイン密度：${wild.signCount}件 / 対象${wild.targetCars}車 / 種類${wild.types}\n最終5車BOX：${wild.box.map(c=>c+'号車').join('・')}\n${wild.frontAdded?'前位置単騎残り補正：'+wild.front.car+'号車 / '+wild.front.reason+'\n':''}理由：${wild.reason.join(' / ')}\n\n単勝5車\n${wild.single.join('\n')}\n\nワイド5車BOX\n${wild.pairs.join('\n')}\n\n3連複5車BOX\n${wild.tris.join('\n')}\n\n合計25点。100円なら2500円`;
+}
+
 function formationText(form){
   if(!form) return 'なし';
   return `🎯3連単フォーメーション\n本線\n${form.main}\n\n抑え\n${form.osa}\n\n1点\n${form.one}`;
@@ -272,9 +390,10 @@ function render(res){
   let html=`<div class="card"><h2>${race}</h2><div>単勝1人気：${t1?`${carSpan(t1.car)} ${t1.odds}倍`:'-'}<br>2車複1人気：${n1?`${n1.key} ${n1.odds}倍`:'-'}<br>3連系1人気：${s1?`${s1.key} ${s1.odds}倍`:'-'}</div></div>`;
   const warnLevel=(t1?.odds||99)<2 && (n1?.odds||99)<3 ? '本命戦' : (n1?.odds||0)>10 ? '荒れ戦':'中荒れ戦';
   const form=predictFormation(res);
-  html+=`<div class="card warn"><h2>🩺オート荒れ診断 V24.19</h2><div>表面：<b>${warnLevel}</b><br>裏診断：${res.wallInfo.flags.some(f=>f.name.includes('ズレ'))?'本命頭飛び警戒 / 壁ズレあり':'通常'}<br>壁判定：${res.wallInfo.flags.map(f=>`<span class="badge yellow">${f.name}</span>`).join('')||'<span class="badge blue">通常</span>'}</div></div>`;
+  const wild=detectAutoWild5Box(res);
+  html+=`<div class="card warn"><h2>🩺オート荒れ診断 V24.20</h2><div>表面：<b>${warnLevel}</b><br>裏診断：${res.wallInfo.flags.some(f=>f.name.includes('ズレ'))?'本命頭飛び警戒 / 壁ズレあり':'通常'}<br>壁判定：${res.wallInfo.flags.map(f=>`<span class="badge yellow">${f.name}</span>`).join('')||'<span class="badge blue">通常</span>'}</div></div>`;
   html+=`<div class="card"><h2>本表・壁色つき</h2><div class="mini">青＝通常 / 黄＝第1壁 / 橙＝第2壁 / 桃＝急断層 / 赤＝特大壁</div>${rankTable(res.rows,res.wallsByName)}</div>`;
-  html+=`<div class="card orange"><h2>🧱壁位置判定 V24.19</h2>`;
+  html+=`<div class="card orange"><h2>🧱壁位置判定 V24.20</h2>`;
   for(const [name,walls] of Object.entries(res.wallsByName)){
     html+=`<div><b>${name}</b>：${walls.length?walls.map(w=>`${w.pos}位後ろ ${w.from}→${w.to}`).join(' / '):'大きな壁なし'}</div>`;
   }
@@ -290,10 +409,11 @@ function render(res){
   html+='</div>';
   html+=`<div class="card warn"><h2>🔥最終勝負タイプ</h2>`;
   const festival=res.medianFestival[0];
-  if(festival) html+=`<div><b>メジアン祭り核保護型 V24.19</b><br>${carSpan(festival.car)} が複数メジアン。相手は人気順ではなく、全表残り・壁またぎ・配当役を優先。</div>`;
-  else html+=`<div><b>通常3連系圧縮型 V24.19</b><br>壁色と壁またぎを優先して削る。</div>`;
+  if(festival) html+=`<div><b>メジアン祭り核保護型 V24.20</b><br>${carSpan(festival.car)} が複数メジアン。相手は人気順ではなく、全表残り・壁またぎ・配当役を優先。</div>`;
+  else html+=`<div><b>通常3連系圧縮型 V24.20</b><br>壁色と壁またぎを優先して削る。</div>`;
   html+='</div>';
   html+=formationHtml(form);
+  html+=renderAutoWild5Box(wild);
   html+=`<div class="card"><h2>最終保護候補</h2>`;
   if(res.protect.length){html+='<table class="smallTable"><tr><th>組み合わせ</th><th class="right">オッズ</th><th>理由</th></tr>';res.protect.slice(0,8).forEach(p=>{const o=oddsOfSanren(data,p.key);html+=`<tr><td>${p.cars.map(carSpan).join('-')}</td><td class="right">${o??'-'}</td><td>${p.reason}</td></tr>`}); html+='</table>'} else html+='<div>保護候補なし</div>';
   html+='</div>';
@@ -310,8 +430,8 @@ function render(res){
     return `${i+1}位 ${x.car}号車【${x.score}】 単${x.odds}${hp} ${x.notes.join('・')}`;
   }).join('\n');
   const copy=`${race}
-オート擬似複勝テスト版 V24.19 予想家フォーメーション版
-壁色つき＋メジアン祭り＋予想家風3連単フォーメーション＋結果コピー
+オート擬似複勝テスト版 V24.20 大荒れ5車BOX＋前位置単騎残り補正
+壁色つき＋メジアン祭り＋オート大荒れ5車BOX＋前位置単騎残り補正＋結果コピー
 
 `+
     `🩺オート荒れ診断
@@ -327,7 +447,7 @@ ${Object.entries(res.med).map(([k,v])=>`${k}：${v.map(c=>c+'号車').join('・'
 ${wallsText}
 
 `+
-    `V24.19ランプ
+    `V24.20ランプ
 `+
     `メジアン祭り：${res.medianFestival.map(x=>x.car+'号車').join('・')||'なし'}
 `+
@@ -339,6 +459,8 @@ ${wallsText}
 
 `+
     `${formationText(form)}
+
+${autoWildText(wild)}
 
 `+
     `最終保護候補
