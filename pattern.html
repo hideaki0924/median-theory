@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>チャッピー競馬パターン研究所 V1</title>
+<style>
+:root{
+  --bg:#07101f;--card:#10224a;--card2:#08152d;--line:#35517a;--text:#fff;
+  --muted:#cbd5e1;--yellow:#fde047;--green:#86efac;--red:#fb7185;
+  --blue:#93c5fd;--cyan:#67e8f9;--orange:#fb923c;--pink:#f472b6;
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#06101f,#0a1730,#06101f);color:var(--text);
+font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:12px;font-size:16px}
+h1{font-size:25px;line-height:1.25;margin:4px 0 10px}
+h2{font-size:21px;color:var(--yellow);margin:0 0 10px}
+h3{font-size:18px;color:var(--cyan);margin:12px 0 7px}
+.card{background:var(--card);border:1px solid #3b82f6;border-radius:18px;padding:13px;margin:12px 0;box-shadow:0 5px 18px rgba(0,0,0,.22)}
+.mainCard{border:3px solid #22d3ee;background:linear-gradient(135deg,#001d24,#064a5c,#00131a)}
+.warnCard{border:3px solid #f59e0b;background:linear-gradient(135deg,#241600,#533000,#241600)}
+.goodCard{border:3px solid #22c55e;background:linear-gradient(135deg,#052e16,#14532d,#052e16)}
+.grid{display:grid;grid-template-columns:1fr;gap:9px}
+@media(min-width:760px){.grid.two{grid-template-columns:1fr 1fr}.grid.three{grid-template-columns:repeat(3,1fr)}}
+label{display:block;color:#ffd84d;font-weight:900;margin:3px 0 5px}
+input,select,textarea{width:100%;border-radius:13px;border:2px solid #334e7b;background:#f8fafc;color:#111;padding:10px;font-size:16px;line-height:1.35}
+textarea{min-height:330px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+button{border:0;border-radius:14px;padding:12px 15px;margin:5px 5px 5px 0;font-size:17px;font-weight:900}
+.go{background:#22c55e;color:#052e16}.blueBtn{background:#3b82f6;color:#fff}.orangeBtn{background:#f59e0b;color:#fff}
+.grayBtn{background:#64748b;color:#fff}.redBtn{background:#ef4444;color:#fff}.purpleBtn{background:#8b5cf6;color:#fff}
+.small{font-size:13px;color:var(--muted);line-height:1.5}.muted{color:var(--muted)}
+.yellow{color:var(--yellow);font-weight:900}.green{color:var(--green);font-weight:900}.red{color:var(--red);font-weight:900}
+.cyan{color:var(--cyan);font-weight:900}.orange{color:var(--orange);font-weight:900}.pink{color:var(--pink);font-weight:900}
+.pill{display:inline-block;border-radius:999px;background:#1e293b;border:1px solid #475569;padding:5px 9px;margin:3px 2px;font-size:13px;font-weight:900}
+.big{font-size:25px;font-weight:900}.stat{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:10px}
+.stat b{font-size:23px;color:var(--cyan)}
+hr{border:0;border-top:1px solid #50709f;margin:13px 0}
+pre{white-space:pre-wrap;word-break:break-word;background:#020617;color:#e5e7eb;padding:11px;border-radius:12px;font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{border-bottom:1px solid #2b4268;padding:8px 6px;vertical-align:top}
+th{color:var(--yellow);text-align:left;position:sticky;top:0;background:#10224a}
+.wrap{overflow:auto;max-height:520px;border-radius:12px}
+.hidden{display:none!important}.toolbar{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.notice{border:2px solid #22d3ee;background:#00242d;border-radius:14px;padding:10px;color:#cffafe}
+.resultHard{color:#86efac;font-weight:900}.resultMid{color:#fde047;font-weight:900}.resultWild{color:#fb7185;font-weight:900}
+</style>
+</head>
+<body>
+<h1>チャッピー競馬パターン研究所 V1<br>
+<span class="muted" style="font-size:16px">オッズの枠組み → 荒れ方 → 3着内馬の共通サインを自動集計</span></h1>
+
+<div class="notice">
+  入力は基本的に<strong>メジアンアプリへ貼ったコード</strong>と<strong>結果3頭</strong>だけです。<br>
+  「単勝10倍未満の頭数」「複勝6倍以内の頭数」「単勝1倍台の有無」などは自動計算します。
+</div>
+
+<div class="card">
+  <h2>① レースを解析・保存</h2>
+  <div class="grid three">
+    <div><label>日付</label><input id="raceDate" type="date"></div>
+    <div><label>場</label><input id="venue" placeholder="函館"></div>
+    <div><label>レース</label><input id="raceNo" placeholder="4R"></div>
+  </div>
+  <label style="margin-top:10px">メジアンアプリ入力コード</label>
+  <textarea id="rawInput" placeholder="【函館4R】&#10;[TANFUKU]&#10;11 2.5 1.6&#10;...&#10;[UMAREN]&#10;4-11 7.5&#10;...&#10;[WIDE]&#10;11-15 3.2&#10;...&#10;[SANPUKU]&#10;4-11-15 10.5"></textarea>
+  <div class="grid two">
+    <div><label>結果（任意・あとで追記可）</label><input id="resultOrder" placeholder="14-2-1"></div>
+    <div><label>三連複払戻（任意）</label><input id="triPayout" type="number" min="0" placeholder="例 15230"></div>
+  </div>
+  <div class="toolbar" style="margin-top:8px">
+    <button class="go" onclick="analyzeCurrent(false)">解析だけ</button>
+    <button class="orangeBtn" onclick="analyzeCurrent(true)">解析して保存</button>
+    <button class="grayBtn" onclick="clearForm()">入力クリア</button>
+  </div>
+</div>
+
+<div id="currentOut"></div>
+
+<div class="card">
+  <h2>② 未確定レースへ結果を追記</h2>
+  <div class="grid three">
+    <div><label>対象レース</label><select id="pendingSelect"></select></div>
+    <div><label>結果</label><input id="pendingResult" placeholder="14-2-1"></div>
+    <div><label>三連複払戻</label><input id="pendingPayout" type="number" min="0"></div>
+  </div>
+  <button class="orangeBtn" onclick="appendResult()">結果を追記</button>
+</div>
+
+<div class="card">
+  <h2>③ パターン集計</h2>
+  <div class="grid two">
+    <div><label>表示する枠組み</label>
+      <select id="groupMode" onchange="renderDashboard()">
+        <option value="family">基本4条件（おすすめ）</option>
+        <option value="full">詳細6条件</option>
+        <option value="market">馬連1人気帯だけ</option>
+      </select>
+    </div>
+    <div><label>最低レース数</label>
+      <select id="minSample" onchange="renderDashboard()">
+        <option value="1">1件以上</option><option value="3">3件以上</option>
+        <option value="5" selected>5件以上</option><option value="10">10件以上</option>
+        <option value="20">20件以上</option>
+      </select>
+    </div>
+  </div>
+  <div id="overallStats" class="grid three" style="margin-top:10px"></div>
+  <h3>枠組み別の荒れ方</h3>
+  <div id="patternTable" class="wrap"></div>
+  <h3>3着以内に来た馬のサイン</h3>
+  <div id="signalTable" class="wrap"></div>
+</div>
+
+<div class="card">
+  <h2>④ 保存データ</h2>
+  <div class="toolbar">
+    <button class="blueBtn" onclick="exportJSON()">JSONバックアップ</button>
+    <button class="purpleBtn" onclick="document.getElementById('jsonFile').click()">JSON読込み</button>
+    <button class="orangeBtn" onclick="exportCSV()">CSV出力</button>
+    <button class="redBtn" onclick="deleteAll()">全削除</button>
+    <input id="jsonFile" type="file" class="hidden" accept=".json,application/json" onchange="importJSON(event)">
+  </div>
+  <div id="recordsTable" class="wrap"></div>
+</div>
+
+<script>
+'use strict';
+const STORE='chappy_horse_pattern_lab_v1';
+let records=loadRecords();
+let currentAnalysis=null;
+
+function $(id){return document.getElementById(id)}
+function norm(s){return String(s||'').replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-65248)).replace(/．/g,'.').replace(/[－ー―–—−]/g,'-').replace(/[　]/g,' ')}
+function nums(line){const m=norm(line).match(/\d+(?:\.\d+)?/g);return m?m.map(Number):[]}
+function pairKey(a,b){return [String(a),String(b)].sort((x,y)=>Number(x)-Number(y)).join('-')}
+function triKey(a,b,c){return [String(a),String(b),String(c)].sort((x,y)=>Number(x)-Number(y)).join('-')}
+function uniq(a){return [...new Set((a||[]).map(String))}
+function safe(x,d=9999){x=Number(x);return Number.isFinite(x)?x:d}
+function uid(){return 'r_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8)}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function loadRecords(){try{return JSON.parse(localStorage.getItem(STORE)||'[]')}catch(e){return[]}}
+function persist(){localStorage.setItem(STORE,JSON.stringify(records))}
+function mid(arr){if(!arr.length)return[];return arr.length%2?[arr[Math.floor(arr.length/2)]]:[arr[arr.length/2-1],arr[arr.length/2]]}
+function parseOrder(s){return (String(s||'').match(/\d+/g)||[]).slice(0,3).map(String)}
+function add(arr,v){v=String(v);if(v&&arr.indexOf(v)<0)arr.push(v)}
+function rankMap(arr){const m={};arr.forEach((x,i)=>m[String(x)]=i+1);return m}
+function countAppear(list,h,n){h=String(h);let c=0;(list||[]).slice(0,n).forEach(x=>{if(x.a===h||x.b===h||x.c===h)c++});return c}
+function bestRank(list,h,n){h=String(h);for(let i=0;i<Math.min(n,list.length);i++){const x=list[i];if(x.a===h||x.b===h||x.c===h)return i+1}return 999}
+function pairRow(list){const out=[];list.forEach(x=>{add(out,x.a);add(out,x.b)});return out}
+function triRow(list){const out=[];list.forEach(x=>{add(out,x.a);add(out,x.b);add(out,x.c)});return out}
+
+function parseInput(raw){
+  const lines=norm(raw).split(/\n/),data={title:'',tf:[],uma:[],wide:[],san:[]};let sec='';
+  for(const rawLine of lines){
+    const line=rawLine.trim();if(!line)continue;
+    if(line.startsWith('【'))data.title=line;
+    const up=line.toUpperCase();
+    if(up.startsWith('[')){
+      if(up.includes('TAN')||up.includes('単'))sec='TF';
+      else if(up.includes('WIDE')||up.includes('ワイド'))sec='WIDE';
+      else if(up.includes('SAN')||up.includes('三')||up.includes('3'))sec='SAN';
+      else if(up.includes('UMA')||up.includes('馬'))sec='UMA';
+      continue;
+    }
+    if(sec==='TF'){
+      const n=nums(line);if(n.length>=3)data.tf.push({h:String(Math.floor(n[0])),tan:n[1],fuku:n[n.length-1]});
+    }else if(sec==='UMA'){
+      const m=line.match(/(\d+)\s*-\s*(\d+)/),n=nums(line);if(m&&n.length)data.uma.push({a:m[1],b:m[2],od:n[n.length-1],key:pairKey(m[1],m[2])});
+    }else if(sec==='WIDE'){
+      const m=line.match(/(\d+)\s*-\s*(\d+)/),n=nums(line);if(m&&n.length)data.wide.push({a:m[1],b:m[2],od:n[n.length-1],key:pairKey(m[1],m[2])});
+    }else if(sec==='SAN'){
+      const m=line.match(/(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/),n=nums(line);if(m&&n.length)data.san.push({a:m[1],b:m[2],c:m[3],od:n[n.length-1],key:triKey(m[1],m[2],m[3])});
+    }
+  }
+  data.tf.sort((a,b)=>a.tan-b.tan);data.uma.sort((a,b)=>a.od-b.od);data.wide.sort((a,b)=>a.od-b.od);data.san.sort((a,b)=>a.od-b.od);
+  return data;
+}
+function wallBefore(sorted,field,limit){
+  let idx=-1;for(let i=0;i<sorted.length;i++)if(safe(sorted[i][field])<=limit)idx=i;
+  const out=[];if(idx>=0){if(sorted[idx])add(out,sorted[idx].h);if(sorted[idx-1])add(out,sorted[idx-1].h)}return out;
+}
+function detectCliff(fuku){
+  for(let i=0;i<fuku.length-1;i++){
+    const a=safe(fuku[i].fuku),b=safe(fuku[i+1].fuku);
+    if(a<=8&&b>=15&&(b-a)>=7){
+      const lower=[];add(lower,fuku[i].h);if(fuku[i-1])add(lower,fuku[i-1].h);
+      return {on:true,lower,upper:fuku[i+1].h,gap:Number((b-a).toFixed(1))};
+    }
+  }
+  return {on:false,lower:[],upper:null,gap:0};
+}
+function binFav(x){if(x<1.6)return'1.0-1.5';if(x<2)return'1.6-1.9';if(x<3)return'2.0-2.9';if(x<5)return'3.0-4.9';return'5.0以上'}
+function binCount(n,a,b){if(n<=a)return`0-${a}`;if(n<=b)return`${a+1}-${b}`;return`${b+1}以上`}
+function binUma(x){if(x<4)return'4未満';if(x<9)return'4-8.9';if(x<15)return'9-14.9';return'15以上'}
+function binSan(x){if(x<6)return'6未満';if(x<12)return'6-11.9';if(x<25)return'12-24.9';return'25以上'}
+
+function analyzeData(data,resultOrder){
+  if(!data.tf.length)throw new Error('[TANFUKU]がありません');
+  const tan=data.tf.slice().sort((a,b)=>a.tan-b.tan);
+  const fuku=data.tf.slice().sort((a,b)=>a.fuku-b.fuku);
+  const tanRow=tan.map(x=>x.h),fukuRow=fuku.map(x=>x.h),umaRow=pairRow(data.uma),wideRow=pairRow(data.wide),sanRow=triRow(data.san);
+  const tr=rankMap(tanRow),fr=rankMap(fukuRow);
+  const counts={
+    field:tan.length,
+    tan10:tan.filter(x=>x.tan<10).length,
+    tan20:tan.filter(x=>x.tan<20).length,
+    tan30:tan.filter(x=>x.tan<30).length,
+    fuku3:fuku.filter(x=>x.fuku<=3).length,
+    fuku6:fuku.filter(x=>x.fuku<=6).length,
+    fuku10:fuku.filter(x=>x.fuku<=10).length,
+    fuku15:fuku.filter(x=>x.fuku<=15).length
+  };
+  const favTan=tan[0]?tan[0].tan:999,uma1=data.uma[0]?data.uma[0].od:999,san1=data.san[0]?data.san[0].od:999;
+  const walls={f6:wallBefore(fuku,'fuku',6),f10:wallBefore(fuku,'fuku',10),f15:wallBefore(fuku,'fuku',15)};
+  const cliff=detectCliff(fuku);
+  const med={
+    tan:mid(tanRow),
+    tan10_20:mid(tan.filter(x=>x.tan>=10&&x.tan<20).map(x=>x.h)),
+    tan20_30:mid(tan.filter(x=>x.tan>=20&&x.tan<30).map(x=>x.h)),
+    fuku12:mid(fuku.filter(x=>x.fuku<=12).map(x=>x.h)),
+    uma:mid(umaRow),wide:mid(wideRow),san:mid(sanRow)
+  };
+  const bins={
+    fav:binFav(favTan),
+    tan10:binCount(counts.tan10,3,5),
+    tan30:binCount(counts.tan30,6,9),
+    fuku6:binCount(counts.fuku6,4,7),
+    fuku15:binCount(counts.fuku15,7,10),
+    uma1:binUma(uma1),
+    san1:binSan(san1)
+  };
+  const familyKey=`単1=${bins.fav}｜単10=${bins.tan10}頭｜複6=${bins.fuku6}頭｜馬1=${bins.uma1}`;
+  const fullKey=`${familyKey}｜単30=${bins.tan30}頭｜複15=${bins.fuku15}頭`;
+  const marketKey=`馬連1人気 ${bins.uma1}`;
+  const labels=[];
+  if(favTan<2)add(labels,'単勝1倍台あり');
+  if(uma1<4)add(labels,'本命市場');
+  else if(uma1<9)add(labels,'中荒れ市場');
+  else if(uma1<15)add(labels,'荒れ市場');
+  else add(labels,'大荒れ市場');
+  if(counts.tan10>=6)add(labels,'単勝10倍未満6頭以上');
+  if(counts.tan30>=9)add(labels,'単勝30倍未満9頭以上');
+  if(counts.fuku6>=6)add(labels,'複勝6倍以内6頭以上');
+  if(counts.fuku15>=10)add(labels,'複勝15倍以内10頭以上');
+  if(cliff.on)add(labels,'複勝15倍断層');
+  const horseSignals={};
+  for(const x of tan){
+    const h=x.h,s=[];
+    if(walls.f6.includes(h))add(s,'複勝6倍壁前');
+    if(walls.f10.includes(h))add(s,'複勝10倍壁前');
+    if(walls.f15.includes(h))add(s,'複勝15倍壁前');
+    if(cliff.lower.includes(h))add(s,'複勝15倍断層下2頭');
+    if(med.tan.includes(h))add(s,'単勝メジアン');
+    if(med.tan10_20.includes(h))add(s,'単勝10倍台メジアン');
+    if(med.tan20_30.includes(h))add(s,'単勝20倍台メジアン');
+    if(med.fuku12.includes(h))add(s,'複勝12倍以下メジアン');
+    if(med.uma.includes(h))add(s,'馬連メジアン');
+    if(med.wide.includes(h))add(s,'ワイドメジアン');
+    if(med.san.includes(h))add(s,'三連複メジアン');
+    const sanBest=bestRank(data.san,h,20),sanCnt=countAppear(data.san,h,20);
+    const umaCnt=countAppear(data.uma,h,12),wideCnt=countAppear(data.wide,h,12);
+    if(sanBest<=5)add(s,'三連複5位以内');
+    if((tr[h]||99)>=5&&sanBest<=5)add(s,'三連複先行支持ジャンプ');
+    if((tr[h]||99)-(fr[h]||99)>=3)add(s,'複勝上昇');
+    if((tr[h]||99)>=6&&(fr[h]||99)<=8)add(s,'単複ズレ');
+    if(umaCnt>=3)add(s,'馬連上位3回以上');
+    if(wideCnt>=3)add(s,'ワイド上位3回以上');
+    if(sanCnt>=5)add(s,'三連複上位5回以上');
+    horseSignals[h]={h,tan:x.tan,fuku:x.fuku,tanRank:tr[h]||99,fukuRank:fr[h]||99,sanBest,sanCnt,umaCnt,wideCnt,signals:s};
+  }
+  let outcome=null;
+  const order=(resultOrder||[]).map(String);
+  if(order.length===3){
+    const ranks=order.map(h=>tr[h]||99),rankSum=ranks.reduce((a,b)=>a+b,0),maxRank=Math.max(...ranks);
+    const tri=triKey(order[0],order[1],order[2]);
+    let triRank=999,triOdds=null;
+    for(let i=0;i<data.san.length;i++)if(data.san[i].key===tri){triRank=i+1;triOdds=data.san[i].od;break}
+    let cls='中荒れ';
+    if(maxRank<=5&&rankSum<=9&&(triRank<=5||triRank===999))cls='硬め';
+    if(maxRank>=9||rankSum>=17||triRank>10)cls='大荒れ';
+    outcome={order,ranks,rankSum,maxRank,triRank,triOdds,class:cls};
+  }
+  return {data,counts,favTan,uma1,san1,walls,cliff,med,bins,familyKey,fullKey,marketKey,labels,horseSignals,outcome};
+}
+function signalHit(analysis,signal){
+  if(!analysis.outcome)return false;
+  return analysis.outcome.order.some(h=>(analysis.horseSignals[h]?.signals||[]).includes(signal));
+}
+const TRACKED_SIGNALS=[
+  '複勝6倍壁前','複勝10倍壁前','複勝15倍壁前','複勝15倍断層下2頭',
+  '単勝メジアン','単勝10倍台メジアン','単勝20倍台メジアン','複勝12倍以下メジアン',
+  '馬連メジアン','ワイドメジアン','三連複メジアン','三連複5位以内',
+  '三連複先行支持ジャンプ','複勝上昇','単複ズレ','馬連上位3回以上',
+  'ワイド上位3回以上','三連複上位5回以上'
+];
+
+function sampleLabel(n){if(n<5)return'参考未満';if(n<10)return'仮説';if(n<20)return'検証中';if(n<40)return'有力';return'強い傾向'}
+function classifyClass(c){return c==='硬め'?'resultHard':c==='中荒れ'?'resultMid':'resultWild'}
+function matchingRecords(analysis,mode){
+  const key=mode==='full'?analysis.fullKey:mode==='market'?analysis.marketKey:analysis.familyKey;
+  return records.filter(r=>r.analysis&&r.analysis.outcome&&(mode==='full'?r.analysis.fullKey:mode==='market'?r.analysis.marketKey:r.analysis.familyKey)===key);
+}
+function renderCurrent(a){
+  const mode=$('groupMode').value,matched=matchingRecords(a,mode);
+  const hard=matched.filter(r=>r.analysis.outcome.class==='硬め').length;
+  const mid=matched.filter(r=>r.analysis.outcome.class==='中荒れ').length;
+  const wild=matched.filter(r=>r.analysis.outcome.class==='大荒れ').length;
+  const key=mode==='full'?a.fullKey:mode==='market'?a.marketKey:a.familyKey;
+  const signalRates=TRACKED_SIGNALS.map(s=>({s,n:matched.filter(r=>signalHit(r.analysis,s)).length}))
+    .sort((x,y)=>y.n-x.n).slice(0,8);
+  let advice='同型データ不足。まず5件以上ためる段階です。';
+  if(matched.length>=5){
+    const hp=hard/matched.length,wp=wild/matched.length;
+    if(wp>=.5)advice='同型は大荒れ寄り。人気軸固定より、壁前・先行支持・中穴をBOXへ残す形を優先。';
+    else if(hp>=.6)advice='同型は硬め寄り。上位人気を軸にして、集計上位サインを1頭差し替える形が中心。';
+    else advice='同型は中荒れ中心。上位2頭＋集計上位サイン馬の組み合わせを優先。';
+  }
+  const outcome=a.outcome?`<hr>今回結果：<span class="${classifyClass(a.outcome.class)} big">${a.outcome.class}</span>
+    （単勝人気順位 ${a.outcome.ranks.join('-')}／合計${a.outcome.rankSum}）`:'';
+  $('currentOut').innerHTML=`<div class="card mainCard"><h2>今回の自動判定</h2>
+    <div class="big">${esc(key)}</div>
+    <div style="margin-top:8px">${a.labels.map(x=>`<span class="pill">${esc(x)}</span>`).join('')}</div>
+    <hr>
+    単勝1人気：<span class="yellow">${a.favTan}倍</span>　
+    馬連1人気：<span class="yellow">${a.uma1===999?'なし':a.uma1+'倍'}</span><br>
+    単勝10倍未満：<span class="cyan">${a.counts.tan10}頭</span>　
+    単勝30倍未満：<span class="cyan">${a.counts.tan30}頭</span><br>
+    複勝6倍以内：<span class="cyan">${a.counts.fuku6}頭</span>　
+    複勝10倍以内：<span class="cyan">${a.counts.fuku10}頭</span>　
+    複勝15倍以内：<span class="cyan">${a.counts.fuku15}頭</span>
+    ${outcome}
+  </div>
+  <div class="card ${matched.length>=5?'goodCard':'warnCard'}"><h2>過去の同型パターン</h2>
+    発動：<span class="big">${matched.length}件</span>　評価：<span class="yellow">${sampleLabel(matched.length)}</span><br>
+    硬め ${matched.length?((hard/matched.length)*100).toFixed(1):0}% ／
+    中荒れ ${matched.length?((mid/matched.length)*100).toFixed(1):0}% ／
+    大荒れ ${matched.length?((wild/matched.length)*100).toFixed(1):0}%
+    <hr><span class="yellow">現時点の対策：</span>${advice}
+    <h3>同型で3着以内に入りやすかったサイン</h3>
+    ${signalRates.length?signalRates.map(x=>`<div>${esc(x.s)}：<span class="cyan">${x.n}/${matched.length}</span>（${matched.length?((x.n/matched.length)*100).toFixed(1):0}%）</div>`).join(''):'まだ結果データなし'}
+  </div>
+  ${renderFinishers(a)}`;
+}
+function renderFinishers(a){
+  if(!a.outcome)return'';
+  return `<div class="card"><h2>今回の3着以内馬プロフィール</h2>`+
+    a.outcome.order.map((h,i)=>{
+      const x=a.horseSignals[h];if(!x)return`<div>${i+1}着 ${h}番：入力データなし</div>`;
+      return `<div style="margin:9px 0"><span class="pill">${i+1}着 ${h}番</span>
+        単${x.tan}（${x.tanRank}人気）／複${x.fuku}（${x.fukuRank}位）
+        <br>${x.signals.length?x.signals.map(s=>`<span class="pill">${esc(s)}</span>`).join(''):'該当サインなし'}</div>`;
+    }).join('')+'</div>';
+}
+function analyzeCurrent(saveIt){
+  try{
+    const data=parseInput($('rawInput').value),order=parseOrder($('resultOrder').value),a=analyzeData(data,order);
+    currentAnalysis=a;renderCurrent(a);
+    if(saveIt){
+      let venue=$('venue').value.trim(),raceNo=$('raceNo').value.trim();
+      if(!venue&&data.title){const m=data.title.match(/【([^0-9Rレース]+)(\d+R|\d+レース)/);if(m){venue=m[1];raceNo=m[2]}}
+      if(!venue||!raceNo){alert('場とレースを入力してください');return}
+      const rec={id:uid(),date:$('raceDate').value||new Date().toISOString().slice(0,10),venue,raceNo,raw:$('rawInput').value,
+        triPayout:Number($('triPayout').value||0),analysis:a,createdAt:new Date().toISOString()};
+      records.unshift(rec);persist();renderAll();alert(order.length===3?'解析結果を保存しました':'結果未確定で保存しました');
+    }
+  }catch(e){$('currentOut').innerHTML=`<div class="card warnCard"><h2>解析エラー</h2><pre>${esc(e.message||e)}</pre></div>`}
+}
+function appendResult(){
+  const id=$('pendingSelect').value,rec=records.find(r=>r.id===id);if(!rec){alert('未確定レースがありません');return}
+  const order=parseOrder($('pendingResult').value);if(order.length!==3){alert('結果3頭を入力してください');return}
+  const data=parseInput(rec.raw);rec.analysis=analyzeData(data,order);rec.triPayout=Number($('pendingPayout').value||0);rec.updatedAt=new Date().toISOString();
+  persist();$('pendingResult').value='';$('pendingPayout').value='';renderAll();alert('結果を追記しました');
+}
+function clearForm(){['venue','raceNo','rawInput','resultOrder','triPayout'].forEach(id=>$(id).value='');setToday();$('currentOut').innerHTML='';currentAnalysis=null}
+function setToday(){if(!$('raceDate').value)$('raceDate').value=new Date().toISOString().slice(0,10)}
+function renderPending(){
+  const p=records.filter(r=>!r.analysis?.outcome);
+  $('pendingSelect').innerHTML=p.length?p.map(r=>`<option value="${r.id}">${esc(r.date+' '+r.venue+r.raceNo)}</option>`).join(''):'<option value="">未確定なし</option>';
+}
+function groupKey(a,mode){return mode==='full'?a.fullKey:mode==='market'?a.marketKey:a.familyKey}
+function renderDashboard(){
+  const done=records.filter(r=>r.analysis?.outcome),mode=$('groupMode').value,minN=Number($('minSample').value||1);
+  const hard=done.filter(r=>r.analysis.outcome.class==='硬め').length,mid=done.filter(r=>r.analysis.outcome.class==='中荒れ').length,wild=done.filter(r=>r.analysis.outcome.class==='大荒れ').length;
+  $('overallStats').innerHTML=[
+    ['確定レース',done.length],['硬め',done.length?((hard/done.length)*100).toFixed(1)+'%':'-'],
+    ['中荒れ',done.length?((mid/done.length)*100).toFixed(1)+'%':'-'],['大荒れ',done.length?((wild/done.length)*100).toFixed(1)+'%':'-'],
+    ['単勝1倍台あり',done.filter(r=>r.analysis.favTan<2).length],['複勝15倍断層',done.filter(r=>r.analysis.cliff.on).length]
+  ].map(x=>`<div class="stat"><span class="muted">${x[0]}</span><br><b>${x[1]}</b></div>`).join('');
+  const groups={};done.forEach(r=>{const k=groupKey(r.analysis,mode);(groups[k]||(groups[k]=[])).push(r)});
+  const rows=Object.entries(groups).map(([k,rs])=>{
+    const h=rs.filter(r=>r.analysis.outcome.class==='硬め').length,m=rs.filter(r=>r.analysis.outcome.class==='中荒れ').length,w=rs.filter(r=>r.analysis.outcome.class==='大荒れ').length;
+    return {k,rs,n:rs.length,h,m,w};
+  }).filter(x=>x.n>=minN).sort((a,b)=>b.n-a.n);
+  $('patternTable').innerHTML=rows.length?`<table><thead><tr><th>枠組み</th><th>件数</th><th>硬め</th><th>中荒れ</th><th>大荒れ</th><th>評価</th></tr></thead><tbody>`+
+    rows.map(x=>`<tr><td>${esc(x.k)}</td><td>${x.n}</td><td>${(x.h/x.n*100).toFixed(1)}%</td><td>${(x.m/x.n*100).toFixed(1)}%</td><td>${(x.w/x.n*100).toFixed(1)}%</td><td>${sampleLabel(x.n)}</td></tr>`).join('')+
+    `</tbody></table>`:`<div class="muted">最低件数を満たす枠組みがまだありません。</div>`;
+  const sigRows=TRACKED_SIGNALS.map(s=>{
+    const n=done.filter(r=>signalHit(r.analysis,s)).length;
+    const win=done.filter(r=>{const h=r.analysis.outcome.order[0];return (r.analysis.horseSignals[h]?.signals||[]).includes(s)}).length;
+    return {s,n,win};
+  }).sort((a,b)=>b.n-a.n);
+  $('signalTable').innerHTML=done.length?`<table><thead><tr><th>サイン</th><th>3着以内に1頭以上</th><th>1着馬に該当</th></tr></thead><tbody>`+
+    sigRows.map(x=>`<tr><td>${esc(x.s)}</td><td>${x.n}/${done.length}（${(x.n/done.length*100).toFixed(1)}%）</td><td>${x.win}/${done.length}（${(x.win/done.length*100).toFixed(1)}%）</td></tr>`).join('')+
+    `</tbody></table>`:`<div class="muted">結果データがまだありません。</div>`;
+  if(currentAnalysis)renderCurrent(currentAnalysis);
+}
+function renderRecords(){
+  if(!records.length){$('recordsTable').innerHTML='<div class="muted">保存データなし</div>';return}
+  $('recordsTable').innerHTML=`<table><thead><tr><th>レース</th><th>枠組み</th><th>結果</th><th>3着内サイン</th><th>操作</th></tr></thead><tbody>`+
+    records.map(r=>{
+      const a=r.analysis,o=a.outcome;
+      const fin=o?o.order.map(h=>`${h}番:${(a.horseSignals[h]?.signals||[]).slice(0,3).join('・')}`).join('<br>'):'未確定';
+      return `<tr><td><b>${esc(r.date+' '+r.venue+r.raceNo)}</b></td><td>${esc(a.familyKey)}<br>${a.labels.slice(0,3).map(x=>`<span class="pill">${esc(x)}</span>`).join('')}</td>
+      <td>${o?`<b>${esc(o.order.join('-'))}</b><br><span class="${classifyClass(o.class)}">${o.class}</span>`:'<span class="yellow">未確定</span>'}</td>
+      <td>${fin}</td><td><button class="blueBtn" onclick="showRecord('${r.id}')">詳細</button><button class="redBtn" onclick="deleteOne('${r.id}')">削除</button></td></tr>`;
+    }).join('')+'</tbody></table>';
+}
+function showRecord(id){
+  const r=records.find(x=>x.id===id);if(!r)return;currentAnalysis=r.analysis;renderCurrent(r.analysis);window.scrollTo({top:0,behavior:'smooth'});
+}
+function deleteOne(id){if(!confirm('この記録を削除しますか？'))return;records=records.filter(r=>r.id!==id);persist();renderAll()}
+function deleteAll(){if(!confirm('全記録を削除します。JSONバックアップ済みですか？'))return;if(!confirm('本当に全削除しますか？'))return;records=[];persist();renderAll()}
+function download(name,text,type){const b=new Blob([text],{type:type||'text/plain;charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+function exportJSON(){download('chappy_horse_patterns_'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(records,null,2),'application/json')}
+function csvCell(v){return `"${String(v??'').replace(/"/g,'""')}"`}
+function exportCSV(){
+  const head=['日付','場','R','基本枠組み','詳細枠組み','単勝1人気','馬連1人気','単10未満','単30未満','複6以内','複10以内','複15以内','結果','結果分類','人気順位','三連複払戻','1着サイン','2着サイン','3着サイン'];
+  const rows=records.map(r=>{const a=r.analysis,o=a.outcome;return[
+    r.date,r.venue,r.raceNo,a.familyKey,a.fullKey,a.favTan,a.uma1,a.counts.tan10,a.counts.tan30,a.counts.fuku6,a.counts.fuku10,a.counts.fuku15,
+    o?o.order.join('-'):'',o?o.class:'',o?o.ranks.join('-'):'',r.triPayout||0,
+    o?(a.horseSignals[o.order[0]]?.signals||[]).join('|'):'',
+    o?(a.horseSignals[o.order[1]]?.signals||[]).join('|'):'',
+    o?(a.horseSignals[o.order[2]]?.signals||[]).join('|'):''
+  ]});
+  download('chappy_horse_patterns_'+new Date().toISOString().slice(0,10)+'.csv','\ufeff'+[head,...rows].map(r=>r.map(csvCell).join(',')).join('\n'),'text/csv;charset=utf-8');
+}
+function importJSON(ev){
+  const f=ev.target.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{try{const d=JSON.parse(rd.result);if(!Array.isArray(d))throw new Error('形式が違います');
+    const map=new Map(records.map(r=>[r.id,r]));d.forEach(r=>map.set(r.id,r));records=[...map.values()];persist();renderAll();alert('読み込みました');
+  }catch(e){alert('読込みエラー: '+e.message)}};rd.readAsText(f);ev.target.value='';
+}
+function renderAll(){renderPending();renderDashboard();renderRecords()}
+setToday();renderAll();
+</script>
+</body>
+</html>
