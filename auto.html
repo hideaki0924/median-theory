@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
-<title>チャッピー神予想 オート V24.20 大荒れ5車BOX＋前位置単騎残り補正</title>
+<title>チャッピー神予想 オート V24.21 大荒れ5車BOX＋前位置偏差・同ハンデ内枠補正</title>
 <style>
 :root{
   --bg:#07101f;--panel:#0c1b33;--panel2:#101f3b;--ink:#fff;--muted:#b8c4d8;
@@ -33,9 +33,9 @@ ul{padding-left:20px}.grid{display:grid;grid-template-columns:1fr;gap:10px}@medi
 </style>
 </head>
 <body>
-<h1>チャッピー神予想 オート V24.20<br>大荒れ5車BOX＋前位置単騎残り補正</h1>
-<div class="sub">壁色つき＋メジアン祭り＋オート大荒れ5車BOX＋前位置単騎残り補正＋結果コピー</div>
-<textarea id="input" placeholder="ここに貼り付け&#10;【飯塚8R】&#10;[HANDICAP]&#10;1 0 0.21 3.43&#10;...&#10;[TANSHO]&#10;2 1.2&#10;...&#10;[NIREN]&#10;2-3 1.5&#10;...&#10;[WIDE]&#10;2-6 1.4&#10;...&#10;[SANREN]&#10;2-3-6 2.5"></textarea>
+<h1>チャッピー神予想 オート V24.21<br>大荒れ5車BOX＋前位置偏差・同ハンデ内枠補正</h1>
+<div class="sub">壁色つき＋メジアン祭り＋大荒れ5車BOX＋前位置偏差残り＋同ハンデ内枠穴保険＋結果コピー</div>
+<textarea id="input" placeholder="ここに貼り付け&#10;【飯塚8R】&#10;[HANDICAP]&#10;1 0 0.21 3.43 0.085&#10;...&#10;[TANSHO]&#10;2 1.2&#10;...&#10;[NIREN]&#10;2-3 1.5&#10;...&#10;[WIDE]&#10;2-6 1.4&#10;...&#10;[SANREN]&#10;2-3-6 2.5"></textarea>
 <div>
   <button class="go" onclick="run()">解析する</button>
   <button class="clear" onclick="document.getElementById('input').value='';document.getElementById('out').innerHTML=''">クリア</button>
@@ -61,7 +61,7 @@ function parseInput(txt){
     if(/^#/.test(line))continue;
     const parts=line.split(/\s+/);
     if(sec==='HANDICAP'){
-      if(parts.length>=4){ const car=parseInt(parts[0],10), han=parseInt(parts[1],10), st=parseNum(parts[2]), trial=parseNum(parts[3]); if(car) data.handicap[car]={handicap:han,st,trial}; }
+      if(parts.length>=4){ const car=parseInt(parts[0],10), han=parseInt(parts[1],10), st=parseNum(parts[2]), trial=parseNum(parts[3]), dev=parseNum(parts[4]); if(car) data.handicap[car]={handicap:han,st,trial,dev}; }
     }else if(sec==='TANSHO'||sec==='TANFUKU'){
       if(parts.length>=2){ const car=parseInt(parts[0],10), odds=parseNum(parts[1]); if(car&&!isNaN(odds)) data.tansho.push({car,odds}); }
     }else if(sec==='NIREN'||sec==='UMAREN'||sec==='2REN'||sec==='NISHA'){
@@ -157,7 +157,15 @@ function analyze({race,data}){
     '3連系':medianCars(data.sanren,'sanren')
   };
   const topFreq={niren:freqTop(data.niren,10),wide:freqTop(data.wide,10),sanren:freqTop(data.sanren,20)};
-  const hvals=Object.values(data.handicap); const minTrial=Math.min(...hvals.map(x=>x.trial).filter(isFinite)); const minSt=Math.min(...hvals.map(x=>x.st).filter(isFinite)); const maxHan=Math.max(...hvals.map(x=>x.handicap).filter(isFinite));
+  const hEntries=Object.entries(data.handicap||{}).map(([cc,h])=>({car:Number(cc),...h}));
+  const hvals=Object.values(data.handicap);
+  const minTrial=Math.min(...hvals.map(x=>x.trial).filter(isFinite));
+  const minSt=Math.min(...hvals.map(x=>x.st).filter(isFinite));
+  const devVals=hvals.map(x=>x.dev).filter(isFinite);
+  const minDev=devVals.length?Math.min(...devVals):Infinity;
+  const maxHan=Math.max(...hvals.map(x=>x.handicap).filter(isFinite));
+  const favTan=data.tansho&&data.tansho[0]?data.tansho[0]:null;
+  const favHp=favTan?data.handicap[favTan.car]:null;
   const wallInfo=wallSummary(wallsByName);
   const candidates=[];
   for(const c of cars){
@@ -178,8 +186,25 @@ function analyze({race,data}){
     if(hp){
       if(isFinite(hp.trial)&&hp.trial<=minTrial+0.01){score+=16; notes.push('試走最上位級')}
       else if(isFinite(hp.trial)&&hp.trial<=minTrial+0.03){score+=8; notes.push('試走上位')}
+      if(isFinite(hp.dev)){
+        if(hp.dev<=minDev+0.006){score+=12; notes.push('偏差最上位級')}
+        else if(hp.dev<=minDev+0.020){score+=6; notes.push('偏差上位')}
+      }
       if(isFinite(hp.st)&&hp.st<=minSt+0.03){score+=10; notes.push('ST上位')}
       if(isFinite(hp.handicap)&&hp.handicap===maxHan && maxHan>0){score+=5; notes.push('重ハンデ実力車')}
+      const sameH=hEntries.filter(x=>x.handicap===hp.handicap).sort((a,b)=>a.car-b.car);
+      const sameIdx=sameH.findIndex(x=>x.car===c);
+      if(sameH.length>=2 && sameIdx===0 && odds>=15 && isFinite(hp.st) && hp.st<=0.17 && (medCount>=1||posN<=6||posW<=10||posS<=12)){score+=16; notes.push('同ハンデ内枠穴')}
+      if(favTan && favHp && c!==favTan.car && hp.handicap===favHp.handicap && c<favTan.car){
+        const wr=data.wide.findIndex(x=>x.cars.includes(c)&&x.cars.includes(favTan.car))+1;
+        const nr=data.niren.findIndex(x=>x.cars.includes(c)&&x.cars.includes(favTan.car))+1;
+        const sr=data.sanren.findIndex(x=>x.cars.includes(c)&&x.cars.includes(favTan.car))+1;
+        if((wr>0&&wr<=10)||(nr>0&&nr<=12)||(sr>0&&sr<=12)){
+          const stOk=!isFinite(favHp.st)||!isFinite(hp.st)||hp.st<=favHp.st+0.03;
+          const trOk=!isFinite(favHp.trial)||!isFinite(hp.trial)||hp.trial<=favHp.trial+0.04;
+          if(stOk&&trOk){score+=14; notes.push('本命同ハンデ内側相棒')}
+        }
+      }
     }
     // wall crossing: outside single but inside relation tables
     const tanWall=wallsByName['単勝'][0]?.pos||3; const relWall=Math.max(wallsByName['2車複'][0]?.pos||3,wallsByName['ワイド'][0]?.pos||3,wallsByName['3連系'][0]?.pos||3);
@@ -268,6 +293,8 @@ function detectAutoWild5Box(res){
   mark('全表残り',res.allTableStrong);
   mark('壁またぎ',res.wallCross);
   mark('過剰人気',res.overPop);
+  const sameHanHoles=cs.filter(x=>(x.notes||[]).some(n=>n.includes('同ハンデ内枠穴')||n.includes('本命同ハンデ内側相棒')));
+  mark('同ハンデ内枠穴',sameHanHoles);
   mark('3連系メジアン分散',(res.med&&res.med['3連系']||[]).map(c=>({car:c})));
   cs.forEach(x=>{
     const ns=(x.notes||[]).join('・');
@@ -275,7 +302,7 @@ function detectAutoWild5Box(res){
     if(ns.includes('試走最上位級')||ns.includes('試走上位')){typeSet.add('試走上位'); targetSet.add(x.car);}
     if(ns.includes('ST上位')){typeSet.add('ST上位'); targetSet.add(x.car);}
   });
-  const signCount=(res.medianFestival?.length||0)+(res.allTableStrong?.length||0)+(res.wallCross?.length||0)+(res.overPop?.length||0)+cs.filter(x=>(x.notes||[]).some(n=>/試走|ST|単勝40倍/.test(n))).length;
+  const signCount=(res.medianFestival?.length||0)+(res.allTableStrong?.length||0)+(res.wallCross?.length||0)+(res.overPop?.length||0)+cs.filter(x=>(x.notes||[]).some(n=>/試走|偏差|ST|単勝40倍|同ハンデ|内側相棒/.test(n))).length;
   const fav=data.tansho&&data.tansho[0] ? data.tansho[0] : null;
   const favObj=fav ? cs.find(x=>x.car===fav.car) : null;
   const favLowRank = favObj ? (cs.findIndex(x=>x.car===fav.car)+1)>=4 : false;
@@ -291,21 +318,31 @@ function detectAutoWild5Box(res){
   if(sanSpread) reason.push('3連系メジアンが5車以上に分散');
   if(favFly) reason.push('単勝1人気1.5倍以下でも相手側サインが多く本命飛び警戒');
   if(signCount>=10) reason.push('異常サイン密度が高い');
-  // 最前位置単騎補正
-  let front=null, frontAdded=false;
+  if(sameHanHoles.length) reason.push('同ハンデ内枠穴・本命内側相棒を保険表示');
+  // 最前位置単騎補正 A=単勝/メジアン型、B=偏差3着残り型
+  let front=null, frontAdded=false, frontDev=false;
   const hs=Object.entries(data.handicap||{}).map(([c,h])=>({car:Number(c),...h})).filter(x=>Number.isFinite(x.handicap));
   if(hs.length){
     const minH=Math.min(...hs.map(x=>x.handicap));
     const fronts=hs.filter(x=>x.handicap===minH);
+    const devs=hs.map(x=>x.dev).filter(isFinite); const bestDev=devs.length?Math.min(...devs):Infinity;
     if(fronts.length===1){
-      const fc=fronts[0].car; const fo=(data.tansho||[]).find(x=>x.car===fc)?.odds ?? 999;
+      const fh=fronts[0]; const fc=fh.car; const fo=(data.tansho||[]).find(x=>x.car===fc)?.odds ?? 999;
       const fObj=cs.find(x=>x.car===fc);
       const medHit=Object.values(res.med||{}).filter(a=>(a||[]).includes(fc)).length;
       const wallHit=(res.wallCross||[]).some(x=>x.car===fc);
-      if(fo>=8 && fo<=45 && (wallHit || medHit>=1 || (fObj&&fObj.score>=35))){
-        front={car:fc,odds:fo,medHit,wallHit,score:fObj?fObj.score:0,reason:`最前位置${minH}m単騎・単勝${fo}・${medHit}表メジアン${wallHit?'・壁またぎ受け皿':''}`};
-        typeSet.add('前位置単騎残り'); targetSet.add(fc);
-        if(trigger || favFly || manyWall || manyMedian){ frontAdded=true; reason.push('前位置単騎残り補正'); }
+      const devGood=isFinite(fh.dev) && (fh.dev<=bestDev+0.010 || fh.dev<=0.075);
+      const stOk=!isFinite(fh.st) || fh.st<=0.20;
+      const nextH=hs.filter(x=>x.handicap>minH).sort((a,b)=>a.handicap-b.handicap)[0]?.handicap;
+      const gapOk=!isFinite(nextH) || nextH-minH>=10;
+      const frontA=fo>=8 && fo<=45 && (wallHit || medHit>=1 || (fObj&&fObj.score>=35));
+      const frontB=fo>45 && fo<=120 && devGood && stOk && gapOk;
+      if(frontA || frontB){
+        frontDev=frontB;
+        const devTxt=isFinite(fh.dev)?`・偏差${fh.dev}`:'';
+        front={car:fc,odds:fo,medHit,wallHit,score:fObj?fObj.score:0,dev:fh.dev,kind:frontB?'偏差3着残り':'前残り',reason:`最前位置${minH}m単騎・単勝${fo}${devTxt}・ST${isFinite(fh.st)?fh.st:'-'}・${medHit}表メジアン${wallHit?'・壁またぎ受け皿':''}`};
+        typeSet.add(frontB?'前位置単騎偏差残り':'前位置単騎残り'); targetSet.add(fc);
+        if(trigger || favFly || manyWall || manyMedian){ frontAdded=true; reason.push(frontB?'前位置単騎・偏差残り補正':'前位置単騎残り補正'); }
       }
     }
   }
@@ -317,6 +354,7 @@ function detectAutoWild5Box(res){
   (res.medianFestival||[]).forEach(x=>addCar(x.car));
   (res.allTableStrong||[]).slice(0,4).forEach(x=>addCar(x.car));
   (res.wallCross||[]).slice(0,4).forEach(x=>addCar(x.car));
+  sameHanHoles.slice(0,3).forEach(x=>addCar(x.car));
   if(frontAdded) addCar(front.car);
   // 5車へ圧縮。前位置単騎は固定、総合上位4頭を優先。残りはスコア順。
   let box=[];
@@ -344,15 +382,28 @@ function detectAutoWild5Box(res){
     const others=box.filter(c=>c!==front.car);
     for(let i=0;i<others.length;i++) for(let j=i+1;j<others.length;j++) frontIns.push(kumi3(front.car,others[i],others[j]));
   }
-  return {on:true,box,reason,front,frontAdded,signCount,types:typeSet.size,targetCars:targetSet.size,pairs,tris,single,frontIns};
+  const sameHanIns=[];
+  const favCar=(data.tansho&&data.tansho[0])?data.tansho[0].car:null;
+  sameHanHoles.slice(0,3).forEach(h=>{
+    const partners=[];
+    if(favCar && favCar!==h.car) partners.push(favCar);
+    cs.forEach(x=>{ if(x.car!==h.car && x.car!==favCar && partners.length<5) partners.push(x.car); });
+    for(let i=0;i<partners.length;i++) for(let j=i+1;j<partners.length;j++){
+      const tri=kumi3(h.car,partners[i],partners[j]);
+      if(!sameHanIns.includes(tri)) sameHanIns.push(tri);
+    }
+  });
+  const extraIns=[...new Set([...frontIns, ...sameHanIns])];
+  return {on:true,box,reason,front,frontAdded,frontDev,signCount,types:typeSet.size,targetCars:targetSet.size,pairs,tris,single,frontIns,sameHanIns,extraIns,sameHanHoles};
 }
 function renderAutoWild5Box(wild){
   if(!wild||!wild.on) return '';
   const cost=2500;
-  return `<div class="card hot"><h2>🚨オート大荒れ5車BOX強制モード V24.20</h2>
+  return `<div class="card hot"><h2>🚨オート大荒れ5車BOX強制モード V24.21</h2>
   <div><span class="badge pink">点灯</span> サイン${wild.signCount}件 / 対象${wild.targetCars}車 / 種類${wild.types}</div>
   <div style="margin:8px 0">最終5車BOX：${wild.box.map(carSpan).join(' ')}</div>
-  ${wild.frontAdded?`<div><span class="badge yellow">前位置単騎残り補正</span> ${carSpan(wild.front.car)} ${wild.front.reason}</div>`:''}
+  ${wild.frontAdded?`<div><span class="badge yellow">${wild.frontDev?'前位置単騎・偏差残り補正':'前位置単騎残り補正'}</span> ${carSpan(wild.front.car)} ${wild.front.reason}</div>`:''}
+  ${wild.sameHanHoles&&wild.sameHanHoles.length?`<div><span class="badge orange">同ハンデ内枠穴保険</span> ${wild.sameHanHoles.map(x=>carSpan(x.car)).join(' ')} 5車BOXから落ちても保険3連複へ残す</div>`:''}
   <pre class="copybox">単勝5車
 ${wild.single.join('\n')}
 
@@ -364,12 +415,26 @@ ${wild.tris.join('\n')}
 
 合計25点。100円なら${cost}円</pre>
   <div class="mini">理由：${wild.reason.join(' / ')}</div>
-  ${wild.frontIns&&wild.frontIns.length?`<div class="mini" style="margin-top:8px">前位置保険：${wild.frontIns.join(' / ')}</div>`:''}
+  ${wild.extraIns&&wild.extraIns.length?`<div class="mini" style="margin-top:8px">補正保険3連複：${wild.extraIns.slice(0,14).join(' / ')}</div>`:''}
   </div>`;
 }
 function autoWildText(wild){
   if(!wild||!wild.on) return 'なし';
-  return `🚨オート大荒れ5車BOX強制モード V24.20：点灯\nサイン密度：${wild.signCount}件 / 対象${wild.targetCars}車 / 種類${wild.types}\n最終5車BOX：${wild.box.map(c=>c+'号車').join('・')}\n${wild.frontAdded?'前位置単騎残り補正：'+wild.front.car+'号車 / '+wild.front.reason+'\n':''}理由：${wild.reason.join(' / ')}\n\n単勝5車\n${wild.single.join('\n')}\n\nワイド5車BOX\n${wild.pairs.join('\n')}\n\n3連複5車BOX\n${wild.tris.join('\n')}\n\n合計25点。100円なら2500円`;
+  return `🚨オート大荒れ5車BOX強制モード V24.21：点灯
+サイン密度：${wild.signCount}件 / 対象${wild.targetCars}車 / 種類${wild.types}
+最終5車BOX：${wild.box.map(c=>c+'号車').join('・')}
+${wild.frontAdded?(wild.frontDev?'前位置単騎・偏差残り補正：':'前位置単騎残り補正：')+wild.front.car+'号車 / '+wild.front.reason+'\n':''}${wild.sameHanHoles&&wild.sameHanHoles.length?'同ハンデ内枠穴保険：'+wild.sameHanHoles.map(x=>x.car+'号車').join('・')+'\n':''}理由：${wild.reason.join(' / ')}
+
+単勝5車
+${wild.single.join('\n')}
+
+ワイド5車BOX
+${wild.pairs.join('\n')}
+
+3連複5車BOX
+${wild.tris.join('\n')}
+
+${wild.extraIns&&wild.extraIns.length?'補正保険3連複\n'+wild.extraIns.slice(0,14).join('\n')+'\n\n':''}合計25点。100円なら2500円${wild.extraIns&&wild.extraIns.length?'＋保険候補':''}`;
 }
 
 function formationText(form){
@@ -391,9 +456,9 @@ function render(res){
   const warnLevel=(t1?.odds||99)<2 && (n1?.odds||99)<3 ? '本命戦' : (n1?.odds||0)>10 ? '荒れ戦':'中荒れ戦';
   const form=predictFormation(res);
   const wild=detectAutoWild5Box(res);
-  html+=`<div class="card warn"><h2>🩺オート荒れ診断 V24.20</h2><div>表面：<b>${warnLevel}</b><br>裏診断：${res.wallInfo.flags.some(f=>f.name.includes('ズレ'))?'本命頭飛び警戒 / 壁ズレあり':'通常'}<br>壁判定：${res.wallInfo.flags.map(f=>`<span class="badge yellow">${f.name}</span>`).join('')||'<span class="badge blue">通常</span>'}</div></div>`;
+  html+=`<div class="card warn"><h2>🩺オート荒れ診断 V24.21</h2><div>表面：<b>${warnLevel}</b><br>裏診断：${res.wallInfo.flags.some(f=>f.name.includes('ズレ'))?'本命頭飛び警戒 / 壁ズレあり':'通常'}<br>壁判定：${res.wallInfo.flags.map(f=>`<span class="badge yellow">${f.name}</span>`).join('')||'<span class="badge blue">通常</span>'}</div></div>`;
   html+=`<div class="card"><h2>本表・壁色つき</h2><div class="mini">青＝通常 / 黄＝第1壁 / 橙＝第2壁 / 桃＝急断層 / 赤＝特大壁</div>${rankTable(res.rows,res.wallsByName)}</div>`;
-  html+=`<div class="card orange"><h2>🧱壁位置判定 V24.20</h2>`;
+  html+=`<div class="card orange"><h2>🧱壁位置判定 V24.21</h2>`;
   for(const [name,walls] of Object.entries(res.wallsByName)){
     html+=`<div><b>${name}</b>：${walls.length?walls.map(w=>`${w.pos}位後ろ ${w.from}→${w.to}`).join(' / '):'大きな壁なし'}</div>`;
   }
@@ -409,8 +474,8 @@ function render(res){
   html+='</div>';
   html+=`<div class="card warn"><h2>🔥最終勝負タイプ</h2>`;
   const festival=res.medianFestival[0];
-  if(festival) html+=`<div><b>メジアン祭り核保護型 V24.20</b><br>${carSpan(festival.car)} が複数メジアン。相手は人気順ではなく、全表残り・壁またぎ・配当役を優先。</div>`;
-  else html+=`<div><b>通常3連系圧縮型 V24.20</b><br>壁色と壁またぎを優先して削る。</div>`;
+  if(festival) html+=`<div><b>メジアン祭り核保護型 V24.21</b><br>${carSpan(festival.car)} が複数メジアン。相手は人気順ではなく、全表残り・壁またぎ・配当役を優先。</div>`;
+  else html+=`<div><b>通常3連系圧縮型 V24.21</b><br>壁色と壁またぎを優先して削る。</div>`;
   html+='</div>';
   html+=formationHtml(form);
   html+=renderAutoWild5Box(wild);
@@ -430,8 +495,8 @@ function render(res){
     return `${i+1}位 ${x.car}号車【${x.score}】 単${x.odds}${hp} ${x.notes.join('・')}`;
   }).join('\n');
   const copy=`${race}
-オート擬似複勝テスト版 V24.20 大荒れ5車BOX＋前位置単騎残り補正
-壁色つき＋メジアン祭り＋オート大荒れ5車BOX＋前位置単騎残り補正＋結果コピー
+オート擬似複勝テスト版 V24.21 大荒れ5車BOX＋前位置偏差・同ハンデ内枠補正
+壁色つき＋メジアン祭り＋大荒れ5車BOX＋前位置偏差残り＋同ハンデ内枠穴保険＋結果コピー
 
 `+
     `🩺オート荒れ診断
@@ -447,7 +512,7 @@ ${Object.entries(res.med).map(([k,v])=>`${k}：${v.map(c=>c+'号車').join('・'
 ${wallsText}
 
 `+
-    `V24.20ランプ
+    `V24.21ランプ
 `+
     `メジアン祭り：${res.medianFestival.map(x=>x.car+'号車').join('・')||'なし'}
 `+
