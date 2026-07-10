@@ -439,6 +439,356 @@ function fallbackCopy(text){var ta=document.createElement('textarea');ta.value=t
   };
 })();
 </script>
+<script>
+(function(){
+  'use strict';
+
+  var V243_renderDiag = window.renderDiag;
+  var V243_renderV236 = window.renderV236;
+  var V243_renderTickets = window.renderTickets;
+  var V243_makeTickets = window.makeTickets;
+  var V243_makeCopyText = window.makeCopyText;
+
+  document.title = 'チャッピー神予想 競馬 V2.44 欠点あり突出馬強制保護＋役割別5頭BOX';
+  var heading = document.querySelector('h1');
+  if(heading){
+    heading.innerHTML = 'チャッピー神予想 競馬 V2.44<br>🚨欠点あり突出馬・大荒れ強制保護<br>🔒三強ロック過剰抑制解除＋役割別5頭BOX＋上位2頭×突出穴保護';
+  }
+
+  var style = document.createElement('style');
+  style.textContent = [
+    '.v244{border:3px solid #f472b6;background:linear-gradient(135deg,#2a071b,#5a123c,#1b0511);box-shadow:0 0 26px rgba(244,114,182,.55)}',
+    '.v244Role{display:inline-block;border-radius:999px;padding:5px 9px;margin:3px 2px;background:#3b0a28;border:1px solid #f9a8d4;color:#fce7f3;font-weight:900}',
+    '.v244Strong{color:#fda4af;font-weight:900}',
+    '.v244Good{color:#86efac;font-weight:900}',
+    '.v244Warn{color:#fde047;font-weight:900}'
+  ].join('');
+  document.head.appendChild(style);
+
+  function reasonAny(x,words){
+    for(var i=0;i<words.length;i++)if(hasReason(x,words[i]))return true;
+    return false;
+  }
+
+  function strongTriSupport(ctx,x){
+    if(!x)return false;
+    return x.sanBest<=5 || countAppearTop(ctx.sanRank,x.h,10)>=3;
+  }
+
+  function detectPriorityFlaws(ctx,scored,adv){
+    var diagSet={};
+    ((adv&&adv.diagBox)||[]).forEach(function(h){diagSet[String(h)]=1;});
+    var out=[];
+
+    (scored||[]).forEach(function(x){
+      if(!hasReason(x,'欠点あり突出馬'))return;
+
+      var independent=0, tags=[];
+      function hit(on,tag){if(on){independent++;tags.push(tag);}}
+
+      hit(x.score>=55,'候補55点以上');
+      hit(reasonAny(x,[
+        '単勝メジアン','単勝10倍台メジアン','単勝20倍台メジアン',
+        '複勝メジアン','複勝12倍以下メジアン','複勝6倍内メジアン',
+        '馬連メジアン','ワイドメジアン','三連複メジアン'
+      ]),'メジアン');
+      hit(reasonAny(x,[
+        '複勝6倍壁前','複勝10倍壁前','複勝15倍壁前',
+        '複勝15倍断層下2頭','複勝15倍壁末端'
+      ]),'壁前・断層');
+      hit(reasonAny(x,['馬連メジアン','ワイドメジアン']),'連系メジアン');
+      hit(strongTriSupport(ctx,x),'三連複上位支持');
+      hit(reasonAny(x,['単複ズレ','単複ズレ大穴']),'単複ズレ');
+      hit(!!diagSet[String(x.h)],'診断枠内');
+
+      var tri10=countAppearTop(ctx.sanRank,x.h,10);
+      var weight=0;
+      if(x.score>=55)weight+=1;
+      if(hasReason(x,'単勝10倍台メジアン'))weight+=3;
+      else if(hasReason(x,'単勝20倍台メジアン')||hasReason(x,'単勝メジアン'))weight+=1;
+      if(hasReason(x,'複勝6倍壁前'))weight+=3;
+      else if(reasonAny(x,['複勝10倍壁前','複勝15倍壁前','複勝15倍断層下2頭']))weight+=2;
+      if(hasReason(x,'馬連メジアン'))weight+=3;
+      if(hasReason(x,'ワイドメジアン'))weight+=2;
+      if(hasReason(x,'三連複メジアン'))weight+=3;
+      if(x.sanBest<=5)weight+=3;
+      else if(tri10>=3)weight+=2;
+      if(reasonAny(x,['単複ズレ','単複ズレ大穴']))weight+=1;
+      if(diagSet[String(x.h)])weight+=1;
+
+      if(independent>=3){
+        out.push({
+          h:x.h,
+          score:x.score,
+          tan:x.tan,
+          fuku:x.fuku,
+          sanBest:x.sanBest,
+          independent:independent,
+          weight:weight,
+          tags:tags,
+          source:x,
+          tri10:tri10,
+          tri20:countAppearTop(ctx.sanRank,x.h,20)
+        });
+      }
+    });
+
+    out.sort(function(a,b){
+      if(b.weight!==a.weight)return b.weight-a.weight;
+      if(b.independent!==a.independent)return b.independent-a.independent;
+      if(b.score!==a.score)return b.score-a.score;
+      if(b.tri10!==a.tri10)return b.tri10-a.tri10;
+      return safeNum(a.tan)-safeNum(b.tan);
+    });
+    return out;
+  }
+  window.detectPriorityFlaws = detectPriorityFlaws;
+
+  window.applyRaceOverride=function(diag,ctx,scored,adv){
+    var ff=detectFalseFavoriteOverride(ctx,scored,adv);
+    var lock=(adv&&adv.tripleLock)?adv.tripleLock:detectTripleLock(ctx,scored);
+    var flaws=detectPriorityFlaws(ctx,scored,adv);
+    var breakReasons=[];
+
+    if(lock&&lock.on){
+      var outsideFlaws=flaws.filter(function(x){return lock.horses.indexOf(String(x.h))<0;});
+      var strongOutside=outsideFlaws.filter(function(x){
+        return x.weight>=10 && x.independent>=5 && x.score>=55 && (x.sanBest<=5||x.tri10>=2);
+      });
+      var collapse=Number(adv.flags||0)>=5 && String(adv.level||'').indexOf('総崩れ')>=0;
+      var axisBreak=!!(ff&&ff.axisSlide&&ff.axisSlide.on&&ff.signal&&ff.signal.on&&Number(adv.flags||0)>=4);
+      var flawBreak=!!(strongOutside.length&&(ff.on||Number(adv.flags||0)>=4));
+
+      if(collapse)breakReasons.push('本命/受け皿総崩れ警報');
+      if(axisBreak)breakReasons.push('三連複共通軸抜けスライド');
+      if(flawBreak)breakReasons.push('三強外の強い欠点あり突出馬 '+strongOutside.map(function(x){return x.h+'番';}).join('・'));
+
+      if(breakReasons.length){
+        lock.active=false;
+        lock.strongBreak=true;
+        lock.mode='ロック解除・大荒れ優先';
+        lock.breakReasons=breakReasons.slice();
+      }
+    }
+
+    adv.priorityFlaws=flaws;
+    diag.falseFavorite=ff;
+    diag.tripleLock=lock;
+    diag.finalSurface=diag.surface;
+    diag.finalClass=diag.cls;
+
+    if(lock&&lock.active){
+      ff.originalOn=!!ff.on;
+      ff.suppressed=!!ff.on;
+      ff.on=false;
+      diag.finalSurface='本命〜小荒れ戦';
+      diag.finalClass='good';
+      diag.back='三強三角ロック補正';
+      diag.matchanType=lock.replacement.length?'三強ロック＋1頭差し替え':'三強完全ロック';
+      diag.wild=false;
+      diag.risk=Math.max(0,(diag.risk||0)-2);
+      adv.rawLevel=adv.level;
+      adv.level='三強三角ロック優先・大荒れ抑制';
+      return diag;
+    }
+
+    if(ff.on){
+      diag.finalSurface=ff.level||'大荒れ警戒';
+      diag.finalClass='warn';
+      diag.back=ff.name||'偽本命・大荒れ上書き';
+      diag.matchanType=ff.level||'大荒れ警戒';
+      diag.wild=true;
+      diag.risk=(diag.risk||0)+3;
+    }
+    return diag;
+  };
+
+  window.makeWildBox=function(ctx,scored,adv,ms,sw){
+    var ff=adv&&adv.falseFavorite?adv.falseFavorite:null;
+    var sig=(ff&&ff.signal)?ff.signal:(adv&&adv.signal?adv.signal:null);
+    var on=!!(ff&&ff.on&&((sig&&sig.on)||Number(adv.flags||0)>=4));
+    var res={
+      on:on,horses:[],notes:{},roles:{},tansho:[],wideBox:[],sanBox:[],
+      total:0,reason:[],priorityFlaws:(adv&&adv.priorityFlaws)||[]
+    };
+    if(!on)return res;
+
+    var tr=rankMap(ctx.tanRow);
+    var wallCount=0;
+
+    function triCount(h){return countAppearTop(ctx.sanRank,String(h),20);}
+    function supportValue(x){
+      if(!x)return -9999;
+      var v=Number(x.score||0)+triCount(x.h)*3;
+      if(x.sanBest<=5)v+=12;
+      if(safeNum(x.fuku)<=6)v+=6;
+      if((tr[x.h]||99)<=3)v+=5;
+      if(hasReason(x,'三連複1位ジャンプ'))v+=18;
+      return v;
+    }
+    function isWallOnly(x){
+      if(!x)return false;
+      return reasonAny(x,['複勝15倍壁末端','単複ズレ大穴']) &&
+             !reasonAny(x,['馬連メジアン','ワイドメジアン','三連複メジアン']) &&
+             x.sanBest>5;
+    }
+    function pick(h,role,why){
+      h=String(h||'');
+      if(!h||res.horses.indexOf(h)>=0||res.horses.length>=5)return false;
+      var x=getScoreObj(scored,h);
+      if(isWallOnly(x)&&wallCount>=1)return false;
+      res.horses.push(h);
+      res.roles[h]=role;
+      res.notes[h]=res.notes[h]||[];
+      add(res.notes[h],why||role);
+      if(isWallOnly(x))wallCount++;
+      return true;
+    }
+    function pickObj(x,role,why){return x?pick(x.h,role,why):false;}
+
+    var ranked=scored.slice().sort(function(a,b){
+      var av=supportValue(a),bv=supportValue(b);
+      if(bv!==av)return bv-av;
+      return safeNum(a.tan)-safeNum(b.tan);
+    });
+
+    /* 役割1・2：候補上位の本線核 */
+    scored.slice(0,2).forEach(function(x){pickObj(x,'本線核','候補上位2頭');});
+
+    /* 役割3：三連複1位ジャンプ、または受け皿人気 */
+    var tri1Obj=adv&&adv.tri1?getScoreObj(scored,adv.tri1):null;
+    if(tri1Obj&&triCount(tri1Obj.h)>=8){
+      pickObj(tri1Obj,'受け皿','三連複1位ジャンプ保護');
+    }
+    if(res.horses.length<3){
+      ((adv&&adv.receiverPop)||[]).some(function(x){return pickObj(x,'受け皿','大荒れ内の受け皿人気');});
+    }
+    if(res.horses.length<3){
+      ranked.some(function(x){
+        if((tr[x.h]||99)<=4&&triCount(x.h)>=7&&safeNum(x.fuku)<=7){
+          return pickObj(x,'受け皿','人気側受け皿保護');
+        }
+        return false;
+      });
+    }
+
+    /* 役割4：欠点あり突出馬を必ず1頭 */
+    var flaws=(adv&&adv.priorityFlaws)||detectPriorityFlaws(ctx,scored,adv);
+    flaws.some(function(f){return pick(f.h,'欠点あり突出馬','独立サイン'+f.independent+'種類');});
+
+    /* 役割5：総合支持の最上位。壁末端だけの穴は最大1頭 */
+    ranked.some(function(x){
+      if(res.horses.indexOf(String(x.h))>=0)return false;
+      if(isWallOnly(x)&&supportValue(x)<60)return false;
+      return pickObj(x,'総合支持','三連複登場'+triCount(x.h)+'回・総合支持');
+    });
+
+    /* 欠員補充 */
+    ranked.forEach(function(x){if(res.horses.length<5)pickObj(x,'補充','候補上位補充');});
+    scored.forEach(function(x){if(res.horses.length<5)pickObj(x,'補充','候補上位補充');});
+
+    res.horses=res.horses.slice(0,5);
+    res.tansho=res.horses.slice();
+    res.wideBox=combo2Box(res.horses);
+    res.sanBox=combo3Box(res.horses);
+    res.total=res.tansho.length*100+res.wideBox.length*100+res.sanBox.length*100;
+    res.reason.push('本線核2頭');
+    res.reason.push('受け皿1頭');
+    res.reason.push('欠点あり突出馬1頭を強制保護');
+    res.reason.push('残り1頭は総合支持優先');
+    res.reason.push('壁末端だけの超穴は最大1頭');
+    return res;
+  };
+
+  window.makeTickets=function(ctx,ms,scored,sw,adv){
+    var t=V243_makeTickets(ctx,ms,scored,sw,adv);
+    var flaws=(adv&&adv.priorityFlaws)||detectPriorityFlaws(ctx,scored,adv);
+    var ff=adv&&adv.falseFavorite?adv.falseFavorite:null;
+    t.priorityFlaws=flaws;
+    t.flawProtect=[];
+
+    if(ff&&ff.on&&scored.length>=2&&flaws.length){
+      var a=scored[0],b=scored[1];
+      flaws.slice(0,2).forEach(function(f){
+        if(f.h!==a.h&&f.h!==b.h)addT(t.flawProtect,a.h,b.h,f.h);
+      });
+      t.flawProtect=uniq(t.flawProtect).slice(0,3);
+      t.v236=uniq(t.flawProtect.concat(t.v236||[])).slice(0,12);
+      t.bomb=uniq(t.flawProtect.concat(t.bomb||[])).slice(0,12);
+    }
+    return t;
+  };
+
+  function renderV244Card(adv){
+    var flaws=(adv&&adv.priorityFlaws)||[];
+    if(!flaws.length)return'';
+    var html='<div class="card v244"><div class="title">🚨V2.44 欠点あり突出馬・強制保護</div>';
+    html+='優先順：<span class="v244Strong">'+flaws.map(function(f){return f.h+'番';}).join('・')+'</span><br>';
+    flaws.slice(0,5).forEach(function(f){
+      html+='<div class="rankLine"><span class="v244Role">'+f.h+'番｜独立'+f.independent+'種類</span> ';
+      html+='<span class="small">候補'+f.score+'点 / 保護指数'+f.weight+' / 三連複上位10件'+f.tri10+'回 / '+f.tags.join('・')+'</span></div>';
+    });
+    html+='<span class="small">大荒れ時は、壁末端だけの超大穴より、複数表にまたがる欠点あり突出馬を5頭BOXへ優先します。</span></div>';
+    return html;
+  }
+
+  window.renderDiag=function(diag,ctx){
+    var html=V243_renderDiag(diag,ctx).replace(/V2\.43/g,'V2.44');
+    if(diag.tripleLock&&diag.tripleLock.strongBreak&&diag.tripleLock.breakReasons&&diag.tripleLock.breakReasons.length){
+      html+='<div class="card v244"><div class="title">🔓三強ロック解除理由</div>';
+      html+='<span class="warn">'+diag.tripleLock.breakReasons.join('<br>')+'</span><br>';
+      html+='<span class="small">強い大荒れサインが三強の外側にあるため、ロックによる過剰抑制を解除しました。</span></div>';
+    }
+    return html;
+  };
+
+  window.renderV236=function(adv){
+    return V243_renderV236(adv).replace(/V2\.43/g,'V2.44')+renderV244Card(adv);
+  };
+
+  window.renderTickets=function(t){
+    var extra='';
+    if(t.flawProtect&&t.flawProtect.length){
+      extra='<div class="card v244"><div class="title">🛡候補上位2頭＋突出穴 強制保護</div><pre>';
+      extra+=t.flawProtect.join('\n');
+      extra+='\n\n※大荒れ時、候補1位・2位と最優先の欠点あり突出馬を結ぶ三連複。</pre></div>';
+    }
+    var html=V243_renderTickets(t).replace(/V2\.43/g,'V2.44');
+    if(t.wildBox&&t.wildBox.on){
+      var roleLine=t.wildBox.horses.map(function(h){return h+'番＝'+(t.wildBox.roles[h]||'候補');}).join(' / ');
+      extra+='<div class="card v244"><div class="title">🎯役割別5頭BOX内訳</div>'+roleLine+'<br><span class="small">本線核2頭＋受け皿＋欠点あり突出馬＋総合支持。壁末端だけの穴は最大1頭。</span></div>';
+    }
+    return extra+html;
+  };
+
+  window.makeCopyText=function(data,diag,ctx,ms,sw,tickets,scored,moves,adv){
+    var s=V243_makeCopyText(data,diag,ctx,ms,sw,tickets,scored,moves,adv).replace(/V2\.43/g,'V2.44');
+    s=s.replace(
+      '競馬メジアン V2.44 三強三角ロック補正＋大荒れ過剰判定抑制',
+      '競馬メジアン V2.44 欠点あり突出馬強制保護＋役割別5頭BOX'
+    );
+
+    var block='\n🚨V2.44 欠点あり突出馬・強制保護\n';
+    var flaws=(adv&&adv.priorityFlaws)||[];
+    block+='優先順：'+(flaws.length?flaws.map(function(f){return f.h+'番';}).join('・'):'なし')+'\n';
+    flaws.slice(0,5).forEach(function(f){
+      block+=f.h+'番 独立'+f.independent+'種類 / 候補'+f.score+'点 / 保護指数'+f.weight+' / 三連複上位10件'+f.tri10+'回 / '+f.tags.join('・')+'\n';
+    });
+    if(diag.tripleLock&&diag.tripleLock.strongBreak&&diag.tripleLock.breakReasons&&diag.tripleLock.breakReasons.length){
+      block+='三強ロック解除：'+diag.tripleLock.breakReasons.join(' / ')+'\n';
+    }
+    if(tickets.flawProtect&&tickets.flawProtect.length){
+      block+='候補上位2頭＋突出穴保護：'+tickets.flawProtect.join(' / ')+'\n';
+    }
+    if(tickets.wildBox&&tickets.wildBox.on){
+      block+='役割別5頭BOX：'+tickets.wildBox.horses.map(function(h){return h+'番('+tickets.wildBox.roles[h]+')';}).join(' / ')+'\n';
+    }
+
+    s=s.replace('\n🔥まっちゃん単勝システム',block+'\n🔥まっちゃん単勝システム');
+    return s;
+  };
+})();
+</script>
 
 </body>
 </html>
