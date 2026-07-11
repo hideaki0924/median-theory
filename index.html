@@ -439,6 +439,7 @@ function fallbackCopy(text){var ta=document.createElement('textarea');ta.value=t
   };
 })();
 </script>
+
 <script>
 (function(){
   'use strict';
@@ -783,6 +784,252 @@ function fallbackCopy(text){var ta=document.createElement('textarea');ta.value=t
     if(tickets.wildBox&&tickets.wildBox.on){
       block+='役割別5頭BOX：'+tickets.wildBox.horses.map(function(h){return h+'番('+tickets.wildBox.roles[h]+')';}).join(' / ')+'\n';
     }
+
+    s=s.replace('\n🔥まっちゃん単勝システム',block+'\n🔥まっちゃん単勝システム');
+    return s;
+  };
+})();
+</script>
+
+<script>
+(function(){
+  'use strict';
+
+  var V244_renderDiag = window.renderDiag;
+  var V244_renderV236 = window.renderV236;
+  var V244_renderMatchan = window.renderMatchan;
+  var V244_renderTickets = window.renderTickets;
+  var V244_makeTickets = window.makeTickets;
+  var V244_makeCopyText = window.makeCopyText;
+
+  document.title = 'チャッピー神予想 競馬 V2.45 青白光・大穴関門ランプ';
+  var heading = document.querySelector('h1');
+  if(heading){
+    heading.innerHTML = 'チャッピー神予想 競馬 V2.45<br>💎青白光・大穴関門ランプ<br>🚨壁・連系・ズレ・荒れを独立判定／同系統の重複加点なし';
+  }
+
+  var style = document.createElement('style');
+  style.textContent = [
+    '.ooanaGate{border:3px solid #60a5fa;background:linear-gradient(135deg,#020b1d,#073a6a,#07152d);box-shadow:0 0 10px rgba(96,165,250,.9),0 0 24px rgba(56,189,248,.52),inset 0 0 14px rgba(255,255,255,.08)}',
+    '.ooanaGate.on{border-color:#bae6fd;box-shadow:0 0 10px #dbeafe,0 0 25px #38bdf8,0 0 42px rgba(59,130,246,.72)}',
+    '.ooanaGate.strong{border-color:#fff;background:linear-gradient(135deg,#03112a,#0c5a9a,#dbeafe);text-shadow:0 0 5px #fff,0 0 13px #7dd3fc;box-shadow:0 0 12px #fff,0 0 28px #38bdf8,0 0 50px rgba(59,130,246,.95);animation:v245BlueWhiteGlow 1.8s ease-in-out infinite alternate}',
+    '.gateHorse{margin:10px 0;padding:10px;border-radius:13px;background:rgba(2,6,23,.68);border:1px solid rgba(186,230,253,.62)}',
+    '.gateStrong{color:#fff;font-weight:900;text-shadow:0 0 7px #fff,0 0 15px #38bdf8}',
+    '.gateOn{color:#bae6fd;font-weight:900;text-shadow:0 0 9px #38bdf8}',
+    '.gateCaution{color:#93c5fd;font-weight:900}',
+    '.gateBadge{display:inline-block;border-radius:999px;padding:4px 9px;margin:2px;background:#082f49;border:1px solid #7dd3fc;color:#e0f2fe;font-weight:900}',
+    '@keyframes v245BlueWhiteGlow{from{filter:brightness(1);transform:scale(1)}to{filter:brightness(1.18);transform:scale(1.006)}}'
+  ].join('');
+  document.head.appendChild(style);
+
+  function n(v,d){
+    v=Number(v);
+    return isFinite(v)?v:(d===0?0:(d||9999));
+  }
+  function containsReason(x,word){
+    return ((x&&x.reasons)||[]).join(' / ').indexOf(word)>=0;
+  }
+  function anyReason(x,words){
+    for(var i=0;i<words.length;i++){
+      if(containsReason(x,words[i]))return true;
+    }
+    return false;
+  }
+  function includesHorse(list,h){
+    h=String(h);
+    for(var i=0;i<(list||[]).length;i++){
+      var x=list[i];
+      if(String(x.h||x)===h)return true;
+    }
+    return false;
+  }
+  function virtual15Wall(ctx){
+    var rank=(ctx&&ctx.fukuRank)||[];
+    if(rank.length<2)return{on:false,items:[]};
+    var has15=rank.some(function(x){return n(x.fuku)>=15;});
+    if(has15)return{on:false,items:[]};
+    var tail=rank.slice(-2).map(function(x){return String(x.h);});
+    return{
+      on:true,
+      items:tail,
+      reason:'複勝15倍以上の馬がいないため、複勝上限の末尾2頭を仮想15倍壁前2頭として扱う'
+    };
+  }
+  function addNote(arr,v){
+    if(v&&arr.indexOf(v)<0)arr.push(v);
+  }
+  function detectOoanaGate(ctx,scored,adv){
+    var virtual=virtual15Wall(ctx);
+    var outer={};
+    (((adv&&adv.wallOuter15)||{}).items||[]).forEach(function(x){outer[String(x.h)]=1;});
+    var falseFav=!!(adv&&adv.falseFavorite&&adv.falseFavorite.on);
+    var axisSlide=!!(adv&&adv.falseFavorite&&adv.falseFavorite.axisSlide&&adv.falseFavorite.axisSlide.on);
+    var roughRace=falseFav||axisSlide||!!(adv&&/大荒れ|総崩れ|危険/.test(String(adv.level||'')));
+    var out=[];
+
+    (scored||[]).forEach(function(x){
+      var wall=[],link=[],shift=[],rough=[];
+      var h=String(x.h);
+
+      if(anyReason(x,['複勝10倍壁前','複勝15倍壁前','複勝15倍断層下2頭','複勝15倍壁末端'])){
+        addNote(wall,'複勝壁・断層');
+      }
+      if(outer[h])addNote(wall,'複勝15倍壁外1頭目');
+      if(virtual.on&&virtual.items.indexOf(h)>=0)addNote(wall,'仮想15倍壁前2頭');
+
+      if(anyReason(x,['馬連メジアン','ワイドメジアン','三連複メジアン','三連複先行支持ジャンプ','三連複1位ジャンプ'])){
+        addNote(link,'連系メジアン・ジャンプ');
+      }
+      var san10=countAppearTop((ctx&&ctx.sanRank)||[],h,10);
+      var uma12=countAppearTop((ctx&&ctx.umaRank)||[],h,12);
+      var wide12=countAppearTop((ctx&&ctx.wideRank)||[],h,12);
+      if(n(x.sanBest)<=5)addNote(link,'三連複5位以内');
+      if(san10>=2&&(uma12>=2||wide12>=2))addNote(link,'複数券種の上位接続');
+
+      /* 下位オッズでも、単勝上位4頭のうち2頭以上と馬連/ワイドで直接つながれば連系関門。 */
+      var topAnchors=((ctx&&ctx.tanRow)||[]).slice(0,4),anchorHit={};
+      [((ctx&&ctx.umaRank)||[]),((ctx&&ctx.wideRank)||[])].forEach(function(list){
+        list.forEach(function(p){
+          var a=String(p.a||''),b=String(p.b||'');
+          if(a===h&&topAnchors.indexOf(b)>=0)anchorHit[b]=1;
+          if(b===h&&topAnchors.indexOf(a)>=0)anchorHit[a]=1;
+        });
+      });
+      if(Object.keys(anchorHit).length>=2)addNote(link,'上位人気2頭以上と直接接続');
+
+      if(anyReason(x,['単複ズレ','単複ズレ大穴','複勝上昇ジャンプ'])){
+        addNote(shift,'単複・複勝順位ズレ');
+      }
+      if(n(x.tRank,99)-n(x.fRank,99)>=3)addNote(shift,'単勝より複勝順位先行');
+      if(n(x.tRank,99)-n(x.sanBest,99)>=3)addNote(shift,'単勝より三連複順位先行');
+
+      if(roughRace)addNote(rough,falseFav?'偽本命・大荒れ上書き':'荒れ警報');
+      if(axisSlide)addNote(rough,'軸抜けスライド');
+      if(includesHorse((adv&&adv.diagBox)||[],h)&&adv&&adv.level!=='通常')addNote(rough,'診断枠内候補');
+      if(anyReason(x,['中穴保護','欠点あり突出馬']))addNote(rough,'荒れ時保護候補');
+
+      var gates=[];
+      if(wall.length)gates.push('壁');
+      if(link.length)gates.push('連系');
+      if(shift.length)gates.push('ズレ');
+      if(rough.length)gates.push('荒れ');
+
+      var tan=n(x.tan),eligible=(tan>=8||n(x.tRank,99)>=4||wall.length||shift.length);
+      if(!eligible||gates.length<2)return;
+
+      var level=gates.length>=4?'強点灯':(gates.length===3?'点灯':'注意');
+      var action='経過観察';
+      if(gates.length>=4)action='ワイド・三連複で強制保護';
+      else if(gates.length===3&&wall.length&&link.length)action='ワイド・三連複で1点保護';
+      else if(gates.length===3&&link.length&&shift.length)action='連系必須馬として保護';
+      else if(gates.length===3)action='三連複の2・3着穴で保護';
+
+      out.push({
+        h:h,
+        count:gates.length,
+        level:level,
+        gates:gates,
+        action:action,
+        score:n(x.score,0),
+        tan:x.tan,
+        fuku:x.fuku,
+        notes:{wall:wall,link:link,shift:shift,rough:rough}
+      });
+    });
+
+    out.sort(function(a,b){
+      if(b.count!==a.count)return b.count-a.count;
+      if(b.score!==a.score)return b.score-a.score;
+      return n(a.tan)-n(b.tan);
+    });
+
+    var lit=out.filter(function(x){return x.count>=3;});
+    var caution=out.filter(function(x){return x.count===2;}).slice(0,4);
+    return{
+      on:lit.length>0,
+      strong:lit.some(function(x){return x.count===4;}),
+      level:lit.some(function(x){return x.count===4;})?'強点灯':(lit.length?'点灯':'消灯'),
+      items:lit.slice(0,6),
+      caution:caution,
+      virtual15:virtual
+    };
+  }
+
+  function gateClass(level){
+    return level==='強点灯'?'gateStrong':(level==='点灯'?'gateOn':'gateCaution');
+  }
+  function renderGateCard(g){
+    g=g||{on:false,strong:false,level:'消灯',items:[],caution:[],virtual15:{on:false,items:[]}};
+    var cls='card ooanaGate'+(g.strong?' strong':(g.on?' on':''));
+    var html='<div class="'+cls+'"><div class="title">💎V2.45 青白光・大穴関門ランプ</div>';
+    html+='判定：<span class="'+gateClass(g.level)+'">'+g.level+'</span><br>';
+    html+='<span class="small">壁・連系・ズレ・荒れの4関門を独立判定。同じ系統のサインが複数あっても1関門として数えます。</span>';
+    if(g.virtual15&&g.virtual15.on){
+      html+='<hr>仮想15倍壁前2頭：<span class="cyan">'+g.virtual15.items.map(function(h){return h+'番';}).join('・')+'</span><br>';
+      html+='<span class="small">複勝15倍以上が不在のため、複勝上限の末尾2頭を壁前候補として扱います。</span>';
+    }
+    if(g.items&&g.items.length){
+      html+='<hr>';
+      g.items.forEach(function(x){
+        html+='<div class="gateHorse"><span class="'+gateClass(x.level)+'">'+x.h+'番　'+x.level+'／'+x.count+'関門</span><br>';
+        html+=x.gates.map(function(v){return '<span class="gateBadge">'+v+'</span>';}).join('')+'<br>';
+        html+='<span class="small">単'+x.tan+' / 複'+x.fuku+'　扱い：'+x.action+'</span></div>';
+      });
+    }else{
+      html+='<hr>3関門以上の該当馬なし';
+    }
+    if(g.caution&&g.caution.length){
+      html+='<hr><span class="gateCaution">2関門・注意：</span> '+g.caution.map(function(x){return x.h+'番('+x.gates.join('・')+')';}).join(' / ');
+    }
+    html+='</div>';
+    return html;
+  }
+
+  window.makeTickets=function(ctx,ms,scored,sw,adv){
+    var gate=detectOoanaGate(ctx,scored,adv);
+    if(adv)adv.ooanaGate=gate;
+    var t=V244_makeTickets(ctx,ms,scored,sw,adv);
+    t.ooanaGate=gate;
+    return t;
+  };
+
+  window.renderDiag=function(diag,ctx){
+    return V244_renderDiag(diag,ctx).replace(/V2\.44|V2\.43|V2\.42/g,'V2.45');
+  };
+  window.renderV236=function(adv){
+    return V244_renderV236(adv).replace(/V2\.44|V2\.43|V2\.42/g,'V2.45')+renderGateCard(adv&&adv.ooanaGate);
+  };
+  window.renderMatchan=function(ms,diag,ctx,moves){
+    return V244_renderMatchan(ms,diag,ctx,moves).replace(/V2\.44|V2\.43|V2\.42/g,'V2.45');
+  };
+  window.renderTickets=function(t){
+    return V244_renderTickets(t).replace(/V2\.44|V2\.43|V2\.42/g,'V2.45');
+  };
+
+  window.makeCopyText=function(data,diag,ctx,ms,sw,tickets,scored,moves,adv){
+    var s=V244_makeCopyText(data,diag,ctx,ms,sw,tickets,scored,moves,adv).replace(/V2\.44|V2\.43|V2\.42/g,'V2.45');
+    s=s.replace(
+      '競馬メジアン V2.45 欠点あり突出馬強制保護＋役割別5頭BOX',
+      '競馬メジアン V2.45 青白光・大穴関門ランプ＋欠点あり突出馬強制保護'
+    );
+
+    var g=(adv&&adv.ooanaGate)||tickets.ooanaGate||{level:'消灯',items:[],caution:[],virtual15:{on:false,items:[]}};
+    var block='\n💎V2.45 青白光・大穴関門ランプ\n';
+    block+='判定：'+g.level+'\n';
+    if(g.virtual15&&g.virtual15.on){
+      block+='仮想15倍壁前2頭：'+g.virtual15.items.map(function(h){return h+'番';}).join('・')+'\n';
+    }
+    if(g.items&&g.items.length){
+      g.items.forEach(function(x){
+        block+=x.h+'番 '+x.level+' / '+x.count+'関門 / 通過：'+x.gates.join('・')+' / 扱い：'+x.action+'\n';
+      });
+    }else{
+      block+='対象：なし\n';
+    }
+    if(g.caution&&g.caution.length){
+      block+='2関門注意：'+g.caution.map(function(x){return x.h+'番('+x.gates.join('・')+')';}).join(' / ')+'\n';
+    }
+    block+='※同じ系統のサインは複数あっても1関門。候補点の重複加算とは別判定。\n';
 
     s=s.replace('\n🔥まっちゃん単勝システム',block+'\n🔥まっちゃん単勝システム');
     return s;
