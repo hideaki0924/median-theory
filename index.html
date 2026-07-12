@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 競馬 V2.42 大荒れ5頭BOX＋三連複1位保護＋総合中穴優先</title>
+<title>チャッピー神予想 競馬 V2.46 壁1.8ライン＋青白光・大穴関門ランプ</title>
 <style>
 body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:14px;font-size:17px}
 h1{font-size:27px;line-height:1.3;margin:4px 0 12px;color:#fff}
@@ -1034,6 +1034,217 @@ function fallbackCopy(text){var ta=document.createElement('textarea');ta.value=t
     s=s.replace('\n🔥まっちゃん単勝システム',block+'\n🔥まっちゃん単勝システム');
     return s;
   };
+})();
+</script>
+
+
+<script>
+(function(){
+  'use strict';
+  var V245_makeContext = window.makeContext;
+  var V245_renderHonpyo = window.renderHonpyo;
+  var V245_detectOoanaGate = window.detectOoanaGate;
+  var V245_renderGateCard = window.renderGateCard;
+  var V245_makeCopyText = window.makeCopyText;
+  var V245_renderDiag = window.renderDiag;
+  var V245_renderV236 = window.renderV236;
+  var V245_renderMatchan = window.renderMatchan;
+  var V245_renderTickets = window.renderTickets;
+
+  function ratioWalls(sorted, field, ratio){
+    var indices=[], pairs=[], before=[], after=[];
+    sorted = sorted || [];
+    ratio = Number(ratio||1.8);
+    for(var i=0;i<sorted.length-1;i++){
+      var a = Number(sorted[i][field]);
+      var b = Number(sorted[i+1][field]);
+      if(!isFinite(a) || !isFinite(b) || a<=0) continue;
+      var r = b / a;
+      if(r >= ratio){
+        indices.push(i);
+        pairs.push({index:i,ratio:Number(r.toFixed(2)),left:sorted[i],right:sorted[i+1]});
+        if(sorted[i] && sorted[i].h!=null) before.push(String(sorted[i].h));
+        if(sorted[i+1] && sorted[i+1].h!=null) after.push(String(sorted[i+1].h));
+      }
+    }
+    return {indices:indices,pairs:pairs,before:uniq(before),after:uniq(after),on:indices.length>0};
+  }
+
+  function addNote(arr,v){ if(v && arr.indexOf(v)<0) arr.push(v); }
+  function n(v,d){ v=Number(v); return isFinite(v)?v:(d===0?0:(d||9999)); }
+  function containsReason(x,word){ return ((x&&x.reasons)||[]).join(' / ').indexOf(word)>=0; }
+  function anyReason(x,words){ for(var i=0;i<words.length;i++){ if(containsReason(x,words[i])) return true; } return false; }
+  function includesHorse(list,h){ h=String(h); for(var i=0;i<(list||[]).length;i++){ var x=list[i]; if(String(x.h||x)===h) return true; } return false; }
+  function gateClass(level){ return level==='強点灯'?'gateStrong':(level==='点灯'?'gateOn':'gateCaution'); }
+
+  window.makeContext = function(data){
+    var ctx = V245_makeContext(data);
+    ctx.wallRatio = 1.8;
+    ctx.wall18 = {
+      tan: ratioWalls(ctx.tanRank,'tan',1.8),
+      fuku: ratioWalls(ctx.fukuRank,'fuku',1.8),
+      uma: ratioWalls(ctx.umaRank,'od',1.8),
+      wide: ratioWalls(ctx.wideRank,'od',1.8),
+      san: ratioWalls(ctx.sanRank,'od',1.8)
+    };
+    return ctx;
+  };
+
+  window.barClassFor = function(label,i,ctx){
+    var cls=[];
+    var map = { '単勝':'tan', '複勝':'fuku', '馬連':'uma', 'ワイド':'wide', '三連複':'san' };
+    var key = map[label];
+    if(key && ctx.wall18 && ctx.wall18[key] && (ctx.wall18[key].indices||[]).indexOf(i)>=0) cls.push('barGap');
+    if(label==='単勝' && ctx.w80 && ctx.w80.idx===i) cls.push('bar80');
+    if(label==='複勝' && ctx.w6 && ctx.w6.idx===i) cls.push('bar6');
+    if(label==='複勝' && ctx.w15 && ctx.w15.idx===i) cls.push('bar15');
+    return cls.length ? (' ' + cls.join(' ')) : '';
+  };
+
+  window.renderHonpyo = function(ctx,moves){
+    var rows=[{l:'馬連',r:ctx.umaRow,m:ctx.umaM},{l:'単勝',r:ctx.tanRow,m:ctx.tanM},{l:'複勝',r:ctx.fukuRow,m:ctx.fukuM},{l:'三連複',r:ctx.sanRow,m:ctx.sanM}];
+    var max=0; rows.forEach(function(x){ if(x.r.length>max) max=x.r.length; });
+    var html='<div class="card"><div class="title">本表・壁色つき</div><div class="honWrap">';
+    rows.forEach(function(x){ html+=renderHonRow(x.l,x.r,x.m,ctx,max); });
+    html+='</div><div class="legend">';
+    html+='<span class="leg"><i class="legLine lgap"></i>乖離差1.8以上の壁</span>';
+    html+='<span class="leg"><i class="legLine l6"></i>複勝6倍ライン</span>';
+    html+='<span class="leg"><i class="legLine l15"></i>複勝15倍ライン</span>';
+    html+='<span class="leg"><i class="legLine l80"></i>単勝80倍ライン</span>';
+    html+='<span class="leg"><i class="legLine lcliff"></i>複勝15倍断層下2頭</span>';
+    html+='</div>'+renderMoves(moves)+'</div>';
+    return html;
+  };
+
+  window.detectOoanaGate = function(ctx,scored,adv){
+    function virtual15Wall(ctx){
+      var rank=(ctx&&ctx.fukuRank)||[];
+      if(rank.length<2) return {on:false,items:[]};
+      var has15=rank.some(function(x){ return n(x.fuku)>=15; });
+      if(has15) return {on:false,items:[]};
+      var tail=rank.slice(-2).map(function(x){ return String(x.h); });
+      return { on:true, items:tail, reason:'複勝15倍以上の馬がいないため、複勝上限の末尾2頭を仮想15倍壁前2頭として扱う' };
+    }
+    var virtual=virtual15Wall(ctx);
+    var outer={};
+    (((adv&&adv.wallOuter15)||{}).items||[]).forEach(function(x){ outer[String(x.h)]=1; });
+    var ratioWallHorses={};
+    ['tan','fuku','uma','wide','san'].forEach(function(k){
+      var info = (((ctx||{}).wall18)||{})[k] || {};
+      (info.before||[]).forEach(function(h){ ratioWallHorses[String(h)] = 1; });
+      (info.after||[]).forEach(function(h){ ratioWallHorses[String(h)] = 1; });
+    });
+    var falseFav=!!(adv&&adv.falseFavorite&&adv.falseFavorite.on);
+    var axisSlide=!!(adv&&adv.falseFavorite&&adv.falseFavorite.axisSlide&&adv.falseFavorite.axisSlide.on);
+    var roughRace=falseFav||axisSlide||!!(adv&&/大荒れ|総崩れ|危険/.test(String(adv.level||'')));
+    var out=[];
+
+    (scored||[]).forEach(function(x){
+      var wall=[],link=[],shift=[],rough=[];
+      var h=String(x.h);
+      if(ratioWallHorses[h]) addNote(wall,'乖離差1.8壁');
+      if(anyReason(x,['複勝10倍壁前','複勝15倍壁前','複勝15倍断層下2頭','複勝15倍壁末端'])) addNote(wall,'複勝壁・断層');
+      if(outer[h]) addNote(wall,'複勝15倍壁外1頭目');
+      if(virtual.on && virtual.items.indexOf(h)>=0) addNote(wall,'仮想15倍壁前2頭');
+
+      if(anyReason(x,['馬連メジアン','ワイドメジアン','三連複メジアン','三連複先行支持ジャンプ','三連複1位ジャンプ'])) addNote(link,'連系メジアン・ジャンプ');
+      var san10=countAppearTop((ctx&&ctx.sanRank)||[],h,10);
+      var uma12=countAppearTop((ctx&&ctx.umaRank)||[],h,12);
+      var wide12=countAppearTop((ctx&&ctx.wideRank)||[],h,12);
+      if(n(x.sanBest)<=5) addNote(link,'三連複5位以内');
+      if(san10>=2 && (uma12>=2 || wide12>=2)) addNote(link,'複数券種の上位接続');
+
+      var topAnchors=((ctx&&ctx.tanRow)||[]).slice(0,4), anchorHit={};
+      [((ctx&&ctx.umaRank)||[]),((ctx&&ctx.wideRank)||[])].forEach(function(list){
+        list.forEach(function(p){
+          var a=String(p.a||''), b=String(p.b||'');
+          if(a===h && topAnchors.indexOf(b)>=0) anchorHit[b]=1;
+          if(b===h && topAnchors.indexOf(a)>=0) anchorHit[a]=1;
+        });
+      });
+      if(Object.keys(anchorHit).length>=2) addNote(link,'上位人気2頭以上と直接接続');
+
+      if(anyReason(x,['単複ズレ','単複ズレ大穴','複勝上昇ジャンプ'])) addNote(shift,'単複・複勝順位ズレ');
+      if(n(x.tRank,99)-n(x.fRank,99)>=3) addNote(shift,'単勝より複勝順位先行');
+      if(n(x.tRank,99)-n(x.sanBest,99)>=3) addNote(shift,'単勝より三連複順位先行');
+
+      if(roughRace) addNote(rough,falseFav?'偽本命・大荒れ上書き':'荒れ警報');
+      if(axisSlide) addNote(rough,'軸抜けスライド');
+      if(includesHorse((adv&&adv.diagBox)||[],h) && adv && adv.level!=='通常') addNote(rough,'診断枠内候補');
+      if(anyReason(x,['中穴保護','欠点あり突出馬'])) addNote(rough,'荒れ時保護候補');
+
+      var gates=[];
+      if(wall.length) gates.push('壁');
+      if(link.length) gates.push('連系');
+      if(shift.length) gates.push('ズレ');
+      if(rough.length) gates.push('荒れ');
+
+      var tan=n(x.tan), eligible=(tan>=8 || n(x.tRank,99)>=4 || wall.length || shift.length);
+      if(!eligible || gates.length<2) return;
+
+      var level=gates.length>=4?'強点灯':(gates.length===3?'点灯':'注意');
+      var action='経過観察';
+      if(gates.length>=4) action='ワイド・三連複で強制保護';
+      else if(gates.length===3 && wall.length && link.length) action='ワイド・三連複で1点保護';
+      else if(gates.length===3 && link.length && shift.length) action='連系必須馬として保護';
+      else if(gates.length===3) action='三連複の2・3着穴で保護';
+
+      out.push({ h:h,count:gates.length,level:level,gates:gates,action:action,score:n(x.score,0),tan:x.tan,fuku:x.fuku,notes:{wall:wall,link:link,shift:shift,rough:rough} });
+    });
+
+    out.sort(function(a,b){ if(b.count!==a.count) return b.count-a.count; if(b.score!==a.score) return b.score-a.score; return n(a.tan)-n(b.tan); });
+    var lit=out.filter(function(x){ return x.count>=3; });
+    var caution=out.filter(function(x){ return x.count===2; }).slice(0,4);
+    return { on:lit.length>0, strong:lit.some(function(x){ return x.count===4; }), level:lit.some(function(x){ return x.count===4; })?'強点灯':(lit.length?'点灯':'消灯'), items:lit.slice(0,6), caution:caution, virtual15:virtual };
+  };
+
+  window.renderGateCard = function(g){
+    g=g||{on:false,strong:false,level:'消灯',items:[],caution:[],virtual15:{on:false,items:[]}};
+    var cls='card ooanaGate'+(g.strong?' strong':(g.on?' on':''));
+    var html='<div class="'+cls+'"><div class="title">💎V2.46 青白光・大穴関門ランプ</div>';
+    html+='判定：<span class="'+gateClass(g.level)+'">'+g.level+'</span><br>';
+    html+='<span class="small">壁・連系・ズレ・荒れの4関門を独立判定。壁関門は乖離差1.8以上の壁も採用。同系統のサインが複数あっても1関門として数えます。</span>';
+    if(g.virtual15&&g.virtual15.on){
+      html+='<hr>仮想15倍壁前2頭：<span class="cyan">'+g.virtual15.items.map(function(h){return h+'番';}).join('・')+'</span><br>';
+      html+='<span class="small">複勝15倍以上が不在のため、複勝上限の末尾2頭を壁前候補として扱います。</span>';
+    }
+    if(g.items&&g.items.length){
+      html+='<hr>';
+      g.items.forEach(function(x){
+        html+='<div class="gateHorse"><span class="'+gateClass(x.level)+'">'+x.h+'番　'+x.level+'／'+x.count+'関門</span><br>';
+        html+=x.gates.map(function(v){return '<span class="gateBadge">'+v+'</span>';}).join('')+'<br>';
+        html+='<span class="small">単'+x.tan+' / 複'+x.fuku+'　扱い：'+x.action+'</span></div>';
+      });
+    }else html+='<hr>3関門以上の該当馬なし';
+    if(g.caution&&g.caution.length){
+      html+='<hr>2関門注意：<span class="small">'+g.caution.map(function(x){return x.h+'番('+x.gates.join('・')+')';}).join(' / ')+'</span>';
+    }
+    html+='<br><span class="small">※表の縦線は、青白＝乖離差1.8以上の壁、黄＝複勝6倍、橙＝複勝15倍、桃＝単勝80倍です。</span></div>';
+    return html;
+  };
+
+  window.makeCopyText = function(data,diag,ctx,ms,sw,tickets,scored,moves,adv){
+    var s = V245_makeCopyText.apply(this, arguments).replace(/V2\.45/g,'V2.46');
+    s = s.replace('競馬メジアン V2.46 青白光・大穴関門ランプ＋欠点あり突出馬強制保護','競馬メジアン V2.46 壁1.8ライン＋青白光・大穴関門ランプ＋欠点あり突出馬強制保護');
+    s = s.replace('💎V2.46 青白光・大穴関門ランプ\n','💎V2.46 青白光・大穴関門ランプ\n壁判定：乖離差1.8以上を採用\n');
+    return s;
+  };
+
+  window.renderDiag = function(diag,ctx){ return V245_renderDiag(diag,ctx).replace(/V2\.45|V2\.44|V2\.43|V2\.42/g,'V2.46'); };
+  window.renderV236 = function(adv){ return V245_renderV236(adv).replace(/V2\.45|V2\.44|V2\.43|V2\.42/g,'V2.46'); };
+  window.renderMatchan = function(ms,diag,ctx,moves){ return V245_renderMatchan(ms,diag,ctx,moves).replace(/V2\.45|V2\.44|V2\.43|V2\.42/g,'V2.46'); };
+  window.renderTickets = function(t){ return V245_renderTickets(t).replace(/V2\.45|V2\.44|V2\.43|V2\.42/g,'V2.46'); };
+
+  document.title = 'チャッピー神予想 競馬 V2.46 壁1.8ライン＋青白光・大穴関門ランプ';
+  var heading = document.querySelector('h1');
+  if(heading){
+    heading.innerHTML = 'チャッピー神予想 競馬 V2.46<br>💎青白光・大穴関門ランプ<br>📏オッズの壁＝乖離差1.8以上／表の縦線は青白壁＋80倍・6倍・15倍ライン';
+  }
+
+  var style=document.createElement('style');
+  style.textContent='\n.barGap{background:linear-gradient(180deg,#ffffff,#9be7ff,#dbeafe,#ffffff)!important;box-shadow:0 0 10px rgba(255,255,255,.9),0 0 14px rgba(125,211,252,.95)!important;width:4px!important;min-width:4px!important}'+
+    '\n.lgap{background:linear-gradient(90deg,#ffffff,#9be7ff,#ffffff);box-shadow:0 0 8px rgba(255,255,255,.9),0 0 12px rgba(125,211,252,.9)}';
+  document.head.appendChild(style);
 })();
 </script>
 
