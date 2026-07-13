@@ -1210,5 +1210,374 @@ ${wild.extraIns&&wild.extraIns.length?'補正保険3連複\n'+wild.extraIns.slic
 })();
 </script>
 
+<script>
+(function(){
+  'use strict';
+
+  const V2423_analyze=window.analyze;
+  const V2423_predictFormation=window.predictFormation;
+  const V2423_detectAutoWild5Box=window.detectAutoWild5Box;
+  const V2423_render=window.render;
+
+  document.title='チャッピー神予想 オート V24.24 1着軸信頼度＋四強ロック＋擬似複勝壁';
+  const h1=document.querySelector('h1');
+  if(h1){h1.innerHTML='チャッピー神予想 オート V24.24<br>🔒1着軸信頼度＋四強ロック<br>🧩擬似複勝壁＋連系ゼロ降格';}
+  const sub=document.querySelector('.sub');
+  if(sub){sub.textContent='V24.23全機能＋1着軸信頼度＋連系支持ゼロ降格＋上位4車安定ロック/解除＋券種別壁内メジアン＋擬似複勝15倍壁前';}
+
+  const style=document.createElement('style');
+  style.textContent=`
+    .v2424{border:3px solid #93c5fd;background:linear-gradient(135deg,#071a33,#0d3564,#041126);box-shadow:0 0 28px rgba(147,197,253,.32)}
+    .v2424.trust{border-color:#86efac;background:linear-gradient(135deg,#042416,#0d4d2c,#03150d)}
+    .v2424.lock{border-color:#fde047;background:linear-gradient(135deg,#251d00,#554408,#171100)}
+    .v2424.pseudo{border-color:#c4b5fd;background:linear-gradient(135deg,#170d31,#392568,#0e071d)}
+    .v2424.demotion{border-color:#fda4af;background:linear-gradient(135deg,#2b0711,#601326,#160308)}
+    .v2424 .big{font-size:23px;font-weight:1000}.v2424 .line{margin:7px 0}
+  `;
+  document.head.appendChild(style);
+
+  function uniq(a){return [...new Set((a||[]).map(Number).filter(Number.isFinite))];}
+  function allCars(d){return uniq([
+    ...Object.keys(d.handicap||{}).map(Number),
+    ...(d.tansho||[]).map(x=>x.car),
+    ...(d.niren||[]).flatMap(x=>x.cars||[]),
+    ...(d.wide||[]).flatMap(x=>x.cars||[]),
+    ...(d.sanren||[]).flatMap(x=>x.cars||[])
+  ]).sort((a,b)=>a-b);}
+  function candidate(res,car){return (res.candidates||[]).find(x=>Number(x.car)===Number(car));}
+  function topCount(list,car,n){return (list||[]).slice(0,n).filter(x=>(x.cars||[]).includes(Number(car))).length;}
+  function firstRank(list,car){const i=(list||[]).findIndex(x=>(x.cars||[]).includes(Number(car)));return i<0?999:i+1;}
+  function tanRank(d,car){const i=(d.tansho||[]).findIndex(x=>Number(x.car)===Number(car));return i<0?999:i+1;}
+  function firstExact18Wall(list){
+    for(let i=0;i<(list||[]).length-1;i++){
+      const a=Number(list[i].odds),b=Number(list[i+1].odds);
+      if(Number.isFinite(a)&&a>0&&Number.isFinite(b)&&b/a>=1.8)return {pos:i+1,from:a,to:b,ratio:b/a};
+    }
+    return null;
+  }
+  function medianOfCars(cars){
+    const a=uniq(cars); if(!a.length)return [];
+    const mid=(a.length-1)/2;
+    if(Number.isInteger(mid))return [a[mid]];
+    return [a[Math.floor(mid)],a[Math.ceil(mid)]];
+  }
+  function rankedCarsInside(list,wallPos,kind){
+    if(!wallPos||wallPos<1)return [];
+    const cut=(list||[]).slice(0,wallPos);
+    if(kind==='tansho')return cut.map(x=>Number(x.car));
+    const map=new Map();
+    cut.forEach((x,i)=>(x.cars||[]).forEach(c=>{
+      const o=map.get(Number(c))||{car:Number(c),count:0,first:999,sum:0};
+      o.count++;o.first=Math.min(o.first,i+1);o.sum+=i+1;map.set(Number(c),o);
+    }));
+    return [...map.values()].sort((a,b)=>b.count-a.count||a.first-b.first||a.sum-b.sum||a.car-b.car).map(x=>x.car);
+  }
+  function buildWallInside(res){
+    const d=res.data||{};
+    const defs=[['単勝',d.tansho,'tansho'],['2車複',d.niren,'pair'],['ワイド',d.wide,'pair'],['3連系',d.sanren,'pair']];
+    const out={};
+    defs.forEach(([name,list,kind])=>{
+      const wall=firstExact18Wall(list);
+      const ranked=wall?rankedCarsInside(list,wall.pos,kind):[];
+      out[name]={wall,ranked,median:medianOfCars(ranked)};
+    });
+    return out;
+  }
+  function pseudoSupport(res){
+    const d=res.data||{},cars=allCars(d),rows=[];
+    cars.forEach(car=>{
+      const nCnt=topCount(d.niren,car,8),wCnt=topCount(d.wide,car,10),sCnt=topCount(d.sanren,car,12);
+      const nr=firstRank(d.niren,car),wr=firstRank(d.wide,car),sr=firstRank(d.sanren,car);
+      const rankPart=(nr<999?Math.max(0,18-nr):0)+(wr<999?Math.max(0,20-wr):0)+(sr<999?Math.max(0,18-sr):0);
+      const score=nCnt*6+wCnt*7+sCnt*5+rankPart;
+      rows.push({car,nCnt,wCnt,sCnt,nr,wr,sr,score});
+    });
+    rows.sort((a,b)=>b.score-a.score||a.wr-b.wr||a.nr-b.nr||a.sr-b.sr||a.car-b.car);
+    let wall=null;
+    for(let i=0;i<rows.length-1;i++){
+      const a=rows[i].score,b=rows[i+1].score;
+      if(a>0&&b>0&&a/b>=1.8){wall={pos:i+1,from:a,to:b,ratio:a/b};break;}
+    }
+    if(!wall&&rows.length>=5){
+      let best=null;
+      for(let i=1;i<rows.length-1;i++){
+        const a=rows[i].score,b=rows[i+1].score;if(a<=0||b<0)continue;
+        const diff=a-b,ratio=b>0?a/b:99,metric=ratio+diff/20;
+        if(!best||metric>best.metric)best={pos:i+1,from:a,to:b,ratio,metric};
+      }
+      if(best&&best.ratio>=1.35)wall=best;
+    }
+    const front=wall?rows.slice(Math.max(0,wall.pos-2),wall.pos):[];
+    return {rows,wall,front,label:'擬似複勝15倍壁前（連系支持断層換算）'};
+  }
+  function noteGroups(notes){
+    const set=new Set(),counts={};
+    (notes||[]).forEach(n=>{
+      let g='other';
+      if(/単勝/.test(n))g='単勝';
+      else if(/2車複/.test(n))g='2車複';
+      else if(/ワイド/.test(n))g='ワイド';
+      else if(/3連系|三連/.test(n))g='3連系';
+      else if(/試走|偏差|ST|ハンデ|前位置|内枠/.test(n))g='走行位置';
+      else if(/メジアン/.test(n))g='メジアン';
+      else if(/壁/.test(n))g='壁';
+      set.add(g);counts[g]=(counts[g]||0)+1;
+    });
+    return {set,counts};
+  }
+  function applySupportCaps(res){
+    const d=res.data||{},demoted=[];
+    (res.candidates||[]).forEach(x=>{
+      const n=topCount(d.niren,x.car,10),w=topCount(d.wide,x.car,10),s=topCount(d.sanren,x.car,10);
+      x.v2424Support={n,w,s,total:n+w+s};
+      if(n+w+s===0){
+        x.score-=30;
+        if(!(x.notes||[]).includes('連系支持ゼロ・本線降格'))x.notes.push('連系支持ゼロ・本線降格');
+        demoted.push({car:x.car,type:'zero',n,w,s});
+      }else if(s===0&&n+w<=1){
+        x.score-=14;
+        if(!(x.notes||[]).includes('三連系支持ほぼゼロ・5番手保険'))x.notes.push('三連系支持ほぼゼロ・5番手保険');
+        demoted.push({car:x.car,type:'weak',n,w,s});
+      }
+      const g=noteGroups(x.notes);
+      x.independentKinds=[...g.set].filter(k=>k!=='other').length;
+      const dup=Object.values(g.counts).reduce((z,v)=>z+Math.max(0,v-2),0);
+      if(dup>0){
+        const cut=Math.min(12,dup*3);x.score-=cut;
+        if(!(x.notes||[]).includes('同系統重複加点上限'))x.notes.push('同系統重複加点上限');
+      }
+    });
+    res.supportDemotions=demoted;
+  }
+  function applyWallMedianBonus(res){
+    const wm=res.wallInside||{};
+    const hits={};
+    Object.entries(wm).forEach(([name,v])=>(v.median||[]).forEach(car=>{
+      hits[car]=hits[car]||[];hits[car].push(name);
+    }));
+    Object.entries(hits).forEach(([car,names])=>{
+      const x=candidate(res,Number(car));if(!x)return;
+      const bonus=Math.min(18,names.length*5);x.score+=bonus;
+      x.wallInsideMedian=names.slice();
+      if(!(x.notes||[]).some(n=>n.startsWith('壁内メジアン')))x.notes.push(`壁内メジアン${names.length}表`);
+    });
+  }
+  function applyPseudoBonus(res){
+    const p=res.pseudoPlace;if(!p)return;
+    (p.front||[]).forEach((r,i)=>{
+      const x=candidate(res,r.car);if(!x)return;
+      x.score+=i===p.front.length-1?14:10;
+      x.pseudoPlaceWall=true;
+      if(!(x.notes||[]).includes('擬似複勝15倍壁前'))x.notes.push('擬似複勝15倍壁前');
+    });
+  }
+  function buildFourLock(res){
+    const d=res.data||{},cars=allCars(d),arr=[];
+    const rowNames=['単勝','2車複','ワイド','3連系'];
+    cars.forEach(car=>{
+      const ranks=rowNames.map(n=>{const i=(res.rows&&res.rows[n]||[]).indexOf(car);return i<0?999:i+1;});
+      const presence=ranks.filter(r=>r<=5).length;
+      const rankSum=ranks.reduce((z,r)=>z+(r<999?r:9),0);
+      const n=topCount(d.niren,car,8),w=topCount(d.wide,car,10),s=topCount(d.sanren,car,12);
+      const stability=presence*30-rankSum+n*4+w*5+s*3;
+      arr.push({car,presence,rankSum,n,w,s,stability});
+    });
+    arr.sort((a,b)=>b.stability-a.stability||b.presence-a.presence||a.rankSum-b.rankSum||a.car-b.car);
+    const top4=arr.slice(0,4);
+    const on=top4.length===4&&top4.every(x=>x.presence>=3)&&top4[3].stability>=72;
+    const topSet=new Set(top4.map(x=>x.car));
+    const outside=[];
+    arr.slice(4).forEach(z=>{
+      const x=candidate(res,z.car),hp=d.handicap&&d.handicap[z.car];
+      const minHan=Math.min(...Object.values(d.handicap||{}).map(h=>h.handicap).filter(Number.isFinite));
+      const minTrial=Math.min(...Object.values(d.handicap||{}).map(h=>h.trial).filter(Number.isFinite));
+      const checks=[];
+      if(x&&x.wallInsideMedian&&x.wallInsideMedian.length)checks.push('壁内メジアン');
+      if(x&&x.pseudoPlaceWall)checks.push('擬似複勝壁前');
+      if(hp&&Number.isFinite(hp.handicap)&&hp.handicap===minHan)checks.push('前位置');
+      if(hp&&Number.isFinite(hp.trial)&&hp.trial<=minTrial+0.02)checks.push('試走上位');
+      if(firstRank(d.sanren,z.car)<=5)checks.push('三連系先行');
+      if(z.n>=2&&z.w>=2)checks.push('2車複・ワイド重複');
+      if(x&&x.independentKinds>=5)checks.push('独立5系統');
+      if(checks.length>=3)outside.push({car:z.car,checks,score:x?.score||0,stability:z.stability});
+    });
+    outside.sort((a,b)=>b.checks.length-a.checks.length||b.score-a.score||b.stability-a.stability||a.car-b.car);
+    const released=on&&outside.length>0;
+    return {on,top4,topSet:[...topSet],released,external:outside,judge:!on?'非発動':released?'解除・外部穴優先':'四強安定ロック'};
+  }
+  function buildHeadTrust(res){
+    const d=res.data||{},cars=allCars(d),missing=new Set((d.tanMissingCars||[]).map(Number)),out=[];
+    const trials=Object.entries(d.handicap||{}).map(([car,h])=>({car:Number(car),trial:h.trial})).filter(x=>Number.isFinite(x.trial)).sort((a,b)=>a.trial-b.trial);
+    const trialRank=new Map(trials.map((x,i)=>[x.car,i+1]));
+    cars.forEach(car=>{
+      const tr=tanRank(d,car),tan=(d.tansho||[]).find(x=>x.car===car),n=topCount(d.niren,car,6),w=topCount(d.wide,car,8),s=topCount(d.sanren,car,10);
+      let score=0,reasons=[];
+      if(tr===1){score+=32;reasons.push('単勝1位');}else if(tr===2){score+=22;reasons.push('単勝2位');}else if(tr===3){score+=14;reasons.push('単勝3位');}else if(tr<=5)score+=7;
+      score+=Math.min(20,n*5)+Math.min(20,w*4)+Math.min(24,s*3);
+      if(n>=3&&w>=3&&s>=5){score+=14;reasons.push('連系三面支持');}
+      const rr=trialRank.get(car)||999;if(rr===1){score+=14;reasons.push('試走最上位');}else if(rr===2){score+=8;reasons.push('試走2位');}
+      const x=candidate(res,car);
+      if(x&&x.wallInsideMedian&&x.wallInsideMedian.length){score+=8;reasons.push('壁内メジアン');}
+      if(x&&x.pseudoPlaceWall){score+=5;reasons.push('擬似複勝壁前');}
+      if(x&&x.v2424Support&&x.v2424Support.total===0){score-=40;reasons.push('連系支持ゼロ');}
+      if(tan&&tan.odds>=40){score-=16;reasons.push('単勝40倍以上');}
+      if(missing.has(car)){score=-999;reasons.push('単勝欠損');}
+      const grade=score>=95?'SSS':score>=80?'SS':score>=65?'S':score>=50?'A':'B';
+      out.push({car,score,grade,tr,odds:tan?.odds??999,n,w,s,trialRank:rr,reasons});
+    });
+    return out.sort((a,b)=>b.score-a.score||a.tr-b.tr||a.odds-b.odds||a.car-b.car);
+  }
+  function addProtectCombos(res){
+    const d=res.data||{},existing=new Set((res.protect||[]).map(x=>x.key));
+    const add=[];
+    function push(cars,reason){
+      const u=uniq(cars).sort((a,b)=>a-b);if(u.length!==3)return;
+      const key=u.join('-');if(existing.has(key))return;
+      const item=(d.sanren||[]).find(x=>x.key===key);if(!item)return;
+      existing.add(key);add.push({key,reason,cars:u});
+    }
+    const lock=res.fourLock;
+    if(lock&&lock.on&&!lock.released){
+      const a=lock.top4.map(x=>x.car);
+      for(let i=0;i<a.length;i++)for(let j=i+1;j<a.length;j++)for(let k=j+1;k<a.length;k++)push([a[i],a[j],a[k]],'四強安定ロック');
+    }
+    if(lock&&lock.released&&lock.external[0]){
+      const h=lock.external[0].car,core=lock.top4.slice(0,3).map(x=>x.car);
+      for(let i=0;i<core.length;i++)for(let j=i+1;j<core.length;j++)push([h,core[i],core[j]],'四強ロック解除・外部穴');
+    }
+    const pf=(res.pseudoPlace&&res.pseudoPlace.front||[]).map(x=>x.car);
+    const head=res.headTrust&&res.headTrust[0]?.car;
+    if(head&&pf.length>=2)push([head,pf[0],pf[1]],'1着軸信頼度×擬似複勝壁前');
+    res.protect=[...add,...(res.protect||[])];
+  }
+
+  window.analyze=function(p){
+    const res=V2423_analyze(p);
+    res.wallInside=buildWallInside(res);
+    res.pseudoPlace=pseudoSupport(res);
+    applySupportCaps(res);
+    applyWallMedianBonus(res);
+    applyPseudoBonus(res);
+    res.candidates.sort((a,b)=>b.score-a.score||a.avgPos-b.avgPos||((a.odds??999)-(b.odds??999))||a.car-b.car);
+    res.fourLock=buildFourLock(res);
+    res.headTrust=buildHeadTrust(res);
+    addProtectCombos(res);
+    return res;
+  };
+
+  function reorderBox(res,base){
+    const zero=new Set((res.supportDemotions||[]).filter(x=>x.type==='zero').map(x=>x.car));
+    const lock=res.fourLock;
+    let order=[];
+    if(lock&&lock.on&&!lock.released)order.push(...lock.top4.map(x=>x.car));
+    else if(lock&&lock.released){order.push(...lock.top4.slice(0,3).map(x=>x.car),lock.external[0]?.car);}
+    order.push(...(base||[]),...(res.pseudoPlace?.front||[]).map(x=>x.car),...(res.candidates||[]).map(x=>x.car));
+    order=uniq(order).filter(c=>!zero.has(c));
+    const fallback=uniq([...(base||[]),...(res.candidates||[]).map(x=>x.car)]).filter(c=>zero.has(c));
+    return uniq([...order,...fallback]);
+  }
+  function bestOne(res,head,secondBox,thirdBox){
+    const d=res.data||{};let best=null;
+    (d.sanren||[]).forEach(s=>{
+      if(!(s.cars||[]).includes(head))return;
+      const rest=s.cars.filter(c=>c!==head);
+      if(rest.length!==2||!rest.some(c=>secondBox.includes(c))||!rest.every(c=>thirdBox.includes(c)))return;
+      if(!best||s.odds<best.odds)best=s;
+    });
+    if(best){const rest=best.cars.filter(c=>c!==head);return `${head}${rest.join('')}`;}
+    return secondBox.length>=2?`${head}${secondBox[0]}${secondBox[1]}`:String(head);
+  }
+  window.predictFormation=function(res){
+    const base=V2423_predictFormation(res);if(!base)return base;
+    const trust=res.headTrust||[],best=trust[0],current=trust.find(x=>x.car===base.head);
+    let head=base.head,mode=res.headDecision?.mode||'V24.23';
+    const absolute=res.headLock&&res.headLock.type==='absolute';
+    if(!absolute&&best&&best.score>=(current?.score??-999)+12&&best.grade!=='B'){
+      head=best.car;mode=`1着軸信頼度${best.grade}`;
+    }else if(best&&best.car===head){mode=`1着軸信頼度${best.grade}`;}
+    const order=reorderBox(res,base.secondBox||base.box||[]).filter(c=>c!==head);
+    let secondBox;
+    if(res.fourLock&&res.fourLock.on&&!res.fourLock.released){secondBox=res.fourLock.top4.map(x=>x.car).filter(c=>c!==head).slice(0,3);}
+    else if(res.fourLock&&res.fourLock.released){
+      secondBox=uniq([res.fourLock.external[0]?.car,...res.fourLock.top4.map(x=>x.car),...order]).filter(c=>c!==head).slice(0,3);
+    }else secondBox=order.slice(0,3);
+    const thirdBox=uniq([...secondBox,...(res.pseudoPlace?.front||[]).map(x=>x.car),...(res.thirdOnly||[]).map(x=>x.car)]).filter(c=>c!==head).slice(0,4).sort((a,b)=>a-b);
+    secondBox=secondBox.sort((a,b)=>a-b);
+    const cover=uniq([base.cover,res.marketAxis,(res.data.tansho||[])[0]?.car,...secondBox]).find(c=>c&&c!==head)||secondBox[0];
+    const one=bestOne(res,head,secondBox,thirdBox);
+    const baseHead=res.headDecision?.baseHead||base.head;
+    res.headDecision={head,baseHead,mode,headChanged:head!==baseHead,secondBox:secondBox.slice(),thirdBox:thirdBox.slice()};
+    return {head,box:secondBox,secondBox,thirdBox,boxStr:secondBox.join(''),cover,one,
+      main:`${head}-${secondBox.join('')}-${thirdBox.join('')}`,
+      osa:`${cover}-${head}-${thirdBox.join('')}`,
+      note:`${mode}。${res.fourLock?.on?(res.fourLock.released?'四強ロック解除で外部穴を相手箱へ追加。':'四強安定ロックを相手箱へ固定。'):'連系支持と壁内メジアンを優先。'} 連系支持ゼロ車は本線から降格。`};
+  };
+
+  window.detectAutoWild5Box=function(res){
+    const wild=V2423_detectAutoWild5Box(res);if(!wild||!wild.on)return wild;
+    const lock=res.fourLock,zero=new Set((res.supportDemotions||[]).filter(x=>x.type==='zero').map(x=>x.car));
+    const fixed=[];
+    if(lock&&lock.on&&!lock.released)fixed.push(...lock.top4.map(x=>x.car));
+    if(lock&&lock.released)fixed.push(...lock.top4.slice(0,3).map(x=>x.car),lock.external[0]?.car);
+    fixed.push(...(res.pseudoPlace?.front||[]).map(x=>x.car));
+    const pool=uniq([...fixed,...(wild.box||[]),...(res.candidates||[]).map(x=>x.car)]);
+    pool.sort((a,b)=>{
+      const af=fixed.includes(a)?1:0,bf=fixed.includes(b)?1:0;if(af!==bf)return bf-af;
+      const az=zero.has(a)?1:0,bz=zero.has(b)?1:0;if(az!==bz)return az-bz;
+      return (candidate(res,b)?.score||0)-(candidate(res,a)?.score||0)||a-b;
+    });
+    wild.box=pool.slice(0,5).sort((a,b)=>a-b);
+    wild.pairs=[];wild.tris=[];
+    for(let i=0;i<wild.box.length;i++)for(let j=i+1;j<wild.box.length;j++)wild.pairs.push([wild.box[i],wild.box[j]].join('-'));
+    for(let i=0;i<wild.box.length;i++)for(let j=i+1;j<wild.box.length;j++)for(let k=j+1;k<wild.box.length;k++)wild.tris.push([wild.box[i],wild.box[j],wild.box[k]].join('-'));
+    wild.single=wild.box.filter(c=>(res.data.tansho||[]).some(x=>x.car===c&&x.odds>0&&x.odds!==999)).map(String);
+    wild.v2424Lock=lock;wild.v2424Demoted=[...zero];wild.v2424Pseudo=(res.pseudoPlace?.front||[]).map(x=>x.car);
+    wild.reason=wild.reason||[];
+    if(lock&&lock.on)wild.reason.push(lock.released?'上位4車ロック解除・外部穴を強制保護':'上位4車安定ロックを5車BOXへ固定');
+    if(zero.size)wild.reason.push('連系支持ゼロ車は本線から降格し5番手保険化');
+    if(wild.v2424Pseudo.length)wild.reason.push('擬似複勝15倍壁前を3着穴として保護');
+    return wild;
+  };
+
+  function trustCard(res){
+    const a=(res.headTrust||[]).slice(0,4);if(!a.length)return'';
+    return `<div class="card v2424 trust"><h2>🔥V24.24 1着軸信頼度</h2>${a.map((x,i)=>`<div class="line"><span class="badge ${i===0?'green':'blue'}">${i+1}位 ${x.car}号車 ${x.grade} / ${x.score}点</span> 単勝${x.tr===999?'欠損':x.tr+'位'}・2車複${x.n}回・ワイド${x.w}回・3連系${x.s}回</div><div class="mini">${x.reasons.join('・')||'総合支持'}</div>`).join('')}<div class="mini" style="margin-top:8px">単勝だけでなく、2車複・ワイド・3連系・試走を合わせて頭固定の強さを判定。</div></div>`;
+  }
+  function lockCard(res){
+    const l=res.fourLock;if(!l)return'';
+    return `<div class="card v2424 lock"><h2>🔒V24.24 上位4車安定ロック</h2><div class="big">判定：${l.judge}</div><div style="margin:8px 0">四強：${l.top4.map(x=>carSpan(x.car)).join(' ')}</div>${l.external.length?`<div><span class="badge pink">外部穴</span> ${l.external.map(x=>`${carSpan(x.car)} ${x.checks.join('・')}`).join('<br>')}</div>`:''}<div class="mini">同じ4車が4券種で繰り返し上位なら固定。外部車が独立3条件以上を満たすと解除。</div></div>`;
+  }
+  function pseudoCard(res){
+    const p=res.pseudoPlace;if(!p)return'';
+    const front=p.front||[];
+    return `<div class="card v2424 pseudo"><h2>🧩V24.24 擬似複勝15倍壁前</h2><div class="big">${p.wall?`支持断層：${p.wall.pos}位後 ${p.wall.from}→${p.wall.to}`:'明確な断層なし'}</div><div style="margin:8px 0">壁前：${front.length?front.map(x=>`${carSpan(x.car)} 支持${x.score}`).join(' '):'なし'}</div><div class="mini">2車複・ワイド・3連系の登場回数と初出順位から擬似複勝支持を作成。単勝穴でも車券内支持が残る車を3着穴として保護。</div></div>`;
+  }
+  function wallCard(res){
+    const w=res.wallInside||{};const names=['単勝','2車複','ワイド','3連系'];
+    return `<div class="card v2424"><h2>📊V24.24 券種別・壁内メジアン</h2>${names.map(n=>{const x=w[n]||{};return `<div class="line"><b>${n}</b>：${x.wall?`${x.wall.pos}位後 1.8倍壁 / メジアン ${x.median.map(carSpan).join(' ')||'なし'}`:'1.8倍壁なし'}</div>`}).join('')}<div class="mini">単勝は頭、2車複は連対、ワイドと3連系は車券内の役割として使用。</div></div>`;
+  }
+  function demotionCard(res){
+    const a=res.supportDemotions||[];if(!a.length)return'';
+    return `<div class="card v2424 demotion"><h2>⬇️V24.24 連系支持ゼロ降格</h2>${a.map(x=>`<div class="line">${carSpan(x.car)} ${x.type==='zero'?'本線降格':'5番手保険'} / 2車複${x.n}・ワイド${x.w}・3連系${x.s}</div>`).join('')}<div class="mini">候補点が高くても連系市場に出ていない車は、頭・本線核に固定しません。</div></div>`;
+  }
+  function textSummary(res){
+    const l=res.fourLock||{},p=res.pseudoPlace||{},head=(res.headTrust||[])[0];
+    const wm=res.wallInside||{};
+    return `🔥V24.24 1着軸信頼度\n${head?`${head.car}号車 ${head.grade} / ${head.score}点 / 2車複${head.n}・ワイド${head.w}・3連系${head.s}`:'なし'}\n\n🔒上位4車安定ロック\n判定：${l.judge||'非発動'}\n四強：${(l.top4||[]).map(x=>x.car+'号車').join('・')||'なし'}${l.external&&l.external.length?'\n外部穴：'+l.external.map(x=>x.car+'号車('+x.checks.join('・')+')').join(' / '):''}\n\n📊券種別・壁内メジアン\n${['単勝','2車複','ワイド','3連系'].map(n=>`${n}：${wm[n]?.median?.map(c=>c+'号車').join('・')||'なし'}`).join('\n')}\n\n🧩擬似複勝15倍壁前\n${(p.front||[]).map(x=>x.car+'号車').join('・')||'なし'}${res.supportDemotions&&res.supportDemotions.length?'\n\n⬇️連系支持ゼロ/薄い車\n'+res.supportDemotions.map(x=>x.car+'号車 '+(x.type==='zero'?'本線降格':'5番手保険')).join('\n'):''}`;
+  }
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+  window.render=function(res){
+    let html=V2423_render(res).replace(/V24\.23/g,'V24.24');
+    const summary=textSummary(res);
+    latestCopyText=(latestCopyText||'').replace(/V24\.23/g,'V24.24')+`\n\n${summary}`;
+    const marker='<div class="card"><h2>コピペ用フル結果</h2>';
+    const idx=html.lastIndexOf(marker);
+    const prefix=idx>=0?html.slice(0,idx):html;
+    return trustCard(res)+lockCard(res)+wallCard(res)+pseudoCard(res)+demotionCard(res)+prefix+`<div class="card"><h2>コピペ用フル結果</h2><div class="mini">「結果コピー」でV24.24補正を含む全文をコピーできます。</div><pre class="copybox">${esc(latestCopyText)}</pre></div>`;
+  };
+})();
+</script>
+
 </body>
 </html>
