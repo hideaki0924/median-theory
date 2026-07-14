@@ -2070,6 +2070,220 @@ function fallbackCopy(text){var ta=document.createElement('textarea');ta.value=t
   window.buildMatchanAxis=buildMatchanAxis;
 })();
 </script>
+<style>
+/* ===== V2.49 コンパクト表示 ===== */
+body{padding:8px!important;font-size:13px!important;line-height:1.35!important}
+h1{font-size:18px!important;line-height:1.25!important;margin:2px 0 8px!important}
+textarea{height:260px!important;padding:8px!important;border-radius:11px!important;font-size:13px!important;line-height:1.35!important}
+button{font-size:15px!important;padding:10px 12px!important;border-radius:11px!important;margin:7px 4px 7px 0!important}
+.card{padding:8px!important;margin:8px 0!important;border-radius:12px!important}
+.title{font-size:16px!important;line-height:1.25!important;margin-bottom:6px!important}
+.small,.v247Mini,.axisStat,.axisMedianLine{font-size:11px!important;line-height:1.35!important}
+pre{padding:8px!important;border-radius:9px!important;font-size:12px!important;line-height:1.35!important}
+.rankLine{margin:4px 0!important;line-height:1.35!important}
+.badge,.v247Tag,.v247Median,.v244Role,.gateBadge,.leg{padding:3px 7px!important;margin:2px 1px!important;font-size:11px!important}
+hr{margin:8px 0!important}
+.moveBox,.cliffBox,.v247Lock,.axisTicketBox,.axisHeadBox,.gateHorse{padding:7px!important;margin-top:6px!important;border-radius:10px!important}
+.moveTitle,.axisBranchTitle{font-size:14px!important}
+.moveLine,.moveNo{font-size:11px!important;line-height:1.35!important;margin:3px 0!important}
+.axisBranchBlock{padding:8px!important;margin-top:8px!important;border-radius:11px!important}
+.axisBranchMode{padding:3px 7px!important;font-size:11px!important}
+.axisHorse{font-size:18px!important}
+.honWrap{padding:5px 3px!important;border-radius:9px!important}
+.honRow{margin:4px 0!important}
+.honLabel{width:62px!important;min-width:62px!important;max-width:62px!important;font-size:13px!important}
+.honNum{width:29px!important;min-width:29px!important;max-width:29px!important;font-size:17px!important}
+.bar{height:23px!important;margin:0 2px!important}
+.legend{gap:4px!important;margin-top:5px!important}
+
+/* ===== 最終4項目 ===== */
+.finalFourCard{border:3px solid #facc15!important;background:linear-gradient(135deg,#1c1400,#443000,#111827)!important;box-shadow:0 0 12px rgba(250,204,21,.55),0 0 28px rgba(245,158,11,.28)!important}
+.finalFourTitle{color:#fff7b2;font-size:18px;font-weight:900;margin-bottom:8px}
+.finalFourGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.finalFourItem{min-width:0;padding:8px;border:1px solid #a16207;border-radius:10px;background:rgba(2,6,23,.76)}
+.finalFourLabel{color:#fde047;font-size:12px;font-weight:900;margin-bottom:3px}
+.finalFourValue{color:#fff;font-size:18px;font-weight:900;line-height:1.25;word-break:break-word}
+.finalFourNote{color:#cbd5e1;font-size:10px;line-height:1.3;margin-top:4px}
+.finalFour1000{color:#86efac!important;text-shadow:0 0 8px rgba(134,239,172,.65)}
+.finalFour300{color:#fde047!important}
+.finalFour100{color:#93c5fd!important}
+.finalFourNone{color:#94a3b8!important}
+@media(max-width:520px){.finalFourGrid{grid-template-columns:1fr}}
+</style>
+
+<script>
+(function(){
+  'use strict';
+
+  var V248_makeTickets = window.makeTickets;
+  var V248_makeCopyText = window.makeCopyText;
+  var V248_run = window.run;
+
+  document.title = 'チャッピー神予想 競馬 V2.49 実戦コンパクト＋最終4項目';
+  var heading = document.querySelector('h1');
+  if(heading){
+    heading.innerHTML =
+      'チャッピー神予想 競馬 V2.49<br>' +
+      '🎯実戦コンパクト表示＋最終4項目<br>' +
+      '三連複軸・上位相手・最強穴・単勝候補';
+  }
+
+  function num(v,d){v=Number(v);return isFinite(v)?v:(d===0?0:(d||9999));}
+  function addOnce(arr,v){v=String(v||'');if(v&&v!=='undefined'&&arr.indexOf(v)<0)arr.push(v);}
+  function scoreObj(scored,h){h=String(h||'');for(var i=0;i<(scored||[]).length;i++){if(String(scored[i].h)===h)return scored[i];}return null;}
+  function scoreRank(scored,h){h=String(h||'');for(var i=0;i<(scored||[]).length;i++){if(String(scored[i].h)===h)return i+1;}return 99;}
+  function gateObj(adv,h){h=String(h||'');var items=((((adv||{}).ooanaGate)||{}).items)||[];for(var i=0;i<items.length;i++){if(String(items[i].h)===h)return items[i];}return null;}
+  function win5Has(v,h){h=String(h||'');var arr=(((v||{}).win5||{}).selected)||[];return arr.some(function(x){return String(x.h)===h;});}
+  function hasReasonLocal(x,word){return ((x&&x.reasons)||[]).join('・').indexOf(word)>=0;}
+
+  function chooseAxis(ctx,tickets,v){
+    var a=(tickets&&tickets.matchanAxis)||null;
+    if(a&&a.axis)return {h:String(a.axis),note:a.label||'構造軸'};
+    if(v&&v.lock&&v.lock.top&&v.lock.top.length)return {h:String(v.lock.top[0].h),note:'上位4頭の中心'};
+    if(ctx&&ctx.fav1)return {h:String(ctx.fav1),note:'単勝1番人気'};
+    return {h:null,note:'軸なし'};
+  }
+
+  function chooseStrongHole(ctx,scored,adv,v,axis){
+    var used={};
+    if(axis&&axis.h)used[String(axis.h)]=1;
+
+    var holes=((((v||{}).matchan)||{}).holes)||[];
+    for(var i=0;i<holes.length;i++){
+      var mh=holes[i];
+      if(!used[String(mh.h)]&&num(mh.score,0)>=20){
+        return {h:String(mh.h),note:'オッズ構造穴 '+mh.score+'点',strength:num(mh.score,0)};
+      }
+    }
+
+    var gates=((((adv||{}).ooanaGate)||{}).items)||[];
+    for(var j=0;j<gates.length;j++){
+      var g=gates[j],go=scoreObj(scored,g.h);
+      if(used[String(g.h)])continue;
+      if(num(g.count,0)>=4 || (num(g.count,0)>=3&&go&&num(go.score,0)>=55)){
+        return {h:String(g.h),note:'青白光 '+g.count+'関門',strength:num(g.count,0)*20+(go?num(go.score,0):0)};
+      }
+    }
+
+    var flaws=(adv&&adv.priorityFlaws)||[];
+    for(var k=0;k<flaws.length;k++){
+      var f=flaws[k];
+      if(used[String(f.h)])continue;
+      if(num(f.weight,0)>=8&&num(f.score,0)>=55){
+        return {h:String(f.h),note:'欠点あり突出・保護指数'+f.weight,strength:num(f.weight,0)*10+num(f.score,0)};
+      }
+    }
+    return {h:null,note:'強い独立シグナルなし',strength:0};
+  }
+
+  function choosePartners(ctx,scored,v,tickets,axis,hole){
+    var out=[];
+    function push(h){
+      h=String(h||'');
+      if(!h)return;
+      if(axis&&h===String(axis.h))return;
+      if(hole&&hole.h&&h===String(hole.h))return;
+      addOnce(out,h);
+    }
+    var a=(tickets&&tickets.matchanAxis)||null;
+    if(a&&a.protect)push(a.protect);
+    (((v||{}).lock||{}).top||[]).forEach(function(x){push(x.h);});
+    (((v||{}).win5||{}).selected||[]).forEach(function(x){push(x.h);});
+    (ctx&&ctx.sanRow||[]).slice(0,10).forEach(push);
+    (scored||[]).slice(0,8).forEach(function(x){push(x.h);});
+    return out.slice(0,2);
+  }
+
+  function chooseSingle(ctx,ms,scored,adv,v){
+    if(ms&&ms.top){
+      var h=String(ms.top.h),x=scoreObj(scored,h),rank=scoreRank(scored,h);
+      var tan=num(ms.top.tan),fuku=num(ms.top.fuku);
+      var gate=gateObj(adv,h);
+      var support=x&&num(x.sanBest,99)<=5;
+      var jump=x&&(hasReasonLocal(x,'三連複1位ジャンプ')||hasReasonLocal(x,'三連複先行支持ジャンプ'));
+      var win5=win5Has(v,h);
+      var level='300円候補',cls='finalFour300';
+
+      if(tan>=10&&tan<=25&&rank<=3&&fuku<=6.2&&support&&((gate&&num(gate.count,0)>=3)||jump||win5)){
+        level='1000円勝負';cls='finalFour1000';
+      }else if(tan<4||tan>35){
+        level='100円観察';cls='finalFour100';
+      }
+      return {h:h,tan:ms.top.tan,level:level,cls:cls,note:'候補'+rank+'位'+(gate?'・青白光'+gate.count+'関門':'')+(win5?'・勝ち切り候補':'')};
+    }
+
+    var obs=(((v||{}).observation)||[])[0];
+    if(obs)return {h:String(obs.h),tan:obs.tan,level:'100円観察',cls:'finalFour100',note:'本体不発時の観察枠'};
+    return {h:null,tan:null,level:'見送り',cls:'finalFourNone',note:'単勝の強い完成形なし'};
+  }
+
+  function buildFinalFour(ctx,ms,scored,adv,tickets){
+    var v=(tickets&&tickets.v247)||(adv&&adv.v247)||window.__v247Latest||null;
+    var axis=chooseAxis(ctx,tickets,v);
+    var hole=chooseStrongHole(ctx,scored,adv,v,axis);
+    var partners=choosePartners(ctx,scored,v,tickets,axis,hole);
+    var single=chooseSingle(ctx,ms,scored,adv,v);
+    return {axis:axis,partners:partners,hole:hole,single:single};
+  }
+
+  function hText(h){return h?String(h)+'番':'なし';}
+  function renderFinalFour(f){
+    if(!f)return'';
+    var partnerText=f.partners&&f.partners.length?f.partners.map(function(h){return h+'番';}).join('・'):'なし';
+    var singleValue=f.single.h?f.single.h+'番　単'+f.single.tan+'倍':'見送り';
+    return '<div class="card finalFourCard">'+
+      '<div class="finalFourTitle">🎯 最終4項目</div>'+
+      '<div class="finalFourGrid">'+
+        '<div class="finalFourItem"><div class="finalFourLabel">【三連複軸】</div><div class="finalFourValue">'+hText(f.axis.h)+'</div><div class="finalFourNote">'+f.axis.note+'</div></div>'+
+        '<div class="finalFourItem"><div class="finalFourLabel">【上位相手】</div><div class="finalFourValue">'+partnerText+'</div><div class="finalFourNote">最大2頭に圧縮</div></div>'+
+        '<div class="finalFourItem"><div class="finalFourLabel">【最強穴】</div><div class="finalFourValue">'+hText(f.hole.h)+'</div><div class="finalFourNote">'+f.hole.note+'</div></div>'+
+        '<div class="finalFourItem"><div class="finalFourLabel">【単勝候補】</div><div class="finalFourValue '+f.single.cls+'">'+singleValue+'</div><div class="finalFourNote">'+f.single.level+'｜'+f.single.note+'</div></div>'+
+      '</div></div>';
+  }
+
+  function copyFinalFour(f){
+    if(!f)return'';
+    var partners=f.partners&&f.partners.length?f.partners.map(function(h){return h+'番';}).join('・'):'なし';
+    var single=f.single.h?f.single.h+'番 単'+f.single.tan+'倍 / '+f.single.level:'見送り';
+    return '\n\n🎯最終4項目\n'+
+      '【三連複軸】'+hText(f.axis.h)+' / '+f.axis.note+'\n'+
+      '【上位相手】'+partners+'\n'+
+      '【最強穴】'+hText(f.hole.h)+' / '+f.hole.note+'\n'+
+      '【単勝候補】'+single+' / '+f.single.note+'\n';
+  }
+
+  window.makeTickets=function(ctx,ms,scored,sw,adv){
+    var t=V248_makeTickets(ctx,ms,scored,sw,adv);
+    var f=buildFinalFour(ctx,ms,scored,adv,t);
+    t.finalFour=f;
+    if(adv)adv.finalFour=f;
+    window.__finalFourLatest=f;
+    return t;
+  };
+
+  window.makeCopyText=function(data,diag,ctx,ms,sw,tickets,scored,moves,adv){
+    var s=V248_makeCopyText(data,diag,ctx,ms,sw,tickets,scored,moves,adv);
+    var f=(tickets&&tickets.finalFour)||(adv&&adv.finalFour)||window.__finalFourLatest;
+    s=s.replace(/V2\.48/g,'V2.49');
+    return s+copyFinalFour(f);
+  };
+
+  window.run=function(){
+    V248_run();
+    var out=document.getElementById('out');
+    if(out){
+      var old=out.querySelector('.finalFourCard');
+      if(old&&old.parentNode)old.parentNode.removeChild(old);
+      var f=window.__finalFourLatest;
+      if(f)out.insertAdjacentHTML('beforeend',renderFinalFour(f));
+      out.innerHTML=out.innerHTML.replace(/V2\.48/g,'V2.49');
+    }
+    if(typeof latestCopyText==='string')latestCopyText=latestCopyText.replace(/V2\.48/g,'V2.49');
+  };
+
+  window.buildFinalFour=buildFinalFour;
+})();
+</script>
 
 </body>
 </html>
