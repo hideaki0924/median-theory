@@ -1744,5 +1744,332 @@ function fallbackCopy(text){var ta=document.createElement('textarea');ta.value=t
 })();
 </script>
 
+<script>
+(function(){
+  'use strict';
+
+  var V247_makeTickets = window.makeTickets;
+  var V247_renderTickets = window.renderTickets;
+  var V247_makeCopyText = window.makeCopyText;
+  var V247_run = window.run;
+
+  document.title = 'チャッピー神予想 競馬 V2.48 単複メジアン重複・構造軸連動版';
+  var heading = document.querySelector('h1');
+  if(heading){
+    heading.innerHTML = 'チャッピー神予想 競馬 V2.48<br>🧭単複メジアン重複・構造軸連動版<br>🎯重複なし＝1番人気軸／重複2頭＝内側軸／単独重複＝軸回避＋頭適性Aのみ馬単・3連単';
+  }
+
+  var st = document.createElement('style');
+  st.textContent = [
+    '.axisBranchBlock{margin-top:14px;border:2px solid #38bdf8;border-radius:15px;padding:12px;background:linear-gradient(135deg,#031b2a,#073b55,#03131f);box-shadow:0 0 18px rgba(56,189,248,.32)}',
+    '.axisBranchTitle{font-size:19px;font-weight:900;color:#67e8f9;margin-bottom:8px}',
+    '.axisBranchMode{display:inline-block;padding:5px 10px;border-radius:999px;font-weight:900;margin:3px 0 8px;background:#0f2942;border:1px solid #38bdf8}',
+    '.axisA{color:#86efac;text-shadow:0 0 8px rgba(134,239,172,.65)}',
+    '.axisB{color:#fde047;text-shadow:0 0 8px rgba(253,224,71,.45)}',
+    '.axisC{color:#fb7185;text-shadow:0 0 8px rgba(251,113,133,.45)}',
+    '.axisHorse{font-size:24px;font-weight:900;color:#fff}',
+    '.axisAvoid{color:#fb7185;font-weight:900}',
+    '.axisTicketCard{border:3px solid #38bdf8;background:linear-gradient(135deg,#001827,#073b55,#001827);box-shadow:0 0 24px rgba(56,189,248,.48)}',
+    '.axisTicketGrid{display:grid;grid-template-columns:1fr;gap:10px}',
+    '.axisTicketBox{background:#020617;border:1px solid #334155;border-radius:12px;padding:11px;line-height:1.5}',
+    '.axisHeadBox{border:2px solid #facc15;background:linear-gradient(135deg,#241a00,#4a3600,#241a00);border-radius:13px;padding:11px;margin-top:10px;box-shadow:0 0 16px rgba(250,204,21,.30)}',
+    '.axisStat{font-size:14px;color:#cbd5e1;line-height:1.45}',
+    '.axisMedianLine{font-size:14px;color:#e2e8f0;line-height:1.55}',
+    '@media(min-width:720px){.axisTicketGrid{grid-template-columns:1fr 1fr}}'
+  ].join('');
+  document.head.appendChild(st);
+
+  function addH(arr,h){
+    h=String(h||'');
+    if(h&&h!=='undefined'&&arr.indexOf(h)<0)arr.push(h);
+  }
+  function uniqueH(arr){
+    var out=[];
+    (arr||[]).forEach(function(h){addH(out,h);});
+    return out;
+  }
+  function medianH(list){
+    list=(list||[]).map(String);
+    if(!list.length)return[];
+    var n=list.length;
+    if(n%2)return[list[Math.floor(n/2)]];
+    return[list[n/2-1],list[n/2]];
+  }
+  function tfOf(ctx,h){
+    h=String(h||'');
+    var row=(ctx.tanRank||[]).filter(function(x){return String(x.h)===h;})[0];
+    return row||{h:h,tan:9999,fuku:9999};
+  }
+  function tanRankOf(ctx,h){
+    h=String(h||'');
+    for(var i=0;i<(ctx.tanRank||[]).length;i++)if(String(ctx.tanRank[i].h)===h)return i+1;
+    return 99;
+  }
+  function scoredOf(scored,h){
+    h=String(h||'');
+    return(scored||[]).filter(function(x){return String(x.h)===h;})[0]||null;
+  }
+  function medianUnder(rank,field,limit,excludeExactlyTwo){
+    var list=(rank||[]).filter(function(x){return Number(x[field])<=limit;}).map(function(x){return String(x.h);});
+    if(excludeExactlyTwo&&list.length===2)return[];
+    return medianH(list);
+  }
+  function fuku15to6Median(ctx){
+    var r=ctx.fukuRank||[];
+    var i6=[],i15=[];
+    r.forEach(function(x,i){
+      if(Number(x.fuku)<=6)i6.push(i);
+      if(Number(x.fuku)<=15)i15.push(i);
+    });
+    if(i6.length<2||i15.length<2)return[];
+    var start=i6[i6.length-2];
+    var end=i15[i15.length-1];
+    if(end<start)return[];
+    return medianH(r.slice(start,end+1).map(function(x){return String(x.h);}));
+  }
+  function orderedUnion(groups){
+    var out=[];
+    (groups||[]).forEach(function(g){(g||[]).forEach(function(h){addH(out,h);});});
+    return out;
+  }
+  function horseText(arr){
+    return(arr&&arr.length)?arr.map(function(h){return h+'番';}).join('・'):'なし';
+  }
+  function pairText(a,b){return String(a)+'-'+String(b);}
+  function triText(a,b,c){
+    return[String(a),String(b),String(c)].sort(function(x,y){return Number(x)-Number(y);}).join('-');
+  }
+  function pushUnique(arr,key){if(key&&arr.indexOf(key)<0)arr.push(key);}
+  function chooseAlternativeAxis(ctx,ms,scored,v,avoid){
+    var c=[];
+    function push(h,source){
+      h=String(h||'');
+      if(!h||h===String(avoid)||c.some(function(x){return x.h===h;}))return;
+      c.push({h:h,source:source});
+    }
+    if(ms&&ms.top)push(ms.top.h,'既存のまっちゃん単勝本線');
+    (((v||{}).win5||{}).selected||[]).forEach(function(x){push(x.h,'WIN5式・勝ち切り候補');});
+    push(ctx.fav1,'単勝1番人気');
+    push(ctx.fav2,'単勝2番人気');
+    (scored||[]).slice(0,6).forEach(function(x){push(x.h,'総合候補上位');});
+    return c[0]||null;
+  }
+  function partnerPool(ctx,scored,v,axis,protect){
+    var out=[];
+    function push(h){
+      h=String(h||'');
+      if(!h||h===String(axis))return;
+      addH(out,h);
+    }
+    push(ctx.fav1);push(ctx.fav2);push(ctx.fav3);
+    (((v||{}).win5||{}).selected||[]).forEach(function(x){push(x.h);});
+    (ctx.sanRow||[]).slice(0,10).forEach(push);
+    (ctx.umaRow||[]).slice(0,10).forEach(push);
+    (scored||[]).slice(0,8).forEach(function(x){push(x.h);});
+    if(protect){
+      out=out.filter(function(h){return h!==String(protect);});
+      out.splice(Math.min(3,out.length),0,String(protect));
+    }
+    return uniqueH(out).slice(0,5);
+  }
+  function headAssessment(ctx,scored,adv,v,branch,axis){
+    var grade='C',score=0,reasons=[];
+    if(!axis)return{grade:'C',on:false,score:0,reasons:['構造軸未確定']};
+    var tf=tfOf(ctx,axis),rank=tanRankOf(ctx,axis),sobj=scoredOf(scored,axis);
+    var ff=adv&&adv.falseFavorite?adv.falseFavorite:null;
+    var favLow=!!(v&&v.favorite&&String(v.favorite.level||'').indexOf('低下')>=0);
+    var triSupport=countAppearTop((ctx&&ctx.sanRank)||[],axis,10);
+    var win5Hit=!!(v&&v.win5&&v.win5.selected&&v.win5.selected.some(function(x){return String(x.h)===String(axis);}));
+
+    if(branch==='NO_COMMON'){
+      score+=2;reasons.push('重複なし型・1番人気軸');
+      if(Number(tf.tan)<=4){score+=2;reasons.push('単勝4倍以内');}
+      else if(Number(tf.tan)<=6){score+=1;reasons.push('単勝6倍以内');}
+      if(!favLow){score+=1;reasons.push('1番人気信頼度低下なし');}
+      if(!(ff&&ff.on)){score+=1;reasons.push('偽本命上書きなし');}
+      if(triSupport>=4){score+=1;reasons.push('三連複上位支持'+triSupport+'回');}
+    }else if(branch==='TWO_COMMON'){
+      score+=2;reasons.push('重複2頭型・内側軸');
+      if(Number(tf.tan)<10){score+=2;reasons.push('単勝10倍未満');}
+      else if(Number(tf.tan)<=15){score+=1;reasons.push('単勝15倍以内');}
+      if(rank<=3){score+=1;reasons.push('単勝上位3位以内');}
+      if(win5Hit){score+=1;reasons.push('WIN5式勝ち切り候補');}
+      if(triSupport>=3){score+=1;reasons.push('三連複上位支持'+triSupport+'回');}
+      if(ff&&ff.on&&String(axis)===String(ctx.fav1)){score-=2;reasons.push('偽本命上書きで減点');}
+    }else{
+      reasons.push('単独重複または3頭以上は1着固定対象外');
+    }
+    if(sobj&&Number(sobj.score)>=65){score+=1;reasons.push('総合候補65点以上');}
+    grade=score>=5?'A':(score>=3?'B':'C');
+    return{grade:grade,on:grade==='A'&&(branch==='NO_COMMON'||branch==='TWO_COMMON'),score:score,reasons:reasons};
+  }
+  function buildAxisTickets(ctx,scored,v,branch,axis,protect,head){
+    var res={wide:[],uma:[],tri:[],umatan:[],sanrentan:[],partners:[]};
+    if(!axis)return res;
+    var partners=partnerPool(ctx,scored,v,axis,protect);
+    res.partners=partners;
+    partners.slice(0,3).forEach(function(h){
+      pushUnique(res.wide,pairText(axis,h));
+      pushUnique(res.uma,pairText(axis,h));
+    });
+    for(var i=0;i<Math.min(4,partners.length);i++){
+      for(var j=i+1;j<Math.min(4,partners.length);j++){
+        pushUnique(res.tri,triText(axis,partners[i],partners[j]));
+        if(res.tri.length>=6)break;
+      }
+      if(res.tri.length>=6)break;
+    }
+    if(head&&head.on){
+      var second=partners.filter(function(h){return branch!=='TWO_COMMON'||String(h)!==String(protect);}).slice(0,3);
+      second.forEach(function(h){pushUnique(res.umatan,String(axis)+'→'+String(h));});
+      var third=partners.slice(0,4);
+      second.forEach(function(s){
+        third.forEach(function(t){
+          if(String(s)!==String(t)&&res.sanrentan.length<6)pushUnique(res.sanrentan,String(axis)+'→'+String(s)+'→'+String(t));
+        });
+      });
+    }
+    return res;
+  }
+  function buildMatchanAxis(ctx,ms,scored,adv,v){
+    var tan20=medianUnder(ctx.tanRank,'tan',20,false);
+    var tan10=medianUnder(ctx.tanRank,'tan',10,true);
+    var fuku156=fuku15to6Median(ctx);
+    var fuku12=medianUnder(ctx.fukuRank,'fuku',12,false);
+    var fuku6=medianUnder(ctx.fukuRank,'fuku',6,false);
+    var tanSet=orderedUnion([tan20,tan10]);
+    var fukuSet=orderedUnion([fuku156,fuku12,fuku6]);
+    var common=tanSet.filter(function(h){return fukuSet.indexOf(h)>=0;});
+    common=uniqueH(common).sort(function(a,b){return Number(tfOf(ctx,a).tan)-Number(tfOf(ctx,b).tan);});
+
+    var branch='MANY_COMMON',label='重複3頭以上・判定保留',axis=null,protect=null,avoid=null,axisSource='なし',stat='データ不足・買い目連動なし';
+    if(common.length===0){
+      branch='NO_COMMON';label='重複なし・1番人気軸型';axis=String(ctx.fav1||'');axisSource='単勝1番人気';stat='今回の検証：10例中7例で1番人気が1着（70.0%）';
+    }else if(common.length===1){
+      branch='ONE_COMMON';label='単独重複・軸回避型';avoid=common[0];
+      var alt=chooseAlternativeAxis(ctx,ms,scored,v,avoid);
+      if(alt){axis=alt.h;axisSource='代替軸：'+alt.source;}
+      stat='今回の検証：38例中1着4回・3着内15回。単独重複馬は軸にしない';
+    }else if(common.length===2){
+      branch='TWO_COMMON';label='重複2頭・内側軸型';axis=common[0];protect=common[1];axisSource='単勝オッズが低い内側重複馬';stat='今回の検証：16例で内側1着8回・3着内12回。重複2頭ワンツーは0回';
+    }
+
+    var head=headAssessment(ctx,scored,adv,v,branch,axis);
+    if(branch==='ONE_COMMON')head={grade:'C',on:false,score:0,reasons:['単独重複馬は頭固定をしない']};
+    if(branch==='MANY_COMMON')head={grade:'C',on:false,score:0,reasons:['3頭以上はデータ不足']};
+    var tickets=buildAxisTickets(ctx,scored,v,branch,axis,protect,head);
+
+    return{
+      medians:{tan20:tan20,tan10:tan10,fuku156:fuku156,fuku12:fuku12,fuku6:fuku6},
+      tanSet:tanSet,fukuSet:fukuSet,common:common,count:common.length,
+      branch:branch,label:label,axis:axis,protect:protect,avoid:avoid,axisSource:axisSource,stat:stat,
+      head:head,tickets:tickets
+    };
+  }
+
+  function gradeClass(g){return g==='A'?'axisA':(g==='B'?'axisB':'axisC');}
+  function renderAxisDiagnosis(a){
+    if(!a)return'';
+    var m=a.medians||{},html='<div class="axisBranchBlock"><div class="axisBranchTitle">🧭単複メジアン重複・構造軸判定</div>';
+    html+='<div class="axisMedianLine">単勝20倍以内メジアン：'+horseText(m.tan20)+'<br>単勝10倍以内メジアン：'+horseText(m.tan10)+'<br>複勝15倍前2頭〜6倍帯メジアン：'+horseText(m.fuku156)+'<br>複勝12倍以内メジアン：'+horseText(m.fuku12)+'<br>複勝6倍以内メジアン：'+horseText(m.fuku6)+'</div><hr>';
+    html+='<b>単複重複：</b>'+a.count+'頭 / '+horseText(a.common)+'<br><span class="axisBranchMode">'+a.label+'</span><br>';
+    if(a.axis)html+='<b>構造軸：</b><span class="axisHorse">'+a.axis+'番</span> <span class="small">（'+a.axisSource+'）</span><br>';
+    else html+='<b>構造軸：</b><span class="axisC">未確定</span><br>';
+    if(a.avoid)html+='<b>軸回避：</b><span class="axisAvoid">'+a.avoid+'番</span><br>';
+    if(a.protect)html+='<b>相手保護：</b>'+a.protect+'番 <span class="small">※重複2頭同士の馬単は表示しません</span><br>';
+    html+='<b>頭適性：</b><span class="'+gradeClass(a.head.grade)+'">'+a.head.grade+'</span> / '+(a.head.on?'1着固定買い目を表示':'馬連・3連複まで')+'<br>';
+    html+='<span class="axisStat">'+a.stat+'<br>'+((a.head.reasons||[]).length?'頭判定：'+a.head.reasons.join('・'):'')+'</span></div>';
+    return html;
+  }
+  function listHtml(arr){return arr&&arr.length?arr.join('<br>'):'なし';}
+  function renderAxisTickets(a){
+    if(!a)return'';
+    var t=a.tickets||{};
+    var html='<div class="card axisTicketCard"><div class="title">🎯まっちゃん式・構造軸買い目</div>';
+    html+='<b>判定：</b>'+a.label+'<br>';
+    if(a.axis)html+='<b>軸：</b><span class="axisHorse">'+a.axis+'番</span> <span class="small">（'+a.axisSource+'）</span><br>';
+    else html+='<b>軸：</b><span class="axisC">判定保留</span><br>';
+    if(a.avoid)html+='<b>軸回避馬：</b><span class="axisAvoid">'+a.avoid+'番</span><br>';
+    if(a.protect)html+='<b>相手保護：</b>'+a.protect+'番<br>';
+    if(!a.axis){html+='<div class="axisTicketBox" style="margin-top:10px">重複3頭以上はデータ不足のため、構造軸買い目を出しません。</div></div>';return html;}
+    html+='<div class="axisTicketGrid" style="margin-top:10px"><div class="axisTicketBox"><b>ワイド</b><br>'+listHtml(t.wide)+'<br><br><b>馬連</b><br>'+listHtml(t.uma)+'</div><div class="axisTicketBox"><b>3連複・構造軸</b><br>'+listHtml(t.tri)+'</div></div>';
+    if(a.head&&a.head.on){
+      html+='<div class="axisHeadBox"><b>🚨1着狙い・頭適性A</b><br><span class="small">構造軸を1着固定。重複2頭型では、もう1頭とのワンツー馬単は除外します。</span><br><br><b>馬単</b><br>'+listHtml(t.umatan)+'<br><br><b>3連単</b><br>'+listHtml(t.sanrentan)+'</div>';
+    }else{
+      html+='<div class="small" style="margin-top:10px">頭適性'+(a.head?a.head.grade:'C')+'のため、馬単・3連単は表示しません。</div>';
+    }
+    html+='</div>';
+    return html;
+  }
+  function copyAxis(a){
+    if(!a)return'';
+    var m=a.medians||{},t=a.tickets||{},s='\n🧭単複メジアン重複・構造軸判定\n';
+    s+='単勝20倍以内メジアン：'+horseText(m.tan20)+'\n';
+    s+='単勝10倍以内メジアン：'+horseText(m.tan10)+'\n';
+    s+='複勝15倍前2頭〜6倍帯メジアン：'+horseText(m.fuku156)+'\n';
+    s+='複勝12倍以内メジアン：'+horseText(m.fuku12)+'\n';
+    s+='複勝6倍以内メジアン：'+horseText(m.fuku6)+'\n';
+    s+='単複重複：'+a.count+'頭 / '+horseText(a.common)+'\n';
+    s+='判定：'+a.label+'\n';
+    s+='構造軸：'+(a.axis?a.axis+'番（'+a.axisSource+'）':'未確定')+'\n';
+    if(a.avoid)s+='軸回避：'+a.avoid+'番\n';
+    if(a.protect)s+='相手保護：'+a.protect+'番 / 重複2頭同士の馬単は除外\n';
+    s+='頭適性：'+a.head.grade+' / '+(a.head.on?'1着固定あり':'馬連・3連複まで')+'\n';
+    s+='検証：'+a.stat+'\n';
+    s+='\n🎯まっちゃん式・構造軸買い目\n';
+    s+='ワイド\n'+(t.wide&&t.wide.length?t.wide.join('\n'):'なし')+'\n\n';
+    s+='馬連\n'+(t.uma&&t.uma.length?t.uma.join('\n'):'なし')+'\n\n';
+    s+='3連複・構造軸\n'+(t.tri&&t.tri.length?t.tri.join('\n'):'なし')+'\n';
+    if(a.head.on){
+      s+='\n🚨1着狙い\n馬単\n'+(t.umatan.length?t.umatan.join('\n'):'なし')+'\n\n3連単\n'+(t.sanrentan.length?t.sanrentan.join('\n'):'なし')+'\n';
+    }
+    return s;
+  }
+
+  window.makeTickets=function(ctx,ms,scored,sw,adv){
+    var t=V247_makeTickets(ctx,ms,scored,sw,adv);
+    var v=(t&&t.v247)||(adv&&adv.v247)||window.__v247Latest||null;
+    var a=buildMatchanAxis(ctx,ms,scored,adv,v);
+    t.matchanAxis=a;
+    if(adv)adv.matchanAxis=a;
+    window.__matchanAxisLatest=a;
+    return t;
+  };
+
+  window.renderTickets=function(t){
+    var base=V247_renderTickets(t).replace(/V2\.47/g,'V2.48');
+    return base+renderAxisTickets(t&&t.matchanAxis);
+  };
+
+  window.makeCopyText=function(data,diag,ctx,ms,sw,tickets,scored,moves,adv){
+    var s=V247_makeCopyText(data,diag,ctx,ms,sw,tickets,scored,moves,adv).replace(/V2\.47/g,'V2.48');
+    s=s.replace(/📘まっちゃん式・オッズ構造予想【検証版】/g,'📘まっちゃん式・オッズ構造予想【軸連動版】');
+    var a=(tickets&&tickets.matchanAxis)||(adv&&adv.matchanAxis)||window.__matchanAxisLatest;
+    return s+copyAxis(a);
+  };
+
+  window.run=function(){
+    V247_run();
+    var out=document.getElementById('out'),a=window.__matchanAxisLatest;
+    if(out){
+      var card=out.querySelector('.matchanOddsLab');
+      if(card&&a&&!card.querySelector('.axisBranchBlock')){
+        var title=card.querySelector('.title');
+        if(title)title.textContent='📘まっちゃん式・オッズ構造予想【軸連動版】';
+        var note=card.querySelector('.small');
+        if(note)note.textContent='既存のオッズ構造診断に、単複メジアン重複数による軸分岐を追加。構造軸は下の買い目へ連動します。';
+        card.insertAdjacentHTML('beforeend',renderAxisDiagnosis(a));
+      }
+      out.innerHTML=out.innerHTML.replace(/V2\.47/g,'V2.48');
+    }
+    if(typeof latestCopyText==='string'){
+      latestCopyText=latestCopyText.replace(/V2\.47/g,'V2.48').replace(/📘まっちゃん式・オッズ構造予想【検証版】/g,'📘まっちゃん式・オッズ構造予想【軸連動版】');
+    }
+  };
+
+  window.buildMatchanAxis=buildMatchanAxis;
+})();
+</script>
+
 </body>
 </html>
