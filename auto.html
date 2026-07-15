@@ -1579,5 +1579,202 @@ ${wild.extraIns&&wild.extraIns.length?'補正保険3連複\n'+wild.extraIns.slic
 })();
 </script>
 
+
+<script>
+(function(){
+  'use strict';
+
+  const V2424_analyze=window.analyze;
+  const V2424_predictFormation=window.predictFormation;
+  const V2424_detectAutoWild5Box=window.detectAutoWild5Box;
+  const V2424_render=window.render;
+
+  document.title='チャッピー神予想 オート V24.25 最強ペア優先＋単独頭解除補正';
+  const h1=document.querySelector('h1');
+  if(h1){h1.innerHTML='チャッピー神予想 オート V24.25<br>🔗最強ペア優先＋単独頭解除<br>🔒V24.24全機能継続';}
+  const sub=document.querySelector('.sub');
+  if(sub){sub.textContent='2車複・ワイド共通最強ペアを最優先／ペア外の過剰人気頭を解除／候補最上位を3着へ自動接続';}
+
+  const style=document.createElement('style');
+  style.textContent=`
+    .v2425{border:3px solid #67e8f9;background:linear-gradient(135deg,#04202a,#07546b,#03151d);box-shadow:0 0 30px rgba(103,232,249,.35)}
+    .v2425.fire{border-color:#fbbf24;background:linear-gradient(135deg,#2b1800,#674108,#180c00);box-shadow:0 0 30px rgba(251,191,36,.35)}
+    .v2425 .big{font-size:24px;font-weight:1000}.v2425 .line{margin:7px 0}
+  `;
+  document.head.appendChild(style);
+
+  function uniq(a){return [...new Set((a||[]).map(Number).filter(Number.isFinite))];}
+  function pairKey(a,b){return [Number(a),Number(b)].sort((x,y)=>x-y).join('-');}
+  function candidate(res,car){return (res.candidates||[]).find(x=>Number(x.car)===Number(car));}
+  function headTrust(res,car){return (res.headTrust||[]).find(x=>Number(x.car)===Number(car));}
+  function tanOdds(res,car){const x=(res.data?.tansho||[]).find(v=>Number(v.car)===Number(car));return Number.isFinite(x?.odds)?x.odds:999;}
+  function hp(res,car){return res.data?.handicap?.[car]||{};}
+  function ratioGap(list){
+    if(!list||list.length<2)return null;
+    const a=Number(list[0].odds),b=Number(list[1].odds);
+    if(!Number.isFinite(a)||!Number.isFinite(b)||a<=0)return null;
+    return {from:a,to:b,ratio:b/a,on:b/a>=1.8};
+  }
+  function includesPair(item,pair){return pair.every(c=>(item.cars||[]).map(Number).includes(Number(c)));}
+
+  function choosePairHead(res,pair){
+    return pair.slice().sort((a,b)=>{
+      const ah=hp(res,a),bh=hp(res,b);
+      const valsA=[Number.isFinite(ah.handicap)?ah.handicap:999,Number.isFinite(ah.st)?ah.st:999,Number.isFinite(ah.trial)?ah.trial:999,tanOdds(res,a)];
+      const valsB=[Number.isFinite(bh.handicap)?bh.handicap:999,Number.isFinite(bh.st)?bh.st:999,Number.isFinite(bh.trial)?bh.trial:999,tanOdds(res,b)];
+      for(let i=0;i<valsA.length;i++){if(valsA[i]!==valsB[i])return valsA[i]-valsB[i];}
+      return a-b;
+    })[0];
+  }
+
+  function chooseThird(res,pair){
+    const linked=[];
+    (res.data?.sanren||[]).slice(0,10).forEach((s,i)=>{
+      if(!includesPair(s,pair))return;
+      const third=(s.cars||[]).map(Number).find(c=>!pair.includes(c));
+      if(!third)return;
+      const c=candidate(res,third),t=headTrust(res,third);
+      linked.push({car:third,rank:i+1,odds:s.odds,candidateScore:c?.score||0,trustScore:t?.score||0});
+    });
+    const bestByCar={};
+    linked.forEach(x=>{if(!bestByCar[x.car]||x.rank<bestByCar[x.car].rank)bestByCar[x.car]=x;});
+    const arr=Object.values(bestByCar).sort((a,b)=>
+      b.candidateScore-a.candidateScore||b.trustScore-a.trustScore||a.rank-b.rank||a.odds-b.odds||a.car-b.car
+    );
+    if(arr[0])return arr[0];
+    const fallback=(res.candidates||[]).filter(x=>!pair.includes(Number(x.car))).sort((a,b)=>b.score-a.score||a.car-b.car)[0];
+    return fallback?{car:Number(fallback.car),rank:999,odds:null,candidateScore:fallback.score||0,trustScore:headTrust(res,fallback.car)?.score||0}:null;
+  }
+
+  function detectStrongPair(res){
+    const d=res.data||{},n=(d.niren||[]),w=(d.wide||[]),s=(d.sanren||[]);
+    if(!n[0]||!w[0])return {ready:false,on:false,reason:'2車複またはワイド不足'};
+    const nKey=pairKey(...n[0].cars),wKey=pairKey(...w[0].cars);
+    const same=nKey===wKey;
+    const pair=uniq(n[0].cars).sort((a,b)=>a-b);
+    const nGap=ratioGap(n),wGap=ratioGap(w);
+    const top3=s.slice(0,3).filter(x=>includesPair(x,pair));
+    const ready=same&&pair.length===2&&!!nGap?.on&&!!wGap?.on&&top3.length>=2;
+    const head=ready?choosePairHead(res,pair):null;
+    const mate=ready?pair.find(c=>c!==head):null;
+    const third=ready?chooseThird(res,pair):null;
+    return {
+      ready,on:false,same,pair,key:nKey,nGap,wGap,top3,head,mate,third,
+      reason:ready?'最強ペア条件3項目成立':'条件不足'
+    };
+  }
+
+  function addPairProtect(res,p){
+    if(!p?.ready)return;
+    res.protect=res.protect||[];
+    const existing=new Set(res.protect.map(x=>x.key));
+    const push=(cars,reason)=>{
+      const u=uniq(cars).sort((a,b)=>a-b);if(u.length!==3)return;
+      const key=u.join('-');if(existing.has(key))return;
+      const item=(res.data?.sanren||[]).find(x=>x.key===key);if(!item)return;
+      existing.add(key);res.protect.unshift({key,reason,cars:u});
+    };
+    if(p.third?.car)push([...p.pair,p.third.car],'V24.25最強ペア×候補最上位3着');
+    p.top3.forEach(x=>push(x.cars,'V24.25最強ペア×三連系上位共通'));
+  }
+
+  window.analyze=function(p){
+    const res=V2424_analyze(p);
+    res.strongPair=detectStrongPair(res);
+    addPairProtect(res,res.strongPair);
+    return res;
+  };
+
+  window.predictFormation=function(res){
+    const base=V2424_predictFormation(res);if(!base)return base;
+    const p=res.strongPair||detectStrongPair(res);
+    res.strongPair=p;
+    if(!p.ready)return base;
+
+    const baseHead=Number(base.head);
+    const overPop=(res.overPop||[]).some(x=>Number(x.car)===baseHead);
+    const outside=!p.pair.includes(baseHead);
+    p.on=true;
+    p.baseHead=baseHead;
+    p.released=outside||overPop;
+    p.releaseReason=outside?'最終頭が最強ペア外':overPop?'最終頭が上っ面過剰人気警戒':'最終頭はペア内・ペア内の頭順だけ補正';
+
+    const head=Number(p.head),mate=Number(p.mate),third=Number(p.third?.car);
+    const rest=uniq([mate,third,...(base.secondBox||base.box||[]),...(base.thirdBox||[]),(res.marketAxis||0)])
+      .filter(c=>c&&c!==head);
+    const secondBox=uniq([mate,third,...rest]).slice(0,3);
+    const thirdBox=uniq([third,mate,...rest]).slice(0,4);
+    const one=(head&&mate&&third)?`${head}${mate}${third}`:base.one;
+    const reverse=(head&&mate&&third)?`${mate}${head}${third}`:base.osa;
+    const mode='V24.25最強ペア優先・単独頭解除';
+    const originalBaseHead=res.headDecision?.baseHead||baseHead;
+    res.headDecision={
+      head,baseHead:originalBaseHead,mode,headChanged:head!==originalBaseHead,
+      secondBox:secondBox.slice(),thirdBox:thirdBox.slice(),pairOverride:true
+    };
+    p.finalHead=head;p.finalMate=mate;p.finalThird=third;p.mainOne=one;p.reverseOne=`${mate}${head}${third}`;
+    return {
+      head,box:secondBox,secondBox,thirdBox,boxStr:secondBox.join(''),cover:mate,one,
+      main:third?`${head}-${mate}-${third}`:`${head}-${secondBox.join('')}-${thirdBox.join('')}`,
+      osa:third?`${mate}-${head}-${third}`:reverse,
+      note:`${mode}。2車複・ワイド共通1位ペアをワンツー核に昇格し、候補最上位の連動車を3着へ接続。`
+    };
+  };
+
+  window.detectAutoWild5Box=function(res){
+    const wild=V2424_detectAutoWild5Box(res);if(!wild||!wild.on)return wild;
+    const p=res.strongPair;
+    if(p?.ready){
+      const required=uniq([...(p.pair||[]),p.third?.car]);
+      const pool=uniq([...required,...(wild.box||[]),...(res.candidates||[]).map(x=>x.car)]);
+      wild.box=pool.slice(0,5).sort((a,b)=>a-b);
+      wild.pairs=[];wild.tris=[];
+      for(let i=0;i<wild.box.length;i++)for(let j=i+1;j<wild.box.length;j++)wild.pairs.push([wild.box[i],wild.box[j]].join('-'));
+      for(let i=0;i<wild.box.length;i++)for(let j=i+1;j<wild.box.length;j++)for(let k=j+1;k<wild.box.length;k++)wild.tris.push([wild.box[i],wild.box[j],wild.box[k]].join('-'));
+      wild.single=wild.box.filter(c=>(res.data?.tansho||[]).some(x=>x.car===c&&x.odds>0&&x.odds!==999)).map(String);
+      wild.reason=wild.reason||[];
+      wild.reason.push('V24.25最強ペアと3着候補を5車BOXへ強制固定');
+    }
+    return wild;
+  };
+
+  function pairCard(res){
+    const p=res.strongPair;if(!p||!p.ready)return `<div class="card v2425"><h2>🔗V24.25 最強ペア優先・単独頭解除</h2><div class="big">判定：非発動</div><div class="mini">2車複・ワイド共通1位＋両方1位後ろ1.8倍壁＋三連系上位3点中2点共通を確認。</div></div>`;
+    const top=p.top3.map(x=>`${x.key} ${x.odds}倍`).join(' / ');
+    const cls=p.on?'v2425 fire':'v2425';
+    return `<div class="card ${cls}"><h2>🔗V24.25 最強ペア優先・単独頭解除</h2>
+      <div class="big">判定：強制発動</div>
+      <div class="line"><span class="badge green">共通最強ペア</span> ${p.pair.map(carSpan).join(' ')}</div>
+      <div class="line">2車複：${p.nGap.from}→${p.nGap.to}（${p.nGap.ratio.toFixed(2)}倍壁）</div>
+      <div class="line">ワイド：${p.wGap.from}→${p.wGap.to}（${p.wGap.ratio.toFixed(2)}倍壁）</div>
+      <div class="line">三連系上位共通：${top}</div>
+      <div class="line"><span class="badge ${p.released?'red':'blue'}">${p.released?'単独頭解除':'ペア内頭順補正'}</span> ${p.baseHead}号車 / ${p.releaseReason}</div>
+      <div class="line"><span class="badge yellow">補正後最終頭</span> ${carSpan(p.finalHead||p.head)}　相手核 ${carSpan(p.finalMate||p.mate)}</div>
+      <div class="line"><span class="badge pink">3着候補</span> ${p.third?carSpan(p.third.car)+' 候補'+p.third.candidateScore+'点 / 三連系'+p.third.rank+'位':'なし'}</div>
+      <div class="line"><b>本線1点 ${p.mainOne||''}</b>　/　押さえ ${p.reverseOne||''}</div>
+      <div class="mini">頭の優先順：前ハンデ→ST→試走→単勝支持。3着は最強ペアと三連系上位でつながる候補点最上位車。</div></div>`;
+  }
+
+  function pairText(res){
+    const p=res.strongPair;if(!p||!p.ready)return `🔗V24.25 最強ペア優先・単独頭解除補正\n判定：非発動`;
+    const top=p.top3.map(x=>`${x.key} ${x.odds}倍`).join(' / ');
+    return `🔗V24.25 最強ペア優先・単独頭解除補正\n判定：強制発動\n共通最強ペア：${p.pair.join('-')}\n2車複壁：${p.nGap.from}→${p.nGap.to} / ${p.nGap.ratio.toFixed(2)}倍\nワイド壁：${p.wGap.from}→${p.wGap.to} / ${p.wGap.ratio.toFixed(2)}倍\n三連系上位共通：${top}\n${p.released?'単独頭解除':'ペア内頭順補正'}：${p.baseHead}号車 / ${p.releaseReason}\n補正後最終頭：${p.finalHead||p.head}号車\n相手核：${p.finalMate||p.mate}号車\n3着候補：${p.third?.car||'なし'}号車\n本線1点：${p.mainOne||''}\n押さえ：${p.reverseOne||''}`;
+  }
+
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+  window.render=function(res){
+    let html=V2424_render(res).replace(/V24\.24/g,'V24.25');
+    latestCopyText=(latestCopyText||'').replace(/V24\.24/g,'V24.25');
+    const summary=pairText(res);
+    latestCopyText+=`\n\n${summary}`;
+    const marker='<div class="card"><h2>コピペ用フル結果</h2>';
+    const idx=html.lastIndexOf(marker);
+    const prefix=idx>=0?html.slice(0,idx):html;
+    return pairCard(res)+prefix+`<div class="card"><h2>コピペ用フル結果</h2><div class="mini">「結果コピー」でV24.25補正を含む全文をコピーできます。</div><pre class="copybox">${esc(latestCopyText)}</pre></div>`;
+  };
+})();
+</script>
+
 </body>
 </html>
