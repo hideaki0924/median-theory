@@ -2587,5 +2587,192 @@ V2.50の擬似コンピを土台に、5市場の馬別順位合意で順位と�
  };
 })();
 </script>
+<style>
+.raceTypeCard{border:3px solid #22d3ee!important;background:linear-gradient(135deg,#001827,#06465b,#06111f)!important;box-shadow:0 0 14px rgba(34,211,238,.58),0 0 32px rgba(59,130,246,.28)!important}
+.raceTypeTitle{font-size:19px;font-weight:900;color:#ecfeff;margin-bottom:7px}
+.raceTypeName{font-size:22px;font-weight:900;color:#fde047;text-shadow:0 0 9px rgba(253,224,71,.48);line-height:1.25;margin:6px 0}
+.raceTypeGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}
+.raceTypeItem{background:rgba(2,6,23,.76);border:1px solid #0ea5e9;border-radius:10px;padding:7px;min-width:0}
+.raceTypeLabel{font-size:10px;color:#7dd3fc;font-weight:900}.raceTypeValue{font-size:15px;color:#fff;font-weight:900;margin-top:2px;word-break:break-word}
+.raceTypeReasons{margin-top:8px;padding:7px 9px;border-radius:9px;background:rgba(2,6,23,.68);border:1px solid #155e75;color:#cbd5e1;font-size:11px;line-height:1.45}
+.raceTag{display:inline-block;padding:3px 7px;border:1px solid #38bdf8;border-radius:999px;margin:2px;background:#082f49;color:#e0f2fe;font-size:10px;font-weight:900}
+.wallRoleBox{margin-top:8px;padding:8px;border:1px solid #f59e0b;border-radius:10px;background:rgba(69,26,3,.66);line-height:1.5}
+.wallRoleFront{color:#fde047;font-weight:900}.wallRoleAfter{color:#93c5fd;font-weight:900}.wallRoleCut{color:#fb7185;font-weight:900}
+.raceTicketCard{border:3px solid #f97316!important;background:linear-gradient(135deg,#2b1000,#6b2b00,#111827)!important;box-shadow:0 0 14px rgba(249,115,22,.58),0 0 30px rgba(245,158,11,.28)!important}
+.raceTicketTitle{font-size:19px;font-weight:900;color:#ffedd5;margin-bottom:7px}
+.raceTicketLead{border:1px solid #fb923c;border-radius:10px;background:rgba(2,6,23,.70);padding:7px;font-size:11px;line-height:1.45;color:#fed7aa}
+.raceTicketGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}
+.raceTicketBox{background:rgba(2,6,23,.82);border:1px solid #9a3412;border-radius:10px;padding:8px;line-height:1.45;min-width:0}
+.raceTicketHead{color:#fdba74;font-size:12px;font-weight:900;margin-bottom:4px}.raceTicketLines{font-size:14px;font-weight:900;color:#fff;word-break:break-word}.raceTicketNone{color:#94a3b8;font-weight:700}
+.raceTicketDecision{margin-top:8px;padding:8px 10px;border-radius:10px;border:2px solid #facc15;background:linear-gradient(135deg,#241a00,#4a3600,#111827);color:#fff7b2;font-weight:900;line-height:1.5}
+.book18{margin-top:8px;border:1px solid #c084fc;border-radius:10px;padding:8px;background:rgba(49,46,129,.42);font-size:11px;line-height:1.45;color:#e9d5ff}
+.raceTicketFoot{margin-top:7px;font-size:10px;color:#cbd5e1;line-height:1.4}
+@media(max-width:520px){.raceTypeGrid,.raceTicketGrid{grid-template-columns:1fr}}
+</style>
+<script>
+(function(){
+ 'use strict';
+ var V252_makeTickets=window.makeTickets;
+ var V252_makeCopyText=window.makeCopyText;
+ var V252_run=window.run;
+
+ document.title='チャッピー神予想 競馬 V2.53 レース種類→最終買い目統合版';
+ var heading=document.querySelector('h1');
+ if(heading)heading.innerHTML='チャッピー神予想 競馬 V2.53<br>🧭レース種類→役割判定→最終買い目<br>✅V2.52大谷式基軸＋南関東10倍壁＋既存重要項目を全保存';
+
+ function n(v,d){v=Number(v);return isFinite(v)?v:(d===0?0:(d||9999));}
+ function one(arr,v){v=String(v||'');if(v&&v!=='undefined'&&arr.indexOf(v)<0)arr.push(v);}
+ function unique(arr){var out=[];(arr||[]).forEach(function(v){one(out,v);});return out;}
+ function tf(ctx,h){h=String(h||'');for(var i=0;i<(ctx.tanRank||[]).length;i++)if(String(ctx.tanRank[i].h)===h)return ctx.tanRank[i];return{h:h,tan:9999,fuku:9999};}
+ function sObj(scored,h){h=String(h||'');for(var i=0;i<(scored||[]).length;i++)if(String(scored[i].h)===h)return scored[i];return null;}
+ function scoreRank(scored,h){h=String(h||'');for(var i=0;i<(scored||[]).length;i++)if(String(scored[i].h)===h)return i+1;return 99;}
+ function reasonFamilies(x){var fam={},r=((x||{}).reasons||[]).join('・');if(/壁前|壁末端|断層|壁外/.test(r))fam.wall=1;if(/馬連|ワイド|三連複/.test(r))fam.link=1;if(/ズレ|上昇|先行支持/.test(r))fam.shift=1;if(/メジアン/.test(r))fam.med=1;if(/保護|突出/.test(r))fam.protect=1;if(/構造軸|縦揃い|勝ち切り/.test(r))fam.axis=1;return Object.keys(fam).length;}
+ function triSupport(ctx,h){return countAppearTop((ctx&&ctx.sanRank)||[],String(h),10);}
+ function marketOddsMap(list){var m={};(list||[]).forEach(function(x){m[String(x.key)]=n(x.od);});return m;}
+ function classifyVenue(title){title=String(title||'');return{south:/大井|浦和|船橋|川崎/.test(title),exchange:/JRA|中央交流|交流競走|交流/.test(title),title:title};}
+ function matchanHoleMap(tickets){var m={},holes=((((tickets||{}).v247||{}).matchan||{}).holes)||[];holes.forEach(function(x){m[String(x.h)]=n(x.score,0);});return m;}
+ function gateMap(adv){var m={},items=((((adv||{}).ooanaGate)||{}).items)||[];items.forEach(function(x){m[String(x.h)]=n(x.count,0);});return m;}
+ function isStrongHorse(ctx,scored,tickets,adv,h){h=String(h||'');var x=sObj(scored,h),hm=matchanHoleMap(tickets),gm=gateMap(adv);if(!h)return false;if(x&&n(x.score,0)>=65)return true;if(triSupport(ctx,h)>=4)return true;if(n(hm[h],0)>=25)return true;if(n(gm[h],0)>=4)return true;if(x&&reasonFamilies(x)>=4)return true;var ff=(tickets&&tickets.finalFour)||window.__finalFourLatest;if(ff&&ff.hole&&String(ff.hole.h)===h&&n(ff.hole.strength,0)>=60)return true;return false;}
+ function tenWall(ctx,scored,tickets,adv){
+  var r=ctx.fukuRank||[],idx=-1,i;for(i=0;i<r.length;i++)if(n(r[i].fuku)<=10)idx=i;
+  var front=[],after=[],cut=[],promoted=[];
+  if(idx>=0){if(r[idx])one(front,r[idx].h);if(r[idx-1])one(front,r[idx-1].h);if(r[idx+1])one(after,r[idx+1].h);if(r[idx+2])one(after,r[idx+2].h);}
+  var third=(idx>=2&&r[idx-2])?String(r[idx-2].h):null;
+  var second=front[1]||null;
+  if(third&&second){var t2=n(tf(ctx,second).tan),t3=n(tf(ctx,third).tan),ratio=Math.max(t2,t3)/Math.max(.01,Math.min(t2,t3));var x3=sObj(scored,third);if((ratio<=1.25||Math.abs(t2-t3)<=5)&&((x3&&n(x3.score,0)>=45)||triSupport(ctx,third)>=2)){one(promoted,third);}}
+  var raw=unique(front.concat(after.slice(0,1)).concat(promoted));
+  var eligible=[];raw.forEach(function(h){var f=n(tf(ctx,h).fuku);if(f>20&&!isStrongHorse(ctx,scored,tickets,adv,h))one(cut,h);else one(eligible,h);});
+  return{on:idx>=0&&idx<r.length-1,idx:idx,front:front,after:after,after1:after[0]||null,third:third,promoted:promoted,raw:raw,eligible:eligible,cut:cut};
+ }
+ function agreementScore(ctx){var h=String(ctx.fav1||''),score=0,reasons=[];if(!h)return{score:0,reasons:['1番人気なし']};var fr=99;for(var i=0;i<(ctx.fukuRank||[]).length;i++)if(String(ctx.fukuRank[i].h)===h){fr=i+1;break;}if(fr<=2){score++;reasons.push('複勝上位一致');}var uc=countAppearTop(ctx.umaRank||[],h,6);if(uc>=3){score++;reasons.push('馬連上位接続'+uc+'回');}var wc=countAppearTop(ctx.wideRank||[],h,8);if(wc>=3){score++;reasons.push('ワイド上位接続'+wc+'回');}var sc=triSupport(ctx,h);if(sc>=5){score++;reasons.push('三連複上位接続'+sc+'回');}return{score:score,reasons:reasons};}
+ function chooseAxis(ctx,ms,scored,adv,tickets,falseFav){
+  var a=(tickets&&tickets.matchanAxis)||null,v=(tickets&&tickets.v247)||window.__v247Latest||null,c=[];
+  function push(h,src,grade){h=String(h||'');if(!h||c.some(function(x){return x.h===h;}))return;c.push({h:h,source:src,grade:grade||'B'});}
+  if(a&&a.axis)push(a.axis,'構造軸・'+a.label,(a.head&&a.head.grade)||'B');
+  if(ms&&ms.top)push(ms.top.h,'まっちゃん単勝本線','B');
+  ((((v||{}).win5)||{}).selected||[]).forEach(function(x,i){push(x.h,'WIN5式勝ち切り'+(i+1)+'位',i===0?'A':'B');});
+  if(tickets&&tickets.finalFour&&tickets.finalFour.axis)push(tickets.finalFour.axis.h,'最終4項目軸','B');
+  push(ctx.fav1,'単勝1番人気','B');
+  (scored||[]).slice(0,5).forEach(function(x){push(x.h,'総合候補'+(scoreRank(scored,x.h))+'位','C');});
+  if(falseFav)c=c.filter(function(x){return x.h!==String(ctx.fav1);});
+  return c[0]||{h:null,source:'軸未確定',grade:'C'};
+ }
+ function buildRoles(ctx,ms,scored,adv,tickets,wall,axis,falseFav){
+  var v=(tickets&&tickets.v247)||window.__v247Latest||null,final=(tickets&&tickets.finalFour)||window.__finalFourLatest||null;
+  var wins=[],tops=[],holes=[];
+  function win(h,why){h=String(h||'');if(!h||wins.some(function(x){return x.h===h;}))return;if(falseFav&&h===String(ctx.fav1))return;wins.push({h:h,why:why});}
+  function top(h,why){h=String(h||'');if(!h||tops.some(function(x){return x.h===h;}))return;tops.push({h:h,why:why});}
+  function hole(h,why,role){h=String(h||'');if(!h||h===String(axis.h)||holes.some(function(x){return x.h===h;}))return;var f=n(tf(ctx,h).fuku);if(f>20&&!isStrongHorse(ctx,scored,tickets,adv,h))return;holes.push({h:h,why:why,role:role||'配当馬',strong:isStrongHorse(ctx,scored,tickets,adv,h)});}
+  if(ms&&ms.top)win(ms.top.h,'まっちゃん単勝本線');
+  ((((v||{}).win5)||{}).selected||[]).forEach(function(x,i){win(x.h,'WIN5式'+(i+1)+'位');});
+  ((((v||{}).wallMedian)||{}).overall||[]).filter(function(x){return n(x.count)>=2;}).forEach(function(x){win(x.h,'壁内中央値'+x.count+'市場');});
+  (scored||[]).slice(0,6).forEach(function(x){if(n(x.tan)<=30)win(x.h,'総合候補'+scoreRank(scored,x.h)+'位');});
+  (ctx.tanRank||[]).slice(0,4).forEach(function(x,i){top(x.h,'単勝'+(i+1)+'人気');});
+  ((((v||{}).lock)||{}).top||[]).forEach(function(x){top(x.h,'上位4頭安定ロック');});
+  if(final&&final.partners)(final.partners||[]).forEach(function(h){top(h,'最終4項目・上位相手');});
+  (wall.front||[]).forEach(function(h){hole(h,'複勝10倍壁前','連対穴');});
+  if(wall.after1)hole(wall.after1,'複勝10倍壁直後','3着・ワイド穴');
+  (wall.promoted||[]).forEach(function(h){hole(h,'壁前2・3頭目の単勝接近','繰り上げ穴');});
+  if(final&&final.hole&&final.hole.h)hole(final.hole.h,final.hole.note||'最強穴','最強穴');
+  (((((v||{}).matchan)||{}).holes)||[]).slice(0,4).forEach(function(x){hole(x.h,'オッズ構造穴'+x.score+'点','構造穴');});
+  (scored||[]).filter(function(x){return n(x.tan)>=10&&(n(x.score)>=55||triSupport(ctx,x.h)>=4);}).slice(0,6).forEach(function(x){hole(x.h,'総合'+x.score+'点・三連複支持'+triSupport(ctx,x.h)+'回','配当馬');});
+  if(axis&&axis.h)top(axis.h,'構造軸');
+  wins=wins.filter(function(x){return x.h!==String(axis.h);});
+  return{wins:wins.slice(0,3),tops:tops.slice(0,6),holes:holes.slice(0,5)};
+ }
+ function buildRaceProfile(data,ctx,ms,scored,adv,tickets){
+  var venue=classifyVenue(data.title),wall=tenWall(ctx,scored,tickets,adv),agr=agreementScore(ctx),v=(tickets&&tickets.v247)||window.__v247Latest||null;
+  var n1=ctx.umaRank&&ctx.umaRank[0]?n(ctx.umaRank[0].od):999,N=(ctx.tanRank||[]).length;
+  var lock=(((v||{}).lock)||{}),a=(tickets&&tickets.matchanAxis)||null;
+  var rawFalse=!!(adv&&adv.falseFavorite&&adv.falseFavorite.on),ffName=String((adv&&adv.falseFavorite&&adv.falseFavorite.name)||''),favRank=scoreRank(scored,ctx.fav1);
+  /* 共通軸抜けスライドだけで「偽本命」にしない。1番人気の市場合意が弱い時だけ崩れ型へ上書きする。 */
+  var axisSlideOnly=ffName.indexOf('共通軸抜け')>=0;
+  var falseFav=!!(rawFalse&&(axisSlideOnly?((agr.score<=2&&favRank>=4)||(n(tf(ctx,ctx.fav1).tan)<=2&&favRank>=5)):true));
+  /* 発動数だけの過剰な総崩れ判定を抑制。市場一致が強く上位ロックが安定なら相手荒れ側に残す。 */
+  var collapse=!!(adv&&((String(adv.level||'').indexOf('総崩れ')>=0&&(agr.score<=2||!lock.stable))||n(adv.flags,0)>=7));
+  var topConcentrated=!!(!falseFav&&n1<4&&((lock&&lock.active)||(lock&&lock.stable&&(!lock.external||!lock.external.length)))&&a&&a.head&&a.head.grade==='A');
+  var axis=chooseAxis(ctx,ms,scored,adv,tickets,falseFav),roles=buildRoles(ctx,ms,scored,adv,tickets,wall,axis,falseFav);
+  var name='中荒れ混戦型',where='1〜3着',participation='条件付きで買い',strategy='勝ち切り候補と構造軸を分け、壁穴を1頭だけ加える',tags=[],reasons=[];
+  if(venue.south)tags.push('南関東10倍壁モード');else tags.push('通常地方・中央モード');
+  if(venue.exchange)tags.push('JRA交流確認');
+  if(wall.on)tags.push('複勝10倍壁あり');
+  if(lock&&lock.active)tags.push('上位4頭安定ロック');
+  if(falseFav)tags.push('偽本命上書き');
+  if(venue.exchange&&wall.on){name='JRA交流・地方馬穴流入型';where='2・3着';strategy='信頼できる人気馬を残し、10倍壁候補の所属を確認して地方馬なら穴へ';reasons.push('交流競走キーワード＋複勝10倍壁');}
+  else if(N<=8){name='少頭数・盲点型';where='1〜3着';strategy='単勝1〜2頭、三連複は最大3点。安い人気順BOXを避ける';reasons.push(N+'頭立ての少頭数');}
+  else if(falseFav){name='偽本命崩れ型';where='1着から';strategy='単勝1番人気の軸固定を禁止し、代替軸と勝ち切り候補へスライド';reasons.push((adv.falseFavorite.name||'偽本命')+'が発動');}
+  else if(collapse){name='受け皿総崩れ型';where='1〜3着すべて';strategy='単勝SSまたは構造軸がある場合だけ参加。BOX乱発は禁止';reasons.push((adv.level||'総崩れ警報')+'・発動数'+n(adv.flags,0));}
+  else if(topConcentrated){name='上位人気集中・三連単転換型';where='3着';strategy='上位2頭を1・2着、10倍壁穴を3着へ。偽本命時は発動しない';reasons.push('上位4頭安定＋構造軸頭適性A');}
+  else if(n1<4&&agr.score>=3&&roles.holes.length===0){name='鉄板完結型';where='上位内';participation='配当確認・見送り可';strategy='上位3〜4頭で少点数。低配当ならレースごと見送る';reasons.push('馬複1人気4倍未満＋市場支持一致'+agr.score+'/4');}
+  else if(n1<4&&wall.eligible.length){name='馬複4倍未満・穴流入型';where='2・3着';strategy='馬複1人気の2頭を保護し、複勝10倍壁穴を1頭だけ流入';reasons.push('馬複1人気'+n1+'倍＋10倍壁候補');}
+  else if(n1<4){name='本命軸・相手荒れ型';where='2・3着';strategy='1番人気を軸に残し、相手を壁・三連複支持から選ぶ';reasons.push('馬複1人気'+n1+'倍だが相手市場が未完結');}
+  else if(venue.south&&wall.on){name='複勝10倍壁・標準18点型';where='2・3着';strategy='書籍18点を表示し、実戦は穴3頭×上位4頭から2〜6点へ圧縮';reasons.push('南関東＋複勝10倍壁');}
+  else if(n1<9){name='中荒れ混戦型';where='1〜3着';strategy='勝ち切り候補1〜2頭＋構造軸ワイド＋三連複2〜5点';reasons.push('馬複1人気'+n1+'倍の4〜9倍帯');}
+  else{name='受け皿総崩れ型';where='1〜3着すべて';strategy='軸の存在を確認し、単複・ワイド中心。連系は最大2点';reasons.push('馬複1人気'+n1+'倍で荒れ帯');}
+  if(!axis.h&&name==='受け皿総崩れ型')participation='原則見送り';
+  if(!reasons.length)reasons.push('オッズ構造の総合判定');
+  agr.reasons.forEach(function(x){reasons.push(x);});
+  return{data:data,venue:venue,wall:wall,agreement:agr,falseFav:falseFav,collapse:collapse,n1:n1,N:N,lock:lock,axis:axis,roles:roles,name:name,where:where,participation:participation,strategy:strategy,tags:tags,reasons:unique(reasons).slice(0,7)};
+ }
+ function addPair(arr,a,b){a=String(a||'');b=String(b||'');if(!a||!b||a===b)return;var k=pairKey(a,b);if(arr.indexOf(k)<0)arr.push(k);}
+ function addTri(arr,a,b,c){a=String(a||'');b=String(b||'');c=String(c||'');if(!a||!b||!c||a===b||a===c||b===c)return;var k=triKey(a,b,c);if(arr.indexOf(k)<0)arr.push(k);}
+ function addOrder(arr,s){if(s&&arr.indexOf(s)<0)arr.push(s);}
+ function topH(roles,exclude){var out=[];(roles.tops||[]).forEach(function(x){if(String(x.h)!==String(exclude||''))one(out,x.h);});return out;}
+ function holeH(roles,exclude){var out=[];(roles.holes||[]).forEach(function(x){if(String(x.h)!==String(exclude||''))one(out,x.h);});return out;}
+ function winH(roles,exclude){var out=[];(roles.wins||[]).forEach(function(x){if(String(x.h)!==String(exclude||''))one(out,x.h);});return out;}
+ function triOdds(ctx,key){var m=marketOddsMap(ctx.sanRank||[]);return m[key]||9999;}
+ function compressTris(ctx,arr,max){arr=unique(arr);var rows=arr.map(function(k,i){return{k:k,od:triOdds(ctx,k),i:i};});var useful=rows.filter(function(x){return x.od>=6&&x.od<9999;});var unknown=rows.filter(function(x){return x.od===9999;});var cheap=rows.filter(function(x){return x.od<6;});useful.sort(function(a,b){return a.i-b.i;});var chosen=useful.concat(unknown).concat(cheap).slice(0,max||6);return chosen.map(function(x){return x.k;});}
+ function singleAmount(tickets,h){var f=(tickets&&tickets.finalFour)||window.__finalFourLatest||null;if(f&&f.single&&String(f.single.h||'')===String(h)){var lv=String(f.single.level||'');if(lv.indexOf('1000')>=0)return'1000円';if(lv.indexOf('300')>=0)return'300円';if(lv.indexOf('100')>=0)return'100円';}var tan=n((h?tf({tanRank:[]},h):{}).tan);return tan>35?'100円':'300円';}
+ function buildBook18(profile){var top=(profile.roles.tops||[]).map(function(x){return x.h;}).slice(0,4),holes=(profile.roles.holes||[]).map(function(x){return x.h;}).slice(0,3),all=[];holes.forEach(function(h){for(var i=0;i<top.length;i++)for(var j=i+1;j<top.length;j++)addTri(all,h,top[i],top[j]);});return{top:top,holes:holes,all:all};}
+ function chooseSingleRows(profile,tickets,max){var out=[],wins=winH(profile.roles,profile.axis.h);if(tickets&&tickets.finalFour&&tickets.finalFour.single&&tickets.finalFour.single.h){var f=tickets.finalFour.single;if(profile.name!=='上位人気集中・三連単転換型'&&String(f.level||'').indexOf('見送り')<0)out.push({h:String(f.h),amount:String(f.level||'').indexOf('1000')>=0?'1000円':(String(f.level||'').indexOf('300')>=0?'300円':'100円'),why:f.note||'最終4項目'});}
+  wins.forEach(function(h){if(!out.some(function(x){return x.h===h;}))out.push({h:h,amount:n(tf(profile._ctx,h).tan)>35?'100円':'300円',why:'勝ち切り候補'});});return out.slice(0,max||2);}
+ function buildRaceTickets(profile,ctx,ms,scored,adv,tickets){
+  profile._ctx=ctx;
+  var res={single:[],wide:[],uma:[],tri:[],umatan:[],sanrentan:[],decision:'',notes:[],book18:null,partnerHorses:[]};
+  var axis=profile.axis.h,tops=topH(profile.roles,axis),holes=holeH(profile.roles,axis),wins=winH(profile.roles,axis),fav=String(ctx.fav1||'');
+  var topPair=ctx.umaRank&&ctx.umaRank[0]?[String(ctx.umaRank[0].a),String(ctx.umaRank[0].b)]:[];
+  function commonAxisLines(maxTri){if(axis){if(holes[0])addPair(res.wide,axis,holes[0]);if(holes[1])addPair(res.wide,axis,holes[1]);(wins.concat(tops)).slice(0,3).forEach(function(h){addPair(res.uma,axis,h);});var p=unique(tops.concat(wins)).filter(function(h){return h!==axis;}).slice(0,3);var hs=holes.slice(0,3);hs.forEach(function(h){p.slice(0,2).forEach(function(q){addTri(res.tri,axis,q,h);});});if(!res.tri.length&&p.length>=2)addTri(res.tri,axis,p[0],p[1]);res.tri=compressTris(ctx,res.tri,maxTri||4);}}
+  if(profile.name==='JRA交流・地方馬穴流入型'){
+   res.single=chooseSingleRows(profile,tickets,1);commonAxisLines(4);res.decision='人気馬を軸にし、10倍壁候補は所属を確認して地方馬なら相手へ。';res.notes.push('入力には所属情報がないため、壁穴を「地方馬確認候補」として表示');
+  }else if(profile.name==='少頭数・盲点型'){
+   res.single=chooseSingleRows(profile,tickets,2);commonAxisLines(3);if(!res.tri.length){var sh=unique([axis].concat(tops).concat(holes)).filter(Boolean).slice(0,4);for(var i=0;i<sh.length;i++)for(var j=i+1;j<sh.length;j++)for(var k=j+1;k<sh.length;k++)addTri(res.tri,sh[i],sh[j],sh[k]);res.tri=compressTris(ctx,res.tri,3);}res.decision='少頭数でも人気順BOXは避け、単勝1〜2頭・三連複最大3点。';
+  }else if(profile.name==='偽本命崩れ型'){
+   res.single=chooseSingleRows(profile,tickets,2).filter(function(x){return x.h!==fav;});commonAxisLines(4);if(axis&&fav&&holes[0])addTri(res.tri,axis,fav,holes[0]);res.tri=compressTris(ctx,res.tri,4);res.decision='1番人気の単勝と軸固定を禁止。軸抜け券と1番人気を相手に残す券を分ける。';
+  }else if(profile.name==='受け皿総崩れ型'){
+   res.single=chooseSingleRows(profile,tickets,1);if(axis){commonAxisLines(2);res.tri=compressTris(ctx,res.tri,2);res.decision='構造軸があるため少額参加。連系は最大2点。';}else{res.decision='構造軸がないため見送り。穴が多いだけのBOXは買わない。';}
+  }else if(profile.name==='上位人気集中・三連単転換型'){
+   var first=axis||tops[0]||fav,second=tops.filter(function(h){return h!==first;})[0]||String(ctx.fav2||''),third=unique(holes.concat(tops.filter(function(h){return h!==first&&h!==second;}))).slice(0,3);if(first&&second){addPair(res.uma,first,second);third.forEach(function(h){addTri(res.tri,first,second,h);addOrder(res.sanrentan,first+'→'+second+'→'+h);addOrder(res.sanrentan,second+'→'+first+'→'+h);});}res.tri=compressTris(ctx,res.tri,3);res.sanrentan=res.sanrentan.slice(0,6);res.decision='上位2頭を1・2着、壁穴を3着へ。三連単は最大6点。';
+  }else if(profile.name==='鉄板完結型'){
+   var core=unique([axis].concat(tops)).filter(Boolean).slice(0,4);if(core[0]&&core[1])addPair(res.wide,core[0],core[1]);if(core.length>=3)addTri(res.tri,core[0],core[1],core[2]);if(core.length>=4)addTri(res.tri,core[0],core[1],core[3]);res.tri=compressTris(ctx,res.tri,2);res.decision='上位内で1〜2点。三連複6倍未満しか残らない場合は見送り。';
+  }else if(profile.name==='馬複4倍未満・穴流入型'){
+   res.single=chooseSingleRows(profile,tickets,1);if(topPair.length===2){holes.slice(0,3).forEach(function(h){addTri(res.tri,topPair[0],topPair[1],h);});if(profile.wall.after1){addPair(res.wide,topPair[0],profile.wall.after1);addPair(res.wide,topPair[1],profile.wall.after1);}}if(axis)(profile.wall.front||[]).forEach(function(h){addPair(res.uma,axis,h);});res.tri=compressTris(ctx,res.tri,3);res.decision='馬複1人気の2頭を保護し、壁穴を3着中心に1頭だけ加える。';
+  }else if(profile.name==='複勝10倍壁・標準18点型'){
+   res.book18=buildBook18(profile);var source=res.book18.all.slice();res.tri=compressTris(ctx,source,6);if(axis){holes.slice(0,2).forEach(function(h){addPair(res.wide,axis,h);});}(profile.wall.front||[]).forEach(function(h){if(axis)addPair(res.uma,axis,h);});res.single=chooseSingleRows(profile,tickets,1);res.decision='書籍基本18点を、オッズ支持と構造軸で2〜6点へ圧縮。';
+  }else{
+   res.single=chooseSingleRows(profile,tickets,profile.name==='中荒れ混戦型'?2:1);commonAxisLines(profile.name==='本命軸・相手荒れ型'?4:5);res.decision=profile.name==='本命軸・相手荒れ型'?'本命軸を残し、2・3着へ壁穴を入れる。':'勝ち切り候補と構造軸を分け、三連複は最大5点。';
+  }
+  res.wide=res.wide.slice(0,2);res.uma=res.uma.slice(0,3);res.tri=compressTris(ctx,res.tri,profile.name==='複勝10倍壁・標準18点型'?6:(profile.name==='中荒れ混戦型'?5:4));res.umatan=res.umatan.slice(0,4);res.sanrentan=res.sanrentan.slice(0,6);
+  var partners=[];res.tri.forEach(function(k){String(k).split('-').forEach(function(h){if(h!==String(axis))one(partners,h);});});res.uma.forEach(function(k){String(k).split('-').forEach(function(h){if(h!==String(axis))one(partners,h);});});res.partnerHorses=partners.slice(0,2);
+  if(profile.wall.cut.length)res.notes.push('複勝20倍超カット：'+profile.wall.cut.map(function(h){return h+'番';}).join('・'));
+  if(profile.wall.promoted.length)res.notes.push('壁前3頭目繰り上げ：'+profile.wall.promoted.map(function(h){return h+'番';}).join('・'));
+  return res;
+ }
+ function syncFinalFour(profile,strategy,tickets,ctx){var f=(tickets&&tickets.finalFour)||null;if(!f)return;if(profile.axis&&profile.axis.h){f.axis={h:String(profile.axis.h),note:profile.name+'・'+profile.axis.source};}if(strategy.partnerHorses&&strategy.partnerHorses.length)f.partners=strategy.partnerHorses.slice(0,2);if(profile.roles.holes&&profile.roles.holes.length){var h=profile.roles.holes[0];f.hole={h:String(h.h),note:h.role+'｜'+h.why,strength:h.strong?90:50};}if(strategy.single&&strategy.single.length){var s=strategy.single[0],row=tf(ctx,s.h);f.single={h:String(s.h),tan:row.tan,level:s.amount==='1000円'?'1000円勝負':(s.amount==='300円'?'300円候補':'100円観察'),cls:s.amount==='1000円'?'finalFour1000':(s.amount==='300円'?'finalFour300':'finalFour100'),note:profile.name+'｜'+s.why};}else if(profile.name==='上位人気集中・三連単転換型'||profile.participation==='原則見送り'){f.single={h:null,tan:null,level:'見送り',cls:'finalFourNone',note:profile.name+'は単勝を出さない'};}window.__finalFourLatest=f;}
+ function buildIntegrated(data,ctx,ms,scored,adv,tickets){var p=buildRaceProfile(data,ctx,ms,scored,adv,tickets);var st=buildRaceTickets(p,ctx,ms,scored,adv,tickets);p.tickets=st;syncFinalFour(p,st,tickets,ctx);return p;}
+ function hlist(arr){return arr&&arr.length?arr.map(function(x){return(String(x.h||x))+'番';}).join('・'):'なし';}
+ function renderRaceType(p){if(!p)return'';var tags=(p.tags||[]).map(function(x){return'<span class="raceTag">'+x+'</span>';}).join('');var wall='<div class="wallRoleBox"><span class="wallRoleFront">壁前2頭＝連対穴：</span>'+hlist(p.wall.front)+'<br><span class="wallRoleAfter">壁直後1頭＝3着・ワイド穴：</span>'+(p.wall.after1?p.wall.after1+'番':'なし');if(p.wall.promoted.length)wall+='<br><span class="wallRoleFront">壁前3頭目繰り上げ：</span>'+hlist(p.wall.promoted);if(p.wall.cut.length)wall+='<br><span class="wallRoleCut">複勝20倍超カット：</span>'+hlist(p.wall.cut);wall+='</div>';return'<div class="card raceTypeCard"><div class="raceTypeTitle">🩺レース種類判定【V2.53司令塔】</div><div class="raceTypeName">'+p.name+'</div>'+tags+'<div class="raceTypeGrid"><div class="raceTypeItem"><div class="raceTypeLabel">信頼軸</div><div class="raceTypeValue">'+(p.axis.h?p.axis.h+'番':'未確定')+'</div></div><div class="raceTypeItem"><div class="raceTypeLabel">荒れる場所</div><div class="raceTypeValue">'+p.where+'</div></div><div class="raceTypeItem"><div class="raceTypeLabel">参加判断</div><div class="raceTypeValue">'+p.participation+'</div></div><div class="raceTypeItem"><div class="raceTypeLabel">基本戦略</div><div class="raceTypeValue">'+p.strategy+'</div></div></div><div class="raceTypeReasons">判定根拠：'+p.reasons.join(' / ')+'<br>軸根拠：'+p.axis.source+' / 馬複1人気 '+(p.n1<9999?p.n1+'倍':'なし')+' / '+p.N+'頭</div>'+wall+'</div>';}
+ function lines(arr,kind){if(!arr||!arr.length)return'<span class="raceTicketNone">なし</span>';if(kind==='single')return arr.map(function(x){return x.h+'番　'+x.amount+' <span class="small">('+x.why+')</span>';}).join('<br>');return arr.join('<br>');}
+ function renderRaceTickets(p){if(!p||!p.tickets)return'';var t=p.tickets,book='';if(t.book18){book='<div class="book18"><b>📚南関東書籍・基本18点</b><br>穴候補：'+hlist(t.book18.holes)+'<br>上位4頭：'+hlist(t.book18.top)+'<br>理論点数：'+t.book18.all.length+'点 / <b>まっちゃん圧縮：'+t.tri.length+'点</b></div>';}return'<div class="card raceTicketCard"><div class="raceTicketTitle">🎫レース種類連動・最終買い目</div><div class="raceTicketLead">'+p.name+'の買い方を優先。下の「まっちゃん単勝」「オッズ構造予想」「V2.52追加判定」「構造軸買い目」は独立根拠として残し、最後にここで役割を統合しています。</div><div class="raceTicketGrid"><div class="raceTicketBox"><div class="raceTicketHead">単勝</div><div class="raceTicketLines">'+lines(t.single,'single')+'</div><br><div class="raceTicketHead">ワイド</div><div class="raceTicketLines">'+lines(t.wide)+'</div></div><div class="raceTicketBox"><div class="raceTicketHead">馬連</div><div class="raceTicketLines">'+lines(t.uma)+'</div><br><div class="raceTicketHead">三連複</div><div class="raceTicketLines">'+lines(t.tri)+'</div></div></div>'+(t.umatan.length||t.sanrentan.length?'<div class="raceTicketBox" style="margin-top:8px"><div class="raceTicketHead">1着固定・三連単転換</div><div class="raceTicketLines">馬単<br>'+lines(t.umatan)+'<br><br>三連単<br>'+lines(t.sanrentan)+'</div></div>':'')+book+'<div class="raceTicketDecision">最終方針：'+t.decision+'</div><div class="raceTicketFoot">'+(t.notes.length?t.notes.join(' / '):'複勝20倍超は、三連複上位支持・突出評価などの独立根拠がなければ自動カット。')+'</div></div>';}
+ function copyRaceType(p){var s='🩺レース種類判定【V2.53司令塔】\nレース種類：'+p.name+'\n信頼軸：'+(p.axis.h?p.axis.h+'番（'+p.axis.source+'）':'未確定')+'\n荒れる場所：'+p.where+'\n参加判断：'+p.participation+'\n基本戦略：'+p.strategy+'\n判定根拠：'+p.reasons.join(' / ')+'\n壁前2頭＝連対穴：'+hlist(p.wall.front)+'\n壁直後1頭＝3着・ワイド穴：'+(p.wall.after1?p.wall.after1+'番':'なし')+'\n';if(p.wall.promoted.length)s+='壁前3頭目繰り上げ：'+hlist(p.wall.promoted)+'\n';if(p.wall.cut.length)s+='複勝20倍超カット：'+hlist(p.wall.cut)+'\n';return s;}
+ function copyRaceTickets(p){var t=p.tickets,s='🎫レース種類連動・最終買い目\n単勝\n'+(t.single.length?t.single.map(function(x){return x.h+'番 '+x.amount+' / '+x.why;}).join('\n'):'なし')+'\n\nワイド\n'+(t.wide.length?t.wide.join('\n'):'なし')+'\n\n馬連\n'+(t.uma.length?t.uma.join('\n'):'なし')+'\n\n三連複\n'+(t.tri.length?t.tri.join('\n'):'なし')+'\n';if(t.sanrentan.length)s+='\n三連単\n'+t.sanrentan.join('\n')+'\n';if(t.book18)s+='\n南関東書籍基本形：'+t.book18.all.length+'点 / まっちゃん圧縮：'+t.tri.length+'点\n';s+='最終方針：'+t.decision+'\n';if(t.notes.length)s+='補足：'+t.notes.join(' / ')+'\n';return s;}
+
+ window.makeTickets=function(ctx,ms,scored,sw,adv){var t=V252_makeTickets(ctx,ms,scored,sw,adv);try{var data=parseData(document.getElementById('input').value);var p=buildIntegrated(data,ctx,ms,scored,adv,t);t.raceIntegration=p;if(adv)adv.raceIntegration=p;window.__raceIntegrationLatest=p;}catch(e){t.raceIntegration={error:String(e&&e.message?e.message:e)};window.__raceIntegrationLatest=t.raceIntegration;}return t;};
+ window.makeCopyText=function(data,diag,ctx,ms,sw,tickets,scored,moves,adv){var s=V252_makeCopyText(data,diag,ctx,ms,sw,tickets,scored,moves,adv),p=(tickets&&tickets.raceIntegration)||window.__raceIntegrationLatest;if(p&&!p.error){s=s.replace(/\n\n🩺レース診断/,'\n\n'+copyRaceType(p)+'\n🩺レース診断');var block='\n\n'+copyRaceTickets(p);if(/\n\n🎯最終4項目/.test(s))s=s.replace(/\n\n🎯最終4項目/,block+'\n\n🎯最終4項目');else s+=block;s=s.replace(/競馬メジアン V2\.52/g,'競馬メジアン V2.53').replace(/📘まっちゃん式 V2\.47追加判定/g,'📘まっちゃん式 V2.52追加判定').replace(/🛠️V2\.47 本体補正/g,'🛠️V2.52 本体補正');}return s;};
+ window.run=function(){V252_run();try{var p=window.__raceIntegrationLatest,out=document.getElementById('out');if(!out||!p)return;var old1=out.querySelector('.raceTypeCard');if(old1&&old1.parentNode)old1.parentNode.removeChild(old1);var old2=out.querySelector('.raceTicketCard');if(old2&&old2.parentNode)old2.parentNode.removeChild(old2);if(!p.error){var first=out.querySelector('.card');if(first)first.insertAdjacentHTML('afterend',renderRaceType(p));else out.insertAdjacentHTML('afterbegin',renderRaceType(p));var finalCard=out.querySelector('.finalFourCard');if(finalCard)finalCard.insertAdjacentHTML('beforebegin',renderRaceTickets(p));else out.insertAdjacentHTML('beforeend',renderRaceTickets(p));}out.innerHTML=out.innerHTML.replace(/📘まっちゃん式 V2\.47追加判定/g,'📘まっちゃん式 V2.52追加判定').replace(/🛠️V2\.47 本体補正/g,'🛠️V2.52 本体補正').replace(/🔥まっちゃん単勝システム V2\.42/g,'🔥まっちゃん単勝システム【独立判定】');if(typeof latestCopyText==='string')latestCopyText=latestCopyText.replace(/競馬メジアン V2\.52/g,'競馬メジアン V2.53').replace(/📘まっちゃん式 V2\.47追加判定/g,'📘まっちゃん式 V2.52追加判定').replace(/🛠️V2\.47 本体補正/g,'🛠️V2.52 本体補正');var h=document.querySelector('h1');if(h)h.innerHTML='チャッピー神予想 競馬 V2.53<br>🧭レース種類→役割判定→最終買い目<br>✅V2.52大谷式基軸＋南関東10倍壁＋既存重要項目を全保存';}catch(e){var out2=document.getElementById('out');if(out2)out2.insertAdjacentHTML('afterbegin','<div class="card diagWarn"><div class="title warn">V2.53統合エラー</div><pre>'+String(e&&e.message?e.message:e)+'</pre></div>');}};
+ window.buildRaceProfileV253=buildRaceProfile;
+ window.buildRaceTicketsV253=buildRaceTickets;
+})();
+</script>
+
 </body>
 </html>
