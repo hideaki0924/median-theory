@@ -160,6 +160,8 @@ function clearAll(){document.getElementById('input').value='';document.getElemen
 function copyResult(){if(!latestCopyText){alert('先に解析してください');return;}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(latestCopyText).then(function(){alert('結果をコピーしました');}).catch(function(){fallbackCopy(latestCopyText);});}else fallbackCopy(latestCopyText);}
 function fallbackCopy(text){var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('結果をコピーしました');}
 </script>
+
+<!-- V2.43〜V2.50の追記ブロックは、ユーザー提供コードをそのまま統合 -->
 <script>
 (function(){
   'use strict';
@@ -439,7 +441,6 @@ function fallbackCopy(text){var ta=document.createElement('textarea');ta.value=t
   };
 })();
 </script>
-
 <script>
 (function(){
   'use strict';
@@ -653,10 +654,8 @@ function fallbackCopy(text){var ta=document.createElement('textarea');ta.value=t
       return safeNum(a.tan)-safeNum(b.tan);
     });
 
-    /* 役割1・2：候補上位の本線核 */
     scored.slice(0,2).forEach(function(x){pickObj(x,'本線核','候補上位2頭');});
 
-    /* 役割3：三連複1位ジャンプ、または受け皿人気 */
     var tri1Obj=adv&&adv.tri1?getScoreObj(scored,adv.tri1):null;
     if(tri1Obj&&triCount(tri1Obj.h)>=8){
       pickObj(tri1Obj,'受け皿','三連複1位ジャンプ保護');
@@ -673,18 +672,15 @@ function fallbackCopy(text){var ta=document.createElement('textarea');ta.value=t
       });
     }
 
-    /* 役割4：欠点あり突出馬を必ず1頭 */
     var flaws=(adv&&adv.priorityFlaws)||detectPriorityFlaws(ctx,scored,adv);
     flaws.some(function(f){return pick(f.h,'欠点あり突出馬','独立サイン'+f.independent+'種類');});
 
-    /* 役割5：総合支持の最上位。壁末端だけの穴は最大1頭 */
     ranked.some(function(x){
       if(res.horses.indexOf(String(x.h))>=0)return false;
       if(isWallOnly(x)&&supportValue(x)<60)return false;
       return pickObj(x,'総合支持','三連複登場'+triCount(x.h)+'回・総合支持');
     });
 
-    /* 欠員補充 */
     ranked.forEach(function(x){if(res.horses.length<5)pickObj(x,'補充','候補上位補充');});
     scored.forEach(function(x){if(res.horses.length<5)pickObj(x,'補充','候補上位補充');});
 
@@ -790,7 +786,6 @@ function fallbackCopy(text){var ta=document.createElement('textarea');ta.value=t
   };
 })();
 </script>
-
 <script>
 (function(){
   'use strict';
@@ -886,7 +881,6 @@ function fallbackCopy(text){var ta=document.createElement('textarea');ta.value=t
       if(n(x.sanBest)<=5)addNote(link,'三連複5位以内');
       if(san10>=2&&(uma12>=2||wide12>=2))addNote(link,'複数券種の上位接続');
 
-      /* 下位オッズでも、単勝上位4頭のうち2頭以上と馬連/ワイドで直接つながれば連系関門。 */
       var topAnchors=((ctx&&ctx.tanRow)||[]).slice(0,4),anchorHit={};
       [((ctx&&ctx.umaRank)||[]),((ctx&&ctx.wideRank)||[])].forEach(function(list){
         list.forEach(function(p){
@@ -1036,13 +1030,10 @@ function fallbackCopy(text){var ta=document.createElement('textarea');ta.value=t
   };
 })();
 </script>
-
-
 <script>
 (function(){
   'use strict';
 
-  /* V2.45の全処理を残し、最後に独立した検証枠だけを追加する。 */
   var V245_renderDiag=window.renderDiag;
   var V245_renderV236=window.renderV236;
   var V245_renderMatchan=window.renderMatchan;
@@ -1108,7 +1099,6 @@ function fallbackCopy(text){var ta=document.createElement('textarea');ta.value=t
     };
   }
 
-  /* 馬連をオッズ順に読み、各馬が最初に現れた位置を馬別ランキングとする。 */
   function horsePairRank(ctx){
     var seen={},out=[],tr=idxMap(ctx.tanRank);
     (ctx.umaRank||[]).forEach(function(p,i){
@@ -1181,14 +1171,12 @@ function fallbackCopy(text){var ta=document.createElement('textarea');ta.value=t
     }
     if(w80.valid){w80.before.forEach(function(h){if(cand[h])reasonAdd(cand,h,'単勝80倍壁前と一致',4);});}
 
-    /* 馬連壁前・直後 */
     pWalls.forEach(function(w){
       var idx=w.after-1;
       [pRow[idx],pRow[idx-1]].forEach(function(x){if(x&&cand[x.h])reasonAdd(cand,x.h,'馬連オッズ壁前',4);});
       if(pRow[idx+1]&&cand[pRow[idx+1].h])reasonAdd(cand,pRow[idx+1].h,'馬連オッズ壁直後',3);
     });
 
-    /* 連続する2本の壁に挟まれた1〜2頭を囲い穴とする。 */
     for(var i=0;i<pWalls.length-1;i++){
       var left=pWalls[i].after,right=pWalls[i+1].after;
       var size=right-left;
@@ -1209,9 +1197,7 @@ function fallbackCopy(text){var ta=document.createElement('textarea');ta.value=t
     });
 
     var anchors=anchorRanking(ctx,holeSet).slice(0,4);
-    var anchorMap={};anchors.forEach(function(x){anchorMap[x.h]=x;});
 
-    /* 上位馬とのワイド接続を候補点に加える。 */
     Object.keys(cand).forEach(function(h){
       var hit=0,best=999;
       anchors.slice(0,3).forEach(function(a){
@@ -1353,8 +1339,6 @@ function fallbackCopy(text){var ta=document.createElement('textarea');ta.value=t
   window.detectMatchanOdds=detectMatchanOdds;
 })();
 </script>
-
-
 <script>
 (function(){
   'use strict';
@@ -1743,7 +1727,6 @@ function fallbackCopy(text){var ta=document.createElement('textarea');ta.value=t
   window.detectV247=detectV247;
 })();
 </script>
-
 <script>
 (function(){
   'use strict';
@@ -2070,16 +2053,7 @@ function fallbackCopy(text){var ta=document.createElement('textarea');ta.value=t
   window.buildMatchanAxis=buildMatchanAxis;
 })();
 </script>
-
-
-
-<!--
-V2.49 実戦コンパクト表示＋最終4項目
-このブロックを、元コードの最後の </body> の直前へ追加してください。
-既存の判定ロジックは変更せず、表示圧縮と最終整理だけを追加します。
--->
 <style>
-/* ===== V2.49 コンパクト表示 ===== */
 body{padding:8px!important;font-size:13px!important;line-height:1.35!important}
 h1{font-size:18px!important;line-height:1.25!important;margin:2px 0 8px!important}
 textarea{height:260px!important;padding:8px!important;border-radius:11px!important;font-size:13px!important;line-height:1.35!important}
@@ -2103,8 +2077,6 @@ hr{margin:8px 0!important}
 .honNum{width:29px!important;min-width:29px!important;max-width:29px!important;font-size:17px!important}
 .bar{height:23px!important;margin:0 2px!important}
 .legend{gap:4px!important;margin-top:5px!important}
-
-/* ===== 最終4項目 ===== */
 .finalFourCard{border:3px solid #facc15!important;background:linear-gradient(135deg,#1c1400,#443000,#111827)!important;box-shadow:0 0 12px rgba(250,204,21,.55),0 0 28px rgba(245,158,11,.28)!important}
 .finalFourTitle{color:#fff7b2;font-size:18px;font-weight:900;margin-bottom:8px}
 .finalFourGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
@@ -2113,29 +2085,18 @@ hr{margin:8px 0!important}
 .finalFourValue{color:#fff;font-size:18px;font-weight:900;line-height:1.25;word-break:break-word}
 .finalFourNote{color:#cbd5e1;font-size:10px;line-height:1.3;margin-top:4px}
 .finalFour1000{color:#86efac!important;text-shadow:0 0 8px rgba(134,239,172,.65)}
-.finalFour300{color:#fde047!important}
-.finalFour100{color:#93c5fd!important}
-.finalFourNone{color:#94a3b8!important}
+.finalFour300{color:#fde047!important}.finalFour100{color:#93c5fd!important}.finalFourNone{color:#94a3b8!important}
 @media(max-width:520px){.finalFourGrid{grid-template-columns:1fr}}
 </style>
-
 <script>
 (function(){
   'use strict';
-
   var V248_makeTickets = window.makeTickets;
   var V248_makeCopyText = window.makeCopyText;
   var V248_run = window.run;
-
   document.title = 'チャッピー神予想 競馬 V2.49 実戦コンパクト＋最終4項目';
   var heading = document.querySelector('h1');
-  if(heading){
-    heading.innerHTML =
-      'チャッピー神予想 競馬 V2.49<br>' +
-      '🎯実戦コンパクト表示＋最終4項目<br>' +
-      '三連複軸・上位相手・最強穴・単勝候補';
-  }
-
+  if(heading){heading.innerHTML='チャッピー神予想 競馬 V2.49<br>🎯実戦コンパクト表示＋最終4項目<br>三連複軸・上位相手・最強穴・単勝候補';}
   function num(v,d){v=Number(v);return isFinite(v)?v:(d===0?0:(d||9999));}
   function addOnce(arr,v){v=String(v||'');if(v&&v!=='undefined'&&arr.indexOf(v)<0)arr.push(v);}
   function scoreObj(scored,h){h=String(h||'');for(var i=0;i<(scored||[]).length;i++){if(String(scored[i].h)===h)return scored[i];}return null;}
@@ -2143,160 +2104,35 @@ hr{margin:8px 0!important}
   function gateObj(adv,h){h=String(h||'');var items=((((adv||{}).ooanaGate)||{}).items)||[];for(var i=0;i<items.length;i++){if(String(items[i].h)===h)return items[i];}return null;}
   function win5Has(v,h){h=String(h||'');var arr=(((v||{}).win5||{}).selected)||[];return arr.some(function(x){return String(x.h)===h;});}
   function hasReasonLocal(x,word){return ((x&&x.reasons)||[]).join('・').indexOf(word)>=0;}
-
-  function chooseAxis(ctx,tickets,v){
-    var a=(tickets&&tickets.matchanAxis)||null;
-    if(a&&a.axis)return {h:String(a.axis),note:a.label||'構造軸'};
-    if(v&&v.lock&&v.lock.top&&v.lock.top.length)return {h:String(v.lock.top[0].h),note:'上位4頭の中心'};
-    if(ctx&&ctx.fav1)return {h:String(ctx.fav1),note:'単勝1番人気'};
-    return {h:null,note:'軸なし'};
-  }
-
+  function chooseAxis(ctx,tickets,v){var a=(tickets&&tickets.matchanAxis)||null;if(a&&a.axis)return {h:String(a.axis),note:a.label||'構造軸'};if(v&&v.lock&&v.lock.top&&v.lock.top.length)return {h:String(v.lock.top[0].h),note:'上位4頭の中心'};if(ctx&&ctx.fav1)return {h:String(ctx.fav1),note:'単勝1番人気'};return {h:null,note:'軸なし'};}
   function chooseStrongHole(ctx,scored,adv,v,axis){
-    var used={};
-    if(axis&&axis.h)used[String(axis.h)]=1;
-
+    var used={};if(axis&&axis.h)used[String(axis.h)]=1;
     var holes=((((v||{}).matchan)||{}).holes)||[];
-    for(var i=0;i<holes.length;i++){
-      var mh=holes[i];
-      if(!used[String(mh.h)]&&num(mh.score,0)>=20){
-        return {h:String(mh.h),note:'オッズ構造穴 '+mh.score+'点',strength:num(mh.score,0)};
-      }
-    }
-
+    for(var i=0;i<holes.length;i++){var mh=holes[i];if(!used[String(mh.h)]&&num(mh.score,0)>=20)return {h:String(mh.h),note:'オッズ構造穴 '+mh.score+'点',strength:num(mh.score,0)};}
     var gates=((((adv||{}).ooanaGate)||{}).items)||[];
-    for(var j=0;j<gates.length;j++){
-      var g=gates[j],go=scoreObj(scored,g.h);
-      if(used[String(g.h)])continue;
-      if(num(g.count,0)>=4 || (num(g.count,0)>=3&&go&&num(go.score,0)>=55)){
-        return {h:String(g.h),note:'青白光 '+g.count+'関門',strength:num(g.count,0)*20+(go?num(go.score,0):0)};
-      }
-    }
-
+    for(var j=0;j<gates.length;j++){var g=gates[j],go=scoreObj(scored,g.h);if(used[String(g.h)])continue;if(num(g.count,0)>=4||(num(g.count,0)>=3&&go&&num(go.score,0)>=55))return {h:String(g.h),note:'青白光 '+g.count+'関門',strength:num(g.count,0)*20+(go?num(go.score,0):0)};}
     var flaws=(adv&&adv.priorityFlaws)||[];
-    for(var k=0;k<flaws.length;k++){
-      var f=flaws[k];
-      if(used[String(f.h)])continue;
-      if(num(f.weight,0)>=8&&num(f.score,0)>=55){
-        return {h:String(f.h),note:'欠点あり突出・保護指数'+f.weight,strength:num(f.weight,0)*10+num(f.score,0)};
-      }
-    }
+    for(var k=0;k<flaws.length;k++){var f=flaws[k];if(used[String(f.h)])continue;if(num(f.weight,0)>=8&&num(f.score,0)>=55)return {h:String(f.h),note:'欠点あり突出・保護指数'+f.weight,strength:num(f.weight,0)*10+num(f.score,0)};}
     return {h:null,note:'強い独立シグナルなし',strength:0};
   }
-
   function choosePartners(ctx,scored,v,tickets,axis,hole){
-    var out=[];
-    function push(h){
-      h=String(h||'');
-      if(!h)return;
-      if(axis&&h===String(axis.h))return;
-      if(hole&&hole.h&&h===String(hole.h))return;
-      addOnce(out,h);
-    }
-    var a=(tickets&&tickets.matchanAxis)||null;
-    if(a&&a.protect)push(a.protect);
-    (((v||{}).lock||{}).top||[]).forEach(function(x){push(x.h);});
-    (((v||{}).win5||{}).selected||[]).forEach(function(x){push(x.h);});
-    (ctx&&ctx.sanRow||[]).slice(0,10).forEach(push);
-    (scored||[]).slice(0,8).forEach(function(x){push(x.h);});
-    return out.slice(0,2);
+    var out=[];function push(h){h=String(h||'');if(!h)return;if(axis&&h===String(axis.h))return;if(hole&&hole.h&&h===String(hole.h))return;addOnce(out,h);}
+    var a=(tickets&&tickets.matchanAxis)||null;if(a&&a.protect)push(a.protect);(((v||{}).lock||{}).top||[]).forEach(function(x){push(x.h);});(((v||{}).win5||{}).selected||[]).forEach(function(x){push(x.h);});(ctx&&ctx.sanRow||[]).slice(0,10).forEach(push);(scored||[]).slice(0,8).forEach(function(x){push(x.h);});return out.slice(0,2);
   }
-
   function chooseSingle(ctx,ms,scored,adv,v){
-    if(ms&&ms.top){
-      var h=String(ms.top.h),x=scoreObj(scored,h),rank=scoreRank(scored,h);
-      var tan=num(ms.top.tan),fuku=num(ms.top.fuku);
-      var gate=gateObj(adv,h);
-      var support=x&&num(x.sanBest,99)<=5;
-      var jump=x&&(hasReasonLocal(x,'三連複1位ジャンプ')||hasReasonLocal(x,'三連複先行支持ジャンプ'));
-      var win5=win5Has(v,h);
-      var level='300円候補',cls='finalFour300';
-
-      if(tan>=10&&tan<=25&&rank<=3&&fuku<=6.2&&support&&((gate&&num(gate.count,0)>=3)||jump||win5)){
-        level='1000円勝負';cls='finalFour1000';
-      }else if(tan<4||tan>35){
-        level='100円観察';cls='finalFour100';
-      }
-      return {h:h,tan:ms.top.tan,level:level,cls:cls,note:'候補'+rank+'位'+(gate?'・青白光'+gate.count+'関門':'')+(win5?'・勝ち切り候補':'')};
-    }
-
-    var obs=(((v||{}).observation)||[])[0];
-    if(obs)return {h:String(obs.h),tan:obs.tan,level:'100円観察',cls:'finalFour100',note:'本体不発時の観察枠'};
-    return {h:null,tan:null,level:'見送り',cls:'finalFourNone',note:'単勝の強い完成形なし'};
+    if(ms&&ms.top){var h=String(ms.top.h),x=scoreObj(scored,h),rank=scoreRank(scored,h);var tan=num(ms.top.tan),fuku=num(ms.top.fuku);var gate=gateObj(adv,h);var support=x&&num(x.sanBest,99)<=5;var jump=x&&(hasReasonLocal(x,'三連複1位ジャンプ')||hasReasonLocal(x,'三連複先行支持ジャンプ'));var win5=win5Has(v,h);var level='300円候補',cls='finalFour300';if(tan>=10&&tan<=25&&rank<=3&&fuku<=6.2&&support&&((gate&&num(gate.count,0)>=3)||jump||win5)){level='1000円勝負';cls='finalFour1000';}else if(tan<4||tan>35){level='100円観察';cls='finalFour100';}return {h:h,tan:ms.top.tan,level:level,cls:cls,note:'候補'+rank+'位'+(gate?'・青白光'+gate.count+'関門':'')+(win5?'・勝ち切り候補':'')};}
+    var obs=(((v||{}).observation)||[])[0];if(obs)return {h:String(obs.h),tan:obs.tan,level:'100円観察',cls:'finalFour100',note:'本体不発時の観察枠'};return {h:null,tan:null,level:'見送り',cls:'finalFourNone',note:'単勝の強い完成形なし'};
   }
-
-  function buildFinalFour(ctx,ms,scored,adv,tickets){
-    var v=(tickets&&tickets.v247)||(adv&&adv.v247)||window.__v247Latest||null;
-    var axis=chooseAxis(ctx,tickets,v);
-    var hole=chooseStrongHole(ctx,scored,adv,v,axis);
-    var partners=choosePartners(ctx,scored,v,tickets,axis,hole);
-    var single=chooseSingle(ctx,ms,scored,adv,v);
-    return {axis:axis,partners:partners,hole:hole,single:single};
-  }
-
+  function buildFinalFour(ctx,ms,scored,adv,tickets){var v=(tickets&&tickets.v247)||(adv&&adv.v247)||window.__v247Latest||null;var axis=chooseAxis(ctx,tickets,v);var hole=chooseStrongHole(ctx,scored,adv,v,axis);var partners=choosePartners(ctx,scored,v,tickets,axis,hole);var single=chooseSingle(ctx,ms,scored,adv,v);return {axis:axis,partners:partners,hole:hole,single:single};}
   function hText(h){return h?String(h)+'番':'なし';}
-  function renderFinalFour(f){
-    if(!f)return'';
-    var partnerText=f.partners&&f.partners.length?f.partners.map(function(h){return h+'番';}).join('・'):'なし';
-    var singleValue=f.single.h?f.single.h+'番　単'+f.single.tan+'倍':'見送り';
-    return '<div class="card finalFourCard">'+
-      '<div class="finalFourTitle">🎯 最終4項目</div>'+
-      '<div class="finalFourGrid">'+
-        '<div class="finalFourItem"><div class="finalFourLabel">【三連複軸】</div><div class="finalFourValue">'+hText(f.axis.h)+'</div><div class="finalFourNote">'+f.axis.note+'</div></div>'+
-        '<div class="finalFourItem"><div class="finalFourLabel">【上位相手】</div><div class="finalFourValue">'+partnerText+'</div><div class="finalFourNote">最大2頭に圧縮</div></div>'+
-        '<div class="finalFourItem"><div class="finalFourLabel">【最強穴】</div><div class="finalFourValue">'+hText(f.hole.h)+'</div><div class="finalFourNote">'+f.hole.note+'</div></div>'+
-        '<div class="finalFourItem"><div class="finalFourLabel">【単勝候補】</div><div class="finalFourValue '+f.single.cls+'">'+singleValue+'</div><div class="finalFourNote">'+f.single.level+'｜'+f.single.note+'</div></div>'+
-      '</div></div>';
-  }
-
-  function copyFinalFour(f){
-    if(!f)return'';
-    var partners=f.partners&&f.partners.length?f.partners.map(function(h){return h+'番';}).join('・'):'なし';
-    var single=f.single.h?f.single.h+'番 単'+f.single.tan+'倍 / '+f.single.level:'見送り';
-    return '\n\n🎯最終4項目\n'+
-      '【三連複軸】'+hText(f.axis.h)+' / '+f.axis.note+'\n'+
-      '【上位相手】'+partners+'\n'+
-      '【最強穴】'+hText(f.hole.h)+' / '+f.hole.note+'\n'+
-      '【単勝候補】'+single+' / '+f.single.note+'\n';
-  }
-
-  window.makeTickets=function(ctx,ms,scored,sw,adv){
-    var t=V248_makeTickets(ctx,ms,scored,sw,adv);
-    var f=buildFinalFour(ctx,ms,scored,adv,t);
-    t.finalFour=f;
-    if(adv)adv.finalFour=f;
-    window.__finalFourLatest=f;
-    return t;
-  };
-
-  window.makeCopyText=function(data,diag,ctx,ms,sw,tickets,scored,moves,adv){
-    var s=V248_makeCopyText(data,diag,ctx,ms,sw,tickets,scored,moves,adv);
-    var f=(tickets&&tickets.finalFour)||(adv&&adv.finalFour)||window.__finalFourLatest;
-    s=s.replace(/V2\.48/g,'V2.49');
-    return s+copyFinalFour(f);
-  };
-
-  window.run=function(){
-    V248_run();
-    var out=document.getElementById('out');
-    if(out){
-      var old=out.querySelector('.finalFourCard');
-      if(old&&old.parentNode)old.parentNode.removeChild(old);
-      var f=window.__finalFourLatest;
-      if(f)out.insertAdjacentHTML('beforeend',renderFinalFour(f));
-      out.innerHTML=out.innerHTML.replace(/V2\.48/g,'V2.49');
-    }
-    if(typeof latestCopyText==='string')latestCopyText=latestCopyText.replace(/V2\.48/g,'V2.49');
-  };
-
+  function renderFinalFour(f){if(!f)return'';var partnerText=f.partners&&f.partners.length?f.partners.map(function(h){return h+'番';}).join('・'):'なし';var singleValue=f.single.h?f.single.h+'番　単'+f.single.tan+'倍':'見送り';return '<div class="card finalFourCard"><div class="finalFourTitle">🎯 最終4項目</div><div class="finalFourGrid"><div class="finalFourItem"><div class="finalFourLabel">【三連複軸】</div><div class="finalFourValue">'+hText(f.axis.h)+'</div><div class="finalFourNote">'+f.axis.note+'</div></div><div class="finalFourItem"><div class="finalFourLabel">【上位相手】</div><div class="finalFourValue">'+partnerText+'</div><div class="finalFourNote">最大2頭に圧縮</div></div><div class="finalFourItem"><div class="finalFourLabel">【最強穴】</div><div class="finalFourValue">'+hText(f.hole.h)+'</div><div class="finalFourNote">'+f.hole.note+'</div></div><div class="finalFourItem"><div class="finalFourLabel">【単勝候補】</div><div class="finalFourValue '+f.single.cls+'">'+singleValue+'</div><div class="finalFourNote">'+f.single.level+'｜'+f.single.note+'</div></div></div></div>';}
+  function copyFinalFour(f){if(!f)return'';var partners=f.partners&&f.partners.length?f.partners.map(function(h){return h+'番';}).join('・'):'なし';var single=f.single.h?f.single.h+'番 単'+f.single.tan+'倍 / '+f.single.level:'見送り';return '\n\n🎯最終4項目\n【三連複軸】'+hText(f.axis.h)+' / '+f.axis.note+'\n【上位相手】'+partners+'\n【最強穴】'+hText(f.hole.h)+' / '+f.hole.note+'\n【単勝候補】'+single+' / '+f.single.note+'\n';}
+  window.makeTickets=function(ctx,ms,scored,sw,adv){var t=V248_makeTickets(ctx,ms,scored,sw,adv);var f=buildFinalFour(ctx,ms,scored,adv,t);t.finalFour=f;if(adv)adv.finalFour=f;window.__finalFourLatest=f;return t;};
+  window.makeCopyText=function(data,diag,ctx,ms,sw,tickets,scored,moves,adv){var s=V248_makeCopyText(data,diag,ctx,ms,sw,tickets,scored,moves,adv);var f=(tickets&&tickets.finalFour)||(adv&&adv.finalFour)||window.__finalFourLatest;s=s.replace(/V2\.48/g,'V2.49');return s+copyFinalFour(f);};
+  window.run=function(){V248_run();var out=document.getElementById('out');if(out){var old=out.querySelector('.finalFourCard');if(old&&old.parentNode)old.parentNode.removeChild(old);var f=window.__finalFourLatest;if(f)out.insertAdjacentHTML('beforeend',renderFinalFour(f));out.innerHTML=out.innerHTML.replace(/V2\.48/g,'V2.49');}if(typeof latestCopyText==='string')latestCopyText=latestCopyText.replace(/V2\.48/g,'V2.49');};
   window.buildFinalFour=buildFinalFour;
 })();
 </script>
-
-<!--
-V2.50 オッズ版・擬似コンピ指数＋大谷式荒れ計測
-既存のV2.49診断・候補・買い目は変更しない独立検証枠です。
--->
 <style>
 .pseudoCompiCard{border:3px solid #a78bfa!important;background:linear-gradient(135deg,#0b1026,#24104f,#111827)!important;box-shadow:0 0 12px rgba(167,139,250,.58),0 0 30px rgba(79,70,229,.30)!important}
 .pseudoCompiTitle{font-size:18px;font-weight:900;color:#ede9fe;margin-bottom:7px}
@@ -2312,260 +2148,355 @@ V2.50 オッズ版・擬似コンピ指数＋大谷式荒れ計測
 .pseudoCompiCond.ok{border-color:#22c55e;background:rgba(5,46,22,.78)}
 .pseudoCompiCond.near{border-color:#f59e0b;background:rgba(69,26,3,.78)}
 .pseudoCompiCond.ng{border-color:#ef4444;background:rgba(69,10,10,.74)}
-.pseudoCompiCondName{font-size:10px;color:#c4b5fd;font-weight:900}
-.pseudoCompiCondValue{font-size:17px;color:#fff;font-weight:900;margin-top:2px}
-.pseudoCompiCondNote{font-size:9px;color:#cbd5e1;line-height:1.3;margin-top:2px}
-.pseudoCompiRanks{margin-top:8px;border:1px solid #6d28d9;border-radius:10px;overflow:hidden}
-.pseudoCompiRow{display:grid;grid-template-columns:34px 44px 48px 1fr;align-items:center;gap:4px;padding:5px 7px;border-bottom:1px solid rgba(148,163,184,.22);background:rgba(2,6,23,.68)}
-.pseudoCompiRow:last-child{border-bottom:0}
-.pseudoCompiRank{color:#c4b5fd;font-weight:900;text-align:center}
-.pseudoCompiHorse{font-size:17px;font-weight:900;text-align:center;color:#fff}
-.pseudoCompiIndex{font-size:18px;font-weight:900;text-align:center;color:#fde047}
-.pseudoCompiBar{height:13px;border-radius:999px;background:#172554;overflow:hidden;position:relative}
-.pseudoCompiBar>span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#2563eb,#a855f7,#f59e0b)}
-.pseudoCompiSupport{font-size:9px;color:#cbd5e1;text-align:right;margin-top:2px}
-.pseudoCompiFoot{font-size:10px;line-height:1.45;color:#cbd5e1;margin-top:8px}
+.pseudoCompiCondName{font-size:10px;color:#c4b5fd;font-weight:900}.pseudoCompiCondValue{font-size:17px;color:#fff;font-weight:900;margin-top:2px}.pseudoCompiCondNote{font-size:9px;color:#cbd5e1;line-height:1.3;margin-top:2px}
+.pseudoCompiRanks{margin-top:8px;border:1px solid #6d28d9;border-radius:10px;overflow:hidden}.pseudoCompiRow{display:grid;grid-template-columns:34px 44px 48px 1fr;align-items:center;gap:4px;padding:5px 7px;border-bottom:1px solid rgba(148,163,184,.22);background:rgba(2,6,23,.68)}.pseudoCompiRow:last-child{border-bottom:0}.pseudoCompiRank{color:#c4b5fd;font-weight:900;text-align:center}.pseudoCompiHorse{font-size:17px;font-weight:900;text-align:center;color:#fff}.pseudoCompiIndex{font-size:18px;font-weight:900;text-align:center;color:#fde047}.pseudoCompiBar{height:13px;border-radius:999px;background:#172554;overflow:hidden;position:relative}.pseudoCompiBar>span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#2563eb,#a855f7,#f59e0b)}.pseudoCompiSupport{font-size:9px;color:#cbd5e1;text-align:right;margin-top:2px}.pseudoCompiFoot{font-size:10px;line-height:1.45;color:#cbd5e1;margin-top:8px}
 @media(max-width:520px){.pseudoCompiConditions{grid-template-columns:1fr}.pseudoCompiRow{grid-template-columns:30px 40px 44px 1fr}}
+</style>
+<script>
+(function(){
+  'use strict';
+  var V249_makeCopyText = window.makeCopyText;
+  var V249_run = window.run;
+  document.title = 'チャッピー神予想 競馬 V2.50 擬似コンピ・大谷式荒れ計測';
+  var heading = document.querySelector('h1');
+  if(heading){heading.innerHTML='チャッピー神予想 競馬 V2.50<br>📊オッズ版・擬似コンピ＋大谷式荒れ計測<br>既存V2.49は維持・荒れ判定は独立検証枠';}
+  function n(v,d){v=Number(v);return isFinite(v)?v:(d===0?0:(d||0));}
+  function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
+  function pct(v){return (n(v)*100).toFixed(1)+'%';}
+  function emptyMap(horses){var m={};horses.forEach(function(h){m[h]=0;});return m;}
+  function normalizedSingle(rows,field,horses){var m=emptyMap(horses),raw=[],sum=0;(rows||[]).forEach(function(x){var od=n(x&&x[field]);if(od>0){var r=1/od;raw.push({h:String(x.h),r:r});sum+=r;}});if(sum<=0)return {on:false,map:m,count:0};raw.forEach(function(x){if(m.hasOwnProperty(x.h))m[x.h]+=x.r/sum;});return {on:true,map:m,count:raw.length};}
+  function normalizedPairs(rows,horses){var m=emptyMap(horses),raw=[],sum=0;(rows||[]).forEach(function(x){var od=n(x&&x.od);if(od>0){var r=1/od;raw.push({a:String(x.a),b:String(x.b),r:r});sum+=r;}});if(sum<=0)return {on:false,map:m,count:0};raw.forEach(function(x){var p=x.r/sum/2;if(m.hasOwnProperty(x.a))m[x.a]+=p;if(m.hasOwnProperty(x.b))m[x.b]+=p;});return {on:true,map:m,count:raw.length};}
+  function normalizedTriples(rows,horses){var m=emptyMap(horses),raw=[],sum=0;(rows||[]).forEach(function(x){var od=n(x&&x.od);if(od>0){var r=1/od;raw.push({a:String(x.a),b:String(x.b),c:String(x.c),r:r});sum+=r;}});if(sum<=0)return {on:false,map:m,count:0};raw.forEach(function(x){var p=x.r/sum/3;if(m.hasOwnProperty(x.a))m[x.a]+=p;if(m.hasOwnProperty(x.b))m[x.b]+=p;if(m.hasOwnProperty(x.c))m[x.c]+=p;});return {on:true,map:m,count:raw.length};}
+  function findBaseIndexRank(ranked){var target=46,items=[],rank=0;while(target>=40){items=ranked.filter(function(x){return x.index===target;});if(items.length){rank=ranked.findIndex(function(x){return x.index===target;})+1;return {available:true,value:target,rank:rank,horses:items.map(function(x){return x.h;})};}target--;}return {available:false,value:null,rank:null,horses:[]};}
+  function buildPseudoCompi(data){
+    var horses=(data&&data.tanfuku||[]).map(function(x){return String(x.h);});var seen={},uniq=[];horses.forEach(function(h){if(!seen[h]){seen[h]=1;uniq.push(h);}});horses=uniq;var N=horses.length;if(!N)return {available:false,reason:'[TANFUKU]がありません',ranked:[]};
+    var tan=normalizedSingle(data.tanfuku,'tan',horses),fuku=normalizedSingle(data.tanfuku,'fuku',horses),uma=normalizedPairs(data.umaren,horses),wide=normalizedPairs(data.wide,horses),san=normalizedTriples(data.sanpuku,horses);
+    var defs=[{key:'単勝',w:.30,obj:tan},{key:'複勝',w:.20,obj:fuku},{key:'馬連',w:.20,obj:uma},{key:'ワイド',w:.10,obj:wide},{key:'三連複',w:.20,obj:san}];
+    var active=defs.filter(function(d){return d.obj.on;}),totalW=active.reduce(function(s,d){return s+d.w;},0)||1,support={};
+    horses.forEach(function(h){support[h]=active.reduce(function(s,d){return s+(d.w/totalW)*n(d.obj.map[h]);},0);});
+    var sumSupport=horses.reduce(function(s,h){return s+n(support[h]);},0)||1;horses.forEach(function(h){support[h]=support[h]/sumSupport;});
+    var bySupport=horses.map(function(h){return {h:h,support:support[h]};});bySupport.sort(function(a,b){return b.support-a.support||Number(a.h)-Number(b.h);});
+    var topShare=n(bySupport[0]&&bySupport[0].support),topIndex=Math.round(clamp(55+170*topShare,60,90));
+    var ranked=bySupport.map(function(x,i){var ratio=topShare>0?x.support/topShare:0;var rankFactor=Math.pow((N-i)/N,.55);var shape=Math.pow(Math.max(0,ratio),.50)*rankFactor;var idx=Math.round(clamp(40+(topIndex-40)*shape,40,90));return {h:x.h,support:x.support,index:idx};});
+    ranked.sort(function(a,b){return b.index-a.index||b.support-a.support||Number(a.h)-Number(b.h);});ranked.forEach(function(x,i){x.rank=i+1;});
+    var top=ranked[0]||null,third=ranked[2]||null,diff=top&&third?top.index-third.index:null,base=findBaseIndexRank(ranked),eligible=N>=14,c1=!!(top&&top.index<=80),c2=!!(base.available&&base.rank>=11),c3=diff!==null&&diff<=14,big=eligible&&c1&&c2&&c3,semi=eligible&&!big&&((top&&top.index===81&&c2&&c3)||(c1&&base.available&&base.rank===10&&c3)),tooWild=!!(top&&top.index<=69),judge='条件外',judgeClass='out',reasons=[];
+    if(!eligible){judge='少頭数・大谷式対象外';reasons.push('14頭立て以上が最低条件');}else if(big){judge='大穴型レース';judgeClass='big';reasons.push('3条件すべてクリア');}else if(semi){judge='準大穴型レース';judgeClass='semi';reasons.push('境界を1ポイントまたは1順位だけ外す');}else{judgeClass='normal';if(top&&top.index>81)reasons.push('1位指数が高く本命寄り');if(base.available&&base.rank<10)reasons.push('基準指数馬の順位が浅い');if(diff!==null&&diff>=15)reasons.push('1位と3位の差が15以上で上位集中');if(!base.available)reasons.push('46〜40ポイントの基準馬なし');if(!reasons.length)reasons.push('大穴型の3条件に届かず');}
+    return {available:true,N:N,ranked:ranked,top:top,third:third,diff:diff,base:base,eligible:eligible,c1:c1,c2:c2,c3:c3,big:big,semi:semi,tooWild:tooWild,judge:judge,judgeClass:judgeClass,reasons:reasons,topShare:topShare,active:active.map(function(d){return {key:d.key,w:d.w/totalW,count:d.obj.count};})};
+  }
+  function condClass(ok,near){return ok?'ok':(near?'near':'ng');}
+  function renderPseudoCompi(p){if(!p||!p.available)return '';var top=p.top||{},base=p.base||{},diff=p.diff,c1near=top.index===81,c2near=base.available&&base.rank===10,c3near=diff===15;var rows=p.ranked.map(function(x){var width=clamp((x.index-40)/50*100,2,100);return '<div class="pseudoCompiRow"><div class="pseudoCompiRank">'+x.rank+'位</div><div class="pseudoCompiHorse">'+x.h+'番</div><div class="pseudoCompiIndex">'+x.index+'</div><div><div class="pseudoCompiBar"><span style="width:'+width+'%"></span></div><div class="pseudoCompiSupport">市場支持 '+pct(x.support)+'</div></div></div>';}).join('');var active=p.active.map(function(x){return x.key+Math.round(x.w*100)+'%';}).join('・');var baseText=base.available?(base.value+'P＝'+base.rank+'位 '+base.horses.map(function(h){return h+'番';}).join('・')):'46〜40P該当なし';return '<div class="card pseudoCompiCard"><div class="pseudoCompiTitle">📊V2.50 オッズ版・擬似コンピ＋大谷式荒れ計測</div><div class="pseudoCompiLead">本物の日刊コンピ指数ではなく、単勝・複勝・馬連・ワイド・三連複の逆数支持を合成した検証指数です。既存の診断・候補・買い目は変更しません。</div><div class="pseudoCompiJudge '+p.judgeClass+'">判定：'+p.judge+'</div>'+(p.tooWild?'<div class="pseudoCompiAlert">⚠️1位指数69以下：荒れすぎ・軸不安注意。大谷式では人気が割れすぎる別警戒ゾーン。</div>':'')+'<div class="pseudoCompiConditions"><div class="pseudoCompiCond '+condClass(p.c1,c1near)+'"><div class="pseudoCompiCondName">条件① 1位指数</div><div class="pseudoCompiCondValue">'+top.index+'P</div><div class="pseudoCompiCondNote">80以下で合格'+(c1near?'／81は準大穴境界':'')+'</div></div><div class="pseudoCompiCond '+condClass(p.c2,c2near)+'"><div class="pseudoCompiCondName">条件② 基準指数順位</div><div class="pseudoCompiCondValue">'+baseText+'</div><div class="pseudoCompiCondNote">46P不在時は45→44…を採用。11位以下で合格'+(c2near?'／10位は準大穴境界':'')+'</div></div><div class="pseudoCompiCond '+condClass(p.c3,c3near)+'"><div class="pseudoCompiCondName">条件③ 1位－3位差</div><div class="pseudoCompiCondValue">'+(diff===null?'算出不可':diff+'P')+'</div><div class="pseudoCompiCondNote">14以下で合格。15以上は上位集中'+(c3near?'／15は境界注意':'')+'</div></div></div><div class="small">出走'+p.N+'頭｜'+p.reasons.join(' / ')+'</div><div class="pseudoCompiRanks">'+rows+'</div><div class="pseudoCompiFoot">合成比率：'+active+'。指数換算は1位の絶対支持率を残し、毎回1位を90に固定しません。40台の裾を作るため順位減衰も併用します。最初は締切前の同じ時点で記録し、実配当との対応を検証してください。</div></div>';}
+  function copyPseudoCompi(p){if(!p||!p.available)return '';var base=p.base||{};var baseText=base.available?(base.value+'P / '+base.rank+'位 / '+base.horses.map(function(h){return h+'番';}).join('・')):'該当なし';return '\n\n📊V2.50 オッズ版・擬似コンピ＋大谷式荒れ計測\n※本物の日刊コンピ指数ではなく、オッズ支持から作る独立検証指数\n出走頭数：'+p.N+'頭'+(p.eligible?' / 14頭以上・判定対象':' / 少頭数・判定対象外')+'\n指数順位\n'+p.ranked.map(function(x){return x.rank+'位 '+x.h+'番 '+x.index+'P / 支持'+pct(x.support);}).join('\n')+'\n条件① 1位指数：'+p.top.index+'P / '+(p.c1?'合格':'不合格')+'\n条件② 基準指数順位：'+baseText+' / '+(p.c2?'合格':'不合格')+'\n条件③ 1位－3位差：'+p.diff+'P / '+(p.c3?'合格':'不合格')+'\n判定：'+p.judge+(p.tooWild?' / 1位69以下・荒れすぎ注意':'')+'\n理由：'+p.reasons.join(' / ')+'\n';}
+  window.makeCopyText=function(data,diag,ctx,ms,sw,tickets,scored,moves,adv){var s=V249_makeCopyText(data,diag,ctx,ms,sw,tickets,scored,moves,adv);var p=buildPseudoCompi(data);window.__pseudoCompiLatest=p;s=s.replace(/V2\.49/g,'V2.50');return s+copyPseudoCompi(p);};
+  window.run=function(){V249_run();try{var data=parseData(document.getElementById('input').value);var p=window.__pseudoCompiLatest||buildPseudoCompi(data);window.__pseudoCompiLatest=p;var out=document.getElementById('out');if(out){var old=out.querySelector('.pseudoCompiCard');if(old&&old.parentNode)old.parentNode.removeChild(old);var finalCard=out.querySelector('.finalFourCard');if(finalCard)finalCard.insertAdjacentHTML('beforebegin',renderPseudoCompi(p));else out.insertAdjacentHTML('beforeend',renderPseudoCompi(p));out.innerHTML=out.innerHTML.replace(/V2\.49/g,'V2.50');}if(typeof latestCopyText==='string')latestCopyText=latestCopyText.replace(/V2\.49/g,'V2.50');}catch(e){var out2=document.getElementById('out');if(out2)out2.insertAdjacentHTML('beforeend','<div class="card"><div class="title warn">擬似コンピ計算エラー</div><pre>'+String(e&&e.message?e.message:e)+'</pre></div>');}};
+  window.buildPseudoCompi=buildPseudoCompi;
+})();
+</script>
+
+<!--
+V2.51 推定コンピ順位補正版
+V2.50の擬似コンピを土台に、5市場の馬別順位合意で順位と指数を補正します。
+既存V2.49までの診断・候補・買い目は変更しません。
+-->
+<style>
+.pseudoCompi251Card{border:3px solid #38bdf8!important;background:linear-gradient(135deg,#061525,#102a56,#23104c)!important;box-shadow:0 0 12px rgba(125,211,252,.68),0 0 34px rgba(99,102,241,.34)!important}
+.pseudoCompi251Title{font-size:18px;font-weight:900;color:#e0f2fe;margin-bottom:7px}
+.pseudoCompi251Lead{padding:7px;border:1px solid #38bdf8;border-radius:9px;background:rgba(2,6,23,.76);font-size:11px;line-height:1.45;color:#dbeafe;margin-bottom:8px}
+.pseudoCompi251Judge{font-size:19px;font-weight:900;padding:8px 10px;border-radius:10px;margin:7px 0;border:2px solid #64748b;background:#111827}
+.pseudoCompi251Judge.big{color:#fef08a;border-color:#facc15;background:linear-gradient(135deg,#422006,#713f12,#111827);text-shadow:0 0 8px rgba(250,204,21,.55)}
+.pseudoCompi251Judge.semi{color:#fed7aa;border-color:#fb923c;background:linear-gradient(135deg,#431407,#7c2d12,#111827)}
+.pseudoCompi251Judge.normal{color:#bfdbfe;border-color:#60a5fa;background:linear-gradient(135deg,#082f49,#0c4a6e,#111827)}
+.pseudoCompi251Judge.out{color:#cbd5e1;border-color:#64748b;background:#111827}
+.pseudoCompi251Alert{margin:7px 0;padding:7px 9px;border-radius:9px;border:2px solid #fb7185;background:#4c0519;color:#fecdd3;font-weight:900}
+.pseudoCompi251Rules{padding:7px 9px;border-radius:9px;border:1px solid #818cf8;background:rgba(30,27,75,.72);font-size:10px;line-height:1.5;color:#e0e7ff;margin:8px 0}
+.pseudoCompi251Conditions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:8px 0}
+.pseudoCompi251Cond{padding:7px;border:1px solid #2563eb;border-radius:9px;background:rgba(2,6,23,.75);min-width:0}
+.pseudoCompi251Cond.ok{border-color:#22c55e;background:rgba(5,46,22,.78)}
+.pseudoCompi251Cond.near{border-color:#f59e0b;background:rgba(69,26,3,.78)}
+.pseudoCompi251Cond.ng{border-color:#ef4444;background:rgba(69,10,10,.74)}
+.pseudoCompi251CondName{font-size:10px;color:#bae6fd;font-weight:900}
+.pseudoCompi251CondValue{font-size:17px;color:#fff;font-weight:900;margin-top:2px}
+.pseudoCompi251CondNote{font-size:9px;color:#cbd5e1;line-height:1.3;margin-top:2px}
+.pseudoCompi251Ranks{margin-top:8px;border:1px solid #3b82f6;border-radius:10px;overflow:hidden}
+.pseudoCompi251Row{display:grid;grid-template-columns:32px 40px 43px 1fr;align-items:center;gap:4px;padding:6px 7px;border-bottom:1px solid rgba(148,163,184,.22);background:rgba(2,6,23,.68)}
+.pseudoCompi251Row:last-child{border-bottom:0}
+.pseudoCompi251Rank{color:#bae6fd;font-weight:900;text-align:center}
+.pseudoCompi251Horse{font-size:17px;font-weight:900;text-align:center;color:#fff}
+.pseudoCompi251Index{font-size:18px;font-weight:900;text-align:center;color:#fde047}
+.pseudoCompi251Move{font-size:10px;line-height:1.4;color:#e2e8f0}
+.pseudoCompi251Up{color:#86efac;font-weight:900}.pseudoCompi251Down{color:#fda4af;font-weight:900}.pseudoCompi251Stay{color:#cbd5e1;font-weight:900}
+.pseudoCompi251Bar{height:12px;border-radius:999px;background:#172554;overflow:hidden;position:relative;margin-top:3px}
+.pseudoCompi251Bar>span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#0284c7,#6366f1,#d946ef,#f59e0b)}
+.pseudoCompi251Foot{font-size:10px;line-height:1.45;color:#cbd5e1;margin-top:8px}
+@media(max-width:520px){.pseudoCompi251Conditions{grid-template-columns:1fr}.pseudoCompi251Row{grid-template-columns:28px 36px 40px 1fr}}
 </style>
 
 <script>
 (function(){
   'use strict';
 
-  var V249_makeCopyText = window.makeCopyText;
-  var V249_run = window.run;
+  var V250_buildPseudoCompi = window.buildPseudoCompi;
+  var V250_makeCopyText = window.makeCopyText;
+  var V250_run = window.run;
 
-  document.title = 'チャッピー神予想 競馬 V2.50 擬似コンピ・大谷式荒れ計測';
+  document.title = 'チャッピー神予想 競馬 V2.51 推定コンピ順位補正版';
   var heading = document.querySelector('h1');
   if(heading){
     heading.innerHTML =
-      'チャッピー神予想 競馬 V2.50<br>'+
-      '📊オッズ版・擬似コンピ＋大谷式荒れ計測<br>'+
-      '既存V2.49は維持・荒れ判定は独立検証枠';
+      'チャッピー神予想 競馬 V2.51<br>'+
+      '📊推定コンピ順位補正版＋大谷式荒れ計測<br>'+
+      '5市場の順位合意・同点帯終端順位・欠損市場を補正';
   }
 
   function n(v,d){v=Number(v);return isFinite(v)?v:(d===0?0:(d||0));}
   function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
   function pct(v){return (n(v)*100).toFixed(1)+'%';}
-  function emptyMap(horses){var m={};horses.forEach(function(h){m[h]=0;});return m;}
+  function addOnce(arr,v){v=String(v||'');if(v&&arr.indexOf(v)<0)arr.push(v);}
 
-  function normalizedSingle(rows,field,horses){
-    var m=emptyMap(horses),raw=[],sum=0;
-    (rows||[]).forEach(function(x){
-      var od=n(x&&x[field]);
-      if(od>0){var r=1/od;raw.push({h:String(x.h),r:r});sum+=r;}
-    });
-    if(sum<=0)return {on:false,map:m,count:0};
-    raw.forEach(function(x){if(m.hasOwnProperty(x.h))m[x.h]+=x.r/sum;});
-    return {on:true,map:m,count:raw.length};
+  function directOrder(rows,field){
+    return (rows||[]).filter(function(x){return n(x&&x[field])>0;}).slice().sort(function(a,b){
+      return n(a[field])-n(b[field])||Number(a.h)-Number(b.h);
+    }).map(function(x){return String(x.h);});
   }
 
-  function normalizedPairs(rows,horses){
-    var m=emptyMap(horses),raw=[],sum=0;
-    (rows||[]).forEach(function(x){
-      var od=n(x&&x.od);
-      if(od>0){var r=1/od;raw.push({a:String(x.a),b:String(x.b),r:r});sum+=r;}
+  function connectedOrder(rows,size){
+    var list=(rows||[]).filter(function(x){return n(x&&x.od)>0;}).slice().sort(function(a,b){return n(a.od)-n(b.od);});
+    var seen={},out=[];
+    list.forEach(function(x){
+      var hs=size===3?[x.a,x.b,x.c]:[x.a,x.b];
+      hs.forEach(function(h){h=String(h||'');if(h&&!seen[h]){seen[h]=1;out.push(h);}});
     });
-    if(sum<=0)return {on:false,map:m,count:0};
-    raw.forEach(function(x){
-      var p=x.r/sum/2;
-      if(m.hasOwnProperty(x.a))m[x.a]+=p;
-      if(m.hasOwnProperty(x.b))m[x.b]+=p;
-    });
-    return {on:true,map:m,count:raw.length};
+    return out;
   }
 
-  function normalizedTriples(rows,horses){
-    var m=emptyMap(horses),raw=[],sum=0;
-    (rows||[]).forEach(function(x){
-      var od=n(x&&x.od);
-      if(od>0){var r=1/od;raw.push({a:String(x.a),b:String(x.b),c:String(x.c),r:r});sum+=r;}
-    });
-    if(sum<=0)return {on:false,map:m,count:0};
-    raw.forEach(function(x){
-      var p=x.r/sum/3;
-      if(m.hasOwnProperty(x.a))m[x.a]+=p;
-      if(m.hasOwnProperty(x.b))m[x.b]+=p;
-      if(m.hasOwnProperty(x.c))m[x.c]+=p;
-    });
-    return {on:true,map:m,count:raw.length};
+  function rankMap(order,N){
+    var m={};(order||[]).forEach(function(h,i){m[String(h)]=i+1;});
+    return {map:m,missing:N+2};
   }
 
-  function findBaseIndexRank(ranked){
-    var target=46,items=[],rank=0;
-    while(target>=40){
-      items=ranked.filter(function(x){return x.index===target;});
-      if(items.length){
-        rank=ranked.findIndex(function(x){return x.index===target;})+1;
-        return {available:true,value:target,rank:rank,horses:items.map(function(x){return x.h;})};
-      }
-      target--;
-    }
-    return {available:false,value:null,rank:null,horses:[]};
+  function percentile(rank,N){
+    if(N<=1)return 1;
+    rank=clamp(n(rank,N+2),1,N+2);
+    return clamp(1-(rank-1)/(N+1),0,1);
   }
 
-  function buildPseudoCompi(data){
-    var horses=(data&&data.tanfuku||[]).map(function(x){return String(x.h);});
-    var seen={},uniq=[];
-    horses.forEach(function(h){if(!seen[h]){seen[h]=1;uniq.push(h);}});
-    horses=uniq;
+  function buildConsensus(data,horses){
     var N=horses.length;
-    if(!N)return {available:false,reason:'[TANFUKU]がありません',ranked:[]};
+    var markets=[
+      {key:'単勝',weight:.30,order:directOrder(data.tanfuku,'tan')},
+      {key:'複勝',weight:.20,order:directOrder(data.tanfuku,'fuku')},
+      {key:'馬連',weight:.20,order:connectedOrder(data.umaren,2)},
+      {key:'ワイド',weight:.10,order:connectedOrder(data.wide,2)},
+      {key:'三連複',weight:.20,order:connectedOrder(data.sanpuku,3)}
+    ].filter(function(x){return x.order.length;});
+    var totalW=markets.reduce(function(s,x){return s+x.weight;},0)||1;
+    markets.forEach(function(x){x.weight=x.weight/totalW;x.rank=rankMap(x.order,N);});
 
-    var tan=normalizedSingle(data.tanfuku,'tan',horses);
-    var fuku=normalizedSingle(data.tanfuku,'fuku',horses);
-    var uma=normalizedPairs(data.umaren,horses);
-    var wide=normalizedPairs(data.wide,horses);
-    var san=normalizedTriples(data.sanpuku,horses);
-    var defs=[
-      {key:'単勝',w:.30,obj:tan},
-      {key:'複勝',w:.20,obj:fuku},
-      {key:'馬連',w:.20,obj:uma},
-      {key:'ワイド',w:.10,obj:wide},
-      {key:'三連複',w:.20,obj:san}
-    ];
-    var active=defs.filter(function(d){return d.obj.on;});
-    var totalW=active.reduce(function(s,d){return s+d.w;},0)||1;
-    var support={};
-    horses.forEach(function(h){
-      support[h]=active.reduce(function(s,d){return s+(d.w/totalW)*n(d.obj.map[h]);},0);
+    var rows=horses.map(function(h){
+      var score=0,coverage=0,topZone=0,bottomZone=0,ranks={};
+      markets.forEach(function(m){
+        var r=m.rank.map.hasOwnProperty(h)?m.rank.map[h]:m.rank.missing;
+        ranks[m.key]=r;
+        if(r<=N){coverage++;score+=m.weight*percentile(r,N);}
+        else score+=m.weight*0;
+        if(r<=Math.max(3,Math.ceil(N*.25)))topZone++;
+        if(r>=Math.max(7,Math.ceil(N*.70))&&r<=N)bottomZone++;
+      });
+      return {h:h,score:score,coverage:coverage,topZone:topZone,bottomZone:bottomZone,ranks:ranks};
     });
-    var sumSupport=horses.reduce(function(s,h){return s+n(support[h]);},0)||1;
-    horses.forEach(function(h){support[h]=support[h]/sumSupport;});
+    rows.sort(function(a,b){return b.score-a.score||b.coverage-a.coverage||Number(a.h)-Number(b.h);});
+    rows.forEach(function(x,i){x.rank=i+1;});
+    return {rows:rows,markets:markets};
+  }
 
-    var bySupport=horses.map(function(h){return {h:h,support:support[h]};});
-    bySupport.sort(function(a,b){return b.support-a.support||Number(a.h)-Number(b.h);});
-    var topShare=n(bySupport[0]&&bySupport[0].support);
-    var topIndex=Math.round(clamp(55+170*topShare,60,90));
-    var ranked=bySupport.map(function(x,i){
-      var ratio=topShare>0?x.support/topShare:0;
-      /* 実コンピの40台までの裾を再現するため、相対支持に順位減衰を併用 */
-      var rankFactor=Math.pow((N-i)/N,.55);
-      var shape=Math.pow(Math.max(0,ratio),.50)*rankFactor;
-      var idx=Math.round(clamp(40+(topIndex-40)*shape,40,90));
-      return {h:x.h,support:x.support,index:idx};
+  function correctedBaseBand(ranked){
+    var chosen=null;
+    for(var target=46;target>=40;target--){
+      var group=ranked.filter(function(x){return x.index===target;});
+      if(group.length){chosen={value:target,group:group};break;}
+    }
+    if(!chosen){
+      var eligible=ranked.filter(function(x){return x.index<=46;});
+      if(eligible.length){
+        var best=Math.max.apply(null,eligible.map(function(x){return x.index;}));
+        chosen={value:best,group:ranked.filter(function(x){return x.index===best;})};
+      }
+    }
+    if(!chosen)return {available:false,value:null,rank:null,rankStart:null,rankEnd:null,horses:[]};
+    var positions=chosen.group.map(function(x){return x.rank;});
+    return {
+      available:true,value:chosen.value,
+      rankStart:Math.min.apply(null,positions),rankEnd:Math.max.apply(null,positions),
+      rank:Math.max.apply(null,positions),
+      horses:chosen.group.map(function(x){return x.h;})
+    };
+  }
+
+  function buildPseudoCompi251(data){
+    var base=V250_buildPseudoCompi?V250_buildPseudoCompi(data):null;
+    if(!base||!base.available)return base||{available:false,reason:'擬似コンピを算出できません',ranked:[]};
+
+    var horses=(data.tanfuku||[]).map(function(x){return String(x.h);}),u=[];
+    horses.forEach(function(h){addOnce(u,h);});horses=u;
+    var N=horses.length;
+    var consensus=buildConsensus(data,horses);
+    var cMap={};consensus.rows.forEach(function(x){cMap[x.h]=x;});
+    var baseMap={};base.ranked.forEach(function(x){baseMap[x.h]=x;});
+
+    var corrected=horses.map(function(h){
+      var b=baseMap[h]||{rank:N,index:40,support:0};
+      var c=cMap[h]||{rank:N,score:0,coverage:0,topZone:0,bottomZone:0,ranks:{}};
+      var shift=n(b.rank,N)-n(c.rank,N); /* ＋なら市場順位合意が上 */
+      var correction=Math.round(clamp(shift,-5,5)*.9);
+      if(c.topZone>=3)correction+=1;
+      if(c.bottomZone>=3)correction-=1;
+      if(c.coverage<=2)correction-=1;
+      correction=clamp(correction,-5,5);
+      var idx=Math.round(clamp(n(b.index,40)+correction,40,90));
+      return {
+        h:h,index:idx,baseIndex:n(b.index,40),baseRank:n(b.rank,N),support:n(b.support),
+        consensusRank:n(c.rank,N),consensusScore:n(c.score),coverage:n(c.coverage),
+        topZone:n(c.topZone),bottomZone:n(c.bottomZone),correction:correction,ranks:c.ranks||{}
+      };
     });
-    ranked.sort(function(a,b){return b.index-a.index||b.support-a.support||Number(a.h)-Number(b.h);});
-    ranked.forEach(function(x,i){x.rank=i+1;});
 
-    var top=ranked[0]||null,third=ranked[2]||null;
+    corrected.sort(function(a,b){
+      return b.index-a.index||a.consensusRank-b.consensusRank||b.support-a.support||Number(a.h)-Number(b.h);
+    });
+
+    /* 指数が逆転しないよう単調性を保ち、順位は合意スコアで厳密に決める。 */
+    corrected.forEach(function(x,i){
+      if(i>0&&x.index>corrected[i-1].index)x.index=corrected[i-1].index;
+      x.rank=i+1;
+      x.move=x.baseRank-x.rank;
+    });
+
+    var top=corrected[0]||null,third=corrected[2]||null;
     var diff=top&&third?top.index-third.index:null;
-    var base=findBaseIndexRank(ranked);
+    var band=correctedBaseBand(corrected);
     var eligible=N>=14;
     var c1=!!(top&&top.index<=80);
-    var c2=!!(base.available&&base.rank>=11);
+    /* 同点帯の先頭ではなく終端順位を採用し、裾の深さを過小評価しない。 */
+    var c2=!!(band.available&&band.rankEnd>=11);
     var c3=diff!==null&&diff<=14;
     var big=eligible&&c1&&c2&&c3;
     var semi=eligible&&!big&&(
       (top&&top.index===81&&c2&&c3)||
-      (c1&&base.available&&base.rank===10&&c3)
+      (c1&&band.available&&band.rankEnd===10&&c3)
     );
     var tooWild=!!(top&&top.index<=69);
     var judge='条件外',judgeClass='out',reasons=[];
     if(!eligible){judge='少頭数・大谷式対象外';reasons.push('14頭立て以上が最低条件');}
-    else if(big){judge='大穴型レース';judgeClass='big';reasons.push('3条件すべてクリア');}
-    else if(semi){judge='準大穴型レース';judgeClass='semi';reasons.push('境界を1ポイントまたは1順位だけ外す');}
+    else if(big){judge='大穴型レース';judgeClass='big';reasons.push('順位補正後に3条件すべてクリア');}
+    else if(semi){judge='準大穴型レース';judgeClass='semi';reasons.push('順位補正後、境界を1ポイントまたは1順位だけ外す');}
     else{
       judgeClass='normal';
       if(top&&top.index>81)reasons.push('1位指数が高く本命寄り');
-      if(base.available&&base.rank<10)reasons.push('基準指数馬の順位が浅い');
+      if(band.available&&band.rankEnd<10)reasons.push('基準指数帯の終端順位が浅い');
       if(diff!==null&&diff>=15)reasons.push('1位と3位の差が15以上で上位集中');
-      if(!base.available)reasons.push('46〜40ポイントの基準馬なし');
+      if(!band.available)reasons.push('46〜40ポイントの基準指数帯なし');
       if(!reasons.length)reasons.push('大穴型の3条件に届かず');
     }
 
     return {
-      available:true,N:N,ranked:ranked,top:top,third:third,diff:diff,base:base,
+      available:true,N:N,ranked:corrected,top:top,third:third,diff:diff,base:band,
       eligible:eligible,c1:c1,c2:c2,c3:c3,big:big,semi:semi,tooWild:tooWild,
-      judge:judge,judgeClass:judgeClass,reasons:reasons,
-      topShare:topShare,
-      active:active.map(function(d){return {key:d.key,w:d.w/totalW,count:d.obj.count};})
+      judge:judge,judgeClass:judgeClass,reasons:reasons,markets:consensus.markets,
+      baseVersion:base
     };
   }
 
   function condClass(ok,near){return ok?'ok':(near?'near':'ng');}
-  function renderPseudoCompi(p){
-    if(!p||!p.available)return '';
+  function moveClass(v){return v>0?'pseudoCompi251Up':(v<0?'pseudoCompi251Down':'pseudoCompi251Stay');}
+  function moveText(v){return v>0?('↑'+v):v<0?('↓'+Math.abs(v)):'→0';}
+
+  function renderPseudoCompi251(p){
+    if(!p||!p.available)return'';
     var top=p.top||{},base=p.base||{},diff=p.diff;
-    var c1near=top.index===81;
-    var c2near=base.available&&base.rank===10;
-    var c3near=diff===15;
+    var c1near=top.index===81,c2near=base.available&&base.rankEnd===10,c3near=diff===15;
     var rows=p.ranked.map(function(x){
       var width=clamp((x.index-40)/50*100,2,100);
-      return '<div class="pseudoCompiRow">'+
-        '<div class="pseudoCompiRank">'+x.rank+'位</div>'+
-        '<div class="pseudoCompiHorse">'+x.h+'番</div>'+
-        '<div class="pseudoCompiIndex">'+x.index+'</div>'+
-        '<div><div class="pseudoCompiBar"><span style="width:'+width+'%"></span></div><div class="pseudoCompiSupport">市場支持 '+pct(x.support)+'</div></div>'+
+      var corr=x.correction>0?('+'+x.correction):String(x.correction);
+      return '<div class="pseudoCompi251Row">'+
+        '<div class="pseudoCompi251Rank">'+x.rank+'位</div>'+
+        '<div class="pseudoCompi251Horse">'+x.h+'番</div>'+
+        '<div class="pseudoCompi251Index">'+x.index+'</div>'+
+        '<div><div class="pseudoCompi251Move"><span class="'+moveClass(x.move)+'">旧'+x.baseRank+'位→新'+x.rank+'位 '+moveText(x.move)+'</span> / 旧'+x.baseIndex+'P / 補正'+corr+'P / 市場合意'+x.consensusRank+'位 / '+x.coverage+'市場</div><div class="pseudoCompi251Bar"><span style="width:'+width+'%"></span></div></div>'+
       '</div>';
     }).join('');
-    var active=p.active.map(function(x){return x.key+Math.round(x.w*100)+'%';}).join('・');
-    var baseText=base.available?(base.value+'P＝'+base.rank+'位 '+base.horses.map(function(h){return h+'番';}).join('・')):'46〜40P該当なし';
-    var html='<div class="card pseudoCompiCard">'+
-      '<div class="pseudoCompiTitle">📊V2.50 オッズ版・擬似コンピ＋大谷式荒れ計測</div>'+
-      '<div class="pseudoCompiLead">本物の日刊コンピ指数ではなく、単勝・複勝・馬連・ワイド・三連複の逆数支持を合成した検証指数です。既存の診断・候補・買い目は変更しません。</div>'+
-      '<div class="pseudoCompiJudge '+p.judgeClass+'">判定：'+p.judge+'</div>'+
-      (p.tooWild?'<div class="pseudoCompiAlert">⚠️1位指数69以下：荒れすぎ・軸不安注意。大谷式では人気が割れすぎる別警戒ゾーン。</div>':'')+
-      '<div class="pseudoCompiConditions">'+
-        '<div class="pseudoCompiCond '+condClass(p.c1,c1near)+'"><div class="pseudoCompiCondName">条件① 1位指数</div><div class="pseudoCompiCondValue">'+top.index+'P</div><div class="pseudoCompiCondNote">80以下で合格'+(c1near?'／81は準大穴境界':'')+'</div></div>'+
-        '<div class="pseudoCompiCond '+condClass(p.c2,c2near)+'"><div class="pseudoCompiCondName">条件② 基準指数順位</div><div class="pseudoCompiCondValue">'+baseText+'</div><div class="pseudoCompiCondNote">46P不在時は45→44…を採用。11位以下で合格'+(c2near?'／10位は準大穴境界':'')+'</div></div>'+
-        '<div class="pseudoCompiCond '+condClass(p.c3,c3near)+'"><div class="pseudoCompiCondName">条件③ 1位－3位差</div><div class="pseudoCompiCondValue">'+(diff===null?'算出不可':diff+'P')+'</div><div class="pseudoCompiCondNote">14以下で合格。15以上は上位集中'+(c3near?'／15は境界注意':'')+'</div></div>'+
+    var baseText=base.available?(base.value+'P＝'+base.rankStart+'〜'+base.rankEnd+'位 '+base.horses.map(function(h){return h+'番';}).join('・')):'46〜40P該当なし';
+    var marketText=(p.markets||[]).map(function(x){return x.key+Math.round(x.weight*100)+'%';}).join('・');
+    return '<div class="card pseudoCompi251Card">'+
+      '<div class="pseudoCompi251Title">📊V2.51 推定コンピ順位補正版＋大谷式荒れ計測</div>'+
+      '<div class="pseudoCompi251Lead">V2.50の逆数支持指数に、単勝・複勝・馬連・ワイド・三連複の馬別順位合意を重ねて順位を補正します。本物の日刊コンピ指数ではなく、締切前オッズを同じ時点で比較する検証指数です。</div>'+
+      '<div class="pseudoCompi251Judge '+p.judgeClass+'">判定：'+p.judge+'</div>'+
+      (p.tooWild?'<div class="pseudoCompi251Alert">⚠️1位指数69以下：人気が割れすぎる別警戒ゾーン。軸固定を弱めてください。</div>':'')+
+      '<div class="pseudoCompi251Rules">順位補正：旧支持順位と5市場の合意順位の差を最大±5Pで反映。3市場以上で上位なら＋1P、3市場以上で下位なら－1P、2市場以下しか確認できない馬は－1P。基準指数は同点帯の最初ではなく<b>終端順位</b>で判定します。</div>'+
+      '<div class="pseudoCompi251Conditions">'+
+        '<div class="pseudoCompi251Cond '+condClass(p.c1,c1near)+'"><div class="pseudoCompi251CondName">条件① 補正後1位指数</div><div class="pseudoCompi251CondValue">'+top.index+'P</div><div class="pseudoCompi251CondNote">80以下で合格'+(c1near?'／81は準大穴境界':'')+'</div></div>'+
+        '<div class="pseudoCompi251Cond '+condClass(p.c2,c2near)+'"><div class="pseudoCompi251CondName">条件② 基準指数帯の終端順位</div><div class="pseudoCompi251CondValue">'+baseText+'</div><div class="pseudoCompi251CondNote">46P不在時は45→44…を採用。同点帯の終端が11位以下で合格'+(c2near?'／10位は準大穴境界':'')+'</div></div>'+
+        '<div class="pseudoCompi251Cond '+condClass(p.c3,c3near)+'"><div class="pseudoCompi251CondName">条件③ 補正後1位－3位差</div><div class="pseudoCompi251CondValue">'+(diff===null?'算出不可':diff+'P')+'</div><div class="pseudoCompi251CondNote">14以下で合格。15以上は上位集中'+(c3near?'／15は境界注意':'')+'</div></div>'+
       '</div>'+
       '<div class="small">出走'+p.N+'頭｜'+p.reasons.join(' / ')+'</div>'+
-      '<div class="pseudoCompiRanks">'+rows+'</div>'+
-      '<div class="pseudoCompiFoot">合成比率：'+active+'。指数換算は1位の絶対支持率を残し、毎回1位を90に固定しません。40台の裾を作るため順位減衰も併用します。最初は締切前の同じ時点で記録し、実配当との対応を検証してください。</div>'+
+      '<div class="pseudoCompi251Ranks">'+rows+'</div>'+
+      '<div class="pseudoCompi251Foot">市場比率：'+marketText+'。矢印はV2.50支持順位からの推定順位移動です。補正幅を限定しているため、1券種だけの極端な並びで全順位が反転しない設計です。</div>'+
     '</div>';
-    return html;
   }
 
-  function copyPseudoCompi(p){
-    if(!p||!p.available)return '';
-    var base=p.base||{};
-    var baseText=base.available?(base.value+'P / '+base.rank+'位 / '+base.horses.map(function(h){return h+'番';}).join('・')):'該当なし';
-    return '\n\n📊V2.50 オッズ版・擬似コンピ＋大谷式荒れ計測\n'+
-      '※本物の日刊コンピ指数ではなく、オッズ支持から作る独立検証指数\n'+
+  function copyPseudoCompi251(p){
+    if(!p||!p.available)return'';
+    var b=p.base||{};
+    var baseText=b.available?(b.value+'P / '+b.rankStart+'〜'+b.rankEnd+'位 / '+b.horses.map(function(h){return h+'番';}).join('・')):'該当なし';
+    return '\n\n📊V2.51 推定コンピ順位補正版＋大谷式荒れ計測\n'+
+      '※本物の日刊コンピ指数ではなく、オッズ支持＋5市場順位合意から作る独立検証指数\n'+
+      '補正ルール：旧支持順位と市場合意順位の差を最大±5P / 上位3市場以上＋1P / 下位3市場以上－1P / 確認2市場以下－1P\n'+
       '出走頭数：'+p.N+'頭'+(p.eligible?' / 14頭以上・判定対象':' / 少頭数・判定対象外')+'\n'+
-      '指数順位\n'+p.ranked.map(function(x){return x.rank+'位 '+x.h+'番 '+x.index+'P / 支持'+pct(x.support);}).join('\n')+'\n'+
-      '条件① 1位指数：'+p.top.index+'P / '+(p.c1?'合格':'不合格')+'\n'+
-      '条件② 基準指数順位：'+baseText+' / '+(p.c2?'合格':'不合格')+'\n'+
-      '条件③ 1位－3位差：'+p.diff+'P / '+(p.c3?'合格':'不合格')+'\n'+
+      '推定コンピ順位\n'+p.ranked.map(function(x){
+        var corr=x.correction>0?('+'+x.correction):String(x.correction);
+        return x.rank+'位 '+x.h+'番 '+x.index+'P / 旧'+x.baseRank+'位→新'+x.rank+'位 '+moveText(x.move)+' / 旧'+x.baseIndex+'P / 補正'+corr+'P / 市場合意'+x.consensusRank+'位 / '+x.coverage+'市場';
+      }).join('\n')+'\n'+
+      '条件① 補正後1位指数：'+p.top.index+'P / '+(p.c1?'合格':'不合格')+'\n'+
+      '条件② 基準指数帯終端順位：'+baseText+' / '+(p.c2?'合格':'不合格')+'\n'+
+      '条件③ 補正後1位－3位差：'+p.diff+'P / '+(p.c3?'合格':'不合格')+'\n'+
       '判定：'+p.judge+(p.tooWild?' / 1位69以下・荒れすぎ注意':'')+'\n'+
       '理由：'+p.reasons.join(' / ')+'\n';
   }
 
   window.makeCopyText=function(data,diag,ctx,ms,sw,tickets,scored,moves,adv){
-    var s=V249_makeCopyText(data,diag,ctx,ms,sw,tickets,scored,moves,adv);
-    var p=buildPseudoCompi(data);
-    window.__pseudoCompiLatest=p;
-    s=s.replace(/V2\.49/g,'V2.50');
-    return s+copyPseudoCompi(p);
+    var s=V250_makeCopyText(data,diag,ctx,ms,sw,tickets,scored,moves,adv);
+    s=s.replace(/\n\n📊V2\.50 オッズ版・擬似コンピ＋大谷式荒れ計測[\s\S]*$/,'');
+    s=s.replace(/V2\.50/g,'V2.51');
+    var p=buildPseudoCompi251(data);
+    window.__pseudoCompi251Latest=p;
+    return s+copyPseudoCompi251(p);
   };
 
   window.run=function(){
-    V249_run();
+    V250_run();
     try{
       var data=parseData(document.getElementById('input').value);
-      var p=window.__pseudoCompiLatest||buildPseudoCompi(data);
-      window.__pseudoCompiLatest=p;
+      var p=window.__pseudoCompi251Latest||buildPseudoCompi251(data);
+      window.__pseudoCompi251Latest=p;
       var out=document.getElementById('out');
       if(out){
-        var old=out.querySelector('.pseudoCompiCard');
-        if(old&&old.parentNode)old.parentNode.removeChild(old);
+        var old50=out.querySelector('.pseudoCompiCard');
+        if(old50&&old50.parentNode)old50.parentNode.removeChild(old50);
+        var old51=out.querySelector('.pseudoCompi251Card');
+        if(old51&&old51.parentNode)old51.parentNode.removeChild(old51);
         var finalCard=out.querySelector('.finalFourCard');
-        if(finalCard)finalCard.insertAdjacentHTML('beforebegin',renderPseudoCompi(p));
-        else out.insertAdjacentHTML('beforeend',renderPseudoCompi(p));
-        out.innerHTML=out.innerHTML.replace(/V2\.49/g,'V2.50');
+        if(finalCard)finalCard.insertAdjacentHTML('beforebegin',renderPseudoCompi251(p));
+        else out.insertAdjacentHTML('beforeend',renderPseudoCompi251(p));
+        out.innerHTML=out.innerHTML.replace(/V2\.50/g,'V2.51');
       }
-      if(typeof latestCopyText==='string')latestCopyText=latestCopyText.replace(/V2\.49/g,'V2.50');
+      if(typeof latestCopyText==='string')latestCopyText=latestCopyText.replace(/V2\.50/g,'V2.51');
     }catch(e){
       var out2=document.getElementById('out');
-      if(out2)out2.insertAdjacentHTML('beforeend','<div class="card"><div class="title warn">擬似コンピ計算エラー</div><pre>'+String(e&&e.message?e.message:e)+'</pre></div>');
+      if(out2)out2.insertAdjacentHTML('beforeend','<div class="card"><div class="title warn">V2.51順位補正エラー</div><pre>'+String(e&&e.message?e.message:e)+'</pre></div>');
     }
   };
 
-  window.buildPseudoCompi=buildPseudoCompi;
+  window.buildPseudoCompi251=buildPseudoCompi251;
+  window.buildPseudoCompi=buildPseudoCompi251;
 })();
 </script>
-
 </body>
 </html>
