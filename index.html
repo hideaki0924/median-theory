@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー神予想 競馬 V2.55 無壁拮抗・全項目強制連動版</title>
+<title>チャッピー神予想 競馬 V2.56 実コンピ独立検証＋無壁拮抗補正版</title>
 <style>
 body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:14px;font-size:17px}
 h1{font-size:27px;line-height:1.3;margin:4px 0 12px;color:#fff}
@@ -39,8 +39,8 @@ pre{white-space:pre-wrap;word-break:break-word;background:#020617;color:#e5e7eb;
 </style>
 </head>
 <body>
-<h1>チャッピー神予想 競馬 V2.55<br>📊四市場乖離差1.8壁＋無壁拮抗<br>⚖️構造軸・買い目・最終4項目・単勝金額まで強制連動</h1>
-<textarea id="input" placeholder="【園田2R】\n\n[TANFUKU]\n馬番 単勝 複勝上限\n\n[UMAREN]\n馬番-馬番 オッズ\n\n[WIDE]\n馬番-馬番 オッズ\n\n[SANPUKU]\n馬番-馬番-馬番 オッズ\n\n※複勝は上限値で入力。1.2-2.4なら 2.4 を使う。"></textarea><br>
+<h1>チャッピー神予想 競馬 V2.56<br>📊四市場乖離差1.8壁＋無壁拮抗<br>🟠本物コンピ指数・独立検証＋限定補正</h1>
+<textarea id="input" placeholder="【園田2R】\n\n[TANFUKU]\n馬番 単勝 複勝上限\n\n[UMAREN]\n馬番-馬番 オッズ\n\n[WIDE]\n馬番-馬番 オッズ\n\n[SANPUKU]\n馬番-馬番-馬番 オッズ\n\n[COMPI]\n馬番 コンピ指数\n\n※コンピは全出走馬を入力。例：3 78"></textarea><br>
 <button class="go" onclick="run()">解析</button><button class="test" onclick="sample()">テスト</button><button class="clear" onclick="clearAll()">リセット</button><button class="copy" onclick="copyResult()">結果コピー</button>
 <div id="out"></div>
 <script>
@@ -2932,6 +2932,158 @@ V2.50の擬似コンピを土台に、5市場の馬別順位合意で順位と�
   V254_run();
   try{var plan=window.__noWallPlanV255,out=document.getElementById('out');if(out){var old=out.querySelector('.walllessFlowCard');if(old&&old.parentNode)old.parentNode.removeChild(old);if(plan&&plan.on){var axis=out.querySelector('.axisTicketCard');if(axis)axis.insertAdjacentHTML('beforebegin',renderFlow(plan));else out.insertAdjacentHTML('beforeend',renderFlow(plan));out.innerHTML=out.innerHTML.replace(/1番人気・勝ち切り信頼度：維持/g,'1番人気・勝ち切り信頼度：強制低下').replace(/理由：大きな低下材料なし/g,'理由：単勝＋馬連の二重無壁、または3市場以上無壁');}out.innerHTML=out.innerHTML.replace(/V2\.54/g,'V2.55');}if(typeof latestCopyText==='string')latestCopyText=latestCopyText.replace(/V2\.54/g,'V2.55');var h=document.querySelector('h1');if(h)h.innerHTML='チャッピー神予想 競馬 V2.55<br>📊四市場乖離差1.8壁＋無壁拮抗<br>⚖️構造軸・買い目・最終4項目・単勝金額まで強制連動';}catch(e){var o=document.getElementById('out');if(o)o.insertAdjacentHTML('afterbegin','<div class="card diagWarn"><div class="title warn">V2.55連動エラー</div><pre>'+String(e&&e.message?e.message:e)+'</pre></div>');}
  };
+})();
+</script>
+
+
+<style id="v256-real-compi-style">
+.realCompiCard{border:3px solid #f59e0b!important;background:linear-gradient(135deg,#211006,#4a2504,#111827)!important;box-shadow:0 0 15px rgba(245,158,11,.58),0 0 34px rgba(234,88,12,.28)!important}
+.realCompiTitle{font-size:20px;font-weight:900;color:#fef3c7;margin-bottom:7px}
+.realCompiLead{padding:8px 9px;border:1px solid #f59e0b;border-radius:10px;background:rgba(2,6,23,.78);font-size:11px;line-height:1.5;color:#fde68a;margin-bottom:8px}
+.realCompiStatus{display:inline-block;padding:4px 9px;border-radius:999px;font-size:12px;font-weight:900;margin:0 5px 7px 0}.realCompiStatus.ok{background:#14532d;color:#dcfce7;border:1px solid #4ade80}.realCompiStatus.ng{background:#7f1d1d;color:#fee2e2;border:1px solid #fb7185}.realCompiStatus.wait{background:#422006;color:#fef3c7;border:1px solid #facc15}
+.realCompiGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:8px 0}.realCompiBox{padding:8px;border:1px solid #b45309;border-radius:10px;background:rgba(2,6,23,.72);min-width:0}.realCompiLabel{font-size:10px;color:#fdba74;font-weight:900}.realCompiValue{font-size:17px;color:#fff;font-weight:900;margin-top:3px;word-break:break-word}
+.realCompiJudge{margin:8px 0;padding:9px;border:2px solid #facc15;border-radius:10px;background:linear-gradient(135deg,#422006,#713f12,#111827);color:#fef08a;font-weight:900;line-height:1.5}
+.realCompiJudge.safe{border-color:#38bdf8;background:linear-gradient(135deg,#082f49,#0c4a6e,#111827);color:#e0f2fe}.realCompiJudge.warn{border-color:#fb7185;background:linear-gradient(135deg,#4c0519,#881337,#111827);color:#ffe4e6}
+.realCompiRows{margin-top:8px;border:1px solid #b45309;border-radius:10px;overflow:hidden}.realCompiRow{display:grid;grid-template-columns:34px 42px 48px 60px 1fr;gap:4px;align-items:center;padding:6px 7px;border-bottom:1px solid rgba(251,191,36,.18);background:rgba(2,6,23,.68)}.realCompiRow:last-child{border-bottom:0}.realCompiRank{color:#fde68a;font-weight:900;text-align:center}.realCompiHorse{font-size:17px;color:#fff;font-weight:900;text-align:center}.realCompiIndex{font-size:18px;color:#facc15;font-weight:900;text-align:center}.realCompiOdds{font-size:11px;color:#cbd5e1;text-align:center}.realCompiMove{font-size:10px;line-height:1.4;color:#e2e8f0}.realCompiUp{color:#86efac;font-weight:900}.realCompiDown{color:#fda4af;font-weight:900}.realCompiSame{color:#cbd5e1;font-weight:900}
+.realCompiNote{margin-top:8px;padding:8px;border:1px solid #64748b;border-radius:9px;background:rgba(15,23,42,.85);font-size:10px;line-height:1.5;color:#cbd5e1}.realCompiApplied{color:#86efac;font-weight:900}.realCompiNotApplied{color:#fda4af;font-weight:900}.pseudoCompareNotice{margin:7px 0;padding:7px 9px;border:1px dashed #94a3b8;border-radius:9px;background:rgba(15,23,42,.88);color:#cbd5e1;font-size:10px;line-height:1.45}
+@media(max-width:520px){.realCompiGrid{grid-template-columns:1fr}.realCompiRow{grid-template-columns:30px 36px 42px 52px 1fr}}
+</style>
+<script>
+(function(){
+ 'use strict';
+ var V255_parseData=window.parseData;
+ var V255_makeContext=window.makeContext;
+ var V255_makeTickets=window.makeTickets;
+ var V255_makeCopyText=window.makeCopyText;
+ var V255_run=window.run;
+
+ document.title='チャッピー神予想 競馬 V2.56 実コンピ独立検証＋無壁拮抗補正版';
+ var head=document.querySelector('h1');
+ if(head)head.innerHTML='チャッピー神予想 競馬 V2.56<br>📊四市場乖離差1.8壁＋無壁拮抗<br>🟠本物コンピ指数・独立検証＋限定補正';
+ var input=document.getElementById('input');
+ if(input)input.setAttribute('placeholder','【園田2R】\\n\\n[TANFUKU]\\n馬番 単勝 複勝上限\\n\\n[UMAREN]\\n馬番-馬番 オッズ\\n\\n[WIDE]\\n馬番-馬番 オッズ\\n\\n[SANPUKU]\\n馬番-馬番-馬番 オッズ\\n\\n[COMPI]\\n馬番 コンピ指数\\n\\n※コンピは全出走馬を入力。例：3 78');
+
+ function n(v,d){v=Number(v);return isFinite(v)?v:(d===0?0:(d||9999));}
+ function add(a,v){v=String(v||'');if(v&&v!=='undefined'&&a.indexOf(v)<0)a.push(v);}
+ function uniq(a){var o=[];(a||[]).forEach(function(v){add(o,v);});return o;}
+ function tf(ctx,h){h=String(h||'');for(var i=0;i<(ctx.tanRank||[]).length;i++)if(String(ctx.tanRank[i].h)===h)return ctx.tanRank[i];return{h:h,tan:9999,fuku:9999};}
+ function pkey(a,b){a=String(a||'');b=String(b||'');if(!a||!b||a===b)return null;return pairKey(a,b);}
+ function tkey(a,b,c){a=String(a||'');b=String(b||'');c=String(c||'');if(!a||!b||!c||a===b||a===c||b===c)return null;return triKey(a,b,c);}
+ function addPair(a,x,y){var k=pkey(x,y);if(k)add(a,k);}
+ function addTri(a,x,y,z){var k=tkey(x,y,z);if(k)add(a,k);}
+ function esc(s){return String(s==null?'':s).replace(/[&<>\"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c];});}
+
+ function parseCompi(raw){
+  var text=zenToHan(raw),lines=text.split(/\n/),sec='',map={},order=[],duplicates=[],bad=[];
+  for(var i=0;i<lines.length;i++){
+   var line=lines[i].trim();if(!line)continue;
+   var up=line.toUpperCase();
+   if(line.charAt(0)==='['){
+    if(up.indexOf('COMPI')>=0||line.indexOf('コンピ')>=0){sec='COMPI';continue;}
+    sec='OTHER';continue;
+   }
+   if(sec!=='COMPI')continue;
+   var a=nums(line);if(a.length<2){bad.push(line);continue;}
+   var h,idx;
+   if(line.indexOf('位')>=0&&a.length>=3){h=String(Math.floor(a[1]));idx=n(a[a.length-1]);}
+   else{h=String(Math.floor(a[0]));idx=n(a[a.length-1]);}
+   if(!h||idx<=0||idx>100){bad.push(line);continue;}
+   if(map[h])duplicates.push(h);
+   else order.push(h);
+   map[h]={h:h,index:idx,raw:line};
+  }
+  return{items:order.map(function(h){return map[h];}),map:map,duplicates:uniq(duplicates),bad:bad};
+ }
+
+ window.parseData=function(raw){var d=V255_parseData(raw);d.compi=parseCompi(raw);return d;};
+
+ function analyzeCompi(data,ctx){
+  var c=(data&&data.compi)||{items:[],map:{},duplicates:[],bad:[]},horses=(ctx.tanRow||[]).map(String),known={},unknown=[],missing=[];
+  horses.forEach(function(h){known[h]=1;if(!c.map[h])missing.push(h);});
+  (c.items||[]).forEach(function(x){if(!known[String(x.h)])unknown.push(String(x.h));});
+  var ranked=(c.items||[]).filter(function(x){return !!known[String(x.h)];}).map(function(x){return{h:String(x.h),index:n(x.index)};});
+  ranked.sort(function(a,b){return b.index-a.index||Number(a.h)-Number(b.h);});
+  var oddsMap={};(ctx.tanRow||[]).forEach(function(h,i){oddsMap[String(h)]=i+1;});
+  ranked.forEach(function(x,i){x.rank=i+1;x.oddsRank=oddsMap[x.h]||99;x.shift=x.oddsRank-x.rank;x.tan=n(tf(ctx,x.h).tan);});
+  var top=ranked[0]||null,second=ranked[1]||null,third=ranked[2]||null;
+  var d12=top&&second?top.index-second.index:null,d13=top&&third?top.index-third.index:null,d23=second&&third?second.index-third.index:null;
+  var structure='入力待ち';
+  if(ranked.length){
+   if(d12>=8&&d13>=13)structure='1頭能力抜け';
+   else if(d12<=3&&d23>=6)structure='二強能力型';
+   else if(d13<=8)structure='上位能力拮抗';
+   else structure='標準能力差';
+  }
+  var value=ranked.filter(function(x){return x.rank<=6&&x.shift>=3;});
+  var over=ranked.filter(function(x){return x.oddsRank<=6&&x.shift<=-3;});
+  var complete=horses.length>0&&ranked.length===horses.length&&missing.length===0&&unknown.length===0&&!(c.duplicates||[]).length&&!(c.bad||[]).length;
+  var available=ranked.length>0;
+  var fav=String(ctx.fav1||''),favObj=null;ranked.forEach(function(x){if(x.h===fav)favObj=x;});
+  var topGaps=[];for(var i=0;i<ranked.length-1;i++){var g=ranked[i].index-ranked[i+1].index;if(g>=5)topGaps.push({after:i+1,before:ranked[i].h,next:ranked[i+1].h,gap:g});}
+  return{available:available,complete:complete,ranked:ranked,map:c.map||{},inputCount:(c.items||[]).length,runnerCount:horses.length,missing:missing,unknown:uniq(unknown),duplicates:c.duplicates||[],bad:c.bad||[],top:top,second:second,third:third,d12:d12,d13:d13,d23:d23,structure:structure,value:value,over:over,fav:favObj,gaps:topGaps,applied:false,applyReason:available?(complete?'検証可能':'入力不完全のため表示のみ'):'[COMPI]入力なし'};
+ }
+
+ window.makeContext=function(data){var ctx=V255_makeContext(data);ctx.realCompi=analyzeCompi(data,ctx);window.__realCompiLatest=ctx.realCompi;return ctx;};
+
+ function bonusByRank(r){return r===1?38:r===2?30:r===3?23:r===4?16:r===5?10:r===6?6:0;}
+ function adjustNoWall(ctx,tickets,adv,rc){
+  var plan=tickets.noWallPlanV255;if(!plan||!plan.on||!rc||!rc.complete)return null;
+  var fav=String(ctx.fav1||''),hole=String((plan.hole||{}).h||''),warning=String(plan.warning||''),base={},compMap={};
+  (rc.ranked||[]).forEach(function(x){compMap[x.h]=x;});
+  (plan.ranked||[]).forEach(function(x){base[String(x.h)]={h:String(x.h),score:n(x.score,0),reasons:(x.reasons||[]).slice()};});
+  (rc.ranked||[]).slice(0,8).forEach(function(x){if(!base[x.h])base[x.h]={h:x.h,score:0,reasons:[]};});
+  var favAbilityAxis=!!(rc.top&&rc.top.h===fav&&rc.structure==='1頭能力抜け');
+  var arr=[];
+  Object.keys(base).forEach(function(h){
+   if(h===hole)return;
+   var x=base[h],c=compMap[h],s=n(x.score,0);
+   if(c){s+=bonusByRank(c.rank);if(c.shift>=3)s+=Math.min(15,c.shift*3);if(c.shift<=-3)s-=Math.min(15,Math.abs(c.shift)*3);if(c.rank<=3)x.reasons.push('実コンピ上位'+c.rank+'位');if(c.shift>=3)x.reasons.push('能力先行+'+c.shift);if(c.shift<=-3)x.reasons.push('人気先行'+c.shift);}
+   if(h===fav&&!favAbilityAxis)s-=120;
+   if(h===warning)s-=45;
+   if(n(tf(ctx,h).tan)>30)s-=8;
+   arr.push({h:h,score:s,reasons:uniq(x.reasons),compi:c||null});
+  });
+  arr.sort(function(a,b){if(b.score!==a.score)return b.score-a.score;var ar=a.compi?a.compi.rank:99,br=b.compi?b.compi.rank:99;if(ar!==br)return ar-br;return n(tf(ctx,a.h).tan)-n(tf(ctx,b.h).tan);});
+  var wins=[];arr.forEach(function(x){if(wins.length>=2)return;if(x.h===fav&&favAbilityAxis)return;if(x.h===warning)return;add(wins,x.h);});
+  arr.forEach(function(x){if(wins.length>=2)return;if(x.h===fav&&favAbilityAxis)return;add(wins,x.h);});
+  var axis=favAbilityAxis?fav:null;
+  var stable=wins[1]||wins[0]||null;
+  var wide=[],uma=[],tri=[],single=[];
+  if(hole&&wins[0])addPair(wide,hole,wins[0]);if(hole&&wins[1])addPair(wide,hole,wins[1]);
+  if(axis){if(wins[0])addPair(uma,axis,wins[0]);if(hole&&wins[0])addTri(tri,hole,axis,wins[0]);if(hole&&wins[1])addTri(tri,hole,axis,wins[1]);if(hole&&wins[0]&&wins[1])addTri(tri,hole,wins[0],wins[1]);}
+  else{if(hole&&wins[0]&&wins[1])addTri(tri,hole,wins[0],wins[1]);if(hole&&wins[0]&&warning)addTri(tri,hole,wins[0],warning);if(hole&&wins[1]&&warning)addTri(tri,hole,wins[1],warning);}
+  if(axis)single.push({h:axis,amount:'300円',why:'実コンピ1頭能力抜け・無壁のため厚張り禁止'});
+  else if(wins[0])single.push({h:wins[0],amount:'300円',why:'実コンピ補正・勝ち切り1位'});
+  if(wins[axis?0:1])single.push({h:wins[axis?0:1],amount:'100円',why:'実コンピ補正・勝ち切り2位'});
+  plan.wins=wins;plan.provisional=axis;plan.hard=!axis;plan.wide=wide;plan.uma=uma;plan.tri=tri.slice(0,3);plan.single=single;plan.ranked=arr;plan.compiApplied=true;plan.compiAxisOverride=!!axis;plan.label=axis?'3市場無壁＋実コンピ1頭能力抜け・能力仮軸':'3市場無壁＋実コンピ補正・信頼軸なし';
+  if(plan.hole){var hc=compMap[hole];plan.hole.note+=(hc?('｜実コンピ'+hc.rank+'位'+(hc.shift>=3?'・能力先行+'+hc.shift:'')):'｜コンピ未確認');}
+  tickets.noWallPlanV255=plan;window.__noWallPlanV255=plan;
+  var ri=tickets.raceIntegration||{};ri.name=axis?'無壁市場・能力一本抜け型':'実コンピ連動・全体拮抗型';ri.participation=axis?'能力仮軸・条件付き':'軸なし・条件付き';ri.strategy=axis?'実コンピ一本抜け馬をB仮軸。最強穴＋能力上位相手で少点数':'最強穴＋実コンピ補正勝ち切り候補2頭。市場1番人気は相手まで';ri.axis={h:axis,source:axis?'実コンピ1頭能力抜け':'3市場無壁・信頼軸なし',grade:axis?'B':'C'};ri.roles=ri.roles||{};ri.roles.wins=wins.map(function(h,i){var c=compMap[h];return{h:h,why:'実コンピ補正・勝ち切り'+(i+1)+'位'+(c?'（指数'+c.index+'）':'')};});ri.tickets={single:single.slice(),wide:wide.slice(),uma:uma.slice(),tri:tri.slice(0,3),umatan:[],sanrentan:[],decision:axis?'無壁でも実コンピが1頭能力抜け。A軸・1着固定・1000円は禁止し、B仮軸で最大3点。':'実コンピで勝ち切り順を補正。信頼軸なしで最大3点。',notes:['本物コンピは壁判定を上書きせず役割選択だけ補正','入力不完全時は買い目へ反映しない'],book18:null,partnerHorses:wins.slice()};ri.noWallPlan=plan;tickets.raceIntegration=ri;window.__raceIntegrationLatest=ri;
+  var ma=tickets.matchanAxis||{};ma.branch=axis?'REAL_COMPI_B_AXIS':'REAL_COMPI_NO_AXIS';ma.label=axis?'実コンピ1頭能力抜け・B仮軸':'実コンピ補正・3市場無壁・構造軸解除';ma.axis=axis;ma.avoid=axis?null:fav;ma.protect=hole||null;ma.axisSource=axis?'本物コンピ指数':'四市場無壁＋本物コンピ補正';ma.stat='V2.56共通ルール：本物コンピは無壁時の勝ち切り順位とB仮軸判定だけに使用';ma.head={grade:axis?'B':'C',on:false,score:axis?3:0,reasons:axis?['実コンピ1頭能力抜け','市場は無壁','1着固定・1000円禁止']:['3市場以上無壁','実コンピ上位も役割候補','1番人気自動軸化禁止']};ma.tickets={wide:wide.slice(),uma:uma.slice(),tri:tri.slice(0,3),umatan:[],sanrentan:[],partners:uniq((axis?[axis]:[]).concat(wins,hole?[hole]:[]))};tickets.matchanAxis=ma;if(adv)adv.matchanAxis=ma;window.__matchanAxisLatest=ma;
+  var ff=tickets.finalFour||{};ff.axis={h:axis,note:axis?'実コンピ1頭能力抜け・B仮軸':'3市場無壁＋実コンピ補正・信頼軸なし'};ff.partners=wins.slice(0,2);ff.hole={h:hole||null,note:(plan.hole||{}).note||'最強穴',strength:(plan.hole||{}).strength||0};if(single[0]){var sr=tf(ctx,single[0].h);ff.single={h:single[0].h,tan:sr.tan,level:'300円候補',cls:'finalFour300',note:plan.label+'｜'+single[0].why};}tickets.finalFour=ff;if(adv)adv.finalFour=ff;window.__finalFourLatest=ff;
+  rc.applied=true;rc.applyReason=axis?'無壁だがコンピ1頭能力抜けのためB仮軸へ限定補正':'無壁拮抗の勝ち切り候補順と最終3連複を実コンピで補正';rc.adjustedWins=wins;rc.adjustedAxis=axis;rc.adjustedHole=hole;rc.adjustedTri=tri.slice(0,3);
+  return rc;
+ }
+
+ window.makeTickets=function(ctx,ms,scored,sw,adv){var t=V255_makeTickets(ctx,ms,scored,sw,adv),rc=ctx.realCompi||window.__realCompiLatest;if(rc&&rc.available&&rc.complete)adjustNoWall(ctx,t,adv,rc);t.realCompiV256=rc;if(adv)adv.realCompiV256=rc;window.__realCompiAppliedLatest=rc;return t;};
+
+ function shiftText(x){if(x.shift>=3)return'能力先行 +'+x.shift;if(x.shift<=-3)return'人気先行 '+x.shift;return'ほぼ一致 '+(x.shift>0?'+':'')+x.shift;}
+ function statusText(rc){if(!rc.available)return'[COMPI]入力なし';if(rc.complete)return'全'+rc.runnerCount+'頭入力・完全';return'入力'+rc.ranked.length+'/'+rc.runnerCount+'頭・不完全';}
+ function listH(a){return(!a||!a.length)?'なし':a.map(function(x){return x.h+'番';}).join('・');}
+ function renderRealCompi(rc){
+  if(!rc)return'';
+  var st=!rc.available?'wait':(rc.complete?'ok':'ng'),judgeCls=rc.applied?'safe':(!rc.complete&&rc.available?'warn':'');
+  var rows=rc.ranked.map(function(x){var cls=x.shift>=3?'realCompiUp':(x.shift<=-3?'realCompiDown':'realCompiSame');return'<div class="realCompiRow"><div class="realCompiRank">'+x.rank+'位</div><div class="realCompiHorse">'+x.h+'番</div><div class="realCompiIndex">'+x.index+'</div><div class="realCompiOdds">単'+x.oddsRank+'人気</div><div class="realCompiMove '+cls+'">'+shiftText(x)+'</div></div>';}).join('');
+  var missing=rc.missing.length?' / 未入力：'+rc.missing.map(function(h){return h+'番';}).join('・'):'';
+  var errors=(rc.unknown.length?' / 不明馬番：'+rc.unknown.join('・'):'')+(rc.duplicates.length?' / 重複：'+rc.duplicates.join('・'):'')+(rc.bad.length?' / 読取不可：'+rc.bad.length+'行':'');
+  var top=rc.top?rc.top.h+'番 '+rc.top.index+'P':'なし',fav=rc.fav?rc.fav.rank+'位 '+rc.fav.index+'P':'未入力';
+  return'<div class="card realCompiCard"><div class="realCompiTitle">🟠V2.56 本物コンピ指数・独立検証＋限定補正</div><div class="realCompiLead">入力形式：<b>[COMPI]</b> の下へ「馬番 指数」。全出走馬が揃った場合だけ、無壁レースの勝ち切り順位とB仮軸判定へ反映します。壁・メジアン・最強穴そのものは上書きしません。</div><span class="realCompiStatus '+st+'">'+statusText(rc)+'</span><div class="realCompiGrid"><div class="realCompiBox"><div class="realCompiLabel">能力構造</div><div class="realCompiValue">'+esc(rc.structure)+'</div></div><div class="realCompiBox"><div class="realCompiLabel">コンピ1位</div><div class="realCompiValue">'+top+'</div></div><div class="realCompiBox"><div class="realCompiLabel">単勝1番人気のコンピ</div><div class="realCompiValue">'+fav+'</div></div><div class="realCompiBox"><div class="realCompiLabel">1位－2位差</div><div class="realCompiValue">'+(rc.d12==null?'―':rc.d12+'P')+'</div></div><div class="realCompiBox"><div class="realCompiLabel">1位－3位差</div><div class="realCompiValue">'+(rc.d13==null?'―':rc.d13+'P')+'</div></div><div class="realCompiBox"><div class="realCompiLabel">能力先行穴</div><div class="realCompiValue">'+listH(rc.value)+'</div></div></div><div class="realCompiJudge '+judgeCls+'">補正判定：'+esc(rc.applyReason)+'</div>'+(rows?'<div class="realCompiRows">'+rows+'</div>':'')+'<div class="realCompiNote">人気先行候補：'+listH(rc.over)+missing+errors+'<br><span class="'+(rc.applied?'realCompiApplied':'realCompiNotApplied')+'">'+(rc.applied?'最終買い目へ限定反映済み':'最終買い目へは未反映')+'</span></div></div>';
+ }
+ function copyRealCompi(rc){if(!rc)return'';var s='\n🟠V2.56 本物コンピ指数・独立検証＋限定補正\n入力：'+statusText(rc)+'\n能力構造：'+rc.structure+'\nコンピ1位：'+(rc.top?rc.top.h+'番 '+rc.top.index+'P':'なし')+'\n1位－2位差：'+(rc.d12==null?'―':rc.d12+'P')+' / 1位－3位差：'+(rc.d13==null?'―':rc.d13+'P')+'\n単勝1番人気のコンピ：'+(rc.fav?rc.fav.rank+'位 '+rc.fav.index+'P':'未入力')+'\n能力先行穴：'+listH(rc.value)+'\n人気先行候補：'+listH(rc.over)+'\n補正判定：'+rc.applyReason+'\n';if(rc.applied)s+='補正後勝ち切り候補：'+(rc.adjustedWins||[]).map(function(h){return h+'番';}).join('・')+'\n補正後信頼軸：'+(rc.adjustedAxis?rc.adjustedAxis+'番・B仮軸':'なし')+'\n補正後三連複：'+(rc.adjustedTri||[]).join(' / ')+'\n';return s;}
+
+ window.makeCopyText=function(data,diag,ctx,ms,sw,tickets,scored,moves,adv){var s=V255_makeCopyText(data,diag,ctx,ms,sw,tickets,scored,moves,adv),rc=(tickets&&tickets.realCompiV256)||ctx.realCompi||window.__realCompiLatest;s=s.replace(/競馬メジアン V2\.55/g,'競馬メジアン V2.56').replace(/【V2\.55司令塔】/g,'【V2.56司令塔】').replace(/⚖️V2\.55 無壁拮抗/g,'⚖️V2.56 無壁拮抗/g');var at=s.indexOf('\n📊V2.52 推定コンピ順位補正版');var block=copyRealCompi(rc);if(at>=0)s=s.slice(0,at)+block+'\n📊推定コンピ（比較用・買い目非採用）'+s.slice(at+'\n📊V2.52 推定コンピ順位補正版'.length);else s+=block;return s;};
+
+ window.run=function(){V255_run();try{var rc=window.__realCompiAppliedLatest||window.__realCompiLatest,out=document.getElementById('out');if(out){var old=out.querySelector('.realCompiCard');if(old&&old.parentNode)old.parentNode.removeChild(old);var pseudo=out.querySelector('.pseudoCompi251Card')||out.querySelector('.pseudoCompiCard');if(pseudo)pseudo.insertAdjacentHTML('beforebegin',renderRealCompi(rc));else{var final=out.querySelector('.finalFourCard');if(final)final.insertAdjacentHTML('beforebegin',renderRealCompi(rc));else out.insertAdjacentHTML('beforeend',renderRealCompi(rc));}var pseudoCard=out.querySelector('.pseudoCompi251Card')||out.querySelector('.pseudoCompiCard');if(pseudoCard&&!pseudoCard.querySelector('.pseudoCompareNotice'))pseudoCard.insertAdjacentHTML('afterbegin','<div class="pseudoCompareNotice"><b>比較用：</b>本物コンピ入力時、こちらの推定指数は買い目へ採用しません。実コンピとの差を見る検証欄です。</div>');out.innerHTML=out.innerHTML.replace(/V2\.55/g,'V2.56').replace(/V2\.52 推定コンピ順位補正版＋大谷式荒れ計測/g,'推定コンピ（比較用・買い目非採用）＋大谷式荒れ計測');}if(typeof latestCopyText==='string')latestCopyText=latestCopyText.replace(/V2\.55/g,'V2.56');var h=document.querySelector('h1');if(h)h.innerHTML='チャッピー神予想 競馬 V2.56<br>📊四市場乖離差1.8壁＋無壁拮抗<br>🟠本物コンピ指数・独立検証＋限定補正';}catch(e){var o=document.getElementById('out');if(o)o.insertAdjacentHTML('afterbegin','<div class="card diagWarn"><div class="title warn">V2.56実コンピ補正エラー</div><pre>'+esc(e&&e.message?e.message:e)+'</pre></div>');}};
 })();
 </script>
 
