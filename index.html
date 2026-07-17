@@ -1,4 +1,4 @@
-id="v257-style">
+<style id="v257-style">
 .v257Card{
   border:3px solid #22d3ee!important;
   background:linear-gradient(135deg,#001827,#0c4a6e,#111827)!important;
@@ -72,15 +72,19 @@ id="v257-style">
   .v257Grid{grid-template-columns:1fr}
 }
 </style>
+
 <script id="v257-command">
 (function(){
 'use strict';
+
 var OLD_CONTEXT=window.makeContext;
 var OLD_OVERRIDE=window.applyRaceOverride;
 var OLD_TICKETS=window.makeTickets;
 var OLD_COPY=window.makeCopyText;
 var OLD_RUN=window.run;
+
 document.title='チャッピー神予想 競馬 V2.57 司令塔再設計版';
+
 var heading=document.querySelector('h1');
 if(heading){
   heading.innerHTML=
@@ -88,17 +92,21 @@ if(heading){
     '🧭本命信頼度と穴候補点を完全分離<br>'+
     '🟠本物コンピ全レース連動＋最終買い目強制保護';
 }
+
 function num(v,d){
   v=Number(v);
   return isFinite(v)?v:(d===0?0:(d||9999));
 }
+
 function str(v){
   return String(v==null?'':v);
 }
+
 function pushUnique(arr,v){
   v=str(v);
   if(v&&v!=='undefined'&&arr.indexOf(v)<0)arr.push(v);
 }
+
 function unique(arr){
   var out=[];
   (arr||[]).forEach(function(v){
@@ -106,14 +114,17 @@ function unique(arr){
   });
   return out;
 }
+
 function setKey(arr){
   return unique(arr).sort(function(a,b){
     return Number(a)-Number(b);
   }).join('-');
 }
+
 function sameSet(a,b){
   return setKey(a)===setKey(b);
 }
+
 function getTF(ctx,h){
   h=str(h);
   for(var i=0;i<(ctx.tanRank||[]).length;i++){
@@ -121,12 +132,14 @@ function getTF(ctx,h){
   }
   return {h:h,tan:9999,fuku:9999};
 }
+
 function rankIn(row,h){
   h=str(h);
   row=(row||[]).map(str);
   var i=row.indexOf(h);
   return i<0?99:i+1;
 }
+
 function scoreObject(scored,h){
   h=str(h);
   for(var i=0;i<(scored||[]).length;i++){
@@ -134,6 +147,7 @@ function scoreObject(scored,h){
   }
   return null;
 }
+
 function hasReason(scored,h,word){
   var x=scoreObject(scored,h);
   return !!(
@@ -141,6 +155,7 @@ function hasReason(scored,h,word){
     str((x.reasons||[]).join('・')).indexOf(word)>=0
   );
 }
+
 function countAppear(list,h,limit){
   h=str(h);
   var count=0;
@@ -153,6 +168,7 @@ function countAppear(list,h,limit){
   });
   return count;
 }
+
 function pairRank(list,a,b){
   var key=pairKey(a,b);
   for(var i=0;i<(list||[]).length;i++){
@@ -160,6 +176,7 @@ function pairRank(list,a,b){
   }
   return 999;
 }
+
 function tripleRank(list,a,b,c){
   var key=triKey(a,b,c);
   for(var i=0;i<(list||[]).length;i++){
@@ -167,34 +184,43 @@ function tripleRank(list,a,b,c){
   }
   return 999;
 }
+
 function addPair(arr,a,b){
   a=str(a);
   b=str(b);
   if(!a||!b||a===b)return;
   pushUnique(arr,pairKey(a,b));
 }
+
 function addTri(arr,a,b,c){
   a=str(a);
   b=str(b);
   c=str(c);
+
   if(
     !a||!b||!c||
     a===b||a===c||b===c
   )return;
+
   pushUnique(arr,triKey(a,b,c));
 }
+
 function compiMap(rc){
   var map={};
+
   ((rc||{}).ranked||[]).forEach(function(x){
     map[str(x.h)]=x;
   });
+
   return map;
 }
+
 function compiRank(rc,h){
   var map=compiMap(rc);
   h=str(h);
   return map[h]?map[h].rank:99;
 }
+
 function triOdds(ctx,key){
   for(var i=0;i<(ctx.sanRank||[]).length;i++){
     if(str(ctx.sanRank[i].key)===str(key)){
@@ -203,6 +229,7 @@ function triOdds(ctx,key){
   }
   return 999999;
 }
+
 function sortKnownTris(ctx,arr){
   return unique(arr).map(function(key,i){
     return {
@@ -216,24 +243,29 @@ function sortKnownTris(ctx,arr){
     return x.key;
   });
 }
+
 /* 三連複が全体表か、特定軸専用表かを判別 */
 function detectSanTable(ctx){
   var list=(ctx&&ctx.sanRank)||[];
   var counts={};
   var maxHorse=null;
   var maxCount=0;
+
   list.forEach(function(t){
     unique([t.a,t.b,t.c]).forEach(function(h){
       h=str(h);
       counts[h]=(counts[h]||0)+1;
+
       if(counts[h]>maxCount){
         maxCount=counts[h];
         maxHorse=h;
       }
     });
   });
+
   var rate=list.length?maxCount/list.length:0;
   var axisTable=list.length>=8&&rate>=0.90;
+
   return {
     axisTable:axisTable,
     axis:maxHorse,
@@ -245,6 +277,7 @@ function detectSanTable(ctx){
       :'全体上位三連複表'
   };
 }
+
 /* コンピ完全入力判定を修正 */
 function repairRealCompi(data,ctx){
   var rc=ctx.realCompi||{};
@@ -253,16 +286,20 @@ function repairRealCompi(data,ctx){
   var seen={};
   var ranked=[];
   var unknown=[];
+
   horses.forEach(function(h){
     known[h]=1;
   });
+
   ((((data||{}).compi||{}).items)||[]).forEach(function(x){
     var h=str(x.h);
     var index=num(x.index,0);
+
     if(!known[h]){
       unknown.push(h);
       return;
     }
+
     if(!seen[h]&&index>0&&index<=100){
       seen[h]=1;
       ranked.push({
@@ -271,35 +308,46 @@ function repairRealCompi(data,ctx){
       });
     }
   });
+
   ranked.sort(function(a,b){
     return b.index-a.index||Number(a.h)-Number(b.h);
   });
+
   var oddsMap={};
+
   (ctx.tanRow||[]).forEach(function(h,i){
     oddsMap[str(h)]=i+1;
   });
+
   ranked.forEach(function(x,i){
     x.rank=i+1;
     x.oddsRank=oddsMap[x.h]||99;
     x.shift=x.oddsRank-x.rank;
     x.tan=num(getTF(ctx,x.h).tan);
   });
+
   var missing=horses.filter(function(h){
     return !seen[h];
   });
+
   var top=ranked[0]||null;
   var second=ranked[1]||null;
   var third=ranked[2]||null;
+
   var d12=top&&second
     ?top.index-second.index
     :null;
+
   var d13=top&&third
     ?top.index-third.index
     :null;
+
   var d23=second&&third
     ?second.index-third.index
     :null;
+
   var structure='入力待ち';
+
   if(ranked.length){
     if(d12>=8&&d13>=13){
       structure='1頭能力抜け';
@@ -311,12 +359,16 @@ function repairRealCompi(data,ctx){
       structure='標準能力差';
     }
   }
+
   var favorite=str(ctx.fav1||'');
   var favObj=null;
+
   ranked.forEach(function(x){
     if(x.h===favorite)favObj=x;
   });
+
   rc.available=ranked.length>0;
+
   /*
    * 読み取り不可行があっても、
    * 全出走馬の馬番と指数が揃えば完全扱い。
@@ -326,6 +378,7 @@ function repairRealCompi(data,ctx){
     ranked.length===horses.length&&
     missing.length===0&&
     unknown.length===0;
+
   rc.ranked=ranked;
   rc.inputCount=ranked.length;
   rc.runnerCount=horses.length;
@@ -339,12 +392,15 @@ function repairRealCompi(data,ctx){
   rc.d23=d23;
   rc.structure=structure;
   rc.fav=favObj;
+
   rc.value=ranked.filter(function(x){
     return x.rank<=6&&x.shift>=3;
   });
+
   rc.over=ranked.filter(function(x){
     return x.oddsRank<=6&&x.shift<=-3;
   });
+
   rc.applyReason=rc.available
     ?(
       rc.complete
@@ -352,15 +408,21 @@ function repairRealCompi(data,ctx){
         :'入力不足のため表示のみ'
     )
     :'[COMPI]入力なし';
+
   ctx.realCompi=rc;
   window.__realCompiLatest=rc;
+
   return rc;
 }
+
 function recalcWallState(ctx){
   var wall4=ctx.wall4;
   var mode=ctx.sanTableV257;
+
   if(!wall4||!mode||!mode.axisTable)return;
+
   wall4.v257SanExcluded=true;
+
   var valid=['uma','tan','fuku'].filter(function(key){
     return (
       wall4.markets&&
@@ -368,17 +430,21 @@ function recalcWallState(ctx){
       (wall4.markets[key].rank||[]).length>=2
     );
   });
+
   var none=valid.filter(function(key){
     return !(wall4.markets[key].walls||[]).length;
   });
+
   wall4.valid=valid;
   wall4.none=none;
   wall4.noWallCount=none.length;
+
   wall4.doubleNoWall=
     valid.indexOf('tan')>=0&&
     valid.indexOf('uma')>=0&&
     !(wall4.markets.tan.walls||[]).length&&
     !(wall4.markets.uma.walls||[]).length;
+
   if(wall4.noWallCount>=3){
     wall4.judge=
       '3市場無壁・全体拮抗型 / 三連複は軸別表';
@@ -396,22 +462,29 @@ function recalcWallState(ctx){
       '単勝・複勝・馬連に壁あり / 三連複は軸別表';
   }
 }
+
 window.makeContext=function(data){
   var ctx=OLD_CONTEXT(data);
+
   ctx.sanTableV257=detectSanTable(ctx);
+
   repairRealCompi(data,ctx);
   recalcWallState(ctx);
+
   return ctx;
 };
+
 /* 穴候補順位とは別に、本命の信頼度を判定 */
 function favoriteTrust(ctx){
   var favorite=str(ctx.fav1||'');
   var rc=ctx.realCompi||{};
   var san=ctx.sanTableV257||detectSanTable(ctx);
+
   var score=0;
   var reasons=[];
   var cr=compiRank(rc,favorite);
   var compi=compiMap(rc)[favorite];
+
   if(rc.complete&&cr===1){
     score+=4;
     reasons.push('実コンピ1位');
@@ -422,38 +495,49 @@ function favoriteTrust(ctx){
     score-=4;
     reasons.push('実コンピ'+cr+'位');
   }
+
   if(rc.complete&&compi&&compi.index>=80){
     score+=1;
     reasons.push('実コンピ80P以上');
   }
+
   if(rc.complete&&rc.d12>=6){
     score+=1;
     reasons.push('1位－2位差'+rc.d12+'P');
   }
+
   if(rc.complete&&rc.d13>=12){
     score+=1;
     reasons.push('1位－3位差'+rc.d13+'P');
   }
+
   if(rankIn(ctx.fukuRow,favorite)<=2){
     score+=1;
     reasons.push('複勝上位一致');
   }
+
   var umaCount=countAppear(ctx.umaRank,favorite,8);
+
   if(umaCount>=3){
     score+=1;
     reasons.push('馬連中心'+umaCount+'回');
   }
+
   var wideCount=countAppear(ctx.wideRank,favorite,10);
+
   if(wideCount>=3){
     score+=1;
     reasons.push('ワイド中心'+wideCount+'回');
   }
+
   if(!san.axisTable){
     var sanCount=countAppear(ctx.sanRank,favorite,12);
+
     if(sanCount>=5){
       score+=1;
       reasons.push('三連複中心'+sanCount+'回');
     }
+
     if(
       ctx.sanRank[0]&&
       [
@@ -466,7 +550,9 @@ function favoriteTrust(ctx){
       reasons.push('三連複1位内');
     }
   }
+
   var level='中立';
+
   if(rc.complete&&cr===1&&score>=9){
     level='強保護';
   }else if(rc.complete&&cr<=2&&score>=6){
@@ -474,6 +560,7 @@ function favoriteTrust(ctx){
   }else if(rc.complete&&cr>=4&&score<=3){
     level='偽本命候補';
   }
+
   return {
     fav:favorite,
     score:score,
@@ -482,97 +569,124 @@ function favoriteTrust(ctx){
     compiRank:cr
   };
 }
+
 /* コンピと市場が1番人気を支持している場合、
    穴候補順位を理由に偽本命へしない */
 window.applyRaceOverride=function(diag,ctx,scored,adv){
   var result=OLD_OVERRIDE(diag,ctx,scored,adv);
+
   var trust=favoriteTrust(ctx);
   var san=ctx.sanTableV257||detectSanTable(ctx);
+
   var protectedFavorite=
     trust.level==='強保護'||
     trust.level==='馬券内保護';
+
   var badAxisSlide=
     san.axisTable&&
     result.falseFavorite&&
     str(result.falseFavorite.name).indexOf(
       '共通軸抜け'
     )>=0;
+
   if(protectedFavorite||badAxisSlide){
     if(result.falseFavorite){
       result.falseFavorite.on=false;
     }
+
     result.back=protectedFavorite
       ?'実コンピ＋市場中心馬保護・頭替わり確認'
       :'軸別三連複表を市場全体支持から除外';
+
     result.finalSurface=
       result.surface==='本命戦'
         ?'本命〜相手荒れ'
         :result.surface;
+
     result.finalClass=result.cls;
+
     result.matchanType=protectedFavorite
       ?'本命馬券内保護・頭替わり注意'
       :result.matchanType;
+
     result.wild=false;
   }
+
   result.v257Trust=trust;
+
   return result;
 };
+
 function firstWallInside(market){
   if(
     !market||
     (market.rank||[]).length<2||
     !(market.walls||[]).length
   )return [];
+
   var first=market.walls[0];
+
   return unique(
     (market.row||[])
       .map(str)
       .slice(0,first.after)
   );
 }
+
 /* 単勝・複勝・馬連・三連複の壁内グループが一致し、
    本物コンピ上位とも一致した場合 */
 function commonWallLock(ctx){
   var wall4=ctx.wall4||{};
   var san=ctx.sanTableV257||{};
   var keys=['tan','fuku','uma'];
+
   if(!san.axisTable)keys.push('san');
+
   var groups=[];
   var frequencies={};
+
   keys.forEach(function(key){
     var group=firstWallInside(
       (wall4.markets||{})[key]
     );
+
     if(group.length>=3&&group.length<=5){
       groups.push({
         market:key,
         horses:group
       });
+
       var k=setKey(group);
       frequencies[k]=(frequencies[k]||0)+1;
     }
   });
+
   var bestKey='';
   var bestCount=0;
+
   Object.keys(frequencies).forEach(function(key){
     if(frequencies[key]>bestCount){
       bestCount=frequencies[key];
       bestKey=key;
     }
   });
+
   var horses=bestKey
     ?bestKey.split('-')
     :[];
+
   var rc=ctx.realCompi||{};
   var compiTop=(rc.ranked||[])
     .slice(0,horses.length)
     .map(function(x){
       return str(x.h);
     });
+
   var compiMatch=
     rc.complete&&
     horses.length>=3&&
     sameSet(horses,compiTop);
+
   var on=
     horses.length>=3&&
     horses.length<=5&&
@@ -580,19 +694,24 @@ function commonWallLock(ctx){
       (bestCount>=3&&compiMatch)||
       bestCount>=4
     );
+
   if(on){
     var cmap=compiMap(rc);
     var tanMap={};
+
     (ctx.tanRow||[]).forEach(function(h,i){
       tanMap[str(h)]=i+1;
     });
+
     horses.sort(function(a,b){
       var ar=cmap[a]?cmap[a].rank:99;
       var br=cmap[b]?cmap[b].rank:99;
+
       return ar-br||
         (tanMap[a]||99)-(tanMap[b]||99);
     });
   }
+
   return {
     on:on,
     horses:horses,
@@ -600,10 +719,12 @@ function commonWallLock(ctx){
     compiMatch:compiMatch
   };
 }
+
 /* コンピ上位3頭が馬連3辺・ワイド3辺・三連複で一致 */
 function triangleLock(ctx){
   var rc=ctx.realCompi||{};
   var san=ctx.sanTableV257||{};
+
   if(
     !rc.complete||
     san.axisTable||
@@ -614,16 +735,19 @@ function triangleLock(ctx){
       horses:[]
     };
   }
+
   var horses=rc.ranked
     .slice(0,3)
     .map(function(x){
       return str(x.h);
     });
+
   var pairs=[
     [horses[0],horses[1]],
     [horses[0],horses[2]],
     [horses[1],horses[2]]
   ];
+
   var umaRanks=pairs.map(function(p){
     return pairRank(
       ctx.umaRank,
@@ -631,6 +755,7 @@ function triangleLock(ctx){
       p[1]
     );
   });
+
   var wideRanks=pairs.map(function(p){
     return pairRank(
       ctx.wideRank,
@@ -638,12 +763,14 @@ function triangleLock(ctx){
       p[1]
     );
   });
+
   var sanRank=tripleRank(
     ctx.sanRank,
     horses[0],
     horses[1],
     horses[2]
   );
+
   return {
     on:
       umaRanks.every(function(x){return x<=4;})&&
@@ -655,22 +782,29 @@ function triangleLock(ctx){
     sanRank:sanRank
   };
 }
+
 function stableCandidates(ctx,scored,tickets,exclude){
   var excluded={};
+
   (exclude||[]).forEach(function(h){
     excluded[str(h)]=1;
   });
+
   var rc=ctx.realCompi||{};
   var cmap=compiMap(rc);
   var tanMap={};
   var candidates={};
   var san=ctx.sanTableV257||{};
+
   (ctx.tanRow||[]).forEach(function(h,i){
     tanMap[str(h)]=i+1;
   });
+
   function addCandidate(h,why){
     h=str(h);
+
     if(!h||excluded[h])return;
+
     if(!candidates[h]){
       candidates[h]={
         h:h,
@@ -678,6 +812,7 @@ function stableCandidates(ctx,scored,tickets,exclude){
         reasons:[]
       };
     }
+
     if(
       why&&
       candidates[h].reasons.indexOf(why)<0
@@ -685,18 +820,21 @@ function stableCandidates(ctx,scored,tickets,exclude){
       candidates[h].reasons.push(why);
     }
   }
+
   (rc.ranked||[]).slice(0,8).forEach(function(x){
     addCandidate(
       x.h,
       '実コンピ'+x.rank+'位'
     );
   });
+
   (ctx.tanRow||[]).slice(0,8).forEach(function(h,i){
     addCandidate(
       h,
       '単勝'+(i+1)+'人気'
     );
   });
+
   (((((tickets||{}).v247||{}).lock||{}).top)||[])
     .forEach(function(x){
       addCandidate(
@@ -704,41 +842,50 @@ function stableCandidates(ctx,scored,tickets,exclude){
         '上位4頭安定'
       );
     });
+
   Object.keys(candidates).forEach(function(h){
     var x=candidates[h];
     var c=cmap[h];
     var tanRank=tanMap[h]||99;
+
     if(c){
       x.score+=Math.max(
         0,
         92-c.rank*6
       );
     }
+
     x.score+=Math.max(
       0,
       58-tanRank*7
     );
+
     x.score+=Math.min(
       21,
       countAppear(ctx.umaRank,h,12)*3
     );
+
     x.score+=Math.min(
       21,
       countAppear(ctx.wideRank,h,12)*3
     );
+
     if(!san.axisTable){
       x.score+=Math.min(
         12,
         countAppear(ctx.sanRank,h,15)
       );
     }
+
     var score=scoreObject(scored,h);
+
     if(score){
       x.score+=Math.min(
         18,
         num(score.score,0)/7
       );
     }
+
     if(
       san.axisTable&&
       h===str(san.axis)
@@ -746,6 +893,7 @@ function stableCandidates(ctx,scored,tickets,exclude){
       x.score-=180;
     }
   });
+
   return Object.keys(candidates)
     .map(function(h){
       return candidates[h];
@@ -758,11 +906,14 @@ function stableCandidates(ctx,scored,tickets,exclude){
       );
     });
 }
+
 function chooseAbilityHole(ctx,exclude){
   var excluded={};
+
   (exclude||[]).forEach(function(h){
     excluded[str(h)]=1;
   });
+
   var arr=((ctx.realCompi||{}).value||[])
     .filter(function(x){
       return (
@@ -770,22 +921,28 @@ function chooseAbilityHole(ctx,exclude){
         num(getTF(ctx,x.h).fuku)<=20
       );
     });
+
   arr.sort(function(a,b){
     return (
       b.shift-a.shift||
       a.rank-b.rank
     );
   });
+
   return arr[0]
     ?str(arr[0].h)
     :null;
 }
+
 function chooseFukuJump(ctx,scored,exclude){
   var excluded={};
+
   (exclude||[]).forEach(function(h){
     excluded[str(h)]=1;
   });
+
   var rc=ctx.realCompi||{};
+
   var arr=(scored||[])
     .filter(function(x){
       return (
@@ -799,6 +956,7 @@ function chooseFukuJump(ctx,scored,exclude){
         num(x.fuku)<=15
       );
     });
+
   arr.sort(function(a,b){
     return (
       compiRank(rc,a.h)-
@@ -806,26 +964,33 @@ function chooseFukuJump(ctx,scored,exclude){
       num(b.score)-num(a.score)
     );
   });
+
   return arr[0]
     ?str(arr[0].h)
     :null;
 }
+
 function chooseWallHole(ctx,scored,tickets,exclude){
   var excluded={};
+
   (exclude||[]).forEach(function(h){
     excluded[str(h)]=1;
   });
+
   var profile=(tickets&&tickets.raceIntegration)||{};
   var san=ctx.sanTableV257||{};
   var map={};
   var cmap=compiMap(ctx.realCompi||{});
+
   function put(h,point,why){
     h=str(h);
+
     if(
       !h||
       excluded[h]||
       num(getTF(ctx,h).fuku)>20
     )return;
+
     if(!map[h]){
       map[h]={
         h:h,
@@ -833,9 +998,12 @@ function chooseWallHole(ctx,scored,tickets,exclude){
         reasons:[]
       };
     }
+
     map[h].score+=point;
+
     if(why)map[h].reasons.push(why);
   }
+
   if(
     !san.axisTable&&
     tickets&&
@@ -848,18 +1016,22 @@ function chooseWallHole(ctx,scored,tickets,exclude){
       '旧最強穴'
     );
   }
+
   ((((profile||{}).wall||{}).front)||[])
     .forEach(function(h){
       put(h,28,'複勝10倍壁前');
     });
+
   ((((profile||{}).wall||{}).promoted)||[])
     .forEach(function(h){
       put(h,20,'壁前3頭目');
     });
+
   (scored||[]).forEach(function(x){
     var reasons=str(
       (x.reasons||[]).join('・')
     );
+
     if(
       /複勝10倍壁前|複勝15倍壁前|断層下2頭|欠点あり突出馬|単複ズレ大穴/.test(
         reasons
@@ -868,33 +1040,39 @@ function chooseWallHole(ctx,scored,tickets,exclude){
       put(x.h,10,'穴サイン');
     }
   });
+
   Object.keys(map).forEach(function(h){
     var x=map[h];
     var score=scoreObject(scored,h);
     var compi=cmap[h];
     var row=getTF(ctx,h);
+
     if(score){
       x.score+=Math.min(
         22,
         num(score.score)/5
       );
     }
+
     if(compi){
       x.score+=Math.max(
         0,
         10-compi.rank
       );
     }
+
     if(
       num(row.fuku)>=6&&
       num(row.fuku)<=15
     ){
       x.score+=6;
     }
+
     if(num(row.tan)>60){
       x.score-=6;
     }
   });
+
   var arr=Object.keys(map)
     .map(function(h){
       return map[h];
@@ -906,27 +1084,34 @@ function chooseWallHole(ctx,scored,tickets,exclude){
         num(getTF(ctx,b.h).tan)
       );
     });
+
   return arr[0]
     ?arr[0].h
     :null;
 }
+
 function singleEvidence(ctx,ms,scored,tickets,h,axis){
   h=str(h);
+
   var evidence=0;
   var reasons=[];
   var rank=compiRank(
     ctx.realCompi||{},
     h
   );
+
   var score=scoreObject(scored,h);
+
   if(rank<=3){
     evidence++;
     reasons.push('実コンピ'+rank+'位');
   }
+
   if(h===str(axis)){
     evidence++;
     reasons.push('構造軸');
   }
+
   if(
     ms&&
     ms.top&&
@@ -935,9 +1120,11 @@ function singleEvidence(ctx,ms,scored,tickets,h,axis){
     evidence++;
     reasons.push('まっちゃん単勝本線');
   }
+
   var win5=
     ((((tickets||{}).v247||{}).win5||{}).selected||
     [];
+
   if(
     win5[0]&&
     str(win5[0].h)===h
@@ -945,15 +1132,18 @@ function singleEvidence(ctx,ms,scored,tickets,h,axis){
     evidence++;
     reasons.push('WIN5式1位');
   }
+
   if(score&&num(score.score)>=90){
     evidence++;
     reasons.push('候補90点以上');
   }
+
   return {
     count:evidence,
     reasons:reasons
   };
 }
+
 function makeSingle(
   ctx,
   ms,
@@ -965,7 +1155,9 @@ function makeSingle(
   why
 ){
   h=str(h);
+
   if(!h)return null;
+
   var row=getTF(ctx,h);
   var tan=num(row.tan);
   var evidence=singleEvidence(
@@ -976,7 +1168,9 @@ function makeSingle(
     h,
     axis
   );
+
   var amount='100円';
+
   if(
     tan>=3&&
     tan<=35&&
@@ -984,6 +1178,7 @@ function makeSingle(
   ){
     amount='300円';
   }
+
   /*
    * 1000円は4条件以上＋コンピ4位以内。
    * 本命強保護レースで別馬を1000円にはしない。
@@ -1000,7 +1195,9 @@ function makeSingle(
   ){
     amount='1000円';
   }
+
   if(tan<2.5)amount='100円';
+
   return {
     h:h,
     amount:amount,
@@ -1012,43 +1209,53 @@ function makeSingle(
       )
   };
 }
+
 function buildPlan(ctx,ms,scored,adv,tickets){
   var rc=ctx.realCompi||{};
   var san=ctx.sanTableV257||detectSanTable(ctx);
   var trust=favoriteTrust(ctx);
   var common=commonWallLock(ctx);
   var triangle=triangleLock(ctx);
+
   var profile=tickets.raceIntegration||{};
   var oldAxis=str(
     ((tickets.matchanAxis||{}).axis)||
     ((profile.axis||{}).h)||
     ''
   );
+
   var top=
     rc.complete&&rc.top
       ?str(rc.top.h)
       :'';
+
   var mode='既存司令塔補強';
   var name=profile.name||'中荒れ混戦型';
   var axis=str((profile.axis||{}).h||'');
   var axisSource=(profile.axis||{}).source||'既存構造軸';
+
   var core=[];
   var head=null;
   var hole=null;
   var abilityHole=null;
   var fukuJump=null;
   var stable=[];
+
   var tris=[];
   var wides=[];
   var umas=[];
   var singles=[];
+
   var decision='';
   var notes=[];
+
   if(common.on){
     mode='五市場共通壁ロック';
     name='五市場共通壁ロック型';
     core=common.horses.slice();
+
     var combinations=[];
+
     for(var i=0;i<core.length;i++){
       for(var j=i+1;j<core.length;j++){
         for(var k=j+1;k<core.length;k++){
@@ -1061,16 +1268,19 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         }
       }
     }
+
     tris=sortKnownTris(
       ctx,
       combinations
     ).slice(0,4);
+
     hole=chooseWallHole(
       ctx,
       scored,
       tickets,
       core
     );
+
     if(hole&&core.length>=2){
       addTri(
         tris,
@@ -1079,16 +1289,20 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         hole
       );
     }
+
     tris=unique(tris).slice(0,5);
+
     axis='';
     axisSource=
       '五市場共通壁ロック・単独軸なし';
+
     stable=stableCandidates(
       ctx,
       scored,
       tickets,
       []
     );
+
     stable.filter(function(x){
       return (
         core.indexOf(x.h)>=0&&
@@ -1105,8 +1319,10 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         trust,
         '共通壁内・勝ち切り候補'
       );
+
       if(row)singles.push(row);
     });
+
     if(core[0]&&core[1]){
       addPair(
         umas,
@@ -1114,6 +1330,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         core[1]
       );
     }
+
     if(core[0]&&hole){
       addPair(
         wides,
@@ -1121,27 +1338,35 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         hole
       );
     }
+
     decision=
       '壁内共通馬を最優先。壁内だけの三連複を最低2点残し、外部穴は1券1頭まで。';
+
     notes.push(
       '上位4頭ロック解除を禁止'
     );
+
   }else if(triangle.on){
     mode='三強三角ロック';
     name='三強三角ロック・1頭侵入型';
+
     core=triangle.horses.slice();
+
     axis=core[0];
     axisSource=
       '三強三角ロック・馬券内保護';
+
     fukuJump=chooseFukuJump(
       ctx,
       scored,
       core
     );
+
     abilityHole=chooseAbilityHole(
       ctx,
       core
     );
+
     hole=
       fukuJump||
       abilityHole||
@@ -1151,12 +1376,14 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         tickets,
         core
       );
+
     addTri(
       tris,
       core[0],
       core[1],
       core[2]
     );
+
     if(hole){
       addTri(
         tris,
@@ -1164,6 +1391,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         core[1],
         hole
       );
+
       addTri(
         tris,
         core[0],
@@ -1171,6 +1399,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         hole
       );
     }
+
     stable=stableCandidates(
       ctx,
       scored,
@@ -1179,6 +1408,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         hole?[hole]:[]
       )
     );
+
     if(stable[0]){
       addTri(
         tris,
@@ -1187,6 +1417,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         stable[0].h
       );
     }
+
     var wallHole=chooseWallHole(
       ctx,
       scored,
@@ -1195,6 +1426,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         hole?[hole]:[]
       )
     );
+
     if(wallHole){
       addTri(
         tris,
@@ -1203,24 +1435,29 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         wallHole
       );
     }
+
     tris=unique(tris).slice(0,5);
+
     if(hole){
       addPair(
         wides,
         core[1],
         hole
       );
+
       addPair(
         wides,
         core[0],
         hole
       );
     }
+
     addPair(
       umas,
       core[0],
       core[1]
     );
+
     var secondSingle=makeSingle(
       ctx,
       ms,
@@ -1231,14 +1468,18 @@ function buildPlan(ctx,ms,scored,adv,tickets){
       trust,
       '三強内・頭替わり候補'
     );
+
     if(secondSingle){
       singles.push(secondSingle);
     }
+
     decision=
       '三強から最低2頭を全券に残し、外部穴は1頭だけ侵入。三強本線を必ず保護。';
+
     notes.push(
       '旧三強ロック解除をV2.57で再ロック'
     );
+
   }else if(
     san.axisTable&&
     rc.complete&&
@@ -1246,9 +1487,11 @@ function buildPlan(ctx,ms,scored,adv,tickets){
   ){
     mode='軸別三連複表除外';
     name='軸別三連複表・独立再構成型';
+
     axis=top;
     axisSource=
       '実コンピ残り軸・軸別表は全体判定除外';
+
     stable=stableCandidates(
       ctx,
       scored,
@@ -1258,6 +1501,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         san.axis
       ]
     );
+
     hole=chooseWallHole(
       ctx,
       scored,
@@ -1267,6 +1511,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         san.axis
       ]
     );
+
     if(stable[0]&&hole){
       addTri(
         tris,
@@ -1275,6 +1520,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         hole
       );
     }
+
     if(stable[1]&&hole){
       addTri(
         tris,
@@ -1283,6 +1529,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         hole
       );
     }
+
     var secondHole=chooseWallHole(
       ctx,
       scored,
@@ -1293,6 +1540,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         hole
       ]
     );
+
     if(stable[0]&&secondHole){
       addTri(
         tris,
@@ -1301,7 +1549,9 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         secondHole
       );
     }
+
     tris=unique(tris).slice(0,3);
+
     if(stable[0]){
       addPair(
         umas,
@@ -1309,12 +1559,14 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         stable[0].h
       );
     }
+
     if(hole){
       addPair(
         wides,
         top,
         hole
       );
+
       if(stable[0]){
         addPair(
           wides,
@@ -1323,6 +1575,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         );
       }
     }
+
     var topSingle=makeSingle(
       ctx,
       ms,
@@ -1333,15 +1586,19 @@ function buildPlan(ctx,ms,scored,adv,tickets){
       trust,
       '実コンピ1位・軸別表除外後'
     );
+
     if(topSingle){
       singles.push(topSingle);
     }
+
     decision=
       '軸別三連複表は全体人気・壁・ジャンプ・構造軸には使用せず、単複・馬連・ワイド・実コンピで再構成。';
+
     notes.push(
       san.axis+
       '番固定表を市場全体支持から除外'
     );
+
   }else if(
     rc.complete&&
     rc.structure==='1頭能力抜け'&&
@@ -1349,15 +1606,18 @@ function buildPlan(ctx,ms,scored,adv,tickets){
   ){
     mode='コンピ残り軸＋頭替わり';
     name='コンピ断然・頭替わり警戒型';
+
     axis=top;
     axisSource=
       '実コンピ1頭能力抜け・馬券内残り軸';
+
     stable=stableCandidates(
       ctx,
       scored,
       tickets,
       [top]
     );
+
     if(
       oldAxis&&
       oldAxis!==top&&
@@ -1365,6 +1625,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
     ){
       head=oldAxis;
     }
+
     if(
       !head&&
       ms&&
@@ -1374,9 +1635,11 @@ function buildPlan(ctx,ms,scored,adv,tickets){
     ){
       head=str(ms.top.h);
     }
+
     if(!head&&stable[0]){
       head=stable[0].h;
     }
+
     abilityHole=chooseAbilityHole(
       ctx,
       [
@@ -1384,6 +1647,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         head
       ]
     );
+
     hole=
       abilityHole||
       chooseWallHole(
@@ -1395,6 +1659,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
           head
         ]
       );
+
     stable=stableCandidates(
       ctx,
       scored,
@@ -1405,6 +1670,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         hole
       ]
     );
+
     if(head&&hole){
       addTri(
         tris,
@@ -1413,6 +1679,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         hole
       );
     }
+
     if(head&&stable[0]){
       addTri(
         tris,
@@ -1421,6 +1688,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         stable[0].h
       );
     }
+
     if(stable[0]&&hole){
       addTri(
         tris,
@@ -1429,6 +1697,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         hole
       );
     }
+
     var extraHole=chooseWallHole(
       ctx,
       scored,
@@ -1439,6 +1708,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         hole
       ]
     );
+
     if(head&&extraHole){
       addTri(
         tris,
@@ -1447,7 +1717,9 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         extraHole
       );
     }
+
     tris=unique(tris).slice(0,4);
+
     if(head){
       addPair(
         umas,
@@ -1455,12 +1727,14 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         head
       );
     }
+
     if(hole){
       addPair(
         wides,
         top,
         hole
       );
+
       if(head){
         addPair(
           wides,
@@ -1469,6 +1743,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         );
       }
     }
+
     var headSingle=makeSingle(
       ctx,
       ms,
@@ -1479,9 +1754,11 @@ function buildPlan(ctx,ms,scored,adv,tickets){
       trust,
       'オッズ構造・頭替わり候補'
     );
+
     if(headSingle){
       singles.push(headSingle);
     }
+
     if(num(getTF(ctx,top).tan)>=2.5){
       var abilitySingle=makeSingle(
         ctx,
@@ -1493,12 +1770,15 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         trust,
         '実コンピ残り軸・頭候補'
       );
+
       if(abilitySingle){
         singles.push(abilitySingle);
       }
     }
+
     decision=
       'コンピ1位は1着固定ではなく馬券内に残す。オッズ構造の頭候補＋能力先行穴または壁穴を強制保護。';
+
     if(abilityHole){
       notes.push(
         '能力先行穴'+
@@ -1506,17 +1786,22 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         '番を最終三連複へ強制保護'
       );
     }
+
   }else{
     mode='本命信頼度分離・既存型補強';
+
     tris=
       ((((profile||{}).tickets||{}).tri)||[])
       .slice();
+
     wides=
       ((((profile||{}).tickets||{}).wide)||[])
       .slice();
+
     umas=
       ((((profile||{}).tickets||{}).uma)||[])
       .slice();
+
     singles=
       ((((profile||{}).tickets||{}).single)||[])
       .map(function(x){
@@ -1533,6 +1818,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
       })
       .filter(Boolean)
       .slice(0,2);
+
     if(
       rc.complete&&
       top&&
@@ -1545,6 +1831,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         oldAxis&&oldAxis!==top
           ?oldAxis
           :null;
+
       var defaultHole=
         chooseAbilityHole(
           ctx,
@@ -1570,6 +1857,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
             partner
           ]
         );
+
       if(partner&&defaultHole){
         addTri(
           tris,
@@ -1578,18 +1866,23 @@ function buildPlan(ctx,ms,scored,adv,tickets){
           defaultHole
         );
       }
+
       axis=top;
       axisSource=
         '実コンピ＋市場中心馬・馬券内保護';
+
       if(name==='偽本命崩れ型'){
         name='本命馬券内保護・相手荒れ型';
       }
     }
+
     tris=unique(tris).slice(0,5);
+
     decision=
       (((profile||{}).tickets||{}).decision)||
       '既存買い目へ本命信頼度と実コンピ保護を追加。';
   }
+
   singles=singles.map(function(x){
     if(x.amount==='1000円'){
       var evidence=singleEvidence(
@@ -1600,6 +1893,7 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         x.h,
         oldAxis
       );
+
       if(
         evidence.count<4||
         compiRank(rc,x.h)>4
@@ -1608,11 +1902,14 @@ function buildPlan(ctx,ms,scored,adv,tickets){
         x.why+='｜1000円自動昇格を抑制';
       }
     }
+
     return x;
   }).slice(0,2);
+
   tris=unique(tris).slice(0,5);
   wides=unique(wides).slice(0,2);
   umas=unique(umas).slice(0,3);
+
   var finalHole=
     hole||
     abilityHole||
@@ -1623,12 +1920,15 @@ function buildPlan(ctx,ms,scored,adv,tickets){
       tickets,
       axis?[axis]:[]
     );
+
   var partners=[];
+
   tris.forEach(function(key){
     str(key).split('-').forEach(function(h){
       if(h!==axis)pushUnique(partners,h);
     });
   });
+
   return {
     mode:mode,
     name:name,
@@ -1652,25 +1952,32 @@ function buildPlan(ctx,ms,scored,adv,tickets){
     triangle:triangle
   };
 }
+
 function applyPlan(plan,ctx,tickets,adv){
   var profile=tickets.raceIntegration||{};
+
   profile.name=plan.name;
+
   profile.axis={
     h:plan.axis||null,
     source:plan.axisSource,
     grade:plan.axis?'B':'C'
   };
+
   profile.where=
     plan.name.indexOf('三強')>=0
       ?'2〜3着中心'
       :'1〜3着';
+
   profile.participation='条件付きで買い';
   profile.strategy=plan.decision;
+
   profile.reasons=unique(
     [plan.mode].concat(
       profile.reasons||[]
     )
   ).slice(0,7);
+
   profile.tickets={
     single:plan.single.slice(),
     wide:plan.wide.slice(),
@@ -1684,16 +1991,21 @@ function applyPlan(plan,ctx,tickets,adv){
     partnerHorses:
       plan.partners.slice(0,2)
   };
+
   tickets.raceIntegration=profile;
   window.__raceIntegrationLatest=profile;
+
   var axis=tickets.matchanAxis||{};
+
   axis.branch='V257_COMMAND';
   axis.label=plan.mode;
   axis.axis=plan.axis||null;
   axis.axisSource=plan.axisSource;
   axis.protect=plan.hole||null;
+
   axis.stat=
     'V2.57共通ルール：穴候補点と本命信頼度を分離し、実コンピ・共通壁・三強・軸別表を優先';
+
   axis.head={
     grade:plan.axis?'B':'C',
     on:false,
@@ -1704,6 +2016,7 @@ function applyPlan(plan,ctx,tickets,adv){
       '1000円は4条件必須'
     ]
   };
+
   axis.tickets={
     wide:plan.wide.slice(),
     uma:plan.uma.slice(),
@@ -1712,16 +2025,23 @@ function applyPlan(plan,ctx,tickets,adv){
     sanrentan:[],
     partners:plan.partners.slice()
   };
+
   tickets.matchanAxis=axis;
+
   if(adv)adv.matchanAxis=axis;
+
   window.__matchanAxisLatest=axis;
+
   var final=tickets.finalFour||{};
+
   final.axis={
     h:plan.axis||null,
     note:plan.axisSource
   };
+
   final.partners=
     plan.partners.slice(0,2);
+
   final.hole={
     h:plan.hole||null,
     note:plan.abilityHole
@@ -1729,11 +2049,13 @@ function applyPlan(plan,ctx,tickets,adv){
       :'壁・構造穴',
     strength:plan.hole?85:0
   };
+
   if(plan.single[0]){
     var row=getTF(
       ctx,
       plan.single[0].h
     );
+
     final.single={
       h:plan.single[0].h,
       tan:row.tan,
@@ -1769,10 +2091,15 @@ function applyPlan(plan,ctx,tickets,adv){
         '・厚張り条件なし'
     };
   }
+
   tickets.finalFour=final;
+
   if(adv)adv.finalFour=final;
+
   window.__finalFourLatest=final;
+
   var rc=ctx.realCompi||{};
+
   if(rc.complete){
     rc.applied=true;
     rc.applyReason=
@@ -1784,12 +2111,16 @@ function applyPlan(plan,ctx,tickets,adv){
         return x.h;
       });
   }
+
   tickets.realCompiV256=rc;
   tickets.v257=plan;
+
   if(adv)adv.v257=plan;
+
   window.__realCompiAppliedLatest=rc;
   window.__v257Latest=plan;
 }
+
 window.makeTickets=function(ctx,ms,scored,sw,adv){
   var tickets=OLD_TICKETS(
     ctx,
@@ -1798,6 +2129,7 @@ window.makeTickets=function(ctx,ms,scored,sw,adv){
     sw,
     adv
   );
+
   try{
     var plan=buildPlan(
       ctx,
@@ -1806,6 +2138,7 @@ window.makeTickets=function(ctx,ms,scored,sw,adv){
       adv,
       tickets
     );
+
     applyPlan(
       plan,
       ctx,
@@ -1820,18 +2153,24 @@ window.makeTickets=function(ctx,ms,scored,sw,adv){
           :error
       )
     };
+
     window.__v257Latest=tickets.v257;
   }
+
   return tickets;
 };
+
 function horseList(arr){
   if(!arr||!arr.length)return'なし';
+
   return arr.map(function(x){
     return str(x.h||x)+'番';
   }).join('・');
 }
+
 function renderV257(plan){
   if(!plan)return'';
+
   if(plan.error){
     return (
       '<div class="card v257Card">'+
@@ -1842,26 +2181,32 @@ function renderV257(plan){
       '</pre></div>'
     );
   }
+
   return (
     '<div class="card v257Card">'+
     '<div class="v257Title">'+
     '🧭V2.57 司令塔・優先順位再設計'+
     '</div>'+
+
     '<div class="v257Mode">'+
     plan.mode+
     '</div>'+
+
     '<div class="v257Grid">'+
+
     '<div class="v257Box">'+
     '<div class="v257Label">本命信頼度</div>'+
     '<div class="v257Value">'+
     plan.trust.level+
     ' / '+plan.trust.score+'点'+
     '</div></div>'+
+
     '<div class="v257Box">'+
     '<div class="v257Label">三連複入力種別</div>'+
     '<div class="v257Value">'+
     plan.san.label+
     '</div></div>'+
+
     '<div class="v257Box">'+
     '<div class="v257Label">共通壁ロック</div>'+
     '<div class="v257Value">'+
@@ -1871,6 +2216,7 @@ function renderV257(plan){
         :'非発動'
     )+
     '</div></div>'+
+
     '<div class="v257Box">'+
     '<div class="v257Label">三強三角ロック</div>'+
     '<div class="v257Value">'+
@@ -1880,6 +2226,7 @@ function renderV257(plan){
         :'非発動'
     )+
     '</div></div>'+
+
     '<div class="v257Box">'+
     '<div class="v257Label">残り軸・保護馬</div>'+
     '<div class="v257Value">'+
@@ -1889,6 +2236,7 @@ function renderV257(plan){
         :'単独軸なし'
     )+
     '</div></div>'+
+
     '<div class="v257Box">'+
     '<div class="v257Label">能力先行・壁穴</div>'+
     '<div class="v257Value">'+
@@ -1898,11 +2246,14 @@ function renderV257(plan){
         :'なし'
     )+
     '</div></div>'+
+
     '</div>'+
+
     '<div class="v257Rule">'+
     '候補点は穴馬発見専用。本命信頼度は実コンピ・馬連・ワイド・三連複・複勝支持で独立判定。'+
     '<br>単勝1000円は勝ち切り根拠4条件＋実コンピ4位以内が必須。'+
     '</div>'+
+
     '<div class="v257Tri">'+
     'V2.57 強制保護三連複<br>'+
     (
@@ -1911,11 +2262,14 @@ function renderV257(plan){
         :'なし'
     )+
     '</div>'+
+
     '</div>'
   );
 }
+
 function copyV257(plan){
   if(!plan)return'';
+
   if(plan.error){
     return (
       '\n🧭V2.57 司令塔エラー\n'+
@@ -1923,6 +2277,7 @@ function copyV257(plan){
       '\n'
     );
   }
+
   return (
     '\n🧭V2.57 司令塔・優先順位再設計\n'+
     '最優先モード：'+plan.mode+'\n'+
@@ -1972,6 +2327,7 @@ function copyV257(plan){
     '単勝1000円制限：勝ち切り根拠4条件＋実コンピ4位以内が必須\n'
   );
 }
+
 window.makeCopyText=function(
   data,
   diag,
@@ -1994,9 +2350,11 @@ window.makeCopyText=function(
     moves,
     adv
   );
+
   var plan=
     (tickets&&tickets.v257)||
     window.__v257Latest;
+
   text=text
     .replace(
       /競馬メジアン V2\.56/g,
@@ -2010,6 +2368,7 @@ window.makeCopyText=function(
       /🟠V2\.56 本物コンピ指数・独立検証＋限定補正/g,
       '🟠V2.57 本物コンピ指数・全レース役割補正'
     );
+
   if(
     plan&&
     plan.san&&
@@ -2020,6 +2379,7 @@ window.makeCopyText=function(
       '三連複：軸別表のため全体壁判定から除外'
     );
   }
+
   if(
     plan&&
     plan.common&&
@@ -2030,9 +2390,11 @@ window.makeCopyText=function(
       '上位4頭安定ロック：V2.57共通壁ロック維持'
     );
   }
+
   var position=text.indexOf(
     '\n🩺レース診断'
   );
+
   if(position>=0){
     text=
       text.slice(0,position)+
@@ -2041,23 +2403,30 @@ window.makeCopyText=function(
   }else{
     text+=copyV257(plan);
   }
+
   return text;
 };
+
 window.run=function(){
   OLD_RUN();
+
   try{
     var plan=window.__v257Latest;
     var out=document.getElementById('out');
+
     if(out){
       var old=out.querySelector(
         '.v257Card'
       );
+
       if(old&&old.parentNode){
         old.parentNode.removeChild(old);
       }
+
       var raceType=out.querySelector(
         '.raceTypeCard'
       );
+
       if(raceType){
         raceType.insertAdjacentHTML(
           'afterend',
@@ -2069,6 +2438,7 @@ window.run=function(){
           renderV257(plan)
         );
       }
+
       if(
         plan&&
         plan.triangle&&
@@ -2077,6 +2447,7 @@ window.run=function(){
         var oldLock=out.querySelector(
           '.lock243'
         );
+
         if(
           oldLock&&
           !oldLock.querySelector(
@@ -2091,6 +2462,7 @@ window.run=function(){
           );
         }
       }
+
       if(
         plan&&
         plan.common&&
@@ -2102,6 +2474,7 @@ window.run=function(){
             '上位4頭安定ロック：V2.57共通壁ロック維持'
           );
       }
+
       if(
         plan&&
         plan.san&&
@@ -2113,6 +2486,7 @@ window.run=function(){
             '三連複：軸別表のため全体壁判定から除外'
           );
       }
+
       out.innerHTML=
         out.innerHTML
           .replace(
@@ -2124,6 +2498,7 @@ window.run=function(){
             '【V2.57司令塔】'
           );
     }
+
     if(typeof latestCopyText==='string'){
       latestCopyText=
         latestCopyText.replace(
@@ -2131,15 +2506,19 @@ window.run=function(){
           'V2.57'
         );
     }
+
     var h=document.querySelector('h1');
+
     if(h){
       h.innerHTML=
         'チャッピー神予想 競馬 V2.57<br>'+
         '🧭本命信頼度と穴候補点を完全分離<br>'+
         '🟠本物コンピ全レース連動＋最終買い目強制保護';
     }
+
   }catch(error){
     var output=document.getElementById('out');
+
     if(output){
       output.insertAdjacentHTML(
         'afterbegin',
@@ -2157,6 +2536,6 @@ window.run=function(){
     }
   }
 };
+
 })();
 </script>
-
