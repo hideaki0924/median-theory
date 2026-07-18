@@ -3246,8 +3246,7 @@ window.run=function(){OLD_RUN();try{var p=window.__v257Latest,out=document.getEl
 
 <script>
 window.addEventListener('DOMContentLoaded',function(){
-  sample();
-  setTimeout(function(){ run(); },0);
+  if(typeof clearAll==='function')clearAll();
 });
 </script>
 <script>
@@ -3348,5 +3347,99 @@ var style=document.createElement('style');style.id='v258-official-style';style.t
 })();
 /* V2.58 OFFICIAL PATCH END */
 </script>
+<script id="v259-box-correction">
+/* V2.59 INTEGRATED CORRECTION: WIN5 independent + aggregate five-horse trifecta box */
+(function(){
+'use strict';
+var PREV_TICKETS=window.makeTickets;
+var PREV_COPY=window.makeCopyText;
+var PREV_RUN=window.run;
+var PREV_CLEAR=window.clearAll;
+
+function S(v){return String(v==null?'':v).trim();}
+function N(v,d){var x=Number(v);return Number.isFinite(x)?x:(d||0);}
+function U(a){var o=[],m={};(a||[]).forEach(function(v){v=S(v);if(v&&!m[v]){m[v]=1;o.push(v);}});return o;}
+function H(v){if(v==null)return'';if(typeof v==='string'||typeof v==='number')return S(v);return S(v.h||v.horse||v.no||'');}
+function K3(a,b,c){return [S(a),S(b),S(c)].sort(function(x,y){return N(x)-N(y);}).join('-');}
+function triBox(hs){var out=[];for(var i=0;i<hs.length;i++)for(var j=i+1;j<hs.length;j++)for(var k=j+1;k<hs.length;k++)out.push(K3(hs[i],hs[j],hs[k]));return out;}
+function scoreItem(scored,h){h=S(h);for(var i=0;i<(scored||[]).length;i++)if(S(scored[i].h)===h)return scored[i];return null;}
+function reasons(scored,h){var x=scoreItem(scored,h);return x?S((x.reasons||[]).join('・')):'';}
+function compRank(ctx,h){h=S(h);var a=((((ctx||{}).realCompi)||{}).ranked)||[];for(var i=0;i<a.length;i++)if(S(a[i].h)===h)return i+1;return 99;}
+function tf(ctx,h){h=S(h);var lists=[((ctx||{}).tanfuku)||[],((ctx||{}).tanRank)||[],((ctx||{}).fukuRank)||[]];for(var z=0;z<lists.length;z++){var a=lists[z];for(var i=0;i<a.length;i++)if(S(a[i].h)===h)return a[i];}return{};}
+function topWin5(t){return (((((t||{}).v247||{}).win5||{}).selected)||[]).slice(0,3).map(H).filter(Boolean);}
+function topCompi(ctx){return (((ctx||{}).realCompi||{}).ranked||[]).slice(0,3).map(H).filter(Boolean);}
+function topCandidates(scored){return (scored||[]).slice(0,3).map(H).filter(Boolean);}
+function gateMap(adv){var m={},a=(((((adv||{}).ooanaGate)||{}).items)||[]);a.forEach(function(x){m[S(x.h)]=N(x.count);});return m;}
+function wallFront(t){var r=((((t||{}).raceIntegration)||{}).wall)||{};return U([].concat(r.front||[],r.promoted||[]).map(H));}
+function candidateMap(ctx,ms,scored,t,adv){
+ var map={},groups=[{name:'候補上位',arr:topCandidates(scored)},{name:'WIN5式',arr:topWin5(t)},{name:'実コンピ',arr:topCompi(ctx)}];
+ groups.forEach(function(g){g.arr.forEach(function(h,i){h=S(h);if(!map[h])map[h]={h:h,votes:0,rankPoints:0,sources:[]};map[h].votes++;map[h].rankPoints+=(3-i);map[h].sources.push(g.name+(i+1)+'位');});});
+ var gm=gateMap(adv),msTop=H((ms||{}).top||'')||H((((t||{}).finalFour)||{}).single||'');
+ Object.keys(map).forEach(function(h){var x=map[h],so=scoreItem(scored,h),rr=reasons(scored,h);x.tie=0;if(so)x.tie+=Math.min(30,N(so.score)/4);if(gm[h]>=4)x.tie+=22;else if(gm[h]>=3)x.tie+=10;if(/複勝6倍内メジアン|三連複先行支持ジャンプ/.test(rr))x.tie+=8;if((t&&t.finalFour&&t.finalFour.single&&S(t.finalFour.single.h)===h)||msTop===h)x.tie+=10;var cr=compRank(ctx,h);if(cr<=6)x.tie+=(7-cr)*2;});
+ return{map:map,groups:groups};
+}
+function specialCandidates(ctx,scored,t,adv,exclude){
+ var ex={};(exclude||[]).forEach(function(h){ex[S(h)]=1;});var gm=gateMap(adv),wf=wallFront(t),ids={},ffo=((adv||{}).falseFavorite)||{},ffWall=(ffo.wall||[]).map(H),virtual15=((((adv||{}).ooanaGate)||{}).virtual15||{}).items||[],ffTags={};
+ (ffo.reasons||[]).forEach(function(txt){txt=S(txt);var m=txt.match(/(?:複勝15倍壁末端\/単複ズレ大穴|複勝15倍壁末端・単複ズレ大穴)\s*(\d+)番/);if(m){ffTags[m[1]]=['15倍壁末端','単複ズレ','末端×ズレ'];ids[m[1]]=1;}});
+ (scored||[]).forEach(function(x){ids[S(x.h)]=1;});Object.keys(gm).forEach(function(h){ids[h]=1;});wf.forEach(function(h){ids[h]=1;});ffWall.forEach(function(h){ids[h]=1;});virtual15.forEach(function(h){ids[S(h)]=1;});
+ var ff=(t||{}).finalFour||{};if(ff.hole&&ff.hole.h)ids[S(ff.hole.h)]=1;
+ var arr=[];Object.keys(ids).forEach(function(h){if(!h||ex[h])return;var rr=reasons(scored,h),so=scoreItem(scored,h),row=tf(ctx,h),score=0,tags=[];
+  var g=gm[h]||0;if(g>=4){score+=55;tags.push('青白光4関門');}else if(g===3){score+=24;tags.push('青白光3関門');}
+  if(wf.indexOf(h)>=0){score+=30;tags.push('壁前');}
+  if(ffWall.indexOf(h)>=0){score+=58;tags.push('大荒れ壁末端');}
+  if(virtual15.map(S).indexOf(h)>=0){score+=16;tags.push('仮想15倍壁前');}
+  if(ffTags[h]){score+=155;tags=tags.concat(ffTags[h]);}
+  if(/複勝15倍壁末端/.test(rr)){score+=48;tags.push('15倍壁末端');}
+  if(/単複ズレ大穴/.test(rr)){score+=42;tags.push('単複ズレ');}
+  if(/複勝15倍壁前/.test(rr)){score+=24;tags.push('15倍壁前');}
+  if(/複勝10倍壁前/.test(rr)){score+=18;tags.push('10倍壁前');}
+  if(/断層下2頭/.test(rr)){score+=38;tags.push('断層下');}
+  if(/欠点あり突出馬/.test(rr)){score+=20;tags.push('突出馬');}
+  if(/能力先行穴/.test(rr)){score+=18;tags.push('能力先行穴');}
+  if(/複勝15倍壁末端/.test(rr)&&/単複ズレ大穴/.test(rr)){score+=65;tags.push('末端×ズレ');}
+  if(ff.hole&&S(ff.hole.h)===h){score+=14;tags.push('最強穴表示');}
+  if(so)score+=Math.min(18,N(so.score)/6);
+  var cr=compRank(ctx,h);if(cr<=10)score+=Math.max(0,12-cr)*2;
+  var fu=N(row.fuku,99),ta=N(row.tan,0);if(fu>=6&&fu<=15)score+=10;if(ta>=20)score+=5;
+  if(tags.length>=2||g>=4)arr.push({h:h,score:score,tags:U(tags),gate:g,cr:cr});
+ });
+ arr.sort(function(a,b){return b.score-a.score||a.cr-b.cr||N(a.h)-N(b.h);});return arr;
+}
+function roughOn(t,adv){var p=(t||{}).raceIntegration||{},name=S(p.name),sig=((adv||{}).falseFavorite||{}).on||((adv||{}).signal||{}).on;return !!(sig||/大荒れ|無壁|拮抗|混戦/.test(name)||window.__noWallPlanLatest);}
+function buildFive(ctx,ms,scored,t,adv){
+ var c=candidateMap(ctx,ms,scored,t,adv),regular=Object.keys(c.map).map(function(h){return c.map[h];});regular.sort(function(a,b){return b.votes-a.votes||b.rankPoints-a.rankPoints||b.tie-a.tie||N(a.h)-N(b.h);});
+ var initial=regular.slice(0,4).map(function(x){return x.h;}),special=specialCandidates(ctx,scored,t,adv,[]),strongSpecial=special.filter(function(x){return x.gate>=4||x.tags.indexOf('末端×ズレ')>=0;});
+ var specialTwo=!!((((adv||{}).falseFavorite||{}).on)&&strongSpecial.length>=2);
+ var baseCount=specialTwo?3:4,base=regular.slice(0,baseCount).map(function(x){return x.h;}),holes=specialCandidates(ctx,scored,t,adv,base).slice(0,specialTwo?2:1);
+ holes.forEach(function(x){base.push(x.h);});
+ if(base.length<5){regular.forEach(function(x){if(base.length<5&&base.indexOf(x.h)<0)base.push(x.h);});}
+ if(base.length<5){special.forEach(function(x){if(base.length<5&&base.indexOf(x.h)<0)base.push(x.h);});}
+ base=U(base).slice(0,5);
+ var win=topWin5(t),msHorse=H((ms||{}).top||'')||H((((t||{}).finalFour)||{}).single||''),forced=[];
+ if(specialTwo&&holes.length>=2&&win[0])forced.push(K3(win[0],holes[0].h,holes[1].h));
+ else if(msHorse&&holes[0]){var winBest=win.slice(0,2).sort(function(a,b){return compRank(ctx,a)-compRank(ctx,b);})[0];if(winBest&&U([winBest,msHorse,holes[0].h]).length===3)forced.push(K3(winBest,msHorse,holes[0].h));}
+ return{on:base.length===5,buyOn:roughOn(t,adv),mode:specialTwo?'重複上位3頭＋特殊穴2頭':'重複上位4頭＋特殊穴1頭',horses:base,tri:triBox(base),forced:U(forced),special:holes,regular:regular.slice(0,8),groups:c.groups};
+}
+function addTriToFinal(t,items){function add(o){if(!o||!Array.isArray(o.tri))return;(items||[]).slice().reverse().forEach(function(k){o.tri=o.tri.filter(function(x){return S(x)!==k;});o.tri.unshift(k);});o.tri=o.tri.slice(0,5);}add(t.v257);add(t.raceTickets);add(t.raceTypeTickets);if(t.raceIntegration&&t.raceIntegration.tickets)add(t.raceIntegration.tickets);}
+function restoreWin5Role(t,ctx){var w=topWin5(t).slice(0,2);['raceTickets','raceTypeTickets'].forEach(function(k){var o=t[k];if(!o||!Array.isArray(o.single))return;w.forEach(function(h){if(compRank(ctx,h)<=4&&!o.single.some(function(x){return H(x)===h;}))o.single.push({h:h,amount:'100円',why:'WIN5式・独立勝ち切り候補'});});o.single=o.single.slice(0,3);});}
+
+window.makeTickets=function(ctx,ms,scored,sw,adv){var t=PREV_TICKETS(ctx,ms,scored,sw,adv);try{restoreWin5Role(t,ctx);var box=buildFive(ctx,ms,scored,t,adv);if(box.forced.length)addTriToFinal(t,box.forced);t.v259Box=box;window.__v259BoxLatest=box;if(adv)adv.v259Box=box;}catch(e){t.v259Box={on:false,error:S(e&&e.message?e.message:e)};window.__v259BoxLatest=t.v259Box;}return t;};
+
+function boxCopy(b){if(!b||!b.on)return'';var s='\n🧺V2.59 三連複・役割別5頭BOX\n';s+='判定：'+(b.buyOn?'発動・10点購入候補':'観察・警報時のみ購入')+'\n';s+='方式：'+b.mode+'\n';s+='選出：'+b.horses.map(function(h){return h+'番';}).join('・')+'\n';s+='特殊穴：'+(b.special.length?b.special.map(function(x){return x.h+'番（'+x.tags.join('・')+'）';}).join(' / '):'なし')+'\n';s+='三連複10点\n'+b.tri.join('\n')+'\n';if(b.forced.length)s+='最優先保護：'+b.forced.join(' / ')+'\n';s+='集計：候補上位3頭＋WIN5式上位3頭＋本物コンピ上位3頭。WIN5式は独立勝ち切り判定。\n';return s;}
+window.makeCopyText=function(data,diag,ctx,ms,sw,tickets,scored,moves,adv){var text=PREV_COPY(data,diag,ctx,ms,sw,tickets,scored,moves,adv),b=(tickets&&tickets.v259Box)||window.__v259BoxLatest;text=text.replace(/🏆WIN5式・補助候補（最終単勝へ自動昇格なし）/g,'🏆WIN5式・独立勝ち切り候補').replace(/WIN5は補助 \/ 5頭BOXは診断のみ/g,'WIN5は独立勝ち切り判定 / 5頭BOXは役割別10点');var block=boxCopy(b),at=text.indexOf('\n🎫レース種類連動・最終買い目');if(at>=0)text=text.slice(0,at)+block+text.slice(at);else text+=block;return text;};
+
+function esc(x){return S(x).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function boxHtml(b){if(!b||!b.on)return'';var rows=b.tri.map(function(x){return'<span class="v259Tri">'+esc(x)+'</span>';}).join('');var sp=b.special.length?b.special.map(function(x){return x.h+'番（'+x.tags.join('・')+'）';}).join(' / '):'なし';return'<div class="card v259BoxCard"><div class="v259Title">🧺V2.59 三連複・役割別5頭BOX</div><div class="v259State">'+(b.buyOn?'発動・10点購入候補':'観察・警報時のみ購入')+'</div><div class="v259Line"><b>方式：</b>'+esc(b.mode)+'</div><div class="v259Line"><b>選出：</b>'+b.horses.map(function(h){return'<span class="v259Horse">'+h+'番</span>';}).join(' ')+'</div><div class="v259Special"><b>特殊穴：</b>'+esc(sp)+'</div><div class="v259Grid">'+rows+'</div>'+(b.forced.length?'<div class="v259Force"><b>最優先保護：</b>'+esc(b.forced.join(' / '))+'</div>':'')+'<div class="v259Note">候補上位3頭＋WIN5式上位3頭＋本物コンピ上位3頭を集計。重複上位を軸に、特殊穴枠を必ず確保します。</div></div>';}
+function patchDom(){var out=document.getElementById('out'),b=window.__v259BoxLatest;if(!out)return;out.innerHTML=out.innerHTML.replace(/🏆WIN5式・補助候補（最終単勝へ自動昇格なし）/g,'🏆WIN5式・独立勝ち切り候補').replace(/WIN5式は補助候補へ降格。大荒れ5頭BOXは診断だけ残し、最終買い目へ自動採用しません。/g,'WIN5式は独立勝ち切り判定。役割別5頭BOXは警報時の三連複10点候補として表示します。');var old=out.querySelector('.v259BoxCard');if(old)old.remove();var anchor=out.querySelector('.v258OfficialCard')||out.querySelector('.raceTicketCard')||out.firstElementChild;if(anchor)anchor.insertAdjacentHTML('afterend',boxHtml(b));}
+function updateV259Title(){var h=document.querySelector('h1');if(h)h.innerHTML=h.innerHTML.replace(/V2\.58/g,'V2.59');document.title=document.title.replace(/V2\.58/g,'V2.59');}
+window.run=function(){PREV_RUN();try{patchDom();updateV259Title();if(typeof latestCopyText==='string')latestCopyText=latestCopyText.replace(/🏆WIN5式・補助候補（最終単勝へ自動昇格なし）/g,'🏆WIN5式・独立勝ち切り候補');}catch(e){}};
+window.clearAll=function(){if(typeof PREV_CLEAR==='function')PREV_CLEAR();window.__v259BoxLatest=null;var o=document.querySelector('.v259BoxCard');if(o)o.remove();};
+
+var st=document.createElement('style');st.id='v259-box-style';st.textContent='.v259BoxCard{border:3px solid #f59e0b;background:linear-gradient(135deg,#211000,#4a2400,#170a00);box-shadow:0 0 24px rgba(245,158,11,.5)}.v259Title{font-size:21px;font-weight:900;color:#fde68a}.v259State{display:inline-block;margin:8px 0;padding:5px 10px;border-radius:999px;background:#7c2d12;color:#fff7ed;font-weight:900}.v259Line,.v259Special,.v259Force,.v259Note{margin-top:8px;padding:8px;border:1px solid #f59e0b;border-radius:10px;background:#1c1005;line-height:1.55}.v259Horse{display:inline-block;margin:2px;padding:5px 9px;border-radius:999px;background:#78350f;border:1px solid #fbbf24;font-weight:900}.v259Grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:8px}.v259Tri{padding:7px;border-radius:8px;background:#2b1603;border:1px solid #d97706;font-weight:900;text-align:center}.v259Force{border-color:#fb7185;background:#4c0519;color:#ffe4e6}.v259Note{border-color:#67e8f9;background:#082f49;color:#cffafe;font-weight:900}@media(max-width:520px){.v259Grid{grid-template-columns:1fr 1fr}}';document.head.appendChild(st);
+var hd=document.getElementById('appTitle');if(hd)hd.innerHTML=hd.innerHTML.replace('V2.58','V2.59');document.title=document.title.replace('V2.58','V2.59');
+})();
+/* V2.59 INTEGRATED CORRECTION END */
+</script>
+
 </body>
 </html>
