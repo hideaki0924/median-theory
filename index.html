@@ -2315,8 +2315,8 @@ V2.50の擬似コンピを土台に、5市場の馬別順位合意で順位と�
   var heading = document.querySelector('h1');
   if(heading){
     heading.innerHTML =
-      'チャッピー神予想 競馬 V2.51<br>'+
-      '📊推定コンピ順位補正版＋大谷式荒れ計測<br>'+
+      'チャッピー神予想 競馬 V2.51<br>'+ 
+      '📊推定コンピ順位補正版＋大谷式荒れ計測<br>'+ 
       '5市場の順位合意・同点帯終端順位・欠損市場を補正';
   }
 
@@ -2418,7 +2418,7 @@ V2.50の擬似コンピを土台に、5市場の馬別順位合意で順位と�
     var corrected=horses.map(function(h){
       var b=baseMap[h]||{rank:N,index:40,support:0};
       var c=cMap[h]||{rank:N,score:0,coverage:0,topZone:0,bottomZone:0,ranks:{}};
-      var shift=n(b.rank,N)-n(c.rank,N); /* ＋なら市場順位合意が上 */
+      var shift=n(b.rank,N)-n(c.rank,N);
       var correction=Math.round(clamp(shift,-5,5)*.9);
       if(c.topZone>=3)correction+=1;
       if(c.bottomZone>=3)correction-=1;
@@ -2436,7 +2436,6 @@ V2.50の擬似コンピを土台に、5市場の馬別順位合意で順位と�
       return b.index-a.index||a.consensusRank-b.consensusRank||b.support-a.support||Number(a.h)-Number(b.h);
     });
 
-    /* 指数が逆転しないよう単調性を保ち、順位は合意スコアで厳密に決める。 */
     corrected.forEach(function(x,i){
       if(i>0&&x.index>corrected[i-1].index)x.index=corrected[i-1].index;
       x.rank=i+1;
@@ -2448,7 +2447,6 @@ V2.50の擬似コンピを土台に、5市場の馬別順位合意で順位と�
     var band=correctedBaseBand(corrected);
     var eligible=N>=14;
     var c1=!!(top&&top.index<=80);
-    /* 同点帯の先頭ではなく終端順位を採用し、裾の深さを過小評価しない。 */
     var c2=!!(band.available&&band.rankEnd>=11);
     var c3=diff!==null&&diff<=14;
     var big=eligible&&c1&&c2&&c3;
@@ -2490,28 +2488,28 @@ V2.50の擬似コンピを土台に、5市場の馬別順位合意で順位と�
       var width=clamp((x.index-40)/50*100,2,100);
       var corr=x.correction>0?('+'+x.correction):String(x.correction);
       return '<div class="pseudoCompi251Row">'+
-        '<div class="pseudoCompi251Rank">'+x.rank+'位</div>'+
-        '<div class="pseudoCompi251Horse">'+x.h+'番</div>'+
-        '<div class="pseudoCompi251Index">'+x.index+'</div>'+
-        '<div><div class="pseudoCompi251Move"><span class="'+moveClass(x.move)+'">旧'+x.baseRank+'位→新'+x.rank+'位 '+moveText(x.move)+'</span> / 旧'+x.baseIndex+'P / 補正'+corr+'P / 市場合意'+x.consensusRank+'位 / '+x.coverage+'市場</div><div class="pseudoCompi251Bar"><span style="width:'+width+'%"></span></div></div>'+
+        '<div class="pseudoCompi251Rank">'+x.rank+'位</div>'+ 
+        '<div class="pseudoCompi251Horse">'+x.h+'番</div>'+ 
+        '<div class="pseudoCompi251Index">'+x.index+'</div>'+ 
+        '<div><div class="pseudoCompi251Move"><span class="'+moveClass(x.move)+'">旧'+x.baseRank+'位→新'+x.rank+'位 '+moveText(x.move)+'</span> / 旧'+x.baseIndex+'P / 補正'+corr+'P / 市場合意'+x.consensusRank+'位 / '+x.coverage+'市場</div><div class="pseudoCompi251Bar"><span style="width:'+width+'%"></span></div></div>'+ 
       '</div>';
     }).join('');
     var baseText=base.available?(base.value+'P＝'+base.rankStart+'〜'+base.rankEnd+'位 '+base.horses.map(function(h){return h+'番';}).join('・')):'46〜40P該当なし';
     var marketText=(p.markets||[]).map(function(x){return x.key+Math.round(x.weight*100)+'%';}).join('・');
     return '<div class="card pseudoCompi251Card">'+
-      '<div class="pseudoCompi251Title">📊V2.51 推定コンピ順位補正版＋大谷式荒れ計測</div>'+
-      '<div class="pseudoCompi251Lead">V2.50の逆数支持指数に、単勝・複勝・馬連・ワイド・三連複の馬別順位合意を重ねて順位を補正します。本物の日刊コンピ指数ではなく、締切前オッズを同じ時点で比較する検証指数です。</div>'+
-      '<div class="pseudoCompi251Judge '+p.judgeClass+'">判定：'+p.judge+'</div>'+
+      '<div class="pseudoCompi251Title">📊V2.51 推定コンピ順位補正版＋大谷式荒れ計測</div>'+ 
+      '<div class="pseudoCompi251Lead">V2.50の逆数支持指数に、単勝・複勝・馬連・ワイド・三連複の馬別順位合意を重ねて順位を補正します。本物の日刊コンピ指数ではなく、締切前オッズを同じ時点で比較する検証指数です。</div>'+ 
+      '<div class="pseudoCompi251Judge '+p.judgeClass+'">判定：'+p.judge+'</div>'+ 
       (p.tooWild?'<div class="pseudoCompi251Alert">⚠️1位指数69以下：人気が割れすぎる別警戒ゾーン。軸固定を弱めてください。</div>':'')+
-      '<div class="pseudoCompi251Rules">順位補正：旧支持順位と5市場の合意順位の差を最大±5Pで反映。3市場以上で上位なら＋1P、3市場以上で下位なら－1P、2市場以下しか確認できない馬は－1P。基準指数は同点帯の最初ではなく<b>終端順位</b>で判定します。</div>'+
+      '<div class="pseudoCompi251Rules">順位補正：旧支持順位と5市場の合意順位の差を最大±5Pで反映。3市場以上で上位なら＋1P、3市場以上で下位なら－1P、2市場以下しか確認できない馬は－1P。基準指数は同点帯の最初ではなく<b>終端順位</b>で判定します。</div>'+ 
       '<div class="pseudoCompi251Conditions">'+
-        '<div class="pseudoCompi251Cond '+condClass(p.c1,c1near)+'"><div class="pseudoCompi251CondName">条件① 補正後1位指数</div><div class="pseudoCompi251CondValue">'+top.index+'P</div><div class="pseudoCompi251CondNote">80以下で合格'+(c1near?'／81は準大穴境界':'')+'</div></div>'+
-        '<div class="pseudoCompi251Cond '+condClass(p.c2,c2near)+'"><div class="pseudoCompi251CondName">条件② 基準指数帯の終端順位</div><div class="pseudoCompi251CondValue">'+baseText+'</div><div class="pseudoCompi251CondNote">46P不在時は45→44…を採用。同点帯の終端が11位以下で合格'+(c2near?'／10位は準大穴境界':'')+'</div></div>'+
-        '<div class="pseudoCompi251Cond '+condClass(p.c3,c3near)+'"><div class="pseudoCompi251CondName">条件③ 補正後1位－3位差</div><div class="pseudoCompi251CondValue">'+(diff===null?'算出不可':diff+'P')+'</div><div class="pseudoCompi251CondNote">14以下で合格。15以上は上位集中'+(c3near?'／15は境界注意':'')+'</div></div>'+
-      '</div>'+
-      '<div class="small">出走'+p.N+'頭｜'+p.reasons.join(' / ')+'</div>'+
-      '<div class="pseudoCompi251Ranks">'+rows+'</div>'+
-      '<div class="pseudoCompi251Foot">市場比率：'+marketText+'。矢印はV2.50支持順位からの推定順位移動です。補正幅を限定しているため、1券種だけの極端な並びで全順位が反転しない設計です。</div>'+
+        '<div class="pseudoCompi251Cond '+condClass(p.c1,c1near)+'"><div class="pseudoCompi251CondName">条件① 補正後1位指数</div><div class="pseudoCompi251CondValue">'+top.index+'P</div><div class="pseudoCompi251CondNote">80以下で合格'+(c1near?'／81は準大穴境界':'')+'</div></div>'+ 
+        '<div class="pseudoCompi251Cond '+condClass(p.c2,c2near)+'"><div class="pseudoCompi251CondName">条件② 基準指数帯の終端順位</div><div class="pseudoCompi251CondValue">'+baseText+'</div><div class="pseudoCompi251CondNote">46P不在時は45→44…を採用。同点帯の終端が11位以下で合格'+(c2near?'／10位は準大穴境界':'')+'</div></div>'+ 
+        '<div class="pseudoCompi251Cond '+condClass(p.c3,c3near)+'"><div class="pseudoCompi251CondName">条件③ 補正後1位－3位差</div><div class="pseudoCompi251CondValue">'+(diff===null?'算出不可':diff+'P')+'</div><div class="pseudoCompi251CondNote">14以下で合格。15以上は上位集中'+(c3near?'／15は境界注意':'')+'</div></div>'+ 
+      '</div>'+ 
+      '<div class="small">出走'+p.N+'頭｜'+p.reasons.join(' / ')+'</div>'+ 
+      '<div class="pseudoCompi251Ranks">'+rows+'</div>'+ 
+      '<div class="pseudoCompi251Foot">市場比率：'+marketText+'。矢印はV2.50支持順位からの推定順位移動です。補正幅を限定しているため、1券種だけの極端な並びで全順位が反転しない設計です。</div>'+ 
     '</div>';
   }
 
@@ -2701,10 +2699,8 @@ V2.50の擬似コンピを土台に、5市場の馬別順位合意で順位と�
   var n1=ctx.umaRank&&ctx.umaRank[0]?n(ctx.umaRank[0].od):999,N=(ctx.tanRank||[]).length;
   var lock=(((v||{}).lock)||{}),a=(tickets&&tickets.matchanAxis)||null;
   var rawFalse=!!(adv&&adv.falseFavorite&&adv.falseFavorite.on),ffName=String((adv&&adv.falseFavorite&&adv.falseFavorite.name)||''),favRank=scoreRank(scored,ctx.fav1);
-  /* 共通軸抜けスライドだけで「偽本命」にしない。1番人気の市場合意が弱い時だけ崩れ型へ上書きする。 */
   var axisSlideOnly=ffName.indexOf('共通軸抜け')>=0;
   var falseFav=!!(rawFalse&&(axisSlideOnly?((agr.score<=2&&favRank>=4)||(n(tf(ctx,ctx.fav1).tan)<=2&&favRank>=5)):true));
-  /* 発動数だけの過剰な総崩れ判定を抑制。市場一致が強く上位ロックが安定なら相手荒れ側に残す。 */
   var collapse=!!(adv&&((String(adv.level||'').indexOf('総崩れ')>=0&&(agr.score<=2||!lock.stable))||n(adv.flags,0)>=7));
   var topConcentrated=!!(!falseFav&&n1<4&&((lock&&lock.active)||(lock&&lock.stable&&(!lock.external||!lock.external.length)))&&a&&a.head&&a.head.grade==='A');
   var axis=chooseAxis(ctx,ms,scored,adv,tickets,falseFav),roles=buildRoles(ctx,ms,scored,adv,tickets,wall,axis,falseFav);
@@ -2801,7 +2797,6 @@ V2.50の擬似コンピを土台に、5市場の馬別順位合意で順位と�
  window.buildRaceTicketsV253=buildRaceTickets;
 })();
 </script>
-
 
 <style>
 .walllessFlowCard{border:3px solid #c084fc!important;background:linear-gradient(135deg,#130d2d,#312e81,#07101f)!important;box-shadow:0 0 14px rgba(192,132,252,.55),0 0 30px rgba(59,130,246,.25)!important}
@@ -3156,6 +3151,8 @@ function repairCompi(data,ctx){
  ctx.realCompi=rc;window.__realCompiLatest=rc;return rc;
 }
 
+window.makeContext=function(data){var ctx=OLD_CONTEXT(data);ctx.sanModeV257=detectSanMode(ctx);repairCompi(data,ctx);recalcWalls(ctx);return ctx;};
+
 function recalcWalls(ctx){
  var w=ctx.wall4,mode=ctx.sanModeV257;if(!w||!mode||!mode.axisTable)return;
  w.v257SanExcluded=true;
@@ -3164,8 +3161,6 @@ function recalcWalls(ctx){
  w.valid=valid;w.none=none;w.noWallCount=none.length;w.doubleNoWall=valid.indexOf('tan')>=0&&valid.indexOf('uma')>=0&&!(w.markets.tan.walls||[]).length&&!(w.markets.uma.walls||[]).length;
  if(w.noWallCount>=3)w.judge='3市場無壁・全体拮抗型 / 三連複は軸別表のため除外';else if(w.doubleNoWall)w.judge='二重無壁・上位拮抗型 / 三連複は軸別表のため除外';else if(w.noWallCount===2)w.judge='2市場無壁・混戦注意 / 三連複は軸別表のため除外';else if(w.noWallCount===1)w.judge='1市場無壁・部分混戦 / 三連複は軸別表のため除外';else w.judge='単勝・複勝・馬連に壁あり / 三連複は軸別表のため除外';
 }
-
-window.makeContext=function(data){var ctx=OLD_CONTEXT(data);ctx.sanModeV257=detectSanMode(ctx);repairCompi(data,ctx);recalcWalls(ctx);return ctx;};
 
 function favoriteTrust(ctx){
  var fav=s(ctx.fav1||''),rc=ctx.realCompi||{},mode=ctx.sanModeV257||detectSanMode(ctx),score=0,reasons=[],cr=compRank(rc,fav),cm=compMap(rc),ci=cm[fav]?cm[fav].index:null;
@@ -3276,7 +3271,7 @@ function ticketText(x){try{return typeof x==='string'?x:JSON.stringify(x);}catch
 function odds(x){if(!x)return 9999;return n(x.od!=null?x.od:(x.odds!=null?x.odds:(x.tan!=null?x.tan:x.value)));}
 function key2(a,b){return [s(a),s(b)].sort(function(x,y){return Number(x)-Number(y);}).join('-');}
 function key3(a,b,c){return [s(a),s(b),s(c)].sort(function(x,y){return Number(x)-Number(y);}).join('-');}
-function validTicket(k,count){var m=s(k).match(/^\s*(\d+)(?:-|â)(\d+)(?:(?:-|â)(\d+))?\s*$/);if(!m)return true;var a=[m[1],m[2]];if(m[3])a.push(m[3]);if(count&&a.length!==count)return true;return uniq(a).length===a.length;}
+function validTicket(k,count){var m=s(k).match(/^\s*(\d+)(?:-|→)(\d+)(?:(?:-|→)(\d+))?\s*$/);if(!m)return true;var a=[m[1],m[2]];if(m[3])a.push(m[3]);if(count&&a.length!==count)return true;return uniq(a).length===a.length;}
 function cleanArray(a,count){var out=[];(a||[]).forEach(function(x){if(typeof x==='string'&&!validTicket(x,count))return;var k=ticketText(x);if(!out.some(function(y){return ticketText(y)===k;}))out.push(x);});return out;}
 function cleanTicketObject(o,depth){if(!o||typeof o!=='object'||depth>6)return o;Object.keys(o).forEach(function(k){var v=o[k];if(Array.isArray(v)){
   if(/^(tri|main|hole|bomb|upgrade|v236|sanpuku|sanBox|adjustedTri)$/i.test(k))o[k]=cleanArray(v,3);
@@ -3293,8 +3288,8 @@ function compRows(){return rows(rawInput(),'COMPI',2).map(function(a){return{h:s
 function rankMap(list){var m={};(list||[]).forEach(function(x,i){m[horse(x)]=i+1;});return m;}
 function scoreObj(scored,h){return(scored||[]).find(function(x){return horse(x)===s(h);})||null;}
 function hasReason(x,w){return !!(x&&(x.reasons||[]).some(function(r){return s(r).indexOf(w)>=0;}));}
-function raceName(){var m=rawInput().match(/ã([^ã]+)ã/);return m?m[1]:'ã¬ã¼ã¹';}
-function updateHeader(){var r=raceName(),h=document.querySelector('h1');if(h)h.innerHTML='ã'+r+'ããã£ããã¼ç¥äºæ³ ç«¶é¦¬ V2.58<br>ð§­V2.57å¨æ©è½ç¶­æï¼æ¤è¨¼æ´ç<br>ð£å¤§èãçè»¸æ®ãã»åæ¶COMPIã»è²·ãç®éè¤é²æ­¢';var go=document.querySelector('button.go');if(go)go.textContent=r+'ãè§£æ';var test=document.querySelector('button.test');if(test)test.textContent='ãµã³ãã«åèª­è¾¼';document.title=r+'ï½ãã£ããã¼ç¥äºæ³ ç«¶é¦¬ V2.58 æ¤è¨¼æ´ççµ±åç';}
+function raceName(){var m=rawInput().match(/【([^】]+)】/);return m?m[1]:'レース';}
+function updateHeader(){var r=raceName(),h=document.querySelector('h1');if(h)h.innerHTML='【'+r+'】チャッピー神予想 競馬 V2.58<br>🧭V2.57全機能維持＋検証整理<br>🟣大荒れ片軸残し・取消COMPI・買い目重複防止';var go=document.querySelector('button.go');if(go)go.textContent=r+'を解析';var test=document.querySelector('button.test');if(test)test.textContent='サンプル再読込';document.title=r+'｜チャッピー神予想 競馬 V2.58 検証整理統合版';}
 function resetState(){var out=document.getElementById('out');if(out)out.innerHTML='';try{latestCopyText='';}catch(e){}Object.keys(window).forEach(function(k){if(k==='__KEIBA_V258_OFFICIAL_PATCHED__')return;if(/^__.*Latest$/i.test(k)||/^__noWallPlan/i.test(k)||/^__pseudoCompi/i.test(k)){try{window[k]=null;}catch(e){}}});}
 
 function rebuildRealCompi(ctx){
@@ -3303,11 +3298,11 @@ function rebuildRealCompi(ctx){
  var missing=activeH.filter(function(h){return !seen[h];});usable.sort(function(a,b){return b.index-a.index;});
  var om=rankMap((ctx&&ctx.tanRow)||[]);usable.forEach(function(x,i){x.rank=i+1;x.oddsRank=om[x.h]||99;x.shift=x.oddsRank-x.rank;});
  var top=usable[0]||null,second=usable[1]||null,third=usable[2]||null,d12=top&&second?top.index-second.index:0,d13=top&&third?top.index-third.index:0,d23=second&&third?second.index-third.index:0;
- var structure='æ®æå';if(top&&second&&d12>=10&&d13>=15)structure='1é ­è½åæã';else if(top&&second&&third&&d12<=3&&d13>=12)structure='äºå¼·è½åå';else if(top&&third&&d13>=15)structure='ä¸ä½è½åå·®å';
+ var structure='拮抗型';if(top&&second&&d12>=10&&d13>=15)structure='1頭能力抜け';else if(top&&second&&third&&d12<=3&&d13>=12)structure='二強能力型';else if(top&&third&&d13>=15)structure='上位能力差型';
  var fav=s((ctx&&ctx.fav1)||''),favObj=usable.find(function(x){return x.h===fav;})||null;
- var rc={available:usable.length>0,complete:usable.length===activeH.length&&missing.length===0,ranked:usable,inputCount:usable.length,runnerCount:activeH.length,missing:missing,unknown:uniq(ignored),ignoredScratched:uniq(ignored),top:top,second:second,third:third,d12:d12,d13:d13,d23:d23,structure:structure,fav:favObj};
+ var rc={available:usable.length>0,complete:usable.length===activeH.length&&missing.length===0,ranked:usable,inputCount:usable.length,runnerCount:activeH.length,missing:missing,unknown:uniq(ignored),duplicates:[],bad:[],ignoredScratched:uniq(ignored),top:top,second:second,third:third,d12:d12,d13:d13,d23:d23,structure:structure,fav:favObj};
  rc.value=usable.filter(function(x){return x.rank<=6&&x.shift>=3;});rc.over=usable.filter(function(x){return x.oddsRank<=6&&x.shift<=-3;});
- rc.applyReason=rc.available?(rc.complete?(ignored.length?'åæ¶ã»é¤å¤é¦¬ãèªåé¤å¤ããåºèµ°é¦¬å¨é ­å¥åã¨ãã¦V2.58ã¸åæ ':'å¨åºèµ°é¦¬å¥åã»V2.58å¨ã¬ã¼ã¹å¸ä»¤å¡ã¸åæ å¯è½'):'å¥åä¸è¶³ã®ããè¡¨ç¤ºã®ã¿'):'[COMPI]å¥åãªã';
+ rc.applyReason=rc.available?(rc.complete?(ignored.length?'取消・除外馬を自動除外し、出走馬全頭入力としてV2.58へ反映':'全出走馬入力・V2.58全レース司令塔へ反映可能'):'入力不足のため表示のみ'):'[COMPI]入力なし';
  if(ctx){ctx.realCompi=rc;window.__realCompiLatest=rc;}return rc;
 }
 window.makeContext=function(data){var ctx=OLD_CONTEXT(data);try{rebuildRealCompi(ctx);}catch(e){}return ctx;};
@@ -3317,43 +3312,41 @@ function compMap(ctx){var m={};((((ctx||{}).realCompi||{}).ranked)||[]).forEach(
 function detectSlide(ctx,scored){
  var d=density(ctx),uma=(ctx&&ctx.umaRank)||[],cm=compMap(ctx),top=uma[0],second=uma[1],topOd=odds(top),secondOd=odds(second),wall=topOd>0?secondOd/topOd:0,pair=top?[s(top.a),s(top.b)]:[];
  var tr={};activeRows().sort(function(a,b){return a.tan-b.tan;}).forEach(function(x,i){tr[x.h]=i+1;});function ex(h){return !h||pair.indexOf(h)>=0;}
- var jump=(scored||[]).filter(function(x){var h=horse(x),r=tr[h]||99;return !ex(h)&&n(x.tan)>=5&&n(x.tan)<=30&&r>=4&&r<=8&&(hasReason(x,'ä¸é£è¤åè¡æ¯æã¸ã£ã³ã')||hasReason(x,'æ¬ ç¹ããçªåºé¦¬')||n(x.sanBest)<=5)&&n(x.score)>=55;}).sort(function(a,b){return n(b.score)-n(a.score)||n(a.tan)-n(b.tan);})[0]||null,jh=jump?horse(jump):'';
- var border=(scored||[]).filter(function(x){var h=horse(x),c=cm[h],ability=c&&c.shift>=3,wallHit=hasReason(x,'è¤å10åå£å')||hasReason(x,'è¤å15åå£å')||hasReason(x,'è¤å15åå£æ«ç«¯')||hasReason(x,'è¤å15åæ­å±¤ä¸2é ­');return !ex(h)&&h!==jh&&n(x.tan)>=10&&n(x.tan)<=80&&n(x.fuku)<=10&&(ability||wallHit);}).sort(function(a,b){var ca=cm[horse(a)]||{},cb=cm[horse(b)]||{};return n(cb.shift,0)-n(ca.shift,0)||n(b.fuku)-n(a.fuku)||n(b.score)-n(a.score);})[0]||null,bh=border?horse(border):'';
+ var jump=(scored||[]).filter(function(x){var h=horse(x),r=tr[h]||99;return !ex(h)&&n(x.tan)>=5&&n(x.tan)<=30&&r>=4&&r<=8&&(hasReason(x,'三連複先行支持ジャンプ')||hasReason(x,'欠点あり突出馬')||n(x.sanBest)<=5)&&n(x.score)>=55;}).sort(function(a,b){return n(b.score)-n(a.score)||n(a.tan)-n(b.tan);})[0]||null,jh=jump?horse(jump):'';
+ var border=(scored||[]).filter(function(x){var h=horse(x),c=cm[h],ability=c&&c.shift>=3,wallHit=hasReason(x,'複勝10倍壁前')||hasReason(x,'複勝15倍壁前')||hasReason(x,'複勝15倍壁末端')||hasReason(x,'複勝15倍断層下2頭');return !ex(h)&&h!==jh&&n(x.tan)>=10&&n(x.tan)<=80&&n(x.fuku)<=10&&(ability||wallHit);}).sort(function(a,b){var ca=cm[horse(a)]||{},cb=cm[horse(b)]||{};return n(cb.shift,0)-n(ca.shift,0)||n(b.fuku)-n(a.fuku)||n(b.score)-n(a.score);})[0]||null,bh=border?horse(border):'';
  var on=topOd>=4&&topOd<9&&wall>=1.8&&d.tan30>=7&&d.fuku15>=9&&pair.length===2&&jh&&bh&&jh!==bh;
- return{on:on,label:on?'äººæ°ãã¢çæ¹æ®ãï¼å¢ç2é ­ã¹ã©ã¤ãå':'éçºå',density:d,topPair:pair,topOdds:topOd,wallRatio:wall,jump:jh,border:bh,tri:on?[key3(pair[0],jh,bh),key3(pair[1],jh,bh)]:[],wide:on?[key2(jh,bh)]:[],uma:on?[key2(jh,bh)]:[]};
+ return{on:on,label:on?'人気ペア片方残し＋境界2頭スライド型':'非発動',density:d,topPair:pair,topOdds:topOd,wallRatio:wall,jump:jh,border:bh,tri:on?[key3(pair[0],jh,bh),key3(pair[1],jh,bh)]:[],wide:on?[key2(jh,bh)]:[],uma:on?[key2(jh,bh)]:[]};
 }
 function prepend(arr,items,max,count){arr=cleanArray(arr||[],count);(items||[]).slice().reverse().forEach(function(x){if(validTicket(x,count)&&arr.indexOf(x)<0)arr.unshift(x);});return max?arr.slice(0,max):arr;}
 function addToContainer(o,field,items,max,count){if(!o)return;o[field]=prepend(o[field],items,max,count);}
 function allWideKeys(t){var a=[];function addArr(x){(x||[]).forEach(function(v){if(typeof v==='string')a.push(v);});}if(t.v257)addArr(t.v257.wide);if(t.raceTickets)addArr(t.raceTickets.wide);if(t.raceTypeTickets)addArr(t.raceTypeTickets.wide);if(t.matchanAxis&&t.matchanAxis.tickets)addArr(t.matchanAxis.tickets.wide);return uniq(a);}
 function primarySingles(t){var a=[],ff=t.finalFour||{};if(ff.single&&ff.single.h)a.push(s(ff.single.h));function scan(v){(v||[]).forEach(function(x){if(ticketText(x).indexOf('WIN5')<0){var h=horse(x);if(h)a.push(h);}});}if(t.v257)scan(t.v257.single);return uniq(a);}
 function demoteWin5(t){var keep=primarySingles(t);['raceTickets','raceTypeTickets'].forEach(function(k){var o=t[k];if(o&&Array.isArray(o.single))o.single=o.single.filter(function(x){return ticketText(x).indexOf('WIN5')<0||keep.indexOf(horse(x))>=0;});});if(t.raceIntegration&&t.raceIntegration.tickets&&Array.isArray(t.raceIntegration.tickets.single))t.raceIntegration.tickets.single=t.raceIntegration.tickets.single.filter(function(x){return ticketText(x).indexOf('WIN5')<0||keep.indexOf(horse(x))>=0;});}
-function wildDiagnosis(t){var w=t&&t.wildBox;if(!w||!w.on)return null;var d={on:true,horses:(w.horses||[]).slice(),roles:Object.assign({},w.roles||{}),notes:Object.assign({},w.notes||{}),reason:(w.reason||[]).slice()};w.diagnosticOnly=true;w.tansho=[];w.wideBox=[];w.sanBox=[];w.total=0;w.reason=w.reason||[];if(w.reason.indexOf('V2.58ï¼è¨ºæ­ã®ã¿ã»æçµè²·ãç®ã¸èªåæ¡ç¨ããªã')<0)w.reason.push('V2.58ï¼è¨ºæ­ã®ã¿ã»æçµè²·ãç®ã¸èªåæ¡ç¨ããªã');return d;}
+function wildDiagnosis(t){var w=t&&t.wildBox;if(!w||!w.on)return null;var d={on:true,horses:(w.horses||[]).slice(),roles:Object.assign({},w.roles||{}),notes:Object.assign({},w.notes||{}),reason:(w.reason||[]).slice()};w.diagnosticOnly=true;w.tansho=[];w.wideBox=[];w.sanBox=[];w.total=0;w.reason=w.reason||[];if(w.reason.indexOf('V2.58：診断のみ・最終買い目へ自動採用しない')<0)w.reason.push('V2.58：診断のみ・最終買い目へ自動採用しない');return d;}
 function applyLinkAndSss(ctx,t,scored,sw){var ff=t.finalFour||{},single=ff.single&&s(ff.single.h),hole=ff.hole&&s(ff.hole.h),axis=ff.axis&&s(ff.axis.h),link=null,sssTri=null;if(single&&hole&&single!==hole){var k=key2(single,hole);if(allWideKeys(t).indexOf(k)>=0){link=k;if(t.v257)addToContainer(t.v257,'uma',[k],3,2);addToContainer(t.raceTickets,'uma',[k],4,2);addToContainer(t.raceTypeTickets,'uma',[k],4,2);if(t.matchanAxis&&t.matchanAxis.tickets)addToContainer(t.matchanAxis.tickets,'uma',[k],4,2);}}
  var swSss=sw&&s(sw.level).indexOf('SSS')>=0;if(swSss&&axis&&single&&hole&&uniq([axis,single,hole]).length===3){var tri=key3(axis,single,hole),fav=s((ctx&&ctx.fav1)||'');if(tri.split('-').indexOf(fav)<0){sssTri=tri;if(t.v257)addToContainer(t.v257,'tri',[tri],5,3);addToContainer(t.raceTickets,'tri',[tri],5,3);addToContainer(t.raceTypeTickets,'tri',[tri],5,3);}}
  return{linkPair:link,sssTri:sssTri};}
 
-window.makeTickets=function(ctx,ms,scored,sw,adv){var t=OLD_TICKETS(ctx,ms,scored,sw,adv);try{var slide=detectSlide(ctx,scored);if(slide.on){if(t.v257){addToContainer(t.v257,'tri',slide.tri,5,3);addToContainer(t.v257,'wide',slide.wide,2,2);addToContainer(t.v257,'uma',slide.uma,3,2);t.v257.notes=t.v257.notes||[];if(t.v257.notes.indexOf('åå¤å±7Råï¼äººæ°ãã¢çæ¹æ®ãï¼å¢ç2é ­ãå¼·å¶ä¿è­·')<0)t.v257.notes.push('åå¤å±7Råï¼äººæ°ãã¢çæ¹æ®ãï¼å¢ç2é ­ãå¼·å¶ä¿è­·');window.__v257Latest=t.v257;}['raceTickets','raceTypeTickets'].forEach(function(k){if(t[k]){addToContainer(t[k],'tri',slide.tri,5,3);addToContainer(t[k],'wide',slide.wide,2,2);addToContainer(t[k],'uma',slide.uma,3,2);}});}var extra=applyLinkAndSss(ctx,t,scored,sw);demoteWin5(t);var wild=wildDiagnosis(t);cleanTicketObject(t,0);t.v258Official={slide:slide,linkPair:extra.linkPair,sssTri:extra.sssTri,wild:wild,density:slide.density};window.__v258OfficialLatest=t.v258Official;if(adv)adv.v258Official=t.v258Official;}catch(e){t.v258Official={error:s(e&&e.message?e.message:e),density:density(ctx)};window.__v258OfficialLatest=t.v258Official;}return t;};
+window.makeTickets=function(ctx,ms,scored,sw,adv){var t=OLD_TICKETS(ctx,ms,scored,sw,adv);try{var slide=detectSlide(ctx,scored);if(slide.on){if(t.v257){addToContainer(t.v257,'tri',slide.tri,5,3);addToContainer(t.v257,'wide',slide.wide,2,2);addToContainer(t.v257,'uma',slide.uma,3,2);t.v257.notes=t.v257.notes||[];if(t.v257.notes.indexOf('名古屋7R型：人気ペア片方残し＋境界2頭を強制保護')<0)t.v257.notes.push('名古屋7R型：人気ペア片方残し＋境界2頭を強制保護');window.__v257Latest=t.v257;}['raceTickets','raceTypeTickets'].forEach(function(k){if(t[k]){addToContainer(t[k],'tri',slide.tri,5,3);addToContainer(t[k],'wide',slide.wide,2,2);addToContainer(t[k],'uma',slide.uma,3,2);}});}var extra=applyLinkAndSss(ctx,t,scored,sw);demoteWin5(t);var wild=wildDiagnosis(t);cleanTicketObject(t,0);t.v258Official={slide:slide,linkPair:extra.linkPair,sssTri:extra.sssTri,wild:wild,density:slide.density};window.__v258OfficialLatest=t.v258Official;if(adv)adv.v258Official=t.v258Official;}catch(e){t.v258Official={error:s(e&&e.message?e.message:e),density:density(ctx)};window.__v258OfficialLatest=t.v258Official;}return t;};
 
-function headingLine(line){return /^(?:ð©º|ð|ð§­|ð¨|ð|ð¥|ð§ |ð|ð ï¸|ð|ð¯|ð«|ð |â|ð£)/.test(line);}
+function headingLine(line){return /^(?:🩺|📊|🧭|🚨|💎|🔥|🧠|📘|🛠️|🏆|🎯|🎫|🟠|✅|🟣)/.test(line);}
 function removeBlock(lines,test){var out=[],i=0;while(i<lines.length){if(test(lines[i])){i++;while(i<lines.length&&!headingLine(lines[i]))i++;continue;}out.push(lines[i++]);}return out;}
-function oddsBlockActive(lines){var start=lines.findIndex(function(x){return x.indexOf('ã¾ã£ã¡ããå¼ã»ãªããºæ§é äºæ³')>=0;});if(start<0)return true;var end=start+1;while(end<lines.length&&!headingLine(lines[end]))end++;var b=lines.slice(start,end).join('\n');return b.indexOf('åè£ä¸è¶³ã»è¦éã')<0&&b.indexOf('åè¨ï¼0ç¹')<0&&!(b.indexOf('ç©´åè£\nãªã')>=0&&b.indexOf('3é£è¤\nãªã')>=0);}
-function wildCopyBlock(d){if(!d||!d.on)return'';var hs=(d.horses||[]).map(function(h){return h+'çª';}).join('ã»')||'ãªã';return'ð¨å¤§èã5é ­BOXãè¨ºæ­ã®ã¿ã\né¸åºï¼'+hs+'\næ±ãï¼åè£æ§æã®ç¢ºèªå°ç¨ãåå5é ­ã»ã¯ã¤ãBOXã»ä¸é£è¤BOXã¯æçµè²·ãç®ã¸èªåæ¡ç¨ããªãã\n';}
-function pruneCopy(text,v){var lines=cleanText(text).replace(/V2\.57/g,'V2.58').split('\n');lines=removeBlock(lines,function(x){return x.indexOf('æ¨å®ã³ã³ãé ä½è£æ­£çï¼å¤§è°·å¼èãè¨æ¸¬')>=0||x.indexOf('ãªããºçã»æ¬ä¼¼ã³ã³ãï¼å¤§è°·å¼èãè¨æ¸¬')>=0;});if(!oddsBlockActive(lines))lines=removeBlock(lines,function(x){return x.indexOf('ã¾ã£ã¡ããå¼ã»ãªããºæ§é äºæ³')>=0;});var wi=lines.findIndex(function(x){return x.indexOf('å¤§èã5é ­BOX')>=0;});if(wi>=0){var end=wi+1;while(end<lines.length&&!headingLine(lines[end]))end++;var rep=wildCopyBlock(v&&v.wild);lines=lines.slice(0,wi).concat(rep?rep.trimEnd().split('\n'):[],lines.slice(end));}lines=lines.map(function(x){return x.replace('ðWIN5å¼ã»åã¡åãåè£','ðWIN5å¼ã»è£å©åè£ï¼æçµååã¸èªåææ ¼ãªãï¼');});return lines.join('\n');}
-function copyV258(v){v=v||{};var d=v.density||{},sl=v.slide||{},s2='\nð£V2.58 æ¤è¨¼æ´çã»å¤§èãè£æ­£\n';s2+='ååå¯åº¦ï¼10åæªæº '+(d.tan10||0)+'é ­ / 20åæªæº '+(d.tan20||0)+'é ­ / 30åæªæº '+(d.tan30||0)+'é ­\n';s2+='è¤åå¯åº¦ï¼6åä»¥å '+(d.fuku6||0)+'é ­ / 10åä»¥å '+(d.fuku10||0)+'é ­ / 15åä»¥å '+(d.fuku15||0)+'é ­\n';s2+='é¦¬é£å¯åº¦ï¼10åä»¥å '+(d.uma10||0)+'çµ / 20åä»¥å '+(d.uma20||0)+'çµ / 30åä»¥å '+(d.uma30||0)+'çµ\n';s2+='åå¤å±7Råï¼'+(sl.on?'çºå / '+sl.tri.join('ã»'):'éçºå')+'\n';s2+='åååè£Ãæå¼·ç©´ã®é¦¬é£é£åï¼'+(v.linkPair||'ãªã')+'\n';s2+='æ§é è»¸Ãåååè£ÃSSSç©´ã®æ¬å½æãä¸é£è¤ï¼'+(v.sssTri||'ãªã')+'\n';s2+='æ´çï¼æ¨å®ã³ã³ãã¯éè¡¨ç¤º / ãªããºæ§é ã¯çºåæã®ã¿ / WIN5ã¯è£å© / 5é ­BOXã¯è¨ºæ­ã®ã¿\n';return s2;}
-window.makeCopyText=function(data,diag,ctx,ms,sw,tickets,scored,moves,adv){var text=OLD_COPY(data,diag,ctx,ms,sw,tickets,scored,moves,adv),v=(tickets&&tickets.v258Official)||window.__v258OfficialLatest;text=pruneCopy(text,v);var block=copyV258(v),at=text.indexOf('\nð«ã¬ã¼ã¹ç¨®é¡é£åã»æçµè²·ãç®');if(at>=0)text=text.slice(0,at)+block+text.slice(at);else text+=block;return text;};
+function oddsBlockActive(lines){var start=lines.findIndex(function(x){return x.indexOf('まっちゃん式・オッズ構造予想')>=0;});if(start<0)return true;var end=start+1;while(end<lines.length&&!headingLine(lines[end]))end++;var b=lines.slice(start,end).join('\n');return b.indexOf('候補不足・見送り')<0&&b.indexOf('合計：0点')<0&&!(b.indexOf('穴候補\nなし')>=0&&b.indexOf('3連複\nなし')>=0);}
+function wildCopyBlock(d){if(!d||!d.on)return'';var hs=(d.horses||[]).map(function(h){return h+'番';}).join('・')||'なし';return'🚨大荒れ5頭BOX【診断のみ】\n選出：'+hs+'\n扱い：候補構成の確認専用。単勝5頭・ワイドBOX・三連複BOXは最終買い目へ自動採用しない。\n';}
+function pruneCopy(text,v){var lines=cleanText(text).replace(/V2\.57/g,'V2.58').split('\n');lines=removeBlock(lines,function(x){return x.indexOf('推定コンピ順位補正版＋大谷式荒れ計測')>=0||x.indexOf('オッズ版・擬似コンピ＋大谷式荒れ計測')>=0;});if(!oddsBlockActive(lines))lines=removeBlock(lines,function(x){return x.indexOf('まっちゃん式・オッズ構造予想')>=0;});var wi=lines.findIndex(function(x){return x.indexOf('大荒れ5頭BOX')>=0;});if(wi>=0){var end=wi+1;while(end<lines.length&&!headingLine(lines[end]))end++;var rep=wildCopyBlock(v&&v.wild);lines=lines.slice(0,wi).concat(rep?rep.trimEnd().split('\n'):[],lines.slice(end));}lines=lines.map(function(x){return x.replace('🏆WIN5式・勝ち切り候補','🏆WIN5式・補助候補（最終単勝へ自動昇格なし）');});return lines.join('\n');}
+function copyV258(v){v=v||{};var d=v.density||{},sl=v.slide||{},s2='\n🟣V2.58 検証整理・大荒れ補正\n';s2+='単勝密度：10倍未満 '+(d.tan10||0)+'頭 / 20倍未満 '+(d.tan20||0)+'頭 / 30倍未満 '+(d.tan30||0)+'頭\n';s2+='複勝密度：6倍以内 '+(d.fuku6||0)+'頭 / 10倍以内 '+(d.fuku10||0)+'頭 / 15倍以内 '+(d.fuku15||0)+'頭\n';s2+='馬連密度：10倍以内 '+(d.uma10||0)+'組 / 20倍以内 '+(d.uma20||0)+'組 / 30倍以内 '+(d.uma30||0)+'組\n';s2+='名古屋7R型：'+(sl.on?'発動 / '+sl.tri.join('・'):'非発動')+'\n';s2+='単勝候補×最強穴の馬連連動：'+(v.linkPair||'なし')+'\n';s2+='構造軸×単勝候補×SSS穴の本命抜き三連複：'+(v.sssTri||'なし')+'\n';s2+='整理：推定コンピは非表示 / オッズ構造は発動時のみ / WIN5は補助 / 5頭BOXは診断のみ\n';return s2;}
+window.makeCopyText=function(data,diag,ctx,ms,sw,tickets,scored,moves,adv){var text=OLD_COPY(data,diag,ctx,ms,sw,tickets,scored,moves,adv),v=(tickets&&tickets.v258Official)||window.__v258OfficialLatest;text=pruneCopy(text,v);var block=copyV258(v),at=text.indexOf('\n🎫レース種類連動・最終買い目');if(at>=0)text=text.slice(0,at)+block+text.slice(at);else text+=block;return text;};
 
 function cardContaining(out,word){return Array.prototype.slice.call(out.querySelectorAll('.card')).filter(function(c){return c.textContent.indexOf(word)>=0;});}
-function wildHtml(d){var hs=(d&&d.horses||[]).map(function(h){var role=(d.roles||{})[h]||'';return'<span class="v258Horse">'+h+'çª'+(role?'ï¼'+role+'ï¼':'')+'</span>';}).join(' ');return'<div class="title">ð¨å¤§èã5é ­BOXãè¨ºæ­ã®ã¿ã</div><div class="v258DiagOnly">é¸åºï¼'+(hs||'ãªã')+'<br>åè£æ§æã®ç¢ºèªå°ç¨ã§ããåå5é ­ã»ã¯ã¤ãBOXã»ä¸é£è¤BOXã¯æçµè²·ãç®ã¸èªåæ¡ç¨ãã¾ããã</div>';}
-function pruneDom(out,v){out.querySelectorAll('.pseudoCompiCard,.pseudoCompi251Card').forEach(function(x){x.remove();});cardContaining(out,'æ¨å®ã³ã³ãé ä½è£æ­£çï¼å¤§è°·å¼èãè¨æ¸¬').concat(cardContaining(out,'ãªããºçã»æ¬ä¼¼ã³ã³ãï¼å¤§è°·å¼èãè¨æ¸¬')).forEach(function(x){x.remove();});cardContaining(out,'ã¾ã£ã¡ããå¼ã»ãªããºæ§é äºæ³').forEach(function(c){var tx=c.textContent;if(tx.indexOf('åè£ä¸è¶³ã»è¦éã')>=0||tx.indexOf('åè¨ï¼0ç¹')>=0)c.remove();});cardContaining(out,'å¤§èã5é ­BOX').forEach(function(c){c.innerHTML=wildHtml(v&&v.wild);});out.innerHTML=out.innerHTML.replace(/ðWIN5å¼ã»åã¡åãåè£/g,'ðWIN5å¼ã»è£å©åè£ï¼æçµååã¸èªåææ ¼ãªãï¼').replace(/V2\.57/g,'V2.58');out.querySelectorAll('pre').forEach(function(p){p.textContent=cleanText(p.textContent);});}
-function renderV258(v){v=v||{};var d=v.density||{},sl=v.slide||{};return'<div class="card v258OfficialCard"><div class="v258Title">ð£V2.58 æ¤è¨¼æ´çã»å¤§èãè£æ­£</div><div class="v258Grid"><div><b>ååå¯åº¦</b><br>10åæªæº '+(d.tan10||0)+'é ­ / 20åæªæº '+(d.tan20||0)+'é ­ / 30åæªæº '+(d.tan30||0)+'é ­</div><div><b>è¤åå¯åº¦</b><br>6åä»¥å '+(d.fuku6||0)+'é ­ / 10åä»¥å '+(d.fuku10||0)+'é ­ / 15åä»¥å '+(d.fuku15||0)+'é ­</div><div><b>é¦¬é£å¯åº¦</b><br>10åä»¥å '+(d.uma10||0)+'çµ / 20åä»¥å '+(d.uma20||0)+'çµ / 30åä»¥å '+(d.uma30||0)+'çµ</div><div><b>åã¬ã¼ã¹æ®ç</b><br>è§£æåã«åé¨çµæã»ã³ãã¼çµæã»è¡¨ç¤ºãå®å¨åæå</div></div><div class="v258Line"><b>åå¤å±7Råï¼</b>'+(sl.on?'çºå / '+sl.tri.join('ã»'):'éçºå')+'</div><div class="v258Line"><b>ã¯ã¤ãâé¦¬é£é£åï¼</b>'+(v.linkPair||'ãªã')+'ã<b>SSSæ¬å½æãï¼</b>'+(v.sssTri||'ãªã')+'</div><div class="v258Rule">æ¨å®ã³ã³ãã¯éè¡¨ç¤ºããªããºæ§é äºæ³ã¯çºåæã ãè¡¨ç¤ºãWIN5å¼ã¯è£å©åè£ã¸éæ ¼ãå¤§èã5é ­BOXã¯è¨ºæ­ã ãæ®ããæçµè²·ãç®ã¸èªåæ¡ç¨ãã¾ããã</div></div>';}
-window.run=function(){resetState();updateHeader();OLD_RUN();try{var out=document.getElementById('out'),v=window.__v258OfficialLatest;if(out){pruneDom(out,v);var old=out.querySelector('.v258OfficialCard');if(old)old.remove();var base=out.querySelector('.v257Card')||out.querySelector('.raceTypeCard')||out.firstElementChild;if(base)base.insertAdjacentHTML('afterend',renderV258(v));else out.insertAdjacentHTML('afterbegin',renderV258(v));}if(typeof latestCopyText==='string')latestCopyText=pruneCopy(latestCopyText,v).replace(/V2\.57/g,'V2.58');updateHeader();}catch(e){var o=document.getElementById('out');if(o)o.insertAdjacentHTML('afterbegin','<div class="card diagWarn"><div class="title warn">V2.58è£æ­£ã¨ã©ã¼</div><pre>'+s(e&&e.message?e.message:e)+'</pre></div>');}};
+function wildHtml(d){var hs=(d&&d.horses||[]).map(function(h){var role=(d.roles||{})[h]||'';return'<span class="v258Horse">'+h+'番'+(role?'（'+role+'）':'')+'</span>';}).join(' ');return'<div class="title">🚨大荒れ5頭BOX【診断のみ】</div><div class="v258DiagOnly">選出：'+(hs||'なし')+'<br>候補構成の確認専用です。単勝5頭・ワイドBOX・三連複BOXは最終買い目へ自動採用しません。</div>';}
+function pruneDom(out,v){out.querySelectorAll('.pseudoCompiCard,.pseudoCompi251Card').forEach(function(x){x.remove();});cardContaining(out,'推定コンピ順位補正版＋大谷式荒れ計測').concat(cardContaining(out,'オッズ版・擬似コンピ＋大谷式荒れ計測')).forEach(function(x){x.remove();});cardContaining(out,'まっちゃん式・オッズ構造予想').forEach(function(c){var tx=c.textContent;if(tx.indexOf('候補不足・見送り')>=0||tx.indexOf('合計：0点')>=0)c.remove();});cardContaining(out,'大荒れ5頭BOX').forEach(function(c){c.innerHTML=wildHtml(v&&v.wild);});out.innerHTML=out.innerHTML.replace(/🏆WIN5式・勝ち切り候補/g,'🏆WIN5式・補助候補（最終単勝へ自動昇格なし）').replace(/V2\.57/g,'V2.58');out.querySelectorAll('pre').forEach(function(p){p.textContent=cleanText(p.textContent);});}
+function renderV258(v){v=v||{};var d=v.density||{},sl=v.slide||{};return'<div class="card v258OfficialCard"><div class="v258Title">🟣V2.58 検証整理・大荒れ補正</div><div class="v258Grid"><div><b>単勝密度</b><br>10倍未満 '+(d.tan10||0)+'頭 / 20倍未満 '+(d.tan20||0)+'頭 / 30倍未満 '+(d.tan30||0)+'頭</div><div><b>複勝密度</b><br>6倍以内 '+(d.fuku6||0)+'頭 / 10倍以内 '+(d.fuku10||0)+'頭 / 15倍以内 '+(d.fuku15||0)+'頭</div><div><b>馬連密度</b><br>10倍以内 '+(d.uma10||0)+'組 / 20倍以内 '+(d.uma20||0)+'組 / 30倍以内 '+(d.uma30||0)+'組</div><div><b>前レース残留</b><br>解析前に内部結果・コピー結果・表示を完全初期化</div></div><div class="v258Line"><b>名古屋7R型：</b>'+(sl.on?'発動 / '+sl.tri.join('・'):'非発動')+'</div><div class="v258Line"><b>ワイド→馬連連動：</b>'+(v.linkPair||'なし')+'　<b>SSS本命抜き：</b>'+(v.sssTri||'なし')+'</div><div class="v258Rule">推定コンピは非表示。オッズ構造予想は発動時だけ表示。WIN5式は補助候補へ降格。大荒れ5頭BOXは診断だけ残し、最終買い目へ自動採用しません。</div></div>';}
+window.run=function(){resetState();updateHeader();OLD_RUN();try{var out=document.getElementById('out'),v=window.__v258OfficialLatest;if(out){pruneDom(out,v);var old=out.querySelector('.v258OfficialCard');if(old)old.remove();var base=out.querySelector('.v257Card')||out.querySelector('.raceTypeCard')||out.firstElementChild;if(base)base.insertAdjacentHTML('afterend',renderV258(v));else out.insertAdjacentHTML('afterbegin',renderV258(v));}if(typeof latestCopyText==='string')latestCopyText=pruneCopy(latestCopyText,v).replace(/V2\.57/g,'V2.58');updateHeader();}catch(e){var o=document.getElementById('out');if(o)o.insertAdjacentHTML('afterbegin','<div class="card diagWarn"><div class="title warn">V2.58補正エラー</div><pre>'+s(e&&e.message?e.message:e)+'</pre></div>');}};
 window.clearAll=function(){if(typeof OLD_CLEAR==='function')OLD_CLEAR();resetState();updateHeader();};
 
 var style=document.createElement('style');style.id='v258-official-style';style.textContent='.v258OfficialCard{border:3px solid #c084fc;background:linear-gradient(135deg,#16072b,#3b1761,#10051f);box-shadow:0 0 26px rgba(192,132,252,.55)}.v258Title{font-size:21px;font-weight:900;color:#e9d5ff}.v258Grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:9px}.v258Grid>div{padding:8px;border:1px solid #a78bfa;border-radius:10px;background:#120923;line-height:1.55}.v258Line{margin-top:8px;padding:8px;border:1px solid #f97316;border-radius:10px;background:#431407;color:#ffedd5}.v258Rule,.v258DiagOnly{margin-top:9px;padding:9px;border:1px solid #67e8f9;border-radius:10px;background:#082f49;color:#cffafe;line-height:1.55;font-weight:900}.v258Horse{display:inline-block;margin:3px;padding:5px 8px;border-radius:999px;background:#3b1761;border:1px solid #c084fc;color:#fff;font-weight:900}@media(max-width:520px){.v258Grid{grid-template-columns:1fr}}';document.head.appendChild(style);updateHeader();
 })();
 /* V2.58 OFFICIAL PATCH END */
-
 </script>
-
 </body>
 </html>
