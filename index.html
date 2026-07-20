@@ -3612,5 +3612,263 @@ window.addEventListener('DOMContentLoaded',function(){setTimeout(function(){ensu
 })();
 </script>
 <!-- V2.61 OCCUPANCY RESEARCH INTEGRATED PATCH END -->
+ <!-- V2.62 TECH6 × OTANI INTEGRATED PATCH START -->
+<style id="v262-tech-otani-style">
+.v262Card{border:3px solid #facc15!important;background:linear-gradient(135deg,#141000,#3a2d00,#071827)!important;box-shadow:0 0 20px rgba(250,204,21,.48),0 0 38px rgba(34,211,238,.18)!important}
+.v262Title{font-size:20px;font-weight:950;color:#fff7b2;margin-bottom:8px}
+.v262Judge{font-size:24px;font-weight:950;color:#fef08a;text-shadow:0 0 10px rgba(250,204,21,.55);margin:7px 0}
+.v262Grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:9px}
+.v262Box{border:1px solid #8b741a;border-radius:12px;padding:9px;background:rgba(2,6,23,.63)}
+.v262Label{font-size:12px;color:#cbd5e1;font-weight:850}
+.v262Value{font-size:18px;font-weight:950;color:#fff;margin-top:2px}
+.v262Rule{margin-top:10px;padding:10px;border-radius:12px;background:#07152a;border:1px solid #2b65a5;line-height:1.55}
+.v262Strong{color:#fb7185;font-weight:950}.v262Safe{color:#86efac;font-weight:950}.v262Cyan{color:#67e8f9;font-weight:950}
+.v262Horses{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+.v262Horse{display:inline-block;min-width:64px;text-align:center;border-radius:12px;padding:7px 8px;background:#172554;border:1px solid #60a5fa;color:#fff;font-weight:950}
+.v262Role{display:block;font-size:11px;color:#bfdbfe;font-weight:750;margin-top:2px}
+.v262Tickets{margin-top:9px;padding:10px;border-radius:12px;background:#240b16;border:1px solid #be185d}
+.v262Tickets b{color:#fbcfe8}
+.v262Local{margin-top:9px;padding:9px;border-radius:11px;background:#2b1600;border:1px solid #c46b09;color:#ffedd5}
+@media(max-width:580px){.v262Grid{grid-template-columns:1fr}}
+</style>
+<script id="v262-tech-otani-patch">
+(function(){
+'use strict';
+if(window.__CHAPPY_V262_TECH_OTANI__)return;
+window.__CHAPPY_V262_TECH_OTANI__=true;
+
+var PREV_TICKETS=window.makeTickets;
+var PREV_RUN=window.run;
+var PREV_COPY=window.makeCopyText;
+var PREV_CLEAR=window.clearAll;
+var CURRENT=null;
+var VERSION='V2.62';
+
+function S(v){return String(v==null?'':v);}
+function N(v,d){v=Number(v);return isFinite(v)?v:(d==null?0:d);}
+function H(v){return S(v&&v.h!=null?v.h:v);}
+function esc262(s){return S(s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
+function uniq262(a){var o=[];(a||[]).forEach(function(v){v=H(v);if(v&&o.indexOf(v)<0)o.push(v);});return o;}
+function raceName262(){var e=document.getElementById('input'),m=S(e&&e.value).match(/【([^】]+)】/);return m?m[1]:'レース';}
+function venue262(){
+ var n=raceName262();
+ var jra=['札幌','函館','福島','新潟','東京','中山','中京','京都','阪神','小倉'];
+ var south=['浦和','船橋','大井','川崎'];
+ var mode=jra.some(function(x){return n.indexOf(x)>=0;})?'JRA':(south.some(function(x){return n.indexOf(x)>=0;})?'南関東':'地方');
+ return{name:n,mode:mode,validated:mode==='JRA'};
+}
+function getRealCompi262(ctx){
+ var rc=(ctx&&ctx.realCompi)||window.__realCompiAppliedLatest||window.__realCompiLatest||{};
+ var ranked=(rc.ranked||[]).slice().sort(function(a,b){return N(a.rank,999)-N(b.rank,999)||N(b.index)-N(a.index);});
+ if(!ranked.length&&ctx&&ctx.compiRank)ranked=(ctx.compiRank||[]).map(function(x,i){return{h:H(x),index:N(x.index||x.od),rank:i+1};});
+ return{available:!!ranked.length,complete:rc.complete!==false&&!!ranked.length,ranked:ranked};
+}
+function tech262(ctx){
+ var rc=getRealCompi262(ctx),top=rc.ranked.slice(0,3);
+ if(top.length<3)return{available:false,pattern:'-',sum:null,label:'入力不足',ranked:rc.ranked};
+ var sum=top.reduce(function(a,x){return a+N(x.index);},0),p='P1',label='荒れ警報';
+ if(sum>=220){p='P6';label='本命戦';}
+ else if(sum>=216){p='P5';label='本命～軽い中荒れ';}
+ else if(sum>=212){p='P4';label='中荒れ';}
+ else if(sum>=209){p='P3';label='荒れ警戒';}
+ else if(sum>=206){p='P2';label='大荒れ急変警戒';}
+ return{available:true,pattern:p,sum:sum,label:label,ranked:rc.ranked,top:top};
+}
+function baseBand262(ranked){
+ for(var p=46;p>=40;p--){
+  var g=(ranked||[]).filter(function(x){return N(x.index)===p;});
+  if(g.length)return{available:true,index:p,horses:g.map(H),startRank:Math.min.apply(null,g.map(function(x){return N(x.rank);})),endRank:Math.max.apply(null,g.map(function(x){return N(x.rank);})),};
+ }
+ return{available:false,index:null,horses:[],startRank:null,endRank:null};
+}
+function calcOtani262(ctx,t){
+ var snap=(t&&t.v260Official)||window.__v260OfficialLatest||{};
+ if(snap.compi&&snap.compi.available!==false){
+  return {
+   strength:N(snap.compi.strength),
+   judge:S(snap.compi.judge||'コンピ通常型'),
+   c1:!!snap.compi.c1,c2:!!snap.compi.c2,c3:!!snap.compi.c3,
+   baseline:snap.compi.baseline||{},
+   mode:S(snap.compi.mode||'既存V2.60判定')
+  };
+ }
+ var rc=getRealCompi262(ctx),r=rc.ranked,n=((ctx&&ctx.tanRank)||[]).length||r.length,top=r[0]||null,third=r[2]||null;
+ if(!top||!third)return{strength:0,judge:'入力不足',c1:false,c2:false,c3:false,baseline:{},mode:'入力不足'};
+ var b=baseBand262(r),d13=N(top.index)-N(third.index),line=null,c1=false,c2=false,c3=false,mode='';
+ if(n>=14){mode='14頭以上・大谷式原型';line=11;c1=N(top.index)<=80;c2=b.available&&b.endRank>=11;c3=d13<=14;}
+ else if(n>=11){mode='11～13頭・頭数比補正';line=Math.ceil(n*11/14);c1=N(top.index)<=80;c2=b.available&&b.endRank>=line;c3=d13<=14;}
+ else if(n>=8){mode='8～10頭・暫定少頭数補正';line=Math.ceil(n*.75);c1=N(top.index)<=78;c2=b.available&&b.endRank>=line;c3=d13<=12;}
+ else return{strength:0,judge:'7頭以下・大谷式SSS対象外',c1:false,c2:false,c3:false,baseline:b,mode:'7頭以下'};
+ var pass=[c1,c2,c3].filter(Boolean).length,strength=1,judge='コンピ通常型';
+ if(N(top.index)<=69&&c2&&c3){strength=4;judge='💥コンピ上位不在型SSS';}
+ else if(N(top.index)<=72&&c2&&c3){strength=4;judge='🚨コンピ上位総崩れ型SSS';}
+ else if(pass===3){strength=3;judge='🚨コンピ大谷式大穴型';}
+ else if(pass===2||N(top.index)===81||(b.available&&line&&b.endRank===line-1)||d13===15){strength=2;judge='⚠️コンピ準大穴型';}
+ return{strength:strength,judge:judge,c1:c1,c2:c2,c3:c3,baseline:b,mode:mode};
+}
+function market262(t){
+ var snap=(t&&t.v260Official)||window.__v260OfficialLatest||{},o=snap.odds||{};
+ return{score:N(o.score),judge:S(o.judge||'市場判定なし')};
+}
+function levelText262(score){
+ if(score>=7)return{level:'🚨最上位・大荒れSSS',cls:'v262Strong'};
+ if(score>=6)return{level:'🚨大荒れSSS',cls:'v262Strong'};
+ if(score>=5)return{level:'⚠️大荒れ警報',cls:'v262Strong'};
+ if(score>=4)return{level:'⚠️荒れ警戒',cls:'v262Strong'};
+ if(score>=3)return{level:'中荒れ',cls:'v262Cyan'};
+ if(score>=2)return{level:'本命～中荒れ',cls:'v262Cyan'};
+ return{level:'本命戦',cls:'v262Safe'};
+}
+function combine262(ctx,t){
+ var v=venue262(),tech=tech262(ctx),ot=calcOtani262(ctx,t),mk=market262(t);
+ if(!tech.available)return{venue:v,tech:tech,otani:ot,market:mk,score:0,level:'判定不能',lock:'既存判定維持',action:'コンピを全頭入力',validated:v.validated};
+ var base={P6:0,P5:1,P4:2,P3:3,P2:4,P1:5}[tech.pattern],oa=ot.strength>=4?3:(ot.strength===3?2:(ot.strength===2?1:0)),ma=mk.score>=3?2:(mk.score===2?1:0),score=base+oa+ma;
+ var low=['P1','P2','P3'].indexOf(tech.pattern)>=0;
+ if(v.validated){
+  if(low&&ot.strength>=3)score=Math.max(score,ot.strength>=4?7:6);
+  if(tech.pattern==='P6')score=Math.min(score,2);
+  if(tech.pattern==='P5')score=Math.min(score,3);
+  if(tech.pattern==='P4')score=Math.min(score,4);
+ }else{
+  /* 地方はJRA144Rの閾値をそのまま断定しない。三者一致のときだけ強判定。 */
+  if(low&&ot.strength>=3&&mk.score>=3)score=Math.max(score,5);
+  else score=Math.min(score,4);
+  if(tech.pattern==='P5'||tech.pattern==='P6')score=Math.min(score,2);
+ }
+ var lt=levelText262(score),release=false;
+ if(v.validated)release=(low&&ot.strength>=3)||((tech.pattern==='P1'||tech.pattern==='P2')&&mk.score>=3);
+ else release=low&&ot.strength>=3&&mk.score>=3;
+ var action='';
+ if(tech.pattern==='P5'||tech.pattern==='P6'){
+  action='上位保護を優先。大谷式だけではロック解除しない。勝ち切り馬は現行の市場・構造判定で選ぶ。';
+ }else if(release){
+  action='上位固定を解除。市場・構造サインから中位穴を1頭以上入れる。大谷基準指数馬そのものは強制保護しない。';
+ }else if(low){
+  action='荒れ側だが単独では広げすぎない。市場警報または構造穴の一致を待つ。';
+ }else{
+  action='上位中心を維持し、外部穴は最大1頭。';
+ }
+ return{venue:v,tech:tech,otani:ot,market:mk,score:score,level:lt.level,levelClass:lt.cls,lock:release?'強制解除':'既存判定維持',release:release,action:action,validated:v.validated};
+}
+function keyTri262(a,b,c){return[a,b,c].map(H).sort(function(x,y){return N(x)-N(y);}).join('-');}
+function roleHorses262(ctx,t,scored,c){
+ var rc=getRealCompi262(ctx),f=(t&&t.finalFour)||{},occ=(t&&t.v261Occupancy)||window.__v261OccupancyLatest||{},arr=[],roles={};
+ function add(h,role){h=H(h);if(!h||arr.indexOf(h)>=0||arr.length>=5)return;arr.push(h);roles[h]=role;}
+ add(f.axis,'構造軸');
+ if(rc.ranked[0])add(rc.ranked[0].h,'コンピ1位');
+ if(rc.ranked[1])add(rc.ranked[1].h,'コンピ2位');
+ add(f.hole,'市場・構造穴');
+ var compRank={};rc.ranked.forEach(function(x,i){compRank[H(x)]=i+1;});
+ var sr=(scored||[]).slice().sort(function(a,b){return N(b.score)-N(a.score);});
+ var deep=sr.find(function(x){return (compRank[H(x)]||99)>=5;});
+ if(deep)add(deep.h,'中位サイン上位');
+ (occ.leads||[]).forEach(function(x){add(x.h,'三連複先行穴');});
+ (occ.experimental5||[]).forEach(function(h){add(h,'占有率実験候補');});
+ sr.forEach(function(x){add(x.h,'総合候補');});
+ rc.ranked.forEach(function(x){add(x.h,'コンピ上位');});
+ return{horses:arr,roles:roles};
+}
+function triPlans262(ctx,t,scored,c,sel){
+ var hs=sel.horses||[],all=[];
+ for(var i=0;i<hs.length;i++)for(var j=i+1;j<hs.length;j++)for(var k=j+1;k<hs.length;k++)all.push(keyTri262(hs[i],hs[j],hs[k]));
+ var san=(ctx&&ctx.sanRank)||[],rank={};san.forEach(function(x,i){rank[keyTri262(x.a,x.b,x.c)]=i+1;});
+ var f=(t&&t.finalFour)||{},axis=H(f.axis),hole=H(f.hole),sm={};
+ (scored||[]).forEach(function(x){sm[H(x)]=N(x.score);});
+ all.sort(function(a,b){
+  function val(k){var p=k.split('-'),v=rank[k]?Math.max(0,35-rank[k]):0; if(axis&&p.indexOf(axis)>=0)v+=8;if(hole&&p.indexOf(hole)>=0)v+=5;p.forEach(function(h){v+=(sm[h]||0)/30;});return v;}
+  return val(b)-val(a);
+ });
+ return{all:all,compressed:all.slice(0,c.score>=6?3:2)};
+}
+function snapshot262(ctx,t,scored){
+ var c=combine262(ctx,t),sel=roleHorses262(ctx,t,scored,c),plans=triPlans262(ctx,t,scored,c,sel);
+ c.selection=sel;c.plans=plans;c.baselineHorsePolicy='荒れ判定専用・自動保護しない';
+ return c;
+}
+function render262(v){
+ if(!v)return'';
+ var cond=(v.otani.c1?'○':'×')+(v.otani.c2?'○':'×')+(v.otani.c3?'○':'×');
+ var horseHtml=(v.selection.horses||[]).map(function(h){return'<span class="v262Horse">'+esc262(h)+'番<span class="v262Role">'+esc262(v.selection.roles[h]||'候補')+'</span></span>';}).join('');
+ var ticketHtml=v.release&&v.plans.all.length?'<div class="v262Tickets"><b>補正後・圧縮三連複</b><br>'+esc262(v.plans.compressed.join(' / '))+'<br><span class="small">研究用5頭BOX：'+esc262(v.plans.all.join(' / '))+'</span></div>':'';
+ var local=v.validated?'':'<div class="v262Local"><b>地方暫定モード</b><br>TECHの閾値は計算しますが、JRA144Rで確認した成績を地方へそのまま断定しません。TECH＋大谷＋市場の三者一致時だけ強く上書きします。</div>';
+ return '<div class="card v262Card"><div class="v262Title">🧭V2.62 テクニカル6×大谷式・統合補正</div>'+
+ '<div class="v262Judge '+esc262(v.levelClass)+'">'+esc262(v.level)+'</div>'+
+ '<div class="v262Grid">'+
+ '<div class="v262Box"><div class="v262Label">テクニカル6</div><div class="v262Value">'+esc262(v.tech.pattern)+' / 上位3頭合計 '+esc262(v.tech.sum)+'</div><div class="small">'+esc262(v.tech.label)+'</div></div>'+
+ '<div class="v262Box"><div class="v262Label">大谷式</div><div class="v262Value">'+esc262(v.otani.judge)+'</div><div class="small">3条件 '+cond+' / 強度 '+esc262(v.otani.strength)+'</div></div>'+
+ '<div class="v262Box"><div class="v262Label">市場警報</div><div class="v262Value">'+esc262(v.market.judge)+'</div><div class="small">4条件中 '+esc262(v.market.score)+'個</div></div>'+
+ '<div class="v262Box"><div class="v262Label">上位4頭ロック</div><div class="v262Value">'+esc262(v.lock)+'</div><div class="small">'+esc262(v.venue.mode)+'モード</div></div></div>'+
+ '<div class="v262Rule"><b>補正方針：</b>'+esc262(v.action)+'<br><b>重要：</b>46～40Pの大谷基準指数は荒れ判定にだけ使用し、その馬を買い目へ自動投入しません。</div>'+
+ (v.release?'<div class="v262Horses">'+horseHtml+'</div>':'')+ticketHtml+local+'</div>';
+}
+function copyBlock262(v){
+ if(!v)return'';
+ var cond=(v.otani.c1?'○':'×')+(v.otani.c2?'○':'×')+(v.otani.c3?'○':'×');
+ var s='\n🧭V2.62 テクニカル6×大谷式・統合補正\n';
+ s+='開催モード：'+v.venue.mode+(v.validated?' / JRA144R検証反映':' / 地方暫定')+'\n';
+ s+='テクニカル6：'+v.tech.pattern+' / 上位3頭合計 '+v.tech.sum+'P / '+v.tech.label+'\n';
+ s+='大谷式：'+v.otani.judge+' / 3条件 '+cond+' / 強度'+v.otani.strength+'\n';
+ s+='市場警報：'+v.market.judge+' / 4条件中'+v.market.score+'個\n';
+ s+='統合判定：'+v.level+'\n';
+ s+='上位4頭ロック：'+v.lock+'\n';
+ s+='補正方針：'+v.action+'\n';
+ s+='大谷基準指数馬：荒れ判定専用・買い目強制保護なし\n';
+ if(v.release){
+  s+='補正5頭：'+v.selection.horses.map(function(h){return h+'番('+v.selection.roles[h]+')';}).join(' / ')+'\n';
+  s+='圧縮三連複：'+(v.plans.compressed.join(' / ')||'なし')+'\n';
+  s+='研究用5頭BOX：'+(v.plans.all.join(' / ')||'なし')+'\n';
+ }
+ return s;
+}
+function overrideOldBaseline262(text){
+ return S(text)
+  .replace(/大谷基準指数馬を必ず残す/g,'大谷基準指数は荒れ判定専用。基準馬は自動保護しない')
+  .replace(/大谷基準\d+P・二重SSS強制保護/g,'市場・構造サイン優先（大谷基準馬は強制保護しない）')
+  .replace(/V2\.60二重SSS・大谷基準\d+P馬を強制保護/g,'V2.62補正：大谷基準馬の強制保護を解除');
+}
+window.makeTickets=function(ctx,ms,scored,sw,adv){
+ var t=typeof PREV_TICKETS==='function'?PREV_TICKETS(ctx,ms,scored,sw,adv):{};
+ try{
+  var v=snapshot262(ctx,t,scored||[]);
+  t.v262TechOtani=v;CURRENT=v;window.__v262TechOtaniLatest=v;
+  if(adv)adv.v262TechOtani=v;
+ }catch(e){
+  t.v262TechOtani={error:S(e&&e.message?e.message:e)};
+  CURRENT=t.v262TechOtani;window.__v262TechOtaniLatest=CURRENT;
+ }
+ return t;
+};
+window.makeCopyText=function(data,diag,ctx,ms,sw,tickets,scored,moves,adv){
+ var text=typeof PREV_COPY==='function'?PREV_COPY(data,diag,ctx,ms,sw,tickets,scored,moves,adv):'';
+ var v=(tickets&&tickets.v262TechOtani)||CURRENT||window.__v262TechOtaniLatest;
+ text=overrideOldBaseline262(text).replace(/競馬メジアン V2\.61/g,'競馬メジアン V2.62');
+ var b=copyBlock262(v),at=text.indexOf('\n🎫レース種類連動・最終買い目');
+ if(at>=0)text=text.slice(0,at)+b+text.slice(at);else text+=b;
+ return text;
+};
+window.run=function(){
+ if(typeof PREV_RUN==='function')PREV_RUN();
+ try{
+  var out=document.getElementById('out'),v=CURRENT||window.__v262TechOtaniLatest;
+  if(out){
+   var old=out.querySelector('.v262Card');if(old)old.remove();
+   out.innerHTML=overrideOldBaseline262(out.innerHTML);
+   var anchor=out.querySelector('.v261Card')||out.querySelector('.v260Card')||out.firstElementChild;
+   if(anchor)anchor.insertAdjacentHTML('afterend',render262(v));else out.insertAdjacentHTML('afterbegin',render262(v));
+  }
+  var h=document.querySelector('h1');if(h)h.innerHTML=h.innerHTML.replace(/V2\.61/g,'V2.62')+'<br>🧭TECH6×大谷式統合補正・地方暫定対応';
+  document.title=document.title.replace(/V2\.61/g,'V2.62');
+  if(typeof latestCopyText==='string')latestCopyText=overrideOldBaseline262(latestCopyText).replace(/競馬メジアン V2\.61/g,'競馬メジアン V2.62');
+ }catch(e){
+  var o=document.getElementById('out');if(o)o.insertAdjacentHTML('afterbegin','<div class="card v262Card"><div class="v262Title">V2.62表示エラー</div><pre>'+esc262(e&&e.message?e.message:e)+'</pre></div>');
+ }
+};
+window.clearAll=function(){
+ if(typeof PREV_CLEAR==='function')PREV_CLEAR();
+ CURRENT=null;window.__v262TechOtaniLatest=null;
+};
+})();
+</script>
+<!-- V2.62 TECH6 × OTANI INTEGRATED PATCH END -->
 </body>
 </html>
