@@ -73,6 +73,10 @@ details summary{cursor:pointer;font-weight:950;color:#c4b5fd;padding:10px;backgr
 .logBox{margin-top:10px;background:#020617;border:1px solid #0f766e;border-radius:12px;padding:10px;font-size:14px}
 @media(max-width:520px){.formGrid{grid-template-columns:1fr 1fr 1fr}.formGrid input{font-size:16px;padding:9px 6px}}
 
+
+.moveCard{border:3px solid #38bdf8;background:linear-gradient(145deg,#082f49,#0c4a6e,#07101f);box-shadow:0 0 16px rgba(56,189,248,.25)}
+.moveStrong{color:#fef08a;font-weight:900}.moveUp{color:#86efac;font-weight:900}.moveWarn{color:#fda4af;font-weight:900}
+
 </style>
 </head>
 <body>
@@ -286,12 +290,40 @@ function build(data){
   const bigHoleThird=uniq([walls.f15?.next,walls.f6?.next,walls.t80?.before]).filter(Boolean).slice(0,3);
 
 
+
+  // 1回入力型「極端移動・異様な動き」
+  const rankMap=arr=>{const m={};arr.forEach((h,i)=>{m[String(h)]=i+1});return m;};
+  const rTan=rankMap(tanRow),rFuku=rankMap(fukuRow),rUma=rankMap(umaRow),rSan=rankMap(sanRow),rCompi=rankMap(compiRow);
+  const movement=all.map(x=>{
+    const h=x.h;
+    const rt=rTan[h]||99,rf=rFuku[h]||99,ru=rUma[h]||99,rs=rSan[h]||99,rc=rCompi[h]||99;
+    const vals=[rt,rf,ru,rs,rc],min=Math.min(...vals),max=Math.max(...vals),spread=max-min;
+    const labels=[];let score=0;
+    if(rt<=4&&rc>=7){labels.push('単勝先行');score+=3}
+    if(rf<=4&&rc>=7){labels.push('複勝先行');score+=3}
+    if(ru<=5&&rt>=8){labels.push('馬連先行');score+=3}
+    if(rs<=5&&rt>=8){labels.push('三連複先行');score+=4}
+    if((ru<=5||rs<=5)&&rc>=8){labels.push('連系逆行');score+=4}
+    if(rc<=4&&rt>=8){labels.push('能力先行');score+=2}
+    if(Math.abs(rt-rf)>=4){labels.push('単複ズレ');score+=2}
+    if(Math.abs(ru-rs)>=4){labels.push('連系ズレ');score+=2}
+    if(spread>=6){labels.push('極端移動');score+=3}
+    if((rs<=6&&rf>=8)||(ru<=6&&rt>=9)){labels.push('異様な動き');score+=4}
+    return {h,rt,rf,ru,rs,rc,spread,labels:uniq(labels),score};
+  }).filter(x=>x.labels.length).sort((a,b)=>b.score-a.score||b.spread-a.spread);
+  const extremeMove=movement.filter(x=>x.labels.includes('極端移動')).slice(0,5);
+  const strangeMove=movement.filter(x=>x.labels.includes('異様な動き')).slice(0,5);
+  const marketReverse=movement.filter(x=>x.labels.includes('連系逆行')||x.labels.includes('単勝先行')||x.labels.includes('複勝先行')).slice(0,5);
+  const trifectaLead=movement.filter(x=>x.labels.includes('三連複先行')).slice(0,5);
+  const tanFukuGap=movement.filter(x=>x.labels.includes('単複ズレ')).slice(0,5);
+
   const gates=all.map(x=>{
     let g=[];if(x.why.includes('壁前')||x.why.includes('壁直後'))g.push('壁');if(x.why.includes('馬連支持')||x.why.includes('三連複支持'))g.push('連系');if(x.why.includes('単勝上位')&&x.why.includes('複勝支持'))g.push('単複');if(x.score>=20)g.push('密集');
     return {...x,gates:uniq(g)};
   }).filter(x=>x.gates.length>=3).sort((a,b)=>b.gates.length-a.gates.length||b.score-a.score);
   return {data,tanRow,fukuRow,umaRow,sanRow,compi,compiRow,tanVal,fukuVal,umaVal,sanVal,walls,sum,gap,p,otani,counts,type,fixed,place,all,first,second,third,win5,gates,
-    matchanMain,matchanHole,structureAxis,ooareHead,axisAvoid,protect,oddsPattern,oddsHoles,oddsOpponents,bigHoleWin,bigHolePlace,bigHoleThird};
+    matchanMain,matchanHole,structureAxis,ooareHead,axisAvoid,protect,oddsPattern,oddsHoles,oddsOpponents,bigHoleWin,bigHolePlace,bigHoleThird,
+    movement,extremeMove,strangeMove,marketReverse,trifectaLead,tanFukuGap};
 }
 function cell(h,cls='',pt=''){return `<div class="cell ${cls}">${esc(h||'')} ${pt!==''?`<span class="pt">${esc(pt)}P</span>`:''}</div>`}
 function row(label,rank,wallIdx=[],barCls='',compi=[]){
@@ -338,6 +370,14 @@ function render(v){
   <div>テクニカル6：<b>${v.p}</b>／上位3頭合計 ${v.sum}</div>
   <div>大谷3条件：<b>${v.otani}/3</b></div>
   <div class="small">大谷式は候補馬の自動1着昇格ではなく、通常軸を弱める荒れ判定として使用。</div></div>`;
+  h+=`<div class="card moveCard"><h3>📈 極端移動・異様な動き【1回入力判定】</h3>
+  <div><span class="moveStrong">極端移動：</span><b>${v.extremeMove.length?v.extremeMove.map(x=>x.h+'番('+x.labels.join('+')+')').join(' / '):'なし'}</b></div>
+  <div><span class="moveWarn">異様な動き：</span><b>${v.strangeMove.length?v.strangeMove.map(x=>x.h+'番').join('・'):'なし'}</b></div>
+  <div><span class="moveUp">市場逆行馬：</span><b>${v.marketReverse.length?v.marketReverse.map(x=>x.h+'番').join('・'):'なし'}</b></div>
+  <div><span class="cyan">三連複先行：</span><b>${v.trifectaLead.length?v.trifectaLead.map(x=>x.h+'番').join('・'):'なし'}</b></div>
+  <div><span class="orange">単複ズレ：</span><b>${v.tanFukuGap.length?v.tanFukuGap.map(x=>x.h+'番').join('・'):'なし'}</b></div>
+  <div class="small">時間比較ではなく、同時点のコンピ・単勝・複勝・馬連・三連複の順位差から判定。</div></div>`;
+
   h+=`<div class="card theory"><h3>🎯 まっちゃん単勝</h3>
   <div><span class="cyan">本線：</span><b>${fmt(v.matchanMain)}</b></div>
   <div><span class="orange">穴単：</span><b>${fmt(v.matchanHole)}</b></div>
@@ -467,6 +507,11 @@ function currentRecordBase(){
     structure_axis:v.structureAxis,ooare_head:v.ooareHead,axis_avoid:v.axisAvoid,protect:v.protect.join('|'),
     odds_pattern:v.oddsPattern,odds_holes:v.oddsHoles.join('|'),odds_opponents:v.oddsOpponents.join('|'),
     big_hole_win:v.bigHoleWin.join('|'),big_hole_place:v.bigHolePlace.join('|'),big_hole_third:v.bigHoleThird.join('|'),
+    extreme_move:v.extremeMove.map(x=>x.h+':'+x.labels.join('+')).join('|'),
+    strange_move:v.strangeMove.map(x=>x.h+':'+x.labels.join('+')).join('|'),
+    market_reverse:v.marketReverse.map(x=>x.h+':'+x.labels.join('+')).join('|'),
+    trifecta_lead:v.trifectaLead.map(x=>x.h+':'+x.labels.join('+')).join('|'),
+    tan_fuku_gap:v.tanFukuGap.map(x=>x.h+':'+x.labels.join('+')).join('|'),
     market_rank:{umaren:v.umaRow.join('|'),tan:v.tanRow.join('|'),fuku:v.fukuRow.join('|'),sanpuku:v.sanRow.join('|')},
     walls:{
       umaren18:v.walls.uma.map(x=>x.before+'>'+x.next+':'+x.ratio).join('|'),
@@ -546,6 +591,13 @@ P判定：${v.p}（上位3頭合計${v.sum}）
 【WIN5式】
 ${v.win5.length?v.win5.map((x,i)=>(i+1)+'位 '+x.h+'番['+x.score+']').join(' / '):'該当なし'}
 
+【極端移動・異様な動き】
+極端移動：${v.extremeMove.length?v.extremeMove.map(x=>x.h+'番('+x.labels.join('+')+')').join(' / '):'なし'}
+異様な動き：${v.strangeMove.length?v.strangeMove.map(x=>x.h+'番').join('・'):'なし'}
+市場逆行馬：${v.marketReverse.length?v.marketReverse.map(x=>x.h+'番').join('・'):'なし'}
+三連複先行：${v.trifectaLead.length?v.trifectaLead.map(x=>x.h+'番').join('・'):'なし'}
+単複ズレ：${v.tanFukuGap.length?v.tanFukuGap.map(x=>x.h+'番').join('・'):'なし'}
+
 【まっちゃん単勝】
 本線：${fmt(v.matchanMain)}
 穴単：${fmt(v.matchanHole)}
@@ -600,6 +652,8 @@ function flattenRecord(x){
     structure_axis:x.structure_axis,ooare_head:x.ooare_head,axis_avoid:x.axis_avoid,protect:x.protect,
     odds_pattern:x.odds_pattern,odds_holes:x.odds_holes,odds_opponents:x.odds_opponents,
     big_hole_win:x.big_hole_win,big_hole_place:x.big_hole_place,big_hole_third:x.big_hole_third,
+    extreme_move:x.extreme_move,strange_move:x.strange_move,market_reverse:x.market_reverse,
+    trifecta_lead:x.trifecta_lead,tan_fuku_gap:x.tan_fuku_gap,
     umaren_rank:x.market_rank&&x.market_rank.umaren,tan_rank:x.market_rank&&x.market_rank.tan,fuku_rank:x.market_rank&&x.market_rank.fuku,sanpuku_rank:x.market_rank&&x.market_rank.sanpuku,
     wall_umaren18:x.walls&&x.walls.umaren18,wall_tan18:x.walls&&x.walls.tan18,wall_fuku18:x.walls&&x.walls.fuku18,wall_san18:x.walls&&x.walls.san18,
     wall_fuku6:x.walls&&x.walls.fuku6,wall_fuku15:x.walls&&x.walls.fuku15,wall_tan80:x.walls&&x.walls.tan80,
