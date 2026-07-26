@@ -65,6 +65,14 @@ details summary{cursor:pointer;font-weight:950;color:#c4b5fd;padding:10px;backgr
   .cell{width:42px;min-width:42px;max-width:42px;font-size:22px}
   .compiCell .pt{font-size:13px}
 }
+
+.recordCard{border:3px solid #14b8a6;background:linear-gradient(145deg,#032f2f,#134e4a,#07101f)}
+.formGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}
+.formGrid input{width:100%;min-width:0;border:1px solid #64748b;border-radius:11px;padding:10px;font-size:17px;background:#f8fafc;color:#111}
+.copyBtn{background:#8b5cf6;color:#fff}.recordBtn{background:#14b8a6;color:#042f2e}.appendBtn{background:#f97316;color:#fff}.allCsvBtn{background:#0e7490;color:#ecfeff}
+.logBox{margin-top:10px;background:#020617;border:1px solid #0f766e;border-radius:12px;padding:10px;font-size:14px}
+@media(max-width:520px){.formGrid{grid-template-columns:1fr 1fr 1fr}.formGrid input{font-size:16px;padding:9px 6px}}
+
 </style>
 </head>
 <body>
@@ -94,9 +102,29 @@ details summary{cursor:pointer;font-weight:950;color:#c4b5fd;padding:10px;backgr
   <button class="sample" onclick="sample()">サンプル</button>
   <button class="clear" onclick="clearAll()">リセット</button>
   <button class="save" onclick="saveCsv()">V3検証CSV</button>
+  <button class="copyBtn" onclick="copyForChat()">チャッピー用コピー</button>
+  <button class="recordBtn" onclick="savePreRace()">事前解析を記録</button>
+  <button class="allCsvBtn" onclick="saveAllRecordsCsv()">全記録CSV</button>
 </div>
 
 <div id="out"></div>
+<div class="card recordCard">
+  <div class="title">📝 結果追記・検証ログ</div>
+  <div class="small">レース前は「事前解析を記録」。結果確定後に着順を入れて「結果を追記」。同じレース記録へ追加します。</div>
+  <div class="formGrid">
+    <input id="r1" inputmode="numeric" placeholder="1着">
+    <input id="r2" inputmode="numeric" placeholder="2着">
+    <input id="r3" inputmode="numeric" placeholder="3着">
+  </div>
+  <div class="formGrid">
+    <input id="payTan" inputmode="numeric" placeholder="単勝払戻">
+    <input id="payUma" inputmode="numeric" placeholder="馬連払戻">
+    <input id="paySan" inputmode="numeric" placeholder="三連複払戻">
+  </div>
+  <button class="appendBtn" onclick="appendResult()">結果を追記</button>
+  <button class="clear" onclick="showRecordCount()">記録件数確認</button>
+  <div class="logBox" id="recordStatus">保存済み記録：0件</div>
+</div>
 </main>
 
 <script>
@@ -209,11 +237,61 @@ function build(data){
     second=uniq(all.slice(0,6).map(x=>x.h));third=uniq([walls.f6?.before,walls.f15?.before,walls.f15?.next,walls.t80?.before].filter(Boolean));
   }
   const win5=all.filter(x=>{const tf=data.tf.find(v=>v.h===x.h);return tf&&tf.fuku!=null&&tf.fuku<=3}).slice(0,3);
+
+  const scoreOf=h=>all.find(x=>x.h===String(h));
+  const topBy=(fn,n=3)=>all.filter(fn).slice(0,n).map(x=>x.h);
+
+  // まっちゃん単勝
+  let matchanMain=uniq([
+    win5[0]?.h,
+    type==='一強・相手荒れ型'||type==='順当型'?compi[0]?.h:null,
+    all.find(x=>x.why.includes('単勝上位')&&x.why.includes('馬連支持'))?.h
+  ]).filter(Boolean).slice(0,2);
+
+  let matchanHole=uniq([
+    all.find(x=>x.why.includes('壁前')&&x.why.includes('馬連支持')&&!matchanMain.includes(x.h))?.h,
+    all.find(x=>x.why.includes('三連複支持')&&x.why.includes('複勝支持')&&!matchanMain.includes(x.h))?.h,
+    walls.f15?.before,
+    walls.t80?.before
+  ]).filter(Boolean).slice(0,2);
+
+  // 大荒れ頭・構造軸同期
+  const structureAxis=uniq([
+    all.find(x=>x.why.includes('馬連支持')&&x.why.includes('三連複支持'))?.h,
+    compi[0]?.h
+  ]).filter(Boolean)[0]||'';
+  const ooareHead=uniq([
+    all.find(x=>x.why.includes('壁前')&&x.why.includes('複勝支持'))?.h,
+    all.find(x=>x.score>=22&&!matchanMain.includes(x.h))?.h,
+    walls.f15?.before
+  ]).filter(Boolean)[0]||'';
+  const axisAvoid=type==='コンピ上位総崩れ型'||type==='大谷式大穴型'?structureAxis:'';
+  const protect=uniq([all[0]?.h,all[1]?.h,walls.f6?.before,walls.f15?.before]).filter(Boolean).slice(0,3);
+
+  // まっちゃん式・オッズ構造予想
+  let oddsPattern='通常';
+  if(!walls.tan.length)oddsPattern='単勝ランク無壁混戦';
+  if(walls.t80&&walls.f15&&walls.t80.idx!==walls.f15.idx)oddsPattern='単勝80倍壁×複勝15倍壁ズレ';
+  if(walls.uma[0]&&walls.uma[0].idx<=2)oddsPattern='馬連上位人気集中';
+  const oddsHoles=uniq([
+    walls.f15?.before,walls.f15?.next,
+    all.find(x=>x.why.includes('壁前')&&x.why.includes('三連複支持'))?.h,
+    all.find(x=>x.why.includes('壁直後')&&x.why.includes('馬連支持'))?.h
+  ]).filter(Boolean).slice(0,2);
+  const oddsOpponents=uniq(all.slice(0,6).map(x=>x.h).filter(h=>!oddsHoles.includes(h))).slice(0,4);
+
+  // 大穴役割
+  const bigHoleWin=uniq([ooareHead,matchanHole[0],oddsHoles[0]]).filter(Boolean).slice(0,2);
+  const bigHolePlace=uniq([oddsHoles[0],oddsHoles[1],walls.f15?.before]).filter(Boolean).slice(0,3);
+  const bigHoleThird=uniq([walls.f15?.next,walls.f6?.next,walls.t80?.before]).filter(Boolean).slice(0,3);
+
+
   const gates=all.map(x=>{
     let g=[];if(x.why.includes('壁前')||x.why.includes('壁直後'))g.push('壁');if(x.why.includes('馬連支持')||x.why.includes('三連複支持'))g.push('連系');if(x.why.includes('単勝上位')&&x.why.includes('複勝支持'))g.push('単複');if(x.score>=20)g.push('密集');
     return {...x,gates:uniq(g)};
   }).filter(x=>x.gates.length>=3).sort((a,b)=>b.gates.length-a.gates.length||b.score-a.score);
-  return {data,tanRow,fukuRow,umaRow,sanRow,compi,compiRow,tanVal,fukuVal,umaVal,sanVal,walls,sum,gap,p,otani,counts,type,fixed,place,all,first,second,third,win5,gates};
+  return {data,tanRow,fukuRow,umaRow,sanRow,compi,compiRow,tanVal,fukuVal,umaVal,sanVal,walls,sum,gap,p,otani,counts,type,fixed,place,all,first,second,third,win5,gates,
+    matchanMain,matchanHole,structureAxis,ooareHead,axisAvoid,protect,oddsPattern,oddsHoles,oddsOpponents,bigHoleWin,bigHolePlace,bigHoleThird};
 }
 function cell(h,cls='',pt=''){return `<div class="cell ${cls}">${esc(h||'')} ${pt!==''?`<span class="pt">${esc(pt)}P</span>`:''}</div>`}
 function row(label,rank,wallIdx=[],barCls='',compi=[]){
@@ -260,6 +338,27 @@ function render(v){
   <div>テクニカル6：<b>${v.p}</b>／上位3頭合計 ${v.sum}</div>
   <div>大谷3条件：<b>${v.otani}/3</b></div>
   <div class="small">大谷式は候補馬の自動1着昇格ではなく、通常軸を弱める荒れ判定として使用。</div></div>`;
+  h+=`<div class="card theory"><h3>🎯 まっちゃん単勝</h3>
+  <div><span class="cyan">本線：</span><b>${fmt(v.matchanMain)}</b></div>
+  <div><span class="orange">穴単：</span><b>${fmt(v.matchanHole)}</b></div>
+  <div class="small">WIN5式・単勝上位・馬連支持・壁前の重複から1着向きを分離。</div></div>`;
+
+  h+=`<div class="card theory"><h3>🚨 V2.65大荒れ頭・構造軸同期</h3>
+  <div><span class="yellow">構造軸：</span><b>${v.structureAxis?v.structureAxis+'番':'なし'}</b></div>
+  <div><span class="warn">大荒れ頭：</span><b>${v.ooareHead?v.ooareHead+'番':'なし'}</b></div>
+  <div><span class="orange">軸回避馬：</span><b>${v.axisAvoid?v.axisAvoid+'番':'なし'}</b></div>
+  <div><span class="cyan">相手保護：</span><b>${fmt(v.protect)}</b></div></div>`;
+
+  h+=`<div class="card theory"><h3>📘 まっちゃん式・オッズ構造予想</h3>
+  <div><span class="good">発動パターン：</span><b>${esc(v.oddsPattern)}</b></div>
+  <div><span class="orange">穴候補：</span><b>${fmt(v.oddsHoles)}</b></div>
+  <div><span class="cyan">上位相手：</span><b>${fmt(v.oddsOpponents)}</b></div></div>`;
+
+  h+=`<div class="card theory"><h3>💥 大穴候補・役割分離</h3>
+  <div><span class="warn">1着穴：</span><b>${fmt(v.bigHoleWin)}</b></div>
+  <div><span class="orange">連対穴：</span><b>${fmt(v.bigHolePlace)}</b></div>
+  <div><span class="cyan">3着穴：</span><b>${fmt(v.bigHoleThird)}</b></div></div>`;
+
   h+=`<details class="card"><summary>研究用・全候補得点を表示</summary><pre>${esc(v.all.map(x=>`${x.h}番 ${x.score}点｜${x.why.join('・')}`).join('\n'))}</pre></details>`;
   return h;
 }
@@ -349,6 +448,180 @@ function saveCsv(){
   const keys=Object.keys(row),csv='\ufeff'+keys.map(csvEsc).join(',')+'\n'+keys.map(k=>csvEsc(row[k])).join(',');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='競馬メジアン_V3検証_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)
 }
+
+const RECORD_KEY='keiba_median_v3_records_v1';
+function currentRecordBase(){
+  if(!latest)throw new Error('先にレース解析してください');
+  const v=latest;
+  return {
+    record_id:(v.data.title||'レース')+'_'+new Date().toISOString(),
+    race:v.data.title||'レース',saved_at:new Date().toISOString(),
+    analysis_version:'V3.00-self-contained-log01',
+    race_type:v.type,p_type:v.p,compi_top3_sum:v.sum,compi_gap:v.gap,otani_count:v.otani,
+    odds_counts:{tan10:v.counts.tan10,tan30:v.counts.tan30,f6:v.counts.f6,f10:v.counts.f10,f15:v.counts.f15},
+    compi_all:v.compi.map(x=>x.h+':'+x.pt+(x.rec?'*':'')).join('|'),
+    first_candidates:v.first.join('|'),second_candidates:v.second.join('|'),third_candidates:v.third.join('|'),
+    win5_candidates:v.win5.map(x=>x.h+':'+x.score).join('|'),
+    blue_white_candidates:v.gates.map(x=>x.h+':'+x.gates.length+':'+x.gates.join('+')).join('|'),
+    matchan_main:v.matchanMain.join('|'),matchan_hole:v.matchanHole.join('|'),
+    structure_axis:v.structureAxis,ooare_head:v.ooareHead,axis_avoid:v.axisAvoid,protect:v.protect.join('|'),
+    odds_pattern:v.oddsPattern,odds_holes:v.oddsHoles.join('|'),odds_opponents:v.oddsOpponents.join('|'),
+    big_hole_win:v.bigHoleWin.join('|'),big_hole_place:v.bigHolePlace.join('|'),big_hole_third:v.bigHoleThird.join('|'),
+    market_rank:{umaren:v.umaRow.join('|'),tan:v.tanRow.join('|'),fuku:v.fukuRow.join('|'),sanpuku:v.sanRow.join('|')},
+    walls:{
+      umaren18:v.walls.uma.map(x=>x.before+'>'+x.next+':'+x.ratio).join('|'),
+      tan18:v.walls.tan.map(x=>x.before+'>'+x.next+':'+x.ratio).join('|'),
+      fuku18:v.walls.fuku.map(x=>x.before+'>'+x.next+':'+x.ratio).join('|'),
+      san18:v.walls.san.map(x=>x.before+'>'+x.next+':'+x.ratio).join('|'),
+      fuku6:v.walls.f6?v.walls.f6.before+'>'+v.walls.f6.next:'',
+      fuku15:v.walls.f15?v.walls.f15.before+'>'+v.walls.f15.next:'',
+      tan80:v.walls.t80?v.walls.t80.before+'>'+v.walls.t80.next:''
+    },
+    raw_input:document.getElementById('input').value,result:null
+  };
+}
+function getRecords(){try{return JSON.parse(localStorage.getItem(RECORD_KEY)||'[]')}catch(e){return[]}}
+function setRecords(a){localStorage.setItem(RECORD_KEY,JSON.stringify(a));showRecordCount()}
+function savePreRace(){
+  try{
+    const rec=currentRecordBase(),a=getRecords();
+    const same=a.findIndex(x=>x.race===rec.race&&!x.result);
+    if(same>=0){rec.record_id=a[same].record_id;a[same]=rec}else a.push(rec);
+    setRecords(a);
+    document.getElementById('recordStatus').textContent='事前解析を保存：'+rec.race+'（保存済み '+a.length+'件）';
+  }catch(e){alert(e.message||e)}
+}
+function appendResult(){
+  const race=latest&&latest.data&&latest.data.title;
+  if(!race){alert('先に同じレースを解析してください');return}
+  const a=getRecords();let idx=-1;
+  for(let i=a.length-1;i>=0;i--){if(a[i].race===race){idx=i;break}}
+  if(idx<0){try{a.push(currentRecordBase());idx=a.length-1}catch(e){alert(e.message||e);return}}
+  const n=id=>document.getElementById(id).value.trim();
+  const r={first:n('r1'),second:n('r2'),third:n('r3'),tan_pay:n('payTan'),umaren_pay:n('payUma'),sanpuku_pay:n('paySan'),result_saved_at:new Date().toISOString()};
+  if(!r.first||!r.second||!r.third){alert('1着・2着・3着を入力してください');return}
+  a[idx].result=r;
+  const hit=h=>[r.first,r.second,r.third].includes(String(h));
+  a[idx].evaluation={
+    first_candidate_hit:a[idx].first_candidates.split('|').includes(r.first),
+    first_candidates_in_top3:a[idx].first_candidates.split('|').filter(hit).length,
+    win5_first_hit:a[idx].win5_candidates.split('|').some(x=>x.split(':')[0]===r.first),
+    win5_top3_count:a[idx].win5_candidates.split('|').filter(x=>hit(x.split(':')[0])).length,
+    blue_white_top3_count:a[idx].blue_white_candidates.split('|').filter(x=>hit(x.split(':')[0])).length
+  };
+  setRecords(a);
+  document.getElementById('recordStatus').textContent='結果追記完了：'+race+' → '+r.first+'-'+r.second+'-'+r.third;
+}
+function showRecordCount(){
+  const a=getRecords(),done=a.filter(x=>x.result).length;
+  const e=document.getElementById('recordStatus');if(e)e.textContent='保存済み記録：'+a.length+'件／結果追記済み：'+done+'件';
+}
+function chatText(){
+  if(!latest)throw new Error('先にレース解析してください');
+  const v=latest,fmt=a=>a.length?a.map(x=>x+'番').join('・'):'なし';
+  const wall=(name,w)=>name+'：'+(w?(w.before+'番→'+w.next+'番'+(w.ratio?' '+w.ratio+'倍':'')):'なし');
+  return `【${v.data.title}】
+競馬メジアン V3.00 解析結果
+
+【市場順位】
+コンピ：${v.compi.map(x=>x.h+'('+x.pt+(x.rec?'推':'')+')').join('・')}
+馬連：${v.umaRow.join('・')}
+単勝：${v.tanRow.join('・')}
+複勝：${v.fukuRow.join('・')}
+三連複：${v.sanRow.join('・')}
+
+【司令塔】
+レース型：${v.type}
+P判定：${v.p}（上位3頭合計${v.sum}）
+大谷式：${v.otani}/3条件
+1位－3位差：${v.gap}P
+1着固定性：${v.fixed}
+荒れる位置：${v.place}
+
+【型別候補】
+1着候補：${fmt(v.first)}
+連対候補：${fmt(v.second)}
+3着・侵入穴：${fmt(v.third)}
+
+【WIN5式】
+${v.win5.length?v.win5.map((x,i)=>(i+1)+'位 '+x.h+'番['+x.score+']').join(' / '):'該当なし'}
+
+【まっちゃん単勝】
+本線：${fmt(v.matchanMain)}
+穴単：${fmt(v.matchanHole)}
+
+【大荒れ頭・構造軸同期】
+構造軸：${v.structureAxis?v.structureAxis+'番':'なし'}
+大荒れ頭：${v.ooareHead?v.ooareHead+'番':'なし'}
+軸回避：${v.axisAvoid?v.axisAvoid+'番':'なし'}
+相手保護：${fmt(v.protect)}
+
+【オッズ構造予想】
+発動：${v.oddsPattern}
+穴候補：${fmt(v.oddsHoles)}
+上位相手：${fmt(v.oddsOpponents)}
+
+【大穴候補】
+1着穴：${fmt(v.bigHoleWin)}
+連対穴：${fmt(v.bigHolePlace)}
+3着穴：${fmt(v.bigHoleThird)}
+
+【青白光】
+${v.gates.length?v.gates.map(x=>x.h+'番 '+x.gates.length+'関門('+x.gates.join('+')+')').join(' / '):'該当なし'}
+
+【壁】
+${wall('馬連1.8壁',v.walls.uma[0])}
+${wall('単勝1.8壁',v.walls.tan[0])}
+${wall('複勝1.8壁',v.walls.fuku[0])}
+${wall('三連複1.8壁',v.walls.san[0])}
+${wall('複勝6倍壁',v.walls.f6)}
+${wall('複勝15倍壁',v.walls.f15)}
+${wall('単勝80倍壁',v.walls.t80)}
+
+チャッピー、この解析を元に、レース型・1着候補・穴候補・買い目を考察してください。`;
+}
+async function copyForChat(){
+  try{
+    const t=chatText();
+    if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(t)}
+    else{const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}
+    alert('チャッピー用の解析結果をコピーしました');
+  }catch(e){alert(e.message||e)}
+}
+function flattenRecord(x){
+  return {
+    record_id:x.record_id,race:x.race,saved_at:x.saved_at,analysis_version:x.analysis_version,
+    race_type:x.race_type,p_type:x.p_type,compi_top3_sum:x.compi_top3_sum,compi_gap:x.compi_gap,otani_count:x.otani_count,
+    tan10:x.odds_counts&&x.odds_counts.tan10,tan30:x.odds_counts&&x.odds_counts.tan30,
+    fuku6:x.odds_counts&&x.odds_counts.f6,fuku10:x.odds_counts&&x.odds_counts.f10,fuku15:x.odds_counts&&x.odds_counts.f15,
+    compi_all:x.compi_all,first_candidates:x.first_candidates,second_candidates:x.second_candidates,third_candidates:x.third_candidates,
+    win5_candidates:x.win5_candidates,blue_white_candidates:x.blue_white_candidates,
+    matchan_main:x.matchan_main,matchan_hole:x.matchan_hole,
+    structure_axis:x.structure_axis,ooare_head:x.ooare_head,axis_avoid:x.axis_avoid,protect:x.protect,
+    odds_pattern:x.odds_pattern,odds_holes:x.odds_holes,odds_opponents:x.odds_opponents,
+    big_hole_win:x.big_hole_win,big_hole_place:x.big_hole_place,big_hole_third:x.big_hole_third,
+    umaren_rank:x.market_rank&&x.market_rank.umaren,tan_rank:x.market_rank&&x.market_rank.tan,fuku_rank:x.market_rank&&x.market_rank.fuku,sanpuku_rank:x.market_rank&&x.market_rank.sanpuku,
+    wall_umaren18:x.walls&&x.walls.umaren18,wall_tan18:x.walls&&x.walls.tan18,wall_fuku18:x.walls&&x.walls.fuku18,wall_san18:x.walls&&x.walls.san18,
+    wall_fuku6:x.walls&&x.walls.fuku6,wall_fuku15:x.walls&&x.walls.fuku15,wall_tan80:x.walls&&x.walls.tan80,
+    first:x.result&&x.result.first,second:x.result&&x.result.second,third:x.result&&x.result.third,
+    tan_pay:x.result&&x.result.tan_pay,umaren_pay:x.result&&x.result.umaren_pay,sanpuku_pay:x.result&&x.result.sanpuku_pay,
+    first_candidate_hit:x.evaluation&&x.evaluation.first_candidate_hit,
+    first_candidates_in_top3:x.evaluation&&x.evaluation.first_candidates_in_top3,
+    win5_first_hit:x.evaluation&&x.evaluation.win5_first_hit,
+    win5_top3_count:x.evaluation&&x.evaluation.win5_top3_count,
+    blue_white_top3_count:x.evaluation&&x.evaluation.blue_white_top3_count
+  };
+}
+function saveAllRecordsCsv(){
+  const a=getRecords();if(!a.length){alert('記録がありません');return}
+  const rows=a.map(flattenRecord),keys=Object.keys(rows[0]);
+  const csv='\ufeff'+keys.map(csvEsc).join(',')+'\n'+rows.map(r=>keys.map(k=>csvEsc(r[k])).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),el=document.createElement('a');
+  el.href=URL.createObjectURL(blob);el.download='競馬メジアン_V3全記録_'+new Date().toISOString().slice(0,10)+'.csv';el.click();
+  setTimeout(()=>URL.revokeObjectURL(el.href),1000);
+}
+document.addEventListener('DOMContentLoaded',showRecordCount);
+
 </script>
 </body>
 </html>
