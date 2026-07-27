@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<title>競馬メジアン V3.00 型別司令塔・自己完結版</title>
+<title>競馬メジアン V4.00 市場構造・残像馬統合版</title>
 <style>
 :root{
   --bg:#07101f;--card:#10224a;--card2:#08152d;--line:#334155;
@@ -77,11 +77,39 @@ details summary{cursor:pointer;font-weight:950;color:#c4b5fd;padding:10px;backgr
 .moveCard{border:3px solid #38bdf8;background:linear-gradient(145deg,#082f49,#0c4a6e,#07101f);box-shadow:0 0 16px rgba(56,189,248,.25)}
 .moveStrong{color:#fef08a;font-weight:900}.moveUp{color:#86efac;font-weight:900}.moveWarn{color:#fda4af;font-weight:900}
 
+
+/* V4.00 readable legacy-size market table */
+.marketCard{padding:16px!important}
+.marketScroll{padding:13px 8px!important}
+.marketRow{margin:14px 0!important;min-height:48px}
+.marketLabel{width:82px!important;min-width:82px!important;max-width:82px!important;font-size:21px!important}
+.cell{width:58px!important;min-width:58px!important;max-width:58px!important;font-size:29px!important}
+.compiCell .pt{font-size:17px!important;margin-top:7px!important}
+.bar{height:42px!important;margin:0 5px!important}
+.barUma,.barTan,.barFuku,.barSan,.bar6,.bar15,.bar80{width:7px!important;min-width:7px!important}
+.v4Card{border:3px solid #22d3ee;background:linear-gradient(145deg,#032335,#0c4a6e,#07101f);box-shadow:0 0 20px rgba(34,211,238,.28)}
+.v4Purple{border-color:#a78bfa;background:linear-gradient(145deg,#1e103a,#312e81,#07101f)}
+.v4Gold{border-color:#facc15;background:linear-gradient(145deg,#2b2000,#713f12,#07101f)}
+.v4Horse{background:#020617;border:1px solid #475569;border-radius:13px;padding:11px;margin:8px 0}
+.v4HorseTop{font-size:22px;font-weight:950;color:#fde047}
+.v4Score{display:inline-block;background:#facc15;color:#1c1917;border-radius:999px;padding:2px 9px;margin-right:7px;font-weight:950}
+.v4Reason{color:#e2e8f0;font-size:14px;line-height:1.6}
+.v4MedianGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.v4MedianBox{background:#020617;border:1px solid #155e75;border-radius:12px;padding:10px}
+.v4MedianL{font-size:12px;color:#67e8f9;font-weight:900}.v4MedianV{font-size:22px;font-weight:950}
+.v4Hidden{color:#fda4af}.v4Book{color:#c4b5fd}.v4Original{color:#86efac}
+@media(max-width:520px){
+ .marketCard{padding:13px!important}.marketScroll{padding:10px 5px!important}
+ .marketLabel{width:76px!important;min-width:76px!important;max-width:76px!important;font-size:19px!important}
+ .cell{width:54px!important;min-width:54px!important;max-width:54px!important;font-size:27px!important}
+ .marketRow{margin:13px 0!important}.v4MedianGrid{grid-template-columns:1fr 1fr}
+}
+
 </style>
 </head>
 <body>
 <main>
-<h1>競馬メジアン <span class="tag">V3.00</span><br>型別司令塔・自己完結版</h1>
+<h1>競馬メジアン <span class="tag">V4.00</span><br>市場構造・メジアン・残像馬統合版</h1>
 
 <div class="card">
   <div class="title">レースデータ入力</div>
@@ -105,7 +133,7 @@ details summary{cursor:pointer;font-weight:950;color:#c4b5fd;padding:10px;backgr
   <button class="go" onclick="run()">レース解析</button>
   <button class="sample" onclick="sample()">サンプル</button>
   <button class="clear" onclick="clearAll()">リセット</button>
-  <button class="save" onclick="saveCsv()">V3検証CSV</button>
+  <button class="save" onclick="saveCsv()">V4検証CSV</button>
   <button class="copyBtn" onclick="copyForChat()">チャッピー用コピー</button>
   <button class="recordBtn" onclick="savePreRace()">事前解析を記録</button>
   <button class="allCsvBtn" onclick="saveAllRecordsCsv()">全記録CSV</button>
@@ -321,9 +349,60 @@ function build(data){
     let g=[];if(x.why.includes('壁前')||x.why.includes('壁直後'))g.push('壁');if(x.why.includes('馬連支持')||x.why.includes('三連複支持'))g.push('連系');if(x.why.includes('単勝上位')&&x.why.includes('複勝支持'))g.push('単複');if(x.score>=20)g.push('密集');
     return {...x,gates:uniq(g)};
   }).filter(x=>x.gates.length>=3).sort((a,b)=>b.gates.length-a.gates.length||b.score-a.score);
+
+  // V4: 書籍原型メジアン・壁内中央値・残像馬
+  const medianHorse=arr=>{const a=(arr||[]).filter(Boolean);if(!a.length)return [];return a.length%2?[a[Math.floor(a.length/2)]]:[a[a.length/2-1],a[a.length/2]]};
+  const firstWallBand=(rank,ws)=>{
+    if(!rank.length)return {range:[],median:[]};
+    if(ws&&ws.length>=2){const a=ws[0].idx+1,b=ws[1].idx;const range=rank.slice(a,b+1);return {range,median:medianHorse(range),label:'1つ目の壁直後〜2つ目の壁前'};}
+    if(ws&&ws.length===1){const range=rank.slice(0,ws[0].idx+1);return {range,median:medianHorse(range),label:'先頭〜1つ目の壁前'};}
+    return {range:rank.slice(),median:medianHorse(rank),label:'無壁・全体'};
+  };
+  const bookMedian={tan:medianHorse(tanRow),fuku:medianHorse(fukuRow),uma:medianHorse(umaRow),san:medianHorse(sanRow)};
+  const wallMedian={tan:firstWallBand(tanRow,walls.tan),fuku:firstWallBand(fukuRow,walls.fuku),uma:firstWallBand(umaRow,walls.uma),san:firstWallBand(sanRow,walls.san)};
+  const medianVotes={};
+  Object.values(bookMedian).flat().forEach(h=>medianVotes[h]=(medianVotes[h]||0)+1);
+  Object.values(wallMedian).forEach(x=>x.median.forEach(h=>medianVotes[h]=(medianVotes[h]||0)+2));
+  const overallMedian=Object.entries(medianVotes).sort((a,b)=>b[1]-a[1]||+a[0]-+b[0]).slice(0,3).map(x=>x[0]);
+  const favOdds=tan.length?tan[0].tan:null;
+  const favStrength=favOdds==null?'不明':favOdds<2?'1倍台・強本命':favOdds<4?'2〜3倍台・頭替わり注意':'4倍以上・混戦警報';
+  let smallType='対象外';
+  if(compi.length<=9){
+    if(favOdds<2&&compi[0]?.pt>=82)smallType='A（超本命・相手選び）';
+    else if(favOdds<4&&compi[0]?.pt>=75)smallType='B（頭替わりあり）';
+    else smallType='C（混戦・外部侵入）';
+    type='少頭数'+smallType;fixed=smallType.startsWith('A')?'高':smallType.startsWith('B')?'中':'低';place=smallType.startsWith('A')?'2～3着':'1～3着';
+  }
+  const triSorted=sorted(data.san),triTop=triSorted[0]||null;
+  const rankObj=a=>Object.fromEntries(a.map((h,i)=>[h,i+1]));
+  const rt4=rankObj(tanRow),rc4=rankObj(compiRow),rs4=rankObj(sanRow),ru4=rankObj(umaRow),rf4=rankObj(fukuRow);
+  const tri1H=triTop?[triTop.a,triTop.b,triTop.c]:[];
+  const tri1Popular=tri1H.map(h=>rt4[h]||99);
+  const tri1Grade=!triTop?'なし':Math.max(...tri1Popular)<=3?'A（単勝上位3頭）':Math.max(...tri1Popular)<=5?'B（上位5頭内）':'C（外部侵入あり）';
+  const triCounts={};triSorted.slice(0,10).forEach((t,i)=>[t.a,t.b,t.c].forEach(h=>{triCounts[h]=triCounts[h]||{h,count:0,best:99};triCounts[h].count++;triCounts[h].best=Math.min(triCounts[h].best,i+1)}));
+  const triLead=Object.values(triCounts).filter(x=>(rt4[x.h]||99)>=5&&(x.best<=5||x.count>=4)).sort((a,b)=>b.count-a.count||a.best-b.best);
+  const residual=all.map((x,idx)=>{
+    const h=x.h,ranks=[rt4[h]||99,rf4[h]||99,ru4[h]||99,rs4[h]||99,rc4[h]||99];
+    const midHits=ranks.filter(r=>r>=4&&r<=8).length;
+    const weak=[];
+    if(midHits>=3)weak.push('複数市場で4〜8位');
+    if((medianVotes[h]||0)>0)weak.push('メジアン残存');
+    if(x.why.includes('壁前')||x.why.includes('壁直後'))weak.push('壁周辺');
+    const mv=movement.find(m=>m.h===h);if(mv&&mv.labels.length)weak.push(...mv.labels.slice(0,2));
+    const tc=triCounts[h];if(tc&&tc.count>=2)weak.push('三連複上位'+tc.count+'回');
+    const tf=data.tf.find(z=>z.h===h);const tanod=tf?tf.tan:999;
+    let z=midHits*3+(medianVotes[h]||0)*3+(weak.length*2)+(tc?tc.count:0);
+    if(idx<3)z-=6;if(tanod<10)z-=3;if(tanod>=15)z+=3;
+    return {h,score:z,rank:idx+1,ranks,weak:uniq(weak),tan:tanod};
+  }).filter(x=>x.rank>=4&&x.rank<=9&&x.weak.length>=2).sort((a,b)=>b.score-a.score||a.rank-b.rank).slice(0,3);
+  const signalRows=all.map((x,idx)=>{
+    const mv=movement.find(m=>m.h===x.h),tc=triCounts[x.h];let rs=[];
+    rs.push(...x.why);if(mv)rs.push(...mv.labels);if(medianVotes[x.h])rs.push('メジアン重複'+medianVotes[x.h]);if(tc)rs.push('三連複上位10内'+tc.count+'回');
+    return {h:x.h,score:x.score+(medianVotes[x.h]||0)*4+(tc?tc.count:0),reasons:uniq(rs),rank:idx+1};
+  }).sort((a,b)=>b.score-a.score||a.rank-b.rank);
   return {data,tanRow,fukuRow,umaRow,sanRow,compi,compiRow,tanVal,fukuVal,umaVal,sanVal,walls,sum,gap,p,otani,counts,type,fixed,place,all,first,second,third,win5,gates,
     matchanMain,matchanHole,structureAxis,ooareHead,axisAvoid,protect,oddsPattern,oddsHoles,oddsOpponents,bigHoleWin,bigHolePlace,bigHoleThird,
-    movement,extremeMove,strangeMove,marketReverse,trifectaLead,tanFukuGap};
+    movement,extremeMove,strangeMove,marketReverse,trifectaLead,tanFukuGap,bookMedian,wallMedian,overallMedian,favStrength,smallType,tri1H,tri1Grade,triLead,residual,signalRows};
 }
 function cell(h,cls='',pt=''){return `<div class="cell ${cls}">${esc(h||'')} ${pt!==''?`<span class="pt">${esc(pt)}P</span>`:''}</div>`}
 function row(label,rank,wallIdx=[],barCls='',compi=[]){
@@ -350,7 +429,7 @@ function render(v){
   <span class="leg"><i class="legLine" style="background:var(--orange)"></i>複勝15倍</span>
   <span class="leg"><i class="legLine" style="background:var(--pink)"></i>単勝80倍</span></div>
   <div class="wallBox">${wallText('馬連1.8壁',v.walls.uma[0])}${wallText('単勝1.8壁',v.walls.tan[0])}${wallText('複勝1.8壁',v.walls.fuku[0])}${wallText('三連複1.8壁',v.walls.san[0])}${wallText('複勝6倍壁',v.walls.f6)}${wallText('複勝15倍壁',v.walls.f15)}${wallText('単勝80倍壁',v.walls.t80)}</div></div>`;
-  h+=`<div class="card commander"><div class="title">🩺 V3 レース司令塔</div><div class="typeName">${esc(v.type)}</div>
+  h+=`<div class="card commander"><div class="title">🩺 V4 レース司令塔</div><div class="typeName">${esc(v.type)}</div>
   <div class="metaGrid">
   <div class="meta"><div class="metaL">テクニカル6</div><div class="metaV">${v.p}（${v.sum}）</div></div>
   <div class="meta"><div class="metaL">大谷式</div><div class="metaV">${v.otani}/3条件</div></div>
@@ -359,7 +438,25 @@ function render(v){
   <div class="meta"><div class="metaL">1着固定性</div><div class="metaV">${v.fixed}</div></div>
   <div class="meta"><div class="metaL">荒れる位置</div><div class="metaV">${v.place}</div></div>
   </div></div>`;
-  const fmt=a=>a.length?a.map(x=>x+'番').join('・'):'該当なし';
+  const fmt=a=>(a||[]).filter(Boolean).length?(a||[]).filter(Boolean).map(x=>x+'番').join('・'):'該当なし';
+  const medFmt=a=>a&&a.length?a.map(x=>x+'番').join('・'):'なし';
+  h+=`<div class="card v4Card"><div class="title">📚 書籍原型メジアン＋壁内中央値</div>
+  <div class="v4MedianGrid">
+  <div class="v4MedianBox"><div class="v4MedianL">単勝メジアン</div><div class="v4MedianV">${medFmt(v.bookMedian.tan)}</div><div class="small">壁内：${medFmt(v.wallMedian.tan.median)}</div></div>
+  <div class="v4MedianBox"><div class="v4MedianL">馬連馬別メジアン</div><div class="v4MedianV">${medFmt(v.bookMedian.uma)}</div><div class="small">壁内：${medFmt(v.wallMedian.uma.median)}</div></div>
+  <div class="v4MedianBox"><div class="v4MedianL">複勝メジアン</div><div class="v4MedianV">${medFmt(v.bookMedian.fuku)}</div><div class="small">壁内：${medFmt(v.wallMedian.fuku.median)}</div></div>
+  <div class="v4MedianBox"><div class="v4MedianL">三連複馬別メジアン</div><div class="v4MedianV">${medFmt(v.bookMedian.san)}</div><div class="small">壁内：${medFmt(v.wallMedian.san.median)}</div></div>
+  </div><div class="cand"><div class="candL">市場別・総合中央値</div><div class="candV">${medFmt(v.overallMedian)}</div></div>
+  <div class="small"><span class="v4Book">書籍原型</span>＝市場順位の中央。<span class="v4Original">壁内中央値</span>＝壁直後〜次の壁前の中央。</div></div>`;
+  h+=`<div class="card v4Purple"><div class="title">🧭 1番人気・少頭数・三連複1番人気</div>
+  <div class="metaGrid"><div class="meta"><div class="metaL">単勝1番人気</div><div class="metaV">${esc(v.favStrength)}</div></div>
+  <div class="meta"><div class="metaL">少頭数区分</div><div class="metaV">${esc(v.smallType)}</div></div>
+  <div class="meta"><div class="metaL">三連複1番人気</div><div class="metaV">${medFmt(v.tri1H)}</div></div>
+  <div class="meta"><div class="metaL">構成判定</div><div class="metaV">${esc(v.tri1Grade)}</div></div></div>
+  <div class="small">三連複先行侵入：${v.triLead.length?v.triLead.map(x=>x.h+'番('+x.count+'回)').join('・'):'なし'}</div></div>`;
+  h+=`<div class="card v4Gold"><div class="title">👻 残像馬・隠れ大穴</div>${v.residual.length?v.residual.map((x,i)=>`<div class="v4Horse"><div class="v4HorseTop v4Hidden">${i+1}位 ${x.h}番［${x.score}］</div><div class="v4Reason">単勝${x.tan}倍／候補順位${x.rank}位<br>${x.weak.join('・')}</div></div>`).join(''):'<div class="small">残像条件を満たす馬なし</div>'}<div class="small">主役ではないが、複数市場の中位・メジアン・壁周辺へ薄く何度も残る馬。</div></div>`;
+  h+=`<div class="card v4Card"><div class="title">📡 移動馬・変な動き馬【完全一覧】</div>${v.signalRows.slice(0,10).map((x,i)=>`<div class="v4Horse"><span class="v4Score">${x.score}</span><b>${x.h}番</b><div class="v4Reason">${x.reasons.join('・')}</div></div>`).join('')}</div>`;
+  h+=`<div class="card v4Purple"><div class="title">🏅 候補ランキング【根拠つき】</div>${v.signalRows.slice(0,8).map((x,i)=>`<div class="v4Horse"><div class="v4HorseTop">${i+1}位 ${x.h}番［${x.score}］</div><div class="v4Reason">${x.reasons.join('・')}</div></div>`).join('')}</div>`;
   h+=`<div class="card candidates"><div class="title">🎯 この型から出す候補</div>
   <div class="cand"><div class="candL">1着候補</div><div class="candV">${fmt(v.first)}</div></div>
   <div class="cand"><div class="candL">連対候補</div><div class="candV">${fmt(v.second)}</div></div>
@@ -403,7 +500,7 @@ function render(v){
   return h;
 }
 function run(){
-  try{const d=parse(document.getElementById('input').value);if(!d.tf.length)throw new Error('TANFUKUがありません');latest=build(d);document.getElementById('out').innerHTML=render(latest);document.title=d.title+'｜競馬メジアン V3.00';}
+  try{const d=parse(document.getElementById('input').value);if(!d.tf.length)throw new Error('TANFUKUがありません');latest=build(d);document.getElementById('out').innerHTML=render(latest);document.title=d.title+'｜競馬メジアン V4.00';}
   catch(e){document.getElementById('out').innerHTML=`<div class="card"><div class="title">入力エラー</div><pre>${esc(e.message||e)}</pre></div>`}
 }
 function sample(){
@@ -489,7 +586,7 @@ function saveCsv(){
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='競馬メジアン_V3検証_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)
 }
 
-const RECORD_KEY='keiba_median_v3_records_v1';
+const RECORD_KEY='keiba_median_v4_records_v1';
 function currentRecordBase(){
   if(!latest)throw new Error('先にレース解析してください');
   const v=latest;
@@ -566,7 +663,7 @@ function chatText(){
   const v=latest,fmt=a=>a.length?a.map(x=>x+'番').join('・'):'なし';
   const wall=(name,w)=>name+'：'+(w?(w.before+'番→'+w.next+'番'+(w.ratio?' '+w.ratio+'倍':'')):'なし');
   return `【${v.data.title}】
-競馬メジアン V3.00 解析結果
+競馬メジアン V4.00 解析結果
 
 【市場順位】
 コンピ：${v.compi.map(x=>x.h+'('+x.pt+(x.rec?'推':'')+')').join('・')}
@@ -587,6 +684,20 @@ P判定：${v.p}（上位3頭合計${v.sum}）
 1着候補：${fmt(v.first)}
 連対候補：${fmt(v.second)}
 3着・侵入穴：${fmt(v.third)}
+
+【メジアン】
+単勝：${fmt(v.bookMedian.tan)} / 壁内：${fmt(v.wallMedian.tan.median)}
+馬連：${fmt(v.bookMedian.uma)} / 壁内：${fmt(v.wallMedian.uma.median)}
+複勝：${fmt(v.bookMedian.fuku)} / 壁内：${fmt(v.wallMedian.fuku.median)}
+三連複：${fmt(v.bookMedian.san)} / 壁内：${fmt(v.wallMedian.san.median)}
+総合中央値：${fmt(v.overallMedian)}
+
+【残像馬】
+${v.residual.length?v.residual.map(x=>x.h+'番['+x.score+']('+x.weak.join('+')+')').join(' / '):'なし'}
+
+【三連複1番人気】
+構成：${fmt(v.tri1H)} / ${v.tri1Grade}
+先行侵入：${v.triLead.length?v.triLead.map(x=>x.h+'番('+x.count+'回)').join('・'):'なし'}
 
 【WIN5式】
 ${v.win5.length?v.win5.map((x,i)=>(i+1)+'位 '+x.h+'番['+x.score+']').join(' / '):'該当なし'}
