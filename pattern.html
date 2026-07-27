@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<title>競馬メジアン V4.00 市場構造・残像馬統合版</title>
+<title>競馬メジアン V4.01 表コンパクト・null完全修正版</title>
 <style>
 :root{
   --bg:#07101f;--card:#10224a;--card2:#08152d;--line:#334155;
@@ -78,33 +78,41 @@ details summary{cursor:pointer;font-weight:950;color:#c4b5fd;padding:10px;backgr
 .moveStrong{color:#fef08a;font-weight:900}.moveUp{color:#86efac;font-weight:900}.moveWarn{color:#fda4af;font-weight:900}
 
 
-/* V4.00 readable legacy-size market table */
-.marketCard{padding:16px!important}
-.marketScroll{padding:13px 8px!important}
-.marketRow{margin:14px 0!important;min-height:48px}
-.marketLabel{width:82px!important;min-width:82px!important;max-width:82px!important;font-size:21px!important}
-.cell{width:58px!important;min-width:58px!important;max-width:58px!important;font-size:29px!important}
-.compiCell .pt{font-size:17px!important;margin-top:7px!important}
-.bar{height:42px!important;margin:0 5px!important}
-.barUma,.barTan,.barFuku,.barSan,.bar6,.bar15,.bar80{width:7px!important;min-width:7px!important}
+/* V4.01 compact market table — old readable size, not enlarged */
+.marketCard{padding:10px!important}
+.marketScroll{padding:5px 3px!important}
+.marketRow{margin:5px 0!important;min-height:31px!important}
+.marketLabel{width:58px!important;min-width:58px!important;max-width:58px!important;font-size:15px!important}
+.cell{width:38px!important;min-width:38px!important;max-width:38px!important;font-size:20px!important}
+.compiCell .pt{font-size:11px!important;margin-top:3px!important}
+.bar{height:28px!important;margin:0 2px!important}
+.barUma,.barTan,.barFuku,.barSan,.bar6,.bar15,.bar80{width:4px!important;min-width:4px!important}
+.legend{gap:4px!important;margin-top:7px!important}
+.leg{padding:4px 7px!important;font-size:11px!important;gap:4px!important}
+.legLine{width:19px!important;height:4px!important}
+.wallBox{padding:8px!important;font-size:14px!important}
 .v4Card{border:3px solid #22d3ee;background:linear-gradient(145deg,#032335,#0c4a6e,#07101f);box-shadow:0 0 20px rgba(34,211,238,.28)}
 .v4Purple{border-color:#a78bfa;background:linear-gradient(145deg,#1e103a,#312e81,#07101f)}
 .v4Gold{border-color:#facc15;background:linear-gradient(145deg,#2b2000,#713f12,#07101f)}
-.v4Horse{background:#020617;border:1px solid #475569;border-radius:13px;padding:11px;margin:8px 0}
-.v4HorseTop{font-size:22px;font-weight:950;color:#fde047}
-.v4Score{display:inline-block;background:#facc15;color:#1c1917;border-radius:999px;padding:2px 9px;margin-right:7px;font-weight:950}
-.v4Reason{color:#e2e8f0;font-size:14px;line-height:1.6}
-.v4MedianGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.v4MedianBox{background:#020617;border:1px solid #155e75;border-radius:12px;padding:10px}
-.v4MedianL{font-size:12px;color:#67e8f9;font-weight:900}.v4MedianV{font-size:22px;font-weight:950}
+.v4Horse{background:#020617;border:1px solid #475569;border-radius:13px;padding:9px;margin:7px 0}
+.v4HorseTop{font-size:20px;font-weight:950;color:#fde047}
+.v4Score{display:inline-block;background:#facc15;color:#1c1917;border-radius:999px;padding:2px 8px;margin-right:6px;font-weight:950}
+.v4Reason{color:#e2e8f0;font-size:13px;line-height:1.55}
+.v4MedianGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.v4MedianBox{background:#020617;border:1px solid #155e75;border-radius:12px;padding:9px}
+.v4MedianL{font-size:12px;color:#67e8f9;font-weight:900}.v4MedianV{font-size:20px;font-weight:950}
 .v4Hidden{color:#fda4af}.v4Book{color:#c4b5fd}.v4Original{color:#86efac}
 @media(max-width:520px){
- .marketCard{padding:13px!important}.marketScroll{padding:10px 5px!important}
- .marketLabel{width:76px!important;min-width:76px!important;max-width:76px!important;font-size:19px!important}
- .cell{width:54px!important;min-width:54px!important;max-width:54px!important;font-size:27px!important}
- .marketRow{margin:13px 0!important}.v4MedianGrid{grid-template-columns:1fr 1fr}
+ .marketCard{padding:8px!important}
+ .marketScroll{padding:4px 2px!important}
+ .marketLabel{width:54px!important;min-width:54px!important;max-width:54px!important;font-size:14px!important}
+ .cell{width:35px!important;min-width:35px!important;max-width:35px!important;font-size:19px!important}
+ .compiCell .pt{font-size:10px!important}
+ .marketRow{margin:4px 0!important;min-height:29px!important}
+ .bar{height:25px!important;margin:0 1px!important}
+ .title{font-size:20px!important;margin-bottom:6px!important}
+ .v4MedianGrid{grid-template-columns:1fr 1fr}
 }
-
 </style>
 </head>
 <body>
@@ -166,7 +174,7 @@ let latest=null;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const zen=s=>String(s||'').replace(/[０-９]/g,x=>String.fromCharCode(x.charCodeAt(0)-65248)).replace(/．/g,'.').replace(/[－ー―−]/g,'-').replace(/　/g,' ');
 const nums=s=>(zen(s).match(/\d+(?:\.\d+)?/g)||[]).map(Number);
-const uniq=a=>[...new Set((a||[]).map(String).filter(Boolean))];
+const uniq=a=>[...new Set((a||[]).filter(v=>v!==null&&v!==undefined&&String(v).trim()!==''&&!['undefined','null','NaN'].includes(String(v))).map(v=>String(v).trim()))];
 const mid=a=>!a.length?[]:(a.length%2?[a[Math.floor(a.length/2)]]:[a[a.length/2-1],a[a.length/2]]);
 const pairKey=(a,b)=>[String(a),String(b)].sort((x,y)=>+x-+y).join('-');
 const triKey=(a,b,c)=>[String(a),String(b),String(c)].sort((x,y)=>+x-+y).join('-');
@@ -404,7 +412,7 @@ function build(data){
     matchanMain,matchanHole,structureAxis,ooareHead,axisAvoid,protect,oddsPattern,oddsHoles,oddsOpponents,bigHoleWin,bigHolePlace,bigHoleThird,
     movement,extremeMove,strangeMove,marketReverse,trifectaLead,tanFukuGap,bookMedian,wallMedian,overallMedian,favStrength,smallType,tri1H,tri1Grade,triLead,residual,signalRows};
 }
-function cell(h,cls='',pt=''){return `<div class="cell ${cls}">${esc(h||'')} ${pt!==''?`<span class="pt">${esc(pt)}P</span>`:''}</div>`}
+function safeHorse(h){const t=String(h??'').trim();return (!t||['undefined','null','NaN'].includes(t))?'':t} function cell(h,cls='',pt=''){const sh=safeHorse(h);return `<div class="cell ${cls}">${esc(sh)} ${pt!==''?`<span class="pt">${esc(pt)}P</span>`:''}</div>`}
 function row(label,rank,wallIdx=[],barCls='',compi=[]){
   let s=`<div class="marketRow"><div class="marketLabel">${label}</div>`;
   rank.forEach((h,i)=>{
@@ -593,7 +601,7 @@ function currentRecordBase(){
   return {
     record_id:(v.data.title||'レース')+'_'+new Date().toISOString(),
     race:v.data.title||'レース',saved_at:new Date().toISOString(),
-    analysis_version:'V3.00-self-contained-log01',
+    analysis_version:'V4.01-compact-null-safe',
     race_type:v.type,p_type:v.p,compi_top3_sum:v.sum,compi_gap:v.gap,otani_count:v.otani,
     odds_counts:{tan10:v.counts.tan10,tan30:v.counts.tan30,f6:v.counts.f6,f10:v.counts.f10,f15:v.counts.f15},
     compi_all:v.compi.map(x=>x.h+':'+x.pt+(x.rec?'*':'')).join('|'),
@@ -660,10 +668,10 @@ function showRecordCount(){
 }
 function chatText(){
   if(!latest)throw new Error('先にレース解析してください');
-  const v=latest,fmt=a=>a.length?a.map(x=>x+'番').join('・'):'なし';
+  const v=latest,fmt=a=>{const z=uniq(a).filter(x=>safeHorse(x));return z.length?z.map(x=>x+'番').join('・'):'なし'};
   const wall=(name,w)=>name+'：'+(w?(w.before+'番→'+w.next+'番'+(w.ratio?' '+w.ratio+'倍':'')):'なし');
   return `【${v.data.title}】
-競馬メジアン V4.00 解析結果
+競馬メジアン V4.01 解析結果
 
 【市場順位】
 コンピ：${v.compi.map(x=>x.h+'('+x.pt+(x.rec?'推':'')+')').join('・')}
