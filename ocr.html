@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<title>コンピ研究所 V1.00｜上位5頭ロック研究</title>
+<title>コンピ研究所 V1.10｜上位5頭ロック研究</title>
 <style>
 *{box-sizing:border-box}
 :root{
@@ -56,11 +56,398 @@ code{background:#030712;padding:2px 4px;border-radius:5px}
 </head>
 <body>
 <main>
-<h1>コンピ研究所 V1.00<br><span class="small">上位5頭ロック・解除条件の研究専用</span></h1>
+<h1>コンピ研究所 V1.10<br><span class="small">上位5頭ロック・解除条件の研究専用</span></h1>
 
 <section class="card">
   <h2>① チャッピー用コードを一括登録</h2>
   <textarea id="bulk" placeholder="例：
+DATE=2026-07-26
+PLACE=新潟
+
+R1
+4,80
+7,79
+8,60
+5,57
+6,55
+1,54
+10,51
+11,50
+9,49
+3,41
+2,40
+RESULT=7-6-4
+
+R2
+...
+"></textarea>
+  <div class="row">
+    <button class="primary" id="parseBtn">一括読込・保存</button>
+    <button class="good" id="jul26Btn">7/26・3場36Rを入れる</button>
+    <button class="soft" id="sampleBtn">見本を入れる</button>
+    <button class="danger" id="clearBulkBtn">入力欄を消す</button>
+  </div>
+  <div id="bulkMsg"></div>
+  <details>
+    <summary>コード形式</summary>
+    <div class="small">
+      <p><code>DATE=YYYY-MM-DD</code>、<code>PLACE=開催場</code>の後に、各レースを<code>R1</code>～<code>R12</code>で区切ります。</p>
+      <p>各行は <code>馬番,コンピ指数</code>。結果が分かる場合は <code>RESULT=1着-2着-3着</code>。未確定ならRESULT行は省略できます。</p>
+    </div>
+  </details>
+</section>
+
+<section class="card">
+  <h2>② 1レースだけ手入力・結果追記</h2>
+  <div class="grid">
+    <div><label>日付</label><input id="date" type="date"></div>
+    <div><label>開催場</label><input id="place" placeholder="新潟"></div>
+    <div><label>R</label><input id="raceNo" type="number" min="1" max="12" value="1"></div>
+  </div>
+  <div class="grid2" style="margin-top:8px">
+    <div><label>コンピ（馬番,指数を1行ずつ）</label><textarea id="compi" style="min-height:180px" placeholder="4,80&#10;7,79&#10;8,60"></textarea></div>
+    <div>
+      <label>結果</label>
+      <div class="grid">
+        <input id="r1" type="number" placeholder="1着">
+        <input id="r2" type="number" placeholder="2着">
+        <input id="r3" type="number" placeholder="3着">
+      </div>
+      <div style="margin-top:8px"><label>メモ</label><textarea id="memo" style="min-height:120px" placeholder="取消、少頭数、配当など"></textarea></div>
+    </div>
+  </div>
+  <div class="row">
+    <button class="good" id="saveOneBtn">レース保存・上書き</button>
+    <button class="soft" id="loadOneBtn">登録済みを呼出</button>
+  </div>
+  <div id="oneMsg"></div>
+</section>
+
+<section class="card">
+  <h2>③ 集計</h2>
+  <div class="stats" id="stats"></div>
+  <div id="patternBox" style="margin-top:10px"></div>
+</section>
+
+<section class="card">
+  <h2>④ 保存データ</h2>
+  <div class="row">
+    <button class="soft" id="csvOutBtn">CSV出力</button>
+    <label class="soft" style="display:flex;align-items:center;justify-content:center;border-radius:11px;padding:11px 13px;cursor:pointer;color:#0f172a">
+      CSV読込<input id="csvIn" type="file" accept=".csv,text/csv" style="display:none">
+    </label>
+    <button class="warn" id="jsonOutBtn">バックアップJSON</button>
+    <label class="warn" style="display:flex;align-items:center;justify-content:center;border-radius:11px;padding:11px 13px;cursor:pointer;color:#fff">
+      JSON復元<input id="jsonIn" type="file" accept=".json,application/json" style="display:none">
+    </label>
+    <button class="danger" id="deleteAllBtn">全データ削除</button>
+  </div>
+  <div class="tableWrap" style="margin-top:10px">
+    <table>
+      <thead><tr>
+        <th>日付</th><th>場</th><th>R</th><th>頭数</th><th>結果順位</th><th>分類</th>
+        <th>1-3差</th><th>5-6差</th><th>P</th><th>操作</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</section>
+</main>
+
+<script>
+"use strict";
+
+const KEY="compi_lab_v110";
+let records=load();
+
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]))}
+function num(v){const n=Number(v);return Number.isFinite(n)?n:null}
+function today(){return new Date().toISOString().slice(0,10)}
+document.getElementById("date").value=today();
+
+function load(){
+  try{
+    const v=JSON.parse(localStorage.getItem(KEY)||"[]");
+    return Array.isArray(v)?v:[];
+  }catch(e){return []}
+}
+function persist(){localStorage.setItem(KEY,JSON.stringify(records));render()}
+
+function parseCompiLines(text){
+  const arr=[];
+  for(const raw of String(text||"").split(/\r?\n/)){
+    const line=raw.trim();
+    if(!line) continue;
+    const m=line.match(/^(\d+)\s*[,，\s]\s*(\d+(?:\.\d+)?)$/);
+    if(!m) throw new Error("コンピ行の形式エラー："+line);
+    arr.push({horse:Number(m[1]),index:Number(m[2])});
+  }
+  const seen=new Set();
+  for(const x of arr){
+    if(seen.has(x.horse)) throw new Error("同じ馬番が重複："+x.horse);
+    seen.add(x.horse);
+  }
+  return arr.sort((a,b)=>b.index-a.index || a.horse-b.horse);
+}
+
+function pClass(sum){
+  if(sum>=219)return"P5";
+  if(sum>=213)return"P4";
+  if(sum>=207)return"P3";
+  if(sum>=203)return"P2";
+  return"P1";
+}
+function classify(rec){
+  if(!rec.result||rec.result.length!==3)return{ranks:[],label:"結果未入力",top3:false,top5:false,invaders:null};
+  const rankMap=new Map(rec.compi.map((x,i)=>[x.horse,i+1]));
+  const ranks=rec.result.map(h=>rankMap.get(h)||null);
+  if(ranks.some(x=>x===null))return{ranks,label:"結果馬がコンピに不在",top3:false,top5:false,invaders:null};
+  const max=Math.max(...ranks);
+  const invaders=ranks.filter(x=>x>=6).length;
+  let label;
+  if(max<=3)label="上位3頭完結";
+  else if(max<=4)label="上位4頭完結";
+  else if(max<=5)label="上位5頭完結";
+  else if(invaders===1)label="6位以下1頭侵入";
+  else if(invaders===2)label="6位以下2頭侵入";
+  else label="上位5頭全崩れ";
+  return{ranks,label,top3:max<=3,top5:max<=5,invaders};
+}
+function metrics(compi){
+  const c=compi;
+  const s3=c.slice(0,3).reduce((a,x)=>a+x.index,0);
+  return{
+    headCount:c.length,
+    sum3:s3,
+    p:pClass(s3),
+    gap13:c.length>=3?c[0].index-c[2].index:null,
+    gap56:c.length>=6?c[4].index-c[5].index:null
+  };
+}
+function normalizeRecord(rec){
+  const m=metrics(rec.compi);
+  const c=classify(rec);
+  return {...rec,...m,...c};
+}
+function upsert(rec){
+  const key=`${rec.date}_${rec.place}_${rec.raceNo}`;
+  const i=records.findIndex(x=>`${x.date}_${x.place}_${x.raceNo}`===key);
+  if(i>=0) records[i]=rec; else records.push(rec);
+  records.sort((a,b)=>(a.date+a.place+String(a.raceNo).padStart(2,"0")).localeCompare(b.date+b.place+String(b.raceNo).padStart(2,"0")));
+}
+
+function parseBulk(text){
+  const lines=String(text||"").split(/\r?\n/);
+  let date="",place="",raceNo=null,buf=[],result=null,memo="";
+  const out=[];
+  const flush=()=>{
+    if(raceNo===null)return;
+    if(!date||!place)throw new Error("DATEまたはPLACEがありません");
+    const compi=parseCompiLines(buf.join("\n"));
+    if(compi.length<3)throw new Error(`${place}${raceNo}Rのコンピが少なすぎます`);
+    out.push(normalizeRecord({date,place,raceNo,compi,result,memo,updatedAt:new Date().toISOString()}));
+    raceNo=null;buf=[];result=null;memo="";
+  };
+  for(const raw of lines){
+    const line=raw.trim();
+    if(!line)continue;
+    let m;
+    if((m=line.match(/^DATE\s*=\s*(\d{4}-\d{2}-\d{2})$/i))){date=m[1];continue}
+    if((m=line.match(/^PLACE\s*=\s*(.+)$/i))){place=m[1].trim();continue}
+    if((m=line.match(/^R(?:ACE)?\s*(\d{1,2})$/i))){flush();raceNo=Number(m[1]);continue}
+    if((m=line.match(/^RESULT\s*=\s*(\d+)\s*[-－]\s*(\d+)\s*[-－]\s*(\d+)$/i))){result=[+m[1],+m[2],+m[3]];continue}
+    if((m=line.match(/^MEMO\s*=\s*(.*)$/i))){memo=m[1];continue}
+    if(raceNo===null)throw new Error("R番号より前にデータ行があります："+line);
+    buf.push(line);
+  }
+  flush();
+  return out;
+}
+
+function msg(id,text,type="info"){
+  document.getElementById(id).innerHTML=`<div class="msg ${type}">${esc(text)}</div>`;
+}
+
+document.getElementById("parseBtn").onclick=()=>{
+  try{
+    const arr=parseBulk(document.getElementById("bulk").value);
+    let overwritten=0;
+    for(const rec of arr){
+      const exists=records.some(x=>x.date===rec.date&&x.place===rec.place&&x.raceNo===rec.raceNo);
+      if(exists)overwritten++;
+      upsert(rec);
+    }
+    persist();
+    msg("bulkMsg",`${arr.length}レース保存しました。上書き ${overwritten}件。`,"ok");
+  }catch(e){msg("bulkMsg",e.message,"ng")}
+};
+document.getElementById("jul26Btn").onclick=()=>{document.getElementById("bulk").value="DATE=2026-07-26\nPLACE=新潟\n\nR1\n4,80\n7,79\n8,60\n5,57\n6,55\n1,54\n10,51\n11,50\n9,49\n3,41\n2,40\nRESULT=7-6-4\n\nR2\n3,90\n9,70\n6,59\n2,57\n5,55\n1,54\n4,48\n7,47\n8,46\nRESULT=3-9-2\n\nR3\n8,76\n11,71\n7,66\n6,62\n1,56\n15,55\n5,52\n13,50\n3,49\n2,47\n12,46\n4,43\n14,42\n10,41\n9,40\nRESULT=11-15-13\n\nR4\n14,81\n8,74\n2,60\n11,58\n16,56\n18,55\n1,52\n3,51\n10,50\n5,49\n7,48\n9,47\n17,46\n12,44\n15,43\n6,42\n13,41\n4,40\nRESULT=14-7-11\n\nR5\n11,74\n6,65\n8,64\n10,62\n14,61\n3,57\n1,53\n2,50\n13,49\n15,48\n7,47\n9,43\n4,42\n5,41\n12,40\nRESULT=11-10-14\n\nR6\n7,79\n1,64\n3,63\n8,62\n6,61\n2,57\n10,51\n4,49\n9,48\n5,47\n11,46\nRESULT=7-6-9\n\nR7\n8,74\n3,73\n9,62\n7,58\n6,56\n1,55\n12,53\n11,52\n10,51\n13,49\n2,48\n14,47\n4,41\n5,40\nRESULT=3-10-1\n\nR8\n1,76\n2,65\n11,61\n3,60\n15,59\n7,57\n5,56\n6,55\n4,50\n14,49\n10,48\n12,47\n8,46\n13,41\n9,40\nRESULT=1-6-10\n\nR9\n8,79\n5,69\n14,64\n12,61\n11,60\n10,54\n6,51\n7,50\n4,49\n9,48\n13,47\n3,46\n1,41\n2,40\nRESULT=8-10-4\n\nR10\n9,76\n4,66\n5,62\n3,61\n7,58\n8,57\n11,53\n2,52\n6,48\n12,47\n13,46\n14,42\n1,41\n10,40\nRESULT=9-7-6\n\nR11\n15,81\n14,65\n12,64\n10,60\n13,58\n11,55\n9,53\n8,51\n3,50\n4,49\n5,48\n6,47\n7,46\n2,43\n1,41\nRESULT=15-10-5\n\nR12\n2,76\n13,68\n1,64\n7,63\n14,57\n15,55\n12,53\n5,51\n11,50\n6,47\n8,46\n3,43\n10,42\n4,41\n9,40\nRESULT=5-2-4\n\nDATE=2026-07-26\nPLACE=中京\n\nR1\n1,77\n6,75\n2,67\n8,56\n9,55\n7,54\n5,51\n4,48\n3,40\nRESULT=8-6-1\n\nR2\n2,84\n3,78\n6,62\n5,53\n1,50\n4,49\nRESULT=2-4-1\n\nR3\n6,80\n8,71\n7,67\n9,61\n4,54\n10,53\n1,52\n3,48\n2,41\n5,40\nRESULT=6-8-7\n\nR4\n1,79\n11,70\n13,62\n14,61\n6,58\n4,54\n2,53\n9,51\n12,49\n3,48\n10,47\n7,46\n15,42\n8,41\n5,40\nRESULT=11-14-1\n\nR5\n14,78\n1,71\n6,65\n15,61\n11,58\n9,52\n12,51\n10,50\n4,49\n13,48\n16,47\n3,44\n2,43\n5,42\n7,41\n8,40\nRESULT=14-15-1\n\nR6\n1,86\n2,72\n5,61\n6,60\n10,55\n8,51\n7,50\n9,49\n3,48\n4,40\nRESULT=1-2-9\n\nR7\n5,84\n7,67\n9,60\n8,59\n13,56\n11,55\n14,54\n12,51\n1,50\n3,47\n4,43\n6,42\n2,41\n10,40\nRESULT=11-10-5\n\nR8\n2,81\n4,69\n7,63\n5,59\n10,58\n3,55\n9,54\n8,49\n11,48\n1,46\n6,41\n12,40\nRESULT=2-8-10\n\nR9\n6,73\n8,69\n10,63\n1,61\n3,58\n4,57\n11,55\n9,49\n5,48\n13,47\n7,46\n12,42\n2,41\n14,40\nRESULT=1-4-8\n\nR10\n10,74\n2,72\n11,61\n6,58\n15,57\n14,54\n12,53\n7,52\n16,51\n3,50\n4,49\n13,48\n9,47\n5,46\n8,41\n1,40\nRESULT=10-6-2\n\nR11\n11,83\n2,64\n1,62\n9,58\n13,57\n8,56\n12,55\n6,54\n3,49\n4,48\n7,47\n5,46\n10,43\n15,42\n16,41\n14,40\nRESULT=9-13-11\n\nR12\n7,80\n3,71\n15,60\n2,59\n5,58\n1,55\n6,52\n4,50\n13,49\n12,48\n10,47\n9,46\n8,42\n11,41\n14,40\nRESULT=2-5-7\n\nDATE=2026-07-26\nPLACE=札幌\n\nR1\n10,88\n6,68\n11,60\n9,55\n7,54\n1,53\n2,52\n3,51\n8,50\n4,47\n5,46\n12,40\nRESULT=10-2-1\n\nR2\n6,82\n8,71\n2,70\n9,55\n5,54\n10,53\n4,50\n1,49\n7,48\n3,46\nRESULT=9-5-6\n\nR3\n8,77\n10,69\n2,61\n7,58\n14,56\n11,55\n4,54\n1,53\n15,51\n3,50\n12,49\n13,48\n9,47\n5,46\n16,41\n6,40\nRESULT=8-6-11\n\nR4\n9,71\n5,69\n4,67\n10,64\n1,56\n6,55\n8,50\n7,49\n3,47\n11,46\n2,40\nRESULT=1-8-9\n\nR5\n2,90\n6,65\n4,62\n9,58\n3,56\n10,55\n5,53\n1,48\n7,47\n8,46\nRESULT=9-2-6\n\nR6\n2,76\n9,75\n12,68\n11,55\n8,54\n1,53\n6,52\n4,51\n5,50\n7,46\n3,41\n10,40\nRESULT=2-8-9\n\nR7\n3,69\n5,68\n6,67\n4,66\n2,64\n1,41\n7,40\nRESULT=6-2-4\n\nR8\n1,86\n2,64\n5,62\n10,61\n12,56\n9,55\n3,54\n8,52\n6,47\n4,46\n7,41\n11,40\nRESULT=1-2-8\n\nR9\n5,80\n1,69\n6,64\n7,59\n8,54\n2,52\n3,51\n4,40\nRESULT=5-1-6\n\nR10\n5,77\n10,76\n6,63\n1,61\n9,55\n8,52\n7,50\n3,48\n2,47\n4,46\nRESULT=8-2-1\n\nR11\n2,86\n3,69\n5,61\n8,58\n11,57\n7,53\n12,51\n1,50\n4,49\n13,48\n10,47\n6,46\n9,40\nRESULT=2-13-4\n\nR12\n1,84\n8,76\n9,61\n7,58\n2,54\n5,51\n4,50\n3,47\n6,46\nRESULT=4-6-1\n";msg("bulkMsg","7月26日・新潟／中京／札幌の36Rコードを入力欄へ入れました。次に「一括読込・保存」を押してください。","ok");};
+document.getElementById("sampleBtn").onclick=()=>{
+  document.getElementById("bulk").value=`DATE=2026-07-26
+PLACE=新潟
+
+R1
+4,80
+7,79
+8,60
+5,57
+6,55
+1,54
+10,51
+11,50
+9,49
+3,41
+2,40
+RESULT=7-6-4
+
+R3
+8,76
+11,71
+7,66
+6,62
+1,56
+15,55
+5,52
+13,50
+3,49
+2,47
+12,46
+4,43
+14,42
+10,41
+9,40
+RESULT=7-15-13`;
+};
+document.getElementById("clearBulkBtn").onclick=()=>document.getElementById("bulk").value="";
+
+document.getElementById("saveOneBtn").onclick=()=>{
+  try{
+    const date=document.getElementById("date").value;
+    const place=document.getElementById("place").value.trim();
+    const raceNo=Number(document.getElementById("raceNo").value);
+    if(!date||!place||!raceNo)throw new Error("日付・開催場・Rを入力してください");
+    const compi=parseCompiLines(document.getElementById("compi").value);
+    const vals=["r1","r2","r3"].map(id=>num(document.getElementById(id).value));
+    const result=vals.every(v=>v!==null)?vals:null;
+    if(vals.some(v=>v!==null)&&!result)throw new Error("結果は1～3着を全部入力してください");
+    const rec=normalizeRecord({date,place,raceNo,compi,result,memo:document.getElementById("memo").value,updatedAt:new Date().toISOString()});
+    upsert(rec);persist();
+    msg("oneMsg","保存しました。","ok");
+  }catch(e){msg("oneMsg",e.message,"ng")}
+};
+document.getElementById("loadOneBtn").onclick=()=>{
+  const date=document.getElementById("date").value,place=document.getElementById("place").value.trim(),raceNo=Number(document.getElementById("raceNo").value);
+  const rec=records.find(x=>x.date===date&&x.place===place&&x.raceNo===raceNo);
+  if(!rec){msg("oneMsg","該当レースは未登録です。","ng");return}
+  document.getElementById("compi").value=rec.compi.map(x=>`${x.horse},${x.index}`).join("\n");
+  ["r1","r2","r3"].forEach((id,i)=>document.getElementById(id).value=rec.result?.[i]??"");
+  document.getElementById("memo").value=rec.memo||"";
+  msg("oneMsg","呼び出しました。","ok");
+};
+
+function percent(n,d){return d?`${(n/d*100).toFixed(1)}%`:"—"}
+function render(){
+  const normalized=records.map(normalizeRecord);
+  const done=normalized.filter(x=>x.result&&x.result.length===3&&!x.ranks.some(v=>v===null));
+  const top3=done.filter(x=>x.top3).length;
+  const top5=done.filter(x=>x.top5).length;
+  const inv1=done.filter(x=>x.invaders===1).length;
+  const inv2p=done.filter(x=>(x.invaders??0)>=2).length;
+  document.getElementById("stats").innerHTML=[
+    ["登録レース",normalized.length],
+    ["結果入力済み",done.length],
+    ["上位3頭内",`${top3} / ${percent(top3,done.length)}`],
+    ["上位5頭内",`${top5} / ${percent(top5,done.length)}`],
+    ["6位以下1頭",`${inv1} / ${percent(inv1,done.length)}`],
+    ["6位以下2頭以上",`${inv2p} / ${percent(inv2p,done.length)}`],
+    ["平均1-3差",done.length?(done.reduce((a,x)=>a+(x.gap13||0),0)/done.length).toFixed(1):"—"],
+    ["平均5-6差",done.filter(x=>x.gap56!==null).length?(done.filter(x=>x.gap56!==null).reduce((a,x)=>a+x.gap56,0)/done.filter(x=>x.gap56!==null).length).toFixed(1):"—"]
+  ].map(([k,v])=>`<div class="stat"><div class="v">${esc(v)}</div><div class="k">${esc(k)}</div></div>`).join("");
+
+  const byP={};
+  for(const x of done){(byP[x.p]??=[]).push(x)}
+  const pHtml=Object.keys(byP).sort().map(p=>{
+    const a=byP[p],n=a.filter(x=>x.top5).length;
+    return `<span class="badge ${n/a.length>=.7?"bGood":n/a.length>=.5?"bWarn":"bBad"}">${p}：${n}/${a.length}（${percent(n,a.length)}）</span>`;
+  }).join("");
+  document.getElementById("patternBox").innerHTML=`<div class="small">P判定別・上位5頭内決着率</div>${pHtml||'<span class="small">結果データがまだありません</span>'}`;
+
+  document.getElementById("tbody").innerHTML=normalized.slice().reverse().map((x,ri)=>{
+    const idx=records.indexOf(x);
+    const c=classify(x);
+    return `<tr>
+      <td>${esc(x.date)}</td><td>${esc(x.place)}</td><td>${x.raceNo}R</td><td>${x.compi.length}</td>
+      <td>${c.ranks.length?c.ranks.join("・"):"—"}</td>
+      <td class="left">${esc(c.label)}</td><td>${x.gap13??"—"}</td><td>${x.gap56??"—"}</td><td>${esc(x.p)}</td>
+      <td><button class="soft" onclick="editRec('${x.date}','${esc(x.place)}',${x.raceNo})">編集</button>
+      <button class="danger" onclick="delRec('${x.date}','${esc(x.place)}',${x.raceNo})">削除</button></td>
+    </tr>`;
+  }).join("");
+}
+window.editRec=(date,place,raceNo)=>{
+  const x=records.find(r=>r.date===date&&r.place===place&&r.raceNo===raceNo);if(!x)return;
+  document.getElementById("date").value=x.date;document.getElementById("place").value=x.place;document.getElementById("raceNo").value=x.raceNo;
+  document.getElementById("compi").value=x.compi.map(v=>`${v.horse},${v.index}`).join("\n");
+  ["r1","r2","r3"].forEach((id,i)=>document.getElementById(id).value=x.result?.[i]??"");
+  document.getElementById("memo").value=x.memo||"";
+  window.scrollTo({top:document.getElementById("date").getBoundingClientRect().top+window.scrollY-20,behavior:"smooth"});
+};
+window.delRec=(date,place,raceNo)=>{
+  if(!confirm(`${date} ${place}${raceNo}Rを削除しますか？`))return;
+  records=records.filter(r=>!(r.date===date&&r.place===place&&r.raceNo===raceNo));persist();
+};
+
+function download(name,text,type){
+  const blob=new Blob([text],{type});const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function csvCell(v){const s=String(v??"");return `"${s.replace(/"/g,'""')}"`}
+document.getElementById("csvOutBtn").onclick=()=>{
+  const head=["date","place","raceNo","headCount","compi","result1","result2","result3","resultRanks","class","gap13","gap56","sum3","p","memo"];
+  const rows=records.map(normalizeRecord).map(x=>[
+    x.date,x.place,x.raceNo,x.compi.length,x.compi.map(v=>`${v.horse}:${v.index}`).join("|"),
+    x.result?.[0]??"",x.result?.[1]??"",x.result?.[2]??"",x.ranks?.join("-")??"",x.label,x.gap13,x.gap56,x.sum3,x.p,x.memo||""
+  ]);
+  download(`compi_lab_${today()}.csv`,[head,...rows].map(r=>r.map(csvCell).join(",")).join("\n"),"text/csv;charset=utf-8");
+};
+document.getElementById("jsonOutBtn").onclick=()=>download(`compi_lab_backup_${today()}.json`,JSON.stringify(records,null,2),"application/json");
+document.getElementById("jsonIn").onchange=async e=>{
+  try{
+    const data=JSON.parse(await e.target.files[0].text());
+    if(!Array.isArray(data))throw new Error("JSON形式が違います");
+    records=data.map(normalizeRecord);persist();alert("復元しました");
+  }catch(err){alert(err.message)}
+  e.target.value="";
+};
+document.getElementById("csvIn").onchange=async e=>{
+  try{
+    const text=await e.target.files[0].text();
+    const lines=text.replace(/^\uFEFF/,"").split(/\r?\n/).filter(Boolean);
+    const parseRow=line=>{
+      const out=[];let s="",q=false;
+      for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){if(q&&line[i+1]==='"'){s+='"';i++}else q=!q}else if(ch===","&&!q){out.push(s);s=""}else s+=ch}
+      out.push(s);return out;
+    };
+    const head=parseRow(lines[0]);let count=0;
+    for(const line of lines.slice(1)){
+      const row=parseRow(line),o={};head.forEach((h,i)=>o[h]=row[i]);
+      const compi=String(o.compi||"").split("|").filter(Boolean).map(z=>{const [h,v]=z.split(":");return{horse:+h,index:+v}});
+      const rr=[num(o.result1),num(o.result2),num(o.result3)],result=rr.every(v=>v!==null)?rr:null;
+      upsert(normalizeRecord({date:o.date,place:o.place,raceNo:+o.raceNo,compi,result,memo:o.memo||"",updatedAt:new Date().toISOString()}));count++;
+    }
+    persist();alert(`${count}件読み込みました`);
+  }catch(err){alert(err.message)}
+  e.target.value="";
+};
+document.getElementById("deleteAllBtn").onclick=()=>{
+  if(!confirm("保存データを全部削除します。よろしいですか？"))return;
+  if(!confirm("本当に全削除しますか？バックアップ済みですか？"))return;
+  records=[];persist();
+};
+render();
+</script>
+</body>
+</html>  <textarea id="bulk" placeholder="例：
 DATE=2026-07-26
 PLACE=新潟
 
