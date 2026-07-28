@@ -1,140 +1,39 @@
-<!doctype html>
-<html lang="ja">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#07101f">
-<title>コンピ研究所 V1.22</title>
-<style>
-*{box-sizing:border-box}body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:14px;line-height:1.5}main{max-width:820px;margin:auto}h1{font-size:24px;margin:6px 0 4px}.sub{color:#a9c2e8;font-size:13px;font-weight:800}.card{background:#10224a;border:1px solid #3b82f6;border-radius:17px;padding:14px;margin:12px 0}h2{font-size:19px;margin:0 0 10px}textarea,input,button,select{font:inherit}textarea,input,select{width:100%;border:1px solid #60a5fa;border-radius:12px;background:#f8fafc;color:#111;padding:10px}textarea{min-height:245px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;line-height:1.42}button{border:0;border-radius:12px;padding:13px 14px;font-weight:900;cursor:pointer}.row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:9px}.blue{background:#2563eb;color:#fff}.green{background:#16a34a;color:#fff}.orange{background:#d97706;color:#fff}.purple{background:#7c3aed;color:#fff}.red{background:#dc2626;color:#fff}.light{background:#dbeafe;color:#0f172a}.msg{margin-top:9px;padding:10px;border-radius:10px;font-weight:900}.ok{background:#123d25}.ng{background:#4b1717}.info{background:#163461}.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.stat{background:#09162f;border:1px solid #315b9f;border-radius:12px;padding:10px}.v{font-size:23px;font-weight:900}.k{font-size:12px;color:#a9c2e8}.tableWrap{overflow:auto;border:1px solid #315b9f;border-radius:12px;margin-top:10px}table{border-collapse:collapse;width:100%;min-width:900px;background:#09162f}th,td{padding:7px;border-bottom:1px solid #223d6b;text-align:center;font-size:12px;white-space:nowrap}th{background:#173462;position:sticky;top:0}.small{font-size:12px;color:#a9c2e8}.note{padding:10px;border:1px solid #315b9f;border-radius:12px;background:#09162f;margin-top:9px}.goodTxt{color:#86efac;font-weight:900}.warnTxt{color:#fde68a;font-weight:900}details{background:#09162f;border:1px solid #315b9f;border-radius:12px;padding:10px;margin-top:9px}summary{font-weight:900;cursor:pointer}.sectionTitle{margin:14px 0 6px;font-weight:900;color:#bfdbfe}.pill{display:inline-block;border-radius:999px;padding:3px 8px;font-size:11px;font-weight:900;background:#1e3a8a;margin:2px}.hit{background:#14532d}.miss{background:#7f1d1d}@media(max-width:600px){.row,.stats{grid-template-columns:1fr 1fr}h1{font-size:22px}button{padding:12px 8px;font-size:14px}}
-</style>
-</head>
-<body><main>
-<h1>コンピ研究所 V1.22</h1>
-<div class="sub">上位5頭決着＋コンピ推奨馬が来る条件を検証／チャッピー送信対応</div>
-
-<section class="card">
-<h2>① レースを登録・結果を追記</h2>
-<textarea id="bulk" placeholder="DATE=2026-07-28
-PLACE=大井
-
-R1
-4,80
-7,79
-8,60
-5,57
-6,55
-1,54
-RECOMMEND=4-8-1
-RESULT=8-1-7
-
-※結果前はRESULTを省略。後から同じレースを再登録すれば上書きします。"></textarea>
-<div class="row">
-<button class="blue" id="sampleBtn">見本を入れる</button><button class="green" id="saveBulk">一括読込・保存</button>
-<button class="light" id="clearBox">入力欄を消す</button><button class="red" id="clearDb">研究データを全削除</button>
-</div><div id="msg"></div>
-<details><summary>入力ルール</summary><div class="small">
-<p><b>RECOMMEND=4-8-1</b> がコンピ推奨馬。赤表示された馬・最終推奨馬を馬番で入れます。</p>
-<p><b>RESULT=8-1-7</b> は1着－2着－3着。結果前は省略可能です。</p>
-<p>同じ日付・場・Rを再登録すると、古いレースを更新します。</p>
-</div></details>
-</section>
-
-<section class="card">
-<h2>② 上位5頭決着の集計</h2><div class="stats" id="topStats"></div>
-</section>
-
-<section class="card">
-<h2>③ コンピ推奨馬の成績</h2><div class="stats" id="recStats"></div>
-<div id="recSummary" class="note"></div>
-<div class="sectionTitle">条件別（推奨馬が1頭以上、3着以内に来た割合）</div>
-<div class="tableWrap"><table><thead><tr><th>条件</th><th>対象R</th><th>的中R</th><th>レース的中率</th><th>推奨馬数</th><th>馬券内頭数</th><th>1頭あたり複勝率</th></tr></thead><tbody id="conditionBody"></tbody></table></div>
-</section>
-
-<section class="card">
-<h2>④ チャッピーへ送る</h2>
-<div class="row">
-<button class="orange" id="shareLatest">直近レースを送る</button><button class="purple" id="shareSummary">蓄積結果を送る</button>
-<button class="light" id="copyLatest">直近レースをコピー</button><button class="light" id="copySummary">蓄積結果をコピー</button>
-</div>
-<p class="small">iPhoneで「送る」を押すと共有画面が開きます。共有できない環境では、自動的にコピーします。</p>
-</section>
-
-<section class="card">
-<h2>⑤ 保存データ・バックアップ</h2>
-<div class="row">
-<button class="light" id="importCsvBtn">旧CSVを読み込む</button><input id="csvFile" type="file" accept=".csv,text/csv" style="display:none">
-<button class="light" id="exportJson">JSONバックアップ</button><button class="light" id="exportCsv">CSV出力</button><button class="light" id="exportFullText">全件チャッピー用TXT</button>
-</div>
-<div class="tableWrap"><table><thead><tr><th>日付</th><th>場</th><th>R</th><th>頭数</th><th>P</th><th>1-3差</th><th>5-6差</th><th>結果順位</th><th>分類</th><th>推奨馬</th><th>推奨結果</th></tr></thead><tbody id="tbody"></tbody></table></div>
-</section>
-</main>
-<script>
-"use strict";
-const DB_NAME="compi_lab_db",STORE="races";let db;
-function openDb(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,2);req.onupgradeneeded=()=>{const d=req.result;if(!d.objectStoreNames.contains(STORE))d.createObjectStore(STORE,{keyPath:"id"})};req.onsuccess=()=>{db=req.result;resolve(db)};req.onerror=()=>reject(req.error)})}
-function tx(mode){return db.transaction(STORE,mode).objectStore(STORE)}
-function allRecords(){return new Promise((resolve,reject)=>{const r=tx("readonly").getAll();r.onsuccess=()=>resolve(r.result||[]);r.onerror=()=>reject(r.error)})}
-function getRecord(id){return new Promise((resolve,reject)=>{const r=tx("readonly").get(id);r.onsuccess=()=>resolve(r.result||null);r.onerror=()=>reject(r.error)})}
-function putRecord(x){return new Promise((resolve,reject)=>{const r=tx("readwrite").put(x);r.onsuccess=()=>resolve();r.onerror=()=>reject(r.error)})}
-function clearRecords(){return new Promise((resolve,reject)=>{const r=tx("readwrite").clear();r.onsuccess=()=>resolve();r.onerror=()=>reject(r.error)})}
-const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
-const pct=(n,d)=>d?(n/d*100).toFixed(1)+"%":"—";
-function pClass(sum){if(sum>=219)return"P5";if(sum>=213)return"P4";if(sum>=207)return"P3";if(sum>=203)return"P2";return"P1"}
-function metrics(c){const sum3=c.slice(0,3).reduce((a,x)=>a+x.index,0);return{headCount:c.length,sum3,p:pClass(sum3),gap13:c.length>=3?c[0].index-c[2].index:null,gap56:c.length>=6?c[4].index-c[5].index:null}}
-function classify(r){if(!r.result)return{ranks:[],label:"結果未入力",top3:false,top5:false,invaders:null};const map=new Map((r.compi||[]).map((x,i)=>[x.horse,i+1]));const ranks=r.result.map(h=>map.get(h)??null);if(ranks.some(x=>x===null))return{ranks,label:"結果馬不在",top3:false,top5:false,invaders:null};const max=Math.max(...ranks),invaders=ranks.filter(x=>x>=6).length;let label=max<=3?"上位3頭完結":max<=4?"上位4頭完結":max<=5?"上位5頭完結":invaders===1?"6位以下1頭侵入":invaders===2?"6位以下2頭侵入":"上位5頭全崩れ";return{ranks,label,top3:max<=3,top5:max<=5,invaders}}
-function recMetrics(r){const rec=(r.recommend||[]),res=(r.result||[]);if(!rec.length||res.length!==3)return{recHits:[],recHitCount:0,recRaceHit:false,recWin:false,recExact3:false};const hits=rec.filter(h=>res.includes(h));return{recHits:hits,recHitCount:hits.length,recRaceHit:hits.length>0,recWin:rec.includes(res[0]),recExact3:res.every(h=>rec.includes(h))}}
-function parseCompi(lines){const out=[];for(const raw of lines){const s=raw.trim();if(!s)continue;const m=s.match(/^(\d+)\s*[,，]\s*(\d+(?:\.\d+)?)$/);if(!m)throw new Error("コンピ行エラー："+s);out.push({horse:+m[1],index:+m[2]})}return out.sort((a,b)=>b.index-a.index||a.horse-b.horse)}
-function parseNums(s){return String(s).split(/[-－,，\s]+/).map(Number).filter(Number.isFinite)}
-async function parseBulk(text){
- const rawLines=String(text).split(/\r?\n/);let date="",place="",raceNo=null,buf=[],result=null,recommend=[];const out=[];
- const norm=v=>String(v)
-   .replace(/^\uFEFF/,"")
-   .replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0))
-   .replace(/[Ｒｒ]/g,"R").replace(/[＝]/g,"=").replace(/[：]/g,":")
-   .replace(/[【［]/g,"【").replace(/[】］]/g,"】").trim();
- const flush=async()=>{if(raceNo===null)return;if(!buf.length){return;}const compi=parseCompi(buf);if(!date||!place||compi.length<3)throw new Error(`DATE・PLACE・コンピを確認してください：${place||"場不明"}${raceNo}R`);const id=`${date}_${place}_${raceNo}`,old=await getRecord(id);const base={...(old||{}),id,date,place,raceNo,compi,result:result??old?.result??null,recommend:recommend.length?recommend:(old?.recommend||[])};Object.assign(base,metrics(compi),classify(base),recMetrics(base));out.push(base);raceNo=null;buf=[];result=null;recommend=[]};
- for(const raw of rawLines){let s=norm(raw);if(!s||/^```/.test(s))continue;let m;
-   // 【札幌1R】、札幌1R、［札幌１Ｒ］を許可
-   if((m=s.match(/^【?\s*(.+?)\s*(\d{1,2})\s*R\s*】?$/i)) && !/^(?:R|RACE)\s*=*/i.test(s)){
-     if(buf.length)await flush();
-     place=m[1].trim();raceNo=+m[2];continue;
-   }
-   if((m=s.match(/^DATE\s*=\s*(\d{4}[-\/]\d{1,2}[-\/]\d{1,2})$/i))){const a=m[1].split(/[-\/]/).map(Number);date=`${a[0]}-${String(a[1]).padStart(2,"0")}-${String(a[2]).padStart(2,"0")}`;continue}
-   if((m=s.match(/^PLACE\s*=\s*(.+)$/i))){place=m[1].trim();continue}
-   if((m=s.match(/^R(?:ACE)?\s*=*\s*(\d{1,2})$/i))){const nr=+m[1];if(raceNo!==null&&raceNo!==nr&&buf.length)await flush();raceNo=nr;continue}
-   if((m=s.match(/^COMPI\s*=\s*(.+)$/i))){if(raceNo===null)throw new Error("COMPIより前にR番号が必要です："+s);const pairs=m[1].split(/[,、]/);for(const pair of pairs){const z=pair.trim().match(/^(\d+)\s*:\s*(\d+(?:\.\d+)?)$/);if(!z)throw new Error("COMPIの組を確認してください："+pair.trim());buf.push(z[1]+","+z[2])}continue}
-   if((m=s.match(/^(?:RECOMMEND|REC|推奨)\s*=\s*(.+)$/i))){recommend=parseNums(m[1]);continue}
-   if((m=s.match(/^RESULT\s*=\s*(.+)$/i))){const a=parseNums(m[1]);if(a.length!==3)throw new Error("RESULTは3頭："+s);result=a;continue}
-   // 旧形式「馬番,指数」も残す
-   if(/^\d+\s*[,，]\s*\d+(?:\.\d+)?$/.test(s)){if(raceNo===null)throw new Error("コンピ行より前にR番号が必要です："+s);buf.push(s);continue}
-   throw new Error("読み取れない行があります："+s);
- }
- await flush();return out
-}
-function bandHead(n){return n<=9?"9頭以下":n<=12?"10～12頭":n<=15?"13～15頭":"16頭以上"}
-function bandG13(n){return n==null?"不明":n<=10?"gap13 0～10":n<=20?"gap13 11～20":"gap13 21以上"}
-function bandG56(n){return n==null?"不明":n<=1?"gap56 0～1":n<=3?"gap56 2～3":"gap56 4以上"}
-function aggregate(rows,label,filter){const a=rows.filter(filter),raceHits=a.filter(x=>x.recRaceHit).length,recs=a.reduce((s,x)=>s+(x.recommend?.length||0),0),hits=a.reduce((s,x)=>s+(x.recHitCount||0),0);return{label,n:a.length,raceHits,recs,hits}}
-function conditionRows(done){const groups=[];["P1","P2","P3","P4","P5"].forEach(v=>groups.push(aggregate(done,v,x=>x.p===v)));["9頭以下","10～12頭","13～15頭","16頭以上"].forEach(v=>groups.push(aggregate(done,v,x=>bandHead(x.headCount)===v)));["gap13 0～10","gap13 11～20","gap13 21以上"].forEach(v=>groups.push(aggregate(done,v,x=>bandG13(x.gap13)===v)));["gap56 0～1","gap56 2～3","gap56 4以上"].forEach(v=>groups.push(aggregate(done,v,x=>bandG56(x.gap56)===v)));groups.push(aggregate(done,"上位5頭完結型",x=>x.top5));groups.push(aggregate(done,"6位以下侵入型",x=>!x.top5));return groups.filter(g=>g.n>0)}
-let CACHE=[];
-async function render(){CACHE=(await allRecords()).map(x=>Object.assign(x,classify(x),recMetrics(x))).sort((a,b)=>(a.date+a.place+String(a.raceNo).padStart(2,"0")).localeCompare(b.date+b.place+String(b.raceNo).padStart(2,"0")));for(const x of CACHE)await putRecord(x);const done=CACHE.filter(x=>x.result?.length===3&&x.ranks?.length===3&&!x.ranks.some(v=>v===null));const t3=done.filter(x=>x.top3).length,t5=done.filter(x=>x.top5).length,inv1=done.filter(x=>x.invaders===1).length,inv2=done.filter(x=>(x.invaders??0)>=2).length;document.getElementById("topStats").innerHTML=[["登録レース",CACHE.length],["結果入力済み",done.length],["上位3頭完結",`${t3}／${pct(t3,done.length)}`],["上位5頭完結",`${t5}／${pct(t5,done.length)}`],["6位以下1頭",`${inv1}／${pct(inv1,done.length)}`],["6位以下2頭以上",`${inv2}／${pct(inv2,done.length)}`]].map(x=>`<div class="stat"><div class="v">${esc(x[1])}</div><div class="k">${esc(x[0])}</div></div>`).join("");const rd=done.filter(x=>x.recommend?.length),raceHit=rd.filter(x=>x.recRaceHit).length,win=rd.filter(x=>x.recWin).length,exact=rd.filter(x=>x.recExact3).length,recs=rd.reduce((s,x)=>s+x.recommend.length,0),hits=rd.reduce((s,x)=>s+x.recHitCount,0);document.getElementById("recStats").innerHTML=[["推奨入力＋結果済",rd.length],["1頭以上馬券内",`${raceHit}／${pct(raceHit,rd.length)}`],["推奨馬が1着",`${win}／${pct(win,rd.length)}`],["結果3頭を全包含",`${exact}／${pct(exact,rd.length)}`],["推奨馬の延べ数",recs],["延べ馬券内率",`${hits}／${pct(hits,recs)}`]].map(x=>`<div class="stat"><div class="v">${esc(x[1])}</div><div class="k">${esc(x[0])}</div></div>`).join("");document.getElementById("recSummary").innerHTML=rd.length?`コンピ推奨馬を入力した${rd.length}Rのうち、<span class="goodTxt">${raceHit}Rで少なくとも1頭が馬券内</span>。推奨馬を1頭ずつ数えると、延べ${recs}頭中${hits}頭が3着以内です。条件別は件数が少ない組を断定せず、対象R数と一緒に見ます。`:`<span class="warnTxt">まだRECOMMEND付きの結果がありません。</span> 今後の登録で <b>RECOMMEND=馬番-馬番</b> を入れると、自動集計します。`;document.getElementById("conditionBody").innerHTML=conditionRows(rd).map(g=>`<tr><td>${esc(g.label)}</td><td>${g.n}</td><td>${g.raceHits}</td><td>${pct(g.raceHits,g.n)}</td><td>${g.recs}</td><td>${g.hits}</td><td>${pct(g.hits,g.recs)}</td></tr>`).join("")||`<tr><td colspan="7">推奨馬データ待ち</td></tr>`;document.getElementById("tbody").innerHTML=CACHE.map(x=>{const status=!x.result?.length?"結果待ち":!x.recommend?.length?"推奨未入力":x.recExact3?"3頭全包含":x.recRaceHit?`${x.recHitCount}頭馬券内`:"不発";return`<tr><td>${x.date||""}</td><td>${esc(x.place||"")}</td><td>${x.raceNo||""}R</td><td>${x.headCount??"—"}</td><td>${x.p??"—"}</td><td>${x.gap13??"—"}</td><td>${x.gap56??"—"}</td><td>${x.ranks?.join("-")||x.resultRanks||"—"}</td><td>${esc(x.label||x.class||"—")}</td><td>${x.recommend?.join("-")||"—"}</td><td><span class="pill ${x.recRaceHit?"hit":"miss"}">${esc(status)}</span></td></tr>`}).join("")}
-function show(t,ok=true){document.getElementById("msg").innerHTML=`<div class="msg ${ok?"ok":"ng"}">${esc(t)}</div>`}
-function download(name,text,type){const blob=new Blob([text],{type}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-function latest(){return [...CACHE].sort((a,b)=>(b.date+b.place+String(b.raceNo).padStart(2,"0")).localeCompare(a.date+a.place+String(a.raceNo).padStart(2,"0")))[0]}
-function latestText(){const x=latest();if(!x)return"コンピ研究所：保存データなし";return`【コンピ研究所・今回結果】\n日付：${x.date}\n場・R：${x.place}${x.raceNo}R\n頭数：${x.headCount}\nP判定：${x.p}\ngap13：${x.gap13}\ngap56：${x.gap56}\nコンピ推奨馬：${x.recommend?.join("・")||"未入力"}\n結果：${x.result?.join("-")||"未入力"}\n結果のコンピ順位：${x.ranks?.join("-")||"未確定"}\n決着分類：${x.label}\n推奨馬の馬券内：${x.recHitCount??0}頭（${x.recHits?.join("・")||"なし"}）\n\nこのレースを研究データへ追加し、コンピ推奨馬が来た／飛んだ理由を既存データと比較してください。`}
-function summaryText(){const done=CACHE.filter(x=>x.result?.length===3&&x.ranks?.length===3&&!x.ranks.some(v=>v===null)),rd=done.filter(x=>x.recommend?.length),t5=done.filter(x=>x.top5).length,rh=rd.filter(x=>x.recRaceHit).length,recs=rd.reduce((s,x)=>s+x.recommend.length,0),hits=rd.reduce((s,x)=>s+x.recHitCount,0);const cond=conditionRows(rd).map(g=>`${g.label}: ${g.raceHits}/${g.n}R=${pct(g.raceHits,g.n)}、推奨馬単位${g.hits}/${g.recs}=${pct(g.hits,g.recs)}`).join("\n");return`【コンピ研究所・蓄積結果】\n登録：${CACHE.length}R\n結果済：${done.length}R\n上位5頭完結：${t5}/${done.length}R=${pct(t5,done.length)}\n\n［コンピ推奨馬］\n対象：${rd.length}R\n1頭以上馬券内：${rh}/${rd.length}R=${pct(rh,rd.length)}\n推奨馬単位の馬券内：${hits}/${recs}頭=${pct(hits,recs)}\n\n［条件別］\n${cond||"データなし"}\n\nこの蓄積結果から、コンピ推奨馬が信頼できる条件・危険な条件・追加で集めるべき項目を分析してください。`}
-async function copyText(t){try{await navigator.clipboard.writeText(t);show("チャッピー用データをコピーしました。ChatGPTへ貼り付けてください。")}catch{const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();show("コピーしました。ChatGPTへ貼り付けてください。")}}
-async function shareText(t,title){if(navigator.share){try{await navigator.share({title,text:t});return}catch(e){if(e.name==="AbortError")return}}await copyText(t)}
-function csvParse(text){const lines=text.replace(/^\uFEFF/,"").split(/\r?\n/).filter(Boolean);if(lines.length<2)return[];const parseLine=line=>{const a=[];let s="",q=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'){if(q&&line[i+1]==='"'){s+='"';i++}else q=!q}else if(c===','&&!q){a.push(s);s=""}else s+=c}a.push(s);return a};const head=parseLine(lines[0]);return lines.slice(1).map(l=>{const vals=parseLine(l),o={};head.forEach((h,i)=>o[h]=vals[i]??"");return o})}
-async function importOldCsv(file){const rows=csvParse(await file.text());let n=0;for(const o of rows){const date=o.date||o["日付"],place=o.place||o["場"],raceNo=+(o.raceNo||o.R);if(!date||!place||!raceNo)continue;const id=`${date}_${place}_${raceNo}`,old=await getRecord(id)||{};const ranks=parseNums(o.resultRanks||o["結果順位"]||"");const r={...old,id,date,place,raceNo,headCount:+(o.headCount||o["頭数"]||0)||old.headCount||null,ranks:ranks.length?ranks:(old.ranks||[]),label:o.class||o["分類"]||old.label||"旧CSV",gap13:+(o.gap13||0),gap56:+(o.gap56||0),p:o.p||o.P||old.p||"",recommend:old.recommend||[],result:old.result||null,compi:old.compi||[]};r.top3=r.ranks.length===3&&Math.max(...r.ranks)<=3;r.top5=r.ranks.length===3&&Math.max(...r.ranks)<=5;r.invaders=r.ranks.length===3?r.ranks.filter(x=>x>=6).length:null;Object.assign(r,recMetrics(r));await putRecord(r);n++}await render();show(`旧CSVから${n}レースを読み込みました。コンピ推奨馬は今後RECOMMEND行で追加します。`)}
-document.getElementById("sampleBtn").onclick=()=>{document.getElementById("bulk").value="DATE=2026-07-28\nPLACE=大井\n\nR1\n4,80\n7,79\n8,60\n5,57\n6,55\n1,54\n10,51\nRECOMMEND=4-8-1\nRESULT=8-1-7";show("見本を入れました。推奨馬はRECOMMEND行です。")};
-document.getElementById("saveBulk").onclick=async()=>{try{const arr=await parseBulk(document.getElementById("bulk").value);for(const r of arr)await putRecord(r);await render();show(arr.length+"レース保存・更新しました。推奨馬の成績も再集計済みです。")}catch(e){show(e.message,false)}};
-document.getElementById("clearBox").onclick=()=>document.getElementById("bulk").value="";
-document.getElementById("clearDb").onclick=async()=>{if(confirm("研究データを全部削除しますか？")){await clearRecords();await render();show("全削除しました。")}};
-document.getElementById("shareLatest").onclick=()=>shareText(latestText(),"コンピ研究所・今回結果");document.getElementById("shareSummary").onclick=()=>shareText(summaryText(),"コンピ研究所・蓄積結果");document.getElementById("copyLatest").onclick=()=>copyText(latestText());document.getElementById("copySummary").onclick=()=>copyText(summaryText());
-document.getElementById("importCsvBtn").onclick=()=>document.getElementById("csvFile").click();document.getElementById("csvFile").onchange=e=>e.target.files?.[0]&&importOldCsv(e.target.files[0]);
-document.getElementById("exportJson").onclick=async()=>download("compi_lab_backup_v120.json",JSON.stringify(await allRecords(),null,2),"application/json");
-document.getElementById("exportCsv").onclick=async()=>{const rows=await allRecords(),head=["date","place","raceNo","headCount","result","resultRanks","class","gap13","gap56","p","recommend","recommendHits","recommendHitCount"];const body=rows.map(x=>[x.date,x.place,x.raceNo,x.headCount,(x.result||[]).join("-"),(x.ranks||[]).join("-"),x.label,x.gap13,x.gap56,x.p,(x.recommend||[]).join("-"),(x.recHits||[]).join("-"),x.recHitCount||0].map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n");download("compi_lab_v120.csv","\uFEFF"+head.join(",")+"\n"+body,"text/csv;charset=utf-8")};
-document.getElementById("exportFullText").onclick=()=>{const raw=CACHE.map(x=>`DATE=${x.date}\nPLACE=${x.place}\nR${x.raceNo}\nP=${x.p}\nHEAD=${x.headCount}\nGAP13=${x.gap13}\nGAP56=${x.gap56}\nRECOMMEND=${x.recommend?.join("-")||""}\nRESULT=${x.result?.join("-")||""}\nRESULT_RANKS=${x.ranks?.join("-")||""}\nCLASS=${x.label}`).join("\n\n");download("compi_lab_chappy_all.txt",summaryText()+"\n\n--- 全件 ---\n"+raw,"text/plain;charset=utf-8")};
-(async()=>{try{await openDb();await render()}catch(e){sh
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07101f"><title>コンピ研究所 V1.30</title><style>
+*{box-sizing:border-box}body{margin:0;background:#07101f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:14px;line-height:1.5}main{max-width:820px;margin:auto}h1{font-size:25px;margin:4px 0}.ver{display:inline-block;background:#facc15;color:#111827;font-weight:900;padding:5px 10px;border-radius:999px;margin-bottom:8px}.card{background:#10224a;border:2px solid #3b82f6;border-radius:18px;padding:14px;margin:12px 0}h2{font-size:20px;margin:0 0 10px}textarea{width:100%;min-height:330px;border:2px solid #60a5fa;border-radius:15px;padding:12px;background:#f8fafc;color:#111;font-size:14px;line-height:1.45;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}button{width:100%;border:0;border-radius:14px;padding:14px 8px;font-size:17px;font-weight:900}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.green{background:#16a34a;color:#fff}.blue{background:#2563eb;color:#fff}.light{background:#dbeafe;color:#0f172a}.red{background:#dc2626;color:#fff}.orange{background:#d97706;color:#fff}.msg{margin-top:12px;padding:13px;border-radius:12px;font-weight:900;white-space:pre-wrap}.ok{background:#14532d}.ng{background:#7f1d1d}.info{background:#1e3a8a}.stats{display:grid;grid-template-columns:1fr 1fr;gap:9px}.stat{background:#09162f;border:1px solid #315b9f;border-radius:13px;padding:11px}.v{font-size:25px;font-weight:900}.k{font-size:12px;color:#a9c2e8}.small{font-size:12px;color:#bcd0ec}.table{overflow:auto;border:1px solid #315b9f;border-radius:12px}table{border-collapse:collapse;width:100%;min-width:760px;background:#09162f}th,td{padding:7px;border-bottom:1px solid #223d6b;text-align:center;font-size:12px;white-space:nowrap}th{background:#173462}.banner{background:#4c1d95;border:2px solid #c4b5fd;padding:10px;border-radius:12px;font-weight:900}@media(max-width:600px){button{font-size:15px;padding:13px 6px}}
+</style></head><body><main>
+<h1>コンピ研究所</h1><div class="ver">V1.30 iPhone安定版</div><div class="banner">この黄色い「V1.30」が見えていれば新しい版です。</div>
+<section class="card"><h2>① コードを貼って保存</h2><textarea id="bulk" placeholder="【札幌1R】
+DATE=2026-07-26
+PLACE=札幌
+R=1
+COMPI=10:88,6:68,11:60,9:55,7:54,1:53
+RECOMMEND=10
+RESULT=10-2-1"></textarea><div class="grid"><button class="blue" onclick="putSample()">見本を入れる</button><button class="green" onclick="saveNow()">一括読込・保存</button><button class="light" onclick="clearInput()">入力欄を消す</button><button class="red" onclick="clearAll()">研究データ全削除</button></div><div id="msg" class="msg info">待機中。まず「見本を入れる」を押すと、ボタンが動くか確認できます。</div></section>
+<section class="card"><h2>② 集計</h2><div id="stats" class="stats"></div></section>
+<section class="card"><h2>③ チャッピーへ送る</h2><div class="grid"><button class="orange" onclick="shareSummary()">蓄積結果を送る</button><button class="light" onclick="copySummary()">蓄積結果をコピー</button><button class="light" onclick="exportCsv()">CSV出力</button><button class="light" onclick="exportTxt()">全件TXT出力</button></div></section>
+<section class="card"><h2>④ 保存データ</h2><div class="table"><table><thead><tr><th>日付</th><th>場</th><th>R</th><th>頭数</th><th>P</th><th>結果</th><th>結果順位</th><th>分類</th><th>推奨</th><th>推奨的中</th></tr></thead><tbody id="tbody"></tbody></table></div></section>
+</main><script>
+'use strict';
+const KEY='compi_lab_v130'; let rows=[];
+const $=id=>document.getElementById(id); const pct=(n,d)=>d?(n/d*100).toFixed(1)+'%':'—';
+function msg(t,ok=true){$('msg').className='msg '+(ok?'ok':'ng');$('msg').textContent=t}
+function load(){try{rows=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(rows))rows=[]}catch{rows=[]}render()}
+function persist(){localStorage.setItem(KEY,JSON.stringify(rows))}
+function pClass(sum){if(sum>=219)return'P5';if(sum>=213)return'P4';if(sum>=207)return'P3';if(sum>=203)return'P2';return'P1'}
+function nums(s){return String(s).split(/[-－,，\s]+/).map(Number).filter(Number.isFinite)}
+function normalize(s){return String(s).replace(/^\uFEFF/,'').replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[Ｒｒ]/g,'R').replace(/＝/g,'=').replace(/：/g,':').replace(/[［【]/g,'【').replace(/[］】]/g,'】').trim()}
+function finalize(cur,out){if(!cur)return;if(!cur.date||!cur.place||!cur.raceNo)throw Error('日付・場・Rが足りません：'+JSON.stringify(cur));if(!cur.compi||cur.compi.length<3)throw Error(cur.place+cur.raceNo+'RのCOMPIが3頭未満です');cur.compi.sort((a,b)=>b.index-a.index||a.horse-b.horse);cur.headCount=cur.compi.length;cur.sum3=cur.compi.slice(0,3).reduce((s,x)=>s+x.index,0);cur.p=pClass(cur.sum3);cur.gap13=cur.compi[0].index-cur.compi[2].index;cur.gap56=cur.compi.length>=6?cur.compi[4].index-cur.compi[5].index:null;const mp=new Map(cur.compi.map((x,i)=>[x.horse,i+1]));cur.resultRanks=(cur.result||[]).map(h=>mp.get(h)||null);if(cur.resultRanks.length===3&&!cur.resultRanks.includes(null)){const mx=Math.max(...cur.resultRanks),inv=cur.resultRanks.filter(x=>x>=6).length;cur.class=mx<=3?'上位3頭完結':mx<=4?'上位4頭完結':mx<=5?'上位5頭完結':inv===1?'6位以下1頭侵入':inv===2?'6位以下2頭侵入':'上位5頭全崩れ'}else cur.class=cur.result?.length?'結果馬不在':'結果未入力';cur.recHits=(cur.recommend||[]).filter(h=>(cur.result||[]).includes(h));cur.id=`${cur.date}_${cur.place}_${cur.raceNo}`;out.push(cur)}
+function parse(text){const lines=String(text).split(/\r?\n/);let date='',place='',cur=null,out=[];for(const raw of lines){const s=normalize(raw);if(!s||s.startsWith('```'))continue;let m;if((m=s.match(/^【\s*(.+?)\s*(\d{1,2})\s*R\s*】$/i))){finalize(cur,out);place=m[1].trim();cur={date,place,raceNo:+m[2],compi:[],recommend:[],result:null};continue}if((m=s.match(/^DATE\s*=\s*(\d{4})[-\/]?(\d{1,2})[-\/]?(\d{1,2})$/i))){date=`${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;if(cur)cur.date=date;continue}if((m=s.match(/^PLACE\s*=\s*(.+)$/i))){place=m[1].trim();if(cur)cur.place=place;continue}if((m=s.match(/^R(?:ACE)?\s*=*\s*(\d{1,2})$/i))){const n=+m[1];if(cur&&cur.compi.length)finalize(cur,out);cur={date,place,raceNo:n,compi:[],recommend:[],result:null};continue}if((m=s.match(/^COMPI\s*=\s*(.+)$/i))){if(!cur)throw Error('COMPIより前にRがありません');for(const p of m[1].split(/[,、]/)){const z=p.trim().match(/^(\d+)\s*:\s*(\d+(?:\.\d+)?)$/);if(!z)throw Error('COMPIの読めない組：'+p);cur.compi.push({horse:+z[1],index:+z[2]})}continue}if((m=s.match(/^(?:RECOMMEND|REC|推奨)\s*=\s*(.+)$/i))){if(!cur)throw Error('RECOMMENDより前にRがありません');cur.recommend=nums(m[1]);continue}if((m=s.match(/^RESULT\s*=\s*(.+)$/i))){if(!cur)throw Error('RESULTより前にRがありません');cur.result=nums(m[1]);if(cur.result.length!==3)throw Error('RESULTは3頭必要です：'+s);continue}if((m=s.match(/^(\d+)\s*[,，]\s*(\d+(?:\.\d+)?)$/))){if(!cur)throw Error('指数行より前にRがありません');cur.compi.push({horse:+m[1],index:+m[2]});continue}throw Error('読み取れない行：'+s)}finalize(cur,out);return out}
+function saveNow(){try{const got=parse($('bulk').value);if(!got.length)throw Error('レースを1件も読み取れませんでした');for(const r of got){const i=rows.findIndex(x=>x.id===r.id);if(i>=0)rows[i]={...rows[i],...r};else rows.push(r)}persist();render();msg(got.length+'レース保存しました。合計'+rows.length+'レースです。')}catch(e){msg(e.message,false)}}
+function putSample(){$('bulk').value='【札幌1R】\nDATE=2026-07-26\nPLACE=札幌\nR=1\nCOMPI=10:88,6:68,11:60,9:55,7:54,1:53,2:52,3:51,8:50,4:47,5:46,12:40\nRECOMMEND=10\nRESULT=10-2-1';msg('見本を入れました。次に「一括読込・保存」を押してください。')}
+function clearInput(){$('bulk').value='';msg('入力欄を消しました。')}
+function clearAll(){if(confirm('保存データを全部削除しますか？')){rows=[];persist();render();msg('全データを削除しました。')}}
+function render(){rows.sort((a,b)=>(a.date+a.place+String(a.raceNo).padStart(2,'0')).localeCompare(b.date+b.place+String(b.raceNo).padStart(2,'0')));const done=rows.filter(x=>x.resultRanks?.length===3&&!x.resultRanks.includes(null));const top5=done.filter(x=>Math.max(...x.resultRanks)<=5).length;const rec=done.filter(x=>x.recommend?.length);const recRace=rec.filter(x=>x.recHits?.length).length;const recN=rec.reduce((s,x)=>s+x.recommend.length,0);const hitN=rec.reduce((s,x)=>s+(x.recHits?.length||0),0);$('stats').innerHTML=[['登録レース',rows.length],['結果入力済み',done.length],['上位5頭完結',top5+'／'+pct(top5,done.length)],['6位以下侵入',done.length-top5+'／'+pct(done.length-top5,done.length)],['推奨馬1頭以上的中',recRace+'／'+pct(recRace,rec.length)],['推奨馬単位の複勝率',hitN+'／'+pct(hitN,recN)]].map(x=>`<div class="stat"><div class="v">${x[1]}</div><div class="k">${x[0]}</div></div>`).join('');$('tbody').innerHTML=rows.map(x=>`<tr><td>${x.date}</td><td>${x.place}</td><td>${x.raceNo}R</td><td>${x.headCount}</td><td>${x.p}</td><td>${(x.result||[]).join('-')||'—'}</td><td>${(x.resultRanks||[]).join('-')||'—'}</td><td>${x.class}</td><td>${(x.recommend||[]).join('-')||'—'}</td><td>${(x.recHits||[]).join('-')||'なし'}</td></tr>`).join('')}
+function summary(){const done=rows.filter(x=>x.resultRanks?.length===3&&!x.resultRanks.includes(null));const top5=done.filter(x=>Math.max(...x.resultRanks)<=5).length;const rec=done.filter(x=>x.recommend?.length),rr=rec.filter(x=>x.recHits?.length).length,rn=rec.reduce((s,x)=>s+x.recommend.length,0),hn=rec.reduce((s,x)=>s+(x.recHits?.length||0),0);return `【コンピ研究所・蓄積結果】\n登録：${rows.length}R\n結果済：${done.length}R\n上位5頭完結：${top5}/${done.length}=${pct(top5,done.length)}\n6位以下侵入：${done.length-top5}/${done.length}=${pct(done.length-top5,done.length)}\n\nコンピ推奨馬対象：${rec.length}R\n1頭以上馬券内：${rr}/${rec.length}=${pct(rr,rec.length)}\n推奨馬単位：${hn}/${rn}=${pct(hn,rn)}\n\nコンピ推奨馬が来る条件と飛ぶ条件を分析してください。`}
+async function copyText(t){try{await navigator.clipboard.writeText(t);msg('コピーしました。ChatGPTへ貼り付けてください。')}catch{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();msg('コピーしました。')}}
+async function shareSummary(){const t=summary();if(navigator.share){try{await navigator.share({title:'コンピ研究所',text:t});return}catch(e){if(e.name==='AbortError')return}}copyText(t)}function copySummary(){copyText(summary())}
+function download(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function exportCsv(){const h='date,place,raceNo,headCount,p,gap13,gap56,result,resultRanks,class,recommend,recommendHits\n';const b=rows.map(x=>[x.date,x.place,x.raceNo,x.headCount,x.p,x.gap13,x.gap56,(x.result||[]).join('-'),(x.resultRanks||[]).join('-'),x.class,(x.recommend||[]).join('-'),(x.recHits||[]).join('-')].map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');download('compi_lab_v130.csv','\uFEFF'+h+b,'text/csv;charset=utf-8')}
+function exportTxt(){download('compi_lab_chappy.txt',summary()+'\n\n---全件---\n'+rows.map(x=>JSON.stringify(x)).join('\n'),'text/plain;charset=utf-8')}
+window.addEventListener('error',e=>msg('アプリ内部エラー：'+e.message,false));load();
+</script></body></html>
