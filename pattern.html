@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="V5.22-all-market-walls-v4-win5">
-<title>競馬メジアン V5.22 コンピ＋四市場壁完全復活版</title>
+<meta name="app-build" content="V5.23-stealth-restored">
+<title>競馬メジアン V5.23 ステルス馬復活版</title>
 <style>
 :root{
   --bg:#07101f;--card:#10224a;--card2:#020617;--line:#475569;
@@ -94,11 +94,18 @@ pre{white-space:pre-wrap;word-break:break-word;background:#020617;padding:11px;b
 .wallLegendInline .lgT80{background:#f472b6}
 .marketWallMini{margin-top:7px;padding:8px;background:#020617;border:1px solid #35517a;border-radius:11px;font-size:12px;line-height:1.55}
 
+
+.stealth{border:3px solid #c084fc;background:linear-gradient(145deg,#1f1235,#4c1d95,#07101f);box-shadow:0 0 20px rgba(192,132,252,.28)}
+.stealthHorse{background:#020617;border:1px solid #7e22ce;border-radius:13px;padding:10px;margin:8px 0}
+.stealthTop{font-size:23px;font-weight:950;color:#e9d5ff}
+.stealthRank{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;background:#581c87;color:#f5d0fe;font-size:13px}
+.stealthReason{font-size:13px;color:#ddd6fe;line-height:1.55;margin-top:4px}
+
 </style>
 </head>
 <body>
 <main>
-<h1>競馬メジアン <span class="tag">V5.22</span><br>V4候補保存＋WIN5式＋コンピ司令塔</h1>
+<h1>競馬メジアン <span class="tag">V5.23</span><br>ステルス馬復活＋V4候補保存＋WIN5式</h1>
 
 <div class="card">
   <div class="title">レースデータ入力</div>
@@ -118,7 +125,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#020617;padding:11px;b
 
 [COMPI]
 馬番 指数 推奨"></textarea>
-  <button class="go" onclick="run()">V5.22解析</button>
+  <button class="go" onclick="run()">V5.23解析</button>
   <button class="sample" onclick="sample()">サンプル</button>
   <button class="clear" onclick="clearAll()">リセット</button>
   <button class="copy" onclick="copyForChat()">チャッピー用コピー</button>
@@ -330,6 +337,30 @@ function build(d){
     ...all.filter(x=>(rm.tan[x.h]||99)>=4&&(rm.tan[x.h]||99)<=9&&supportCount(x.h)>=2).map(x=>x.h)
   ]).filter(h=>h&&!matchanMain.includes(h)).slice(0,3);
 
+
+  // ステルス馬：主役評価は薄いが、複数市場の上位欄から消えない中下位馬
+  const appearCount=(list,h,limit)=>sorted(list).slice(0,limit).reduce((n,x)=>n+([x.a,x.b,x.c].filter(Boolean).includes(h)?1:0),0);
+  const stealth=cr.map(h=>{
+    const compiRank=rm.compi[h]||99,tanRank=rm.tan[h]||99,fukuRank=rm.fuku[h]||99;
+    const umaCount=appearCount(d.uma,h,12),wideCount=appearCount(d.wide,h,12),sanCount=appearCount(d.san,h,20);
+    const markets=[umaCount>=2,wideCount>=2,sanCount>=2].filter(Boolean).length;
+    const total=umaCount+wideCount+sanCount;
+    const quiet=compiRank>=6&&tanRank>=4;
+    const placeSupport=fukuRank<=8||Number(tfMap[h]?.fuku)<=6;
+    let grade='';
+    if(quiet&&markets===3&&total>=7&&placeSupport)grade='S';
+    else if(quiet&&markets>=2&&total>=5&&placeSupport)grade='A';
+    else if(quiet&&markets>=2&&total>=4)grade='B';
+    if(!grade)return null;
+    const points=(grade==='S'?30:grade==='A'?20:10)+markets*4+Math.min(total,12)+(placeSupport?4:0);
+    const reasons=[`コンピ${compiRank}位`,`単勝${tanRank}位`,`馬連上位${umaCount}回`,`ワイド上位${wideCount}回`,`三連複上位${sanCount}回`];
+    if(placeSupport)reasons.push('複勝支持あり');
+    reasons.push(grade==='S'?'3着削除禁止':grade==='A'?'相手保護':'注意');
+    return {h,grade,points,compiRank,tanRank,fukuRank,umaCount,wideCount,sanCount,markets,total,reasons};
+  }).filter(Boolean).sort((a,b)=>b.points-a.points||b.markets-a.markets||b.total-a.total||a.compiRank-b.compiRank);
+  const stealthS=stealth.filter(x=>x.grade==='S').map(x=>x.h);
+  const stealthProtect=stealth.filter(x=>x.grade==='S'||x.grade==='A').map(x=>x.h);
+
   // 構造軸・大荒れ頭・軸回避・相手保護
   const structureAxis=uniq([
     axis[0],
@@ -343,6 +374,7 @@ function build(d){
   ]).filter(Boolean)[0]||'';
   const axisAvoid=(fixed==='低'||type.includes('総崩れ')||type.includes('大穴'))?structureAxis:'';
   const protect=uniq([
+    ...stealthProtect,
     ...placeCand.slice(0,5),
     ...groups.A2,
     ...third,
@@ -366,7 +398,7 @@ function build(d){
   // 大穴の役割分離
   const bigHoleWin=uniq([ooareHead,...matchanHole,...bSupport]).filter(Boolean).slice(0,3);
   const bigHolePlace=uniq([...matchanHole,...third,walls.f15?.before]).filter(Boolean).slice(0,4);
-  const bigHoleThird=uniq([...third,walls.f15?.next,walls.f6?.next,...groups.A2]).filter(Boolean).slice(0,5);
+  const bigHoleThird=uniq([...stealthS,...third,walls.f15?.next,walls.f6?.next,...groups.A2]).filter(Boolean).slice(0,6);
 
   // 削除禁止監査候補。A1片方飛び＋A2二頭侵入も残す
   const auditPairs=[],auditSan=[];
@@ -376,7 +408,7 @@ function build(d){
   groups.A2.slice(0,3).forEach(h=>pushAuditPair(auditAxis,h));
   for(let i=0;i<groups.A2.length;i++)for(let j=i+1;j<groups.A2.length;j++)pushAuditTri(auditAxis,groups.A2[i],groups.A2[j]);
   matchanHole.slice(0,2).forEach(h=>{placeCand.slice(0,2).forEach(p=>pushAuditTri(auditAxis,p,h))});
-  const auditHorses=uniq([auditAxis,...groups.A2,...matchanHole,...third,...protect,...strongCompiWalls.flatMap(w=>[w.before,w.next])]).slice(0,12);
+  const auditHorses=uniq([auditAxis,...stealthProtect,...groups.A2,...matchanHole,...third,...protect,...strongCompiWalls.flatMap(w=>[w.before,w.next])]).slice(0,12);
 
   // tickets
   const wide=[],umaren=[],san=[],tanBet=[];
@@ -391,18 +423,19 @@ function build(d){
     if(core.length>=2)pushTri(axis[0],core[0],core[1]);
     if(core.length>=3)pushTri(axis[0],core[0],core[2]);
     holes.forEach(h=>{if(core[0])pushTri(axis[0],core[0],h)});
+    stealthS.slice(0,1).forEach(h=>{if(core[0])pushTri(axis[0],core[0],h)});
   }else{
     first.slice(0,2).forEach(h=>tanBet.push(h));
     const ax=axis[0]||first[0];
     placeCand.slice(0,3).forEach(h=>pushPair(wide,ax,h));
     first.slice(0,2).forEach(a=>placeCand.slice(0,3).forEach(b=>pushPair(umaren,a,b)));
-    const pool=uniq([...axis,...first,...placeCand,...third]).slice(0,6);
+    const pool=uniq([...axis,...first,...placeCand,...stealthS,...third]).slice(0,7);
     for(let i=0;i<pool.length&&san.length<5;i++)for(let j=i+1;j<pool.length&&san.length<5;j++)for(let k=j+1;k<pool.length&&san.length<5;k++)pushTri(pool[i],pool[j],pool[k]);
   }
   const bestOne=san[0]||wide[0]||umaren[0]||tanBet[0]||'なし';
 
   return {d,compi,cr,tr,fr,ur,sr,walls,sum,p,gaps,maxGap,compiWalls,strongCompiWalls,compiTiers,groups,linePos,lineHorse,otaniRules,otani,type,fixed,place,why,all,bSupport,cSupport,first,headAlt,axis,placeCand,third,
-    win5,win5Main,win5Hole,matchanMain,matchanHole,structureAxis,ooareHead,axisAvoid,protect,blueWhite,bigHoleWin,bigHolePlace,bigHoleThird,auditPairs,auditSan,auditHorses,
+    win5,win5Main,win5Hole,matchanMain,matchanHole,stealth,stealthS,stealthProtect,structureAxis,ooareHead,axisAvoid,protect,blueWhite,bigHoleWin,bigHolePlace,bigHoleThird,auditPairs,auditSan,auditHorses,
     tickets:{tan:uniq(tanBet).slice(0,2),wide:wide.slice(0,4),umaren:umaren.slice(0,4),san:san.slice(0,5),bestOne}};
 }
 
@@ -506,6 +539,12 @@ function render(v){
     <div class="role"><div class="roleL">3着・侵入穴</div><div class="roleV">${fmt(v.third)}</div></div>
   </div>
 
+
+  <div class="card stealth"><div class="title">👻 ステルス馬・復活判定</div>
+    ${v.stealth.length?v.stealth.slice(0,5).map((x,i)=>`<div class="stealthHorse"><div class="stealthTop">${i+1}位 ${x.h}番 <span class="stealthRank">${x.grade}</span></div><div class="stealthReason">${x.reasons.join(' ／ ')}</div></div>`).join(''):'<div class="small">該当なし。複数市場に繰り返し登場する中下位馬はありません。</div>'}
+    <div class="small">S＝三連複3列目・削除禁止／A＝相手保護／B＝注意。青白光とは別に「弱いサインの蓄積」を拾います。</div>
+  </div>
+
   <div class="card legacy"><div class="title">🧰 V4候補保存・独立判定</div>
     <div class="legacyGrid">
       <div class="legacyBox"><div class="legacyL">まっちゃん単勝・本線</div><div class="legacyV">${fmt(v.matchanMain)}</div></div>
@@ -551,7 +590,7 @@ function run(){
     const d=parse(document.getElementById('input').value);
     if(!d.tf.length)throw new Error('TANFUKUがありません');
     if(d.compi.length<3)throw new Error('COMPIを3頭以上入力してください');
-    latest=build(d);document.getElementById('out').innerHTML=render(latest);document.title=d.title+'｜競馬メジアン V5.22';
+    latest=build(d);document.getElementById('out').innerHTML=render(latest);document.title=d.title+'｜競馬メジアン V5.23';
   }catch(e){document.getElementById('out').innerHTML=`<div class="card"><div class="title">入力エラー</div><pre>${esc(e.message||e)}</pre></div>`}
 }
 function clearAll(){document.getElementById('input').value='';document.getElementById('out').innerHTML='';latest=null}
@@ -617,7 +656,7 @@ function chatText(){
   if(!latest)throw new Error('先に解析してください');
   const v=latest,g=v.gaps;
   return `【${v.d.title}】
-競馬メジアン V5.22 コンピ＋四市場壁完全復活版
+競馬メジアン V5.23 ステルス馬復活版
 
 【コンピ一次診断】
 レース型：${v.type}
@@ -667,6 +706,7 @@ C：${fmt(v.groups.C)}
 大穴1着：${fmt(v.bigHoleWin)}
 大穴連対：${fmt(v.bigHolePlace)}
 大穴3着：${fmt(v.bigHoleThird)}
+ステルス馬：${v.stealth.length?v.stealth.map(x=>x.h+'番['+x.grade+':'+x.reasons.join('+')+']').join(' / '):'なし'}
 青白光：${v.blueWhite.length?v.blueWhite.map(x=>x.h+'番['+x.gates.join('+')+']').join(' / '):'なし'}
 
 【WIN5式】
@@ -699,7 +739,7 @@ function csvEsc(v){v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'"
 function saveResearchCsv(){
   if(!latest){alert('先に解析してください');return}
   const v=latest,row={
-    日時:new Date().toISOString(),レース:v.d.title,解析:'V5.22-all-market-walls-v4-win5',
+    日時:new Date().toISOString(),レース:v.d.title,解析:'V5.23-stealth-restored',
     レース型:v.type,P:v.p,上位3合計:v.sum,大谷条件:v.otani,
     差1_2:v.gaps.g12,差2_3:v.gaps.g23,差1_3:v.gaps.g13,差3_5:v.gaps.g35,差5_6:v.gaps.g56,差6_7:v.gaps.g67,
     最大壁位置:v.maxGap.after,最大壁差:v.maxGap.gap,最大壁前:v.maxGap.before,最大壁直後:v.maxGap.next,
@@ -718,7 +758,7 @@ function saveResearchCsv(){
     WIN5本線:v.win5Main.join('|'),WIN5穴:v.win5Hole.join('|'),まっちゃん単勝本線:v.matchanMain.join('|'),まっちゃん穴単:v.matchanHole.join('|'),
     構造軸:v.structureAxis,大荒れ頭:v.ooareHead,軸回避:v.axisAvoid,相手保護:v.protect.join('|'),
     大穴一着:v.bigHoleWin.join('|'),大穴連対:v.bigHolePlace.join('|'),大穴三着:v.bigHoleThird.join('|'),
-    青白光:v.blueWhite.map(x=>x.h+':'+x.gates.join('+')).join('|'),監査保護馬:v.auditHorses.join('|'),監査三連複:v.auditSan.join('|'),
+    ステルス馬:v.stealth.map(x=>x.h+':'+x.grade).join('|'),青白光:v.blueWhite.map(x=>x.h+':'+x.gates.join('+')).join('|'),監査保護馬:v.auditHorses.join('|'),監査三連複:v.auditSan.join('|'),
     単勝:v.tickets.tan.join('|'),馬連:v.tickets.umaren.join('|'),ワイド:v.tickets.wide.join('|'),三連複:v.tickets.san.join('|'),最重要一点:v.tickets.bestOne
   };
   const keys=Object.keys(row),csv='\ufeff'+keys.map(csvEsc).join(',')+'\n'+keys.map(k=>csvEsc(row[k])).join(',');
