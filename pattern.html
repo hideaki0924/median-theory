@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="V5.00-research-pipeline">
-<title>競馬メジアン V5.00 研究途中版</title>
+<meta name="app-build" content="V5.10-v4-features-win5">
+<title>競馬メジアン V5.10 V4機能復活＋WIN5統合版</title>
 <style>
 :root{
   --bg:#07101f;--card:#10224a;--card2:#020617;--line:#475569;
@@ -50,11 +50,23 @@ button{border:0;border-radius:15px;padding:13px 16px;margin:8px 5px 3px 0;font-s
 .warn{color:var(--red);font-weight:950}.good{color:#86efac;font-weight:950}.cyan{color:var(--cyan);font-weight:950}.orange{color:var(--orange);font-weight:950}
 pre{white-space:pre-wrap;word-break:break-word;background:#020617;padding:11px;border-radius:12px;font-size:14px}
 @media(max-width:520px){body{padding:8px}.card{padding:10px}.metaV{font-size:17px}.roleV{font-size:22px}}
+
+.legacy{border:3px solid #22d3ee;background:linear-gradient(145deg,#002333,#164e63,#07101f)}
+.win5{border:3px solid #ec4899;background:linear-gradient(145deg,#3b0826,#831843,#07101f);box-shadow:0 0 18px rgba(236,72,153,.3)}
+.audit{border:3px solid #fb7185;background:linear-gradient(145deg,#3b0a16,#881337,#07101f)}
+.legacyGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.legacyBox{background:#020617;border:1px solid #475569;border-radius:12px;padding:9px}
+.legacyL{font-size:12px;color:#93c5fd;font-weight:950}
+.legacyV{font-size:21px;font-weight:950;margin-top:3px}
+.reason{font-size:13px;color:#cbd5e1;margin-top:4px;line-height:1.45}
+.deleteSafe{color:#fef08a;font-weight:950;text-shadow:0 0 7px rgba(250,204,21,.5)}
+@media(max-width:520px){.legacyGrid{grid-template-columns:1fr 1fr}.legacyV{font-size:18px}}
+
 </style>
 </head>
 <body>
 <main>
-<h1>競馬メジアン <span class="tag">V5.00 研究途中版</span><br>コンピ診断 → オッズ統合 → 買い目</h1>
+<h1>競馬メジアン <span class="tag">V5.10</span><br>V4候補保存＋WIN5式＋コンピ司令塔</h1>
 
 <div class="card">
   <div class="title">レースデータ入力</div>
@@ -74,7 +86,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#020617;padding:11px;b
 
 [COMPI]
 馬番 指数 推奨"></textarea>
-  <button class="go" onclick="run()">V5解析</button>
+  <button class="go" onclick="run()">V5.10解析</button>
   <button class="sample" onclick="sample()">サンプル</button>
   <button class="clear" onclick="clearAll()">リセット</button>
   <button class="copy" onclick="copyForChat()">チャッピー用コピー</button>
@@ -86,6 +98,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#020617;padding:11px;b
   <div class="step"><span class="stepNo">1</span><b>コンピ一次診断</b><div class="small">P判定・大谷式・A1/A2/B/C・指数差・最大壁からレース型を決める。</div></div>
   <div class="step"><span class="stepNo">2</span><b>オッズで役割を確定</b><div class="small">単勝・複勝・馬連・三連複・壁・メジアン・中位残存から、頭・連対・3着侵入を分離。</div></div>
   <div class="step"><span class="stepNo">3</span><b>型専用の買い目生成</b><div class="small">全レース同じ点数方式ではなく、判定されたレース型に合う券種と組み合わせだけを出す。</div></div>
+  <div class="step"><span class="stepNo">4</span><b>V4候補を削除せず保存</b><div class="small">まっちゃん単勝・大荒れ頭・構造軸・青白光・WIN5式・監査買い目を別枠で必ず残す。</div></div>
 </div>
 
 <div id="out"></div>
@@ -236,6 +249,84 @@ function build(d){
   first=uniq(first);headAlt=uniq(headAlt.filter(h=>!first.includes(h)));axis=uniq(axis);
   placeCand=uniq(placeCand.filter(h=>!axis.includes(h)));third=uniq(third.filter(h=>h&&!axis.includes(h)));
 
+  // V4機能復活：候補は最終買い目と分離して残す
+  const tfMap=Object.fromEntries(d.tf.map(x=>[x.h,x]));
+  const hasReason=(h,r)=>!!score[h]&&score[h].reasons.includes(r);
+  const supportCount=h=>[
+    (rm.tan[h]||99)<=6,(rm.fuku[h]||99)<=7,(rm.uma[h]||99)<=7,(rm.san[h]||99)<=8
+  ].filter(Boolean).length;
+
+  // WIN5式：複勝3.0以内を強制保護し、複数市場接続とコンピを加味
+  const win5=uniq([
+    ...fr.filter(h=>Number(tfMap[h]?.fuku)<=3.0),
+    ...all.filter(x=>supportCount(x.h)>=3&&(rm.compi[x.h]||99)<=5).map(x=>x.h),
+    ...first
+  ]).sort((a,b)=>{
+    const af=Number(tfMap[a]?.fuku??999),bf=Number(tfMap[b]?.fuku??999);
+    return af-bf||(score[b]?.score||0)-(score[a]?.score||0);
+  }).slice(0,5);
+  const win5Main=win5.slice(0,fixed==='高'?2:3);
+  const win5Hole=win5.filter(h=>(rm.compi[h]||99)>=5||(rm.tan[h]||99)>=5).slice(0,2);
+
+  // まっちゃん単勝：本線と穴単を分離
+  const matchanMain=uniq([
+    ...win5Main,
+    ...first,
+    all.find(x=>hasReason(x.h,'単勝上位')&&hasReason(x.h,'馬連支持'))?.h
+  ]).slice(0,2);
+  const matchanHole=uniq([
+    ...bSupport.filter(h=>supportCount(h)>=2),
+    walls.f15?.before,
+    walls.t80?.before,
+    ...all.filter(x=>(rm.tan[x.h]||99)>=4&&(rm.tan[x.h]||99)<=9&&supportCount(x.h)>=2).map(x=>x.h)
+  ]).filter(h=>h&&!matchanMain.includes(h)).slice(0,3);
+
+  // 構造軸・大荒れ頭・軸回避・相手保護
+  const structureAxis=uniq([
+    axis[0],
+    all.find(x=>hasReason(x.h,'馬連支持')&&hasReason(x.h,'三連複支持')&&supportCount(x.h)>=3)?.h,
+    cr[0]
+  ]).filter(Boolean)[0]||'';
+  const ooareHead=uniq([
+    ...matchanHole,
+    ...bSupport.filter(h=>hasReason(h,'三連複支持')||hasReason(h,'壁前')),
+    walls.f15?.before
+  ]).filter(Boolean)[0]||'';
+  const axisAvoid=(fixed==='低'||type.includes('総崩れ')||type.includes('大穴'))?structureAxis:'';
+  const protect=uniq([
+    ...placeCand.slice(0,5),
+    ...groups.A2,
+    ...third,
+    ...win5
+  ]).filter(h=>h&&h!==structureAxis).slice(0,7);
+
+  // 青白光：壁・連系・市場逆行・メジアンの複数関門
+  const blueWhite=all.map(x=>{
+    const h=x.h,gates=[];
+    if(hasReason(h,'壁前')||hasReason(h,'壁直後'))gates.push('壁');
+    if((rm.uma[h]||99)<=7)gates.push('馬連');
+    if((rm.san[h]||99)<=8)gates.push('三連複');
+    if((rm.compi[h]||99)>=6&&supportCount(h)>=2)gates.push('市場逆行');
+    if(hasReason(h,'メジアン'))gates.push('メジアン');
+    if(Number(tfMap[h]?.fuku)<=3)gates.push('WIN5');
+    return {h,gates:uniq(gates)};
+  }).filter(x=>x.gates.length>=3).sort((a,b)=>b.gates.length-a.gates.length||(score[b.h]?.score||0)-(score[a.h]?.score||0));
+
+  // 大穴の役割分離
+  const bigHoleWin=uniq([ooareHead,...matchanHole,...bSupport]).filter(Boolean).slice(0,3);
+  const bigHolePlace=uniq([...matchanHole,...third,walls.f15?.before]).filter(Boolean).slice(0,4);
+  const bigHoleThird=uniq([...third,walls.f15?.next,walls.f6?.next,...groups.A2]).filter(Boolean).slice(0,5);
+
+  // 削除禁止監査候補。A1片方飛び＋A2二頭侵入も残す
+  const auditPairs=[],auditSan=[];
+  const pushAuditPair=(a,b)=>{if(a&&b&&a!==b){const k=pairKey(a,b);if(!auditPairs.includes(k))auditPairs.push(k)}};
+  const pushAuditTri=(a,b,c)=>{if(a&&b&&c&&new Set([a,b,c]).size===3){const k=triKey(a,b,c);if(!auditSan.includes(k))auditSan.push(k)}};
+  const auditAxis=structureAxis||axis[0]||cr[0];
+  groups.A2.slice(0,3).forEach(h=>pushAuditPair(auditAxis,h));
+  for(let i=0;i<groups.A2.length;i++)for(let j=i+1;j<groups.A2.length;j++)pushAuditTri(auditAxis,groups.A2[i],groups.A2[j]);
+  matchanHole.slice(0,2).forEach(h=>{placeCand.slice(0,2).forEach(p=>pushAuditTri(auditAxis,p,h))});
+  const auditHorses=uniq([auditAxis,...groups.A2,...matchanHole,...third,...protect]).slice(0,10);
+
   // tickets
   const wide=[],umaren=[],san=[],tanBet=[];
   const pushPair=(arr,a,b)=>{if(a&&b&&a!==b){const k=pairKey(a,b);if(!arr.includes(k))arr.push(k)}};
@@ -259,7 +350,9 @@ function build(d){
   }
   const bestOne=san[0]||wide[0]||umaren[0]||tanBet[0]||'なし';
 
-  return {d,compi,cr,tr,fr,ur,sr,walls,sum,p,gaps,maxGap,groups,linePos,lineHorse,otaniRules,otani,type,fixed,place,why,all,bSupport,cSupport,first,headAlt,axis,placeCand,third,tickets:{tan:uniq(tanBet).slice(0,2),wide:wide.slice(0,4),umaren:umaren.slice(0,4),san:san.slice(0,5),bestOne}};
+  return {d,compi,cr,tr,fr,ur,sr,walls,sum,p,gaps,maxGap,groups,linePos,lineHorse,otaniRules,otani,type,fixed,place,why,all,bSupport,cSupport,first,headAlt,axis,placeCand,third,
+    win5,win5Main,win5Hole,matchanMain,matchanHole,structureAxis,ooareHead,axisAvoid,protect,blueWhite,bigHoleWin,bigHolePlace,bigHoleThird,auditPairs,auditSan,auditHorses,
+    tickets:{tan:uniq(tanBet).slice(0,2),wide:wide.slice(0,4),umaren:umaren.slice(0,4),san:san.slice(0,5),bestOne}};
 }
 
 function row(label,rank,compi=[]){
@@ -311,6 +404,34 @@ function render(v){
     <div class="role"><div class="roleL">3着・侵入穴</div><div class="roleV">${fmt(v.third)}</div></div>
   </div>
 
+  <div class="card legacy"><div class="title">🧰 V4候補保存・独立判定</div>
+    <div class="legacyGrid">
+      <div class="legacyBox"><div class="legacyL">まっちゃん単勝・本線</div><div class="legacyV">${fmt(v.matchanMain)}</div></div>
+      <div class="legacyBox"><div class="legacyL">まっちゃん単勝・穴単</div><div class="legacyV">${fmt(v.matchanHole)}</div></div>
+      <div class="legacyBox"><div class="legacyL">構造軸</div><div class="legacyV">${v.structureAxis?v.structureAxis+'番':'なし'}</div></div>
+      <div class="legacyBox"><div class="legacyL">V2.65 大荒れ頭</div><div class="legacyV">${v.ooareHead?v.ooareHead+'番':'なし'}</div></div>
+      <div class="legacyBox"><div class="legacyL">軸回避</div><div class="legacyV">${v.axisAvoid?v.axisAvoid+'番':'なし'}</div></div>
+      <div class="legacyBox"><div class="legacyL">相手保護</div><div class="legacyV">${fmt(v.protect)}</div></div>
+    </div>
+    <div class="role"><div class="roleL">大穴・1着穴</div><div class="roleV">${fmt(v.bigHoleWin)}</div></div>
+    <div class="role"><div class="roleL">大穴・連対穴</div><div class="roleV">${fmt(v.bigHolePlace)}</div></div>
+    <div class="role"><div class="roleL">大穴・3着穴</div><div class="roleV">${fmt(v.bigHoleThird)}</div></div>
+    <div class="role"><div class="roleL">青白光 3関門以上</div><div class="roleV">${v.blueWhite.length?v.blueWhite.map(x=>x.h+'番').join('・'):'なし'}</div><div class="reason">${v.blueWhite.length?v.blueWhite.map(x=>x.h+'番['+x.gates.join('+')+']').join(' ／ '):'該当なし'}</div></div>
+  </div>
+
+  <div class="card win5"><div class="title">🏆 WIN5式・1着候補</div>
+    <div class="role"><div class="roleL">WIN5本線</div><div class="roleV">${fmt(v.win5Main)}</div></div>
+    <div class="role"><div class="roleL">WIN5穴候補</div><div class="roleV">${fmt(v.win5Hole)}</div></div>
+    <div class="small">複勝3.0以内を強制保護。複数市場接続・コンピ上位・V5の1着候補を加えて、最終買い目とは別に保存します。</div>
+  </div>
+
+  <div class="card audit"><div class="title">🛡️ 削除禁止・チャッピー監査枠</div>
+    <div><b>全保護馬：</b><span class="deleteSafe">${fmt(v.auditHorses)}</span></div>
+    <div class="ticketBox"><div class="ticketL">A2保護ワイド・馬連候補</div><div class="ticketV">${v.auditPairs.length?v.auditPairs.join(' ／ '):'なし'}</div></div>
+    <div class="ticketBox"><div class="ticketL">軸＋A2＋A2／穴侵入三連複</div><div class="ticketV">${v.auditSan.length?v.auditSan.join(' ／ '):'なし'}</div></div>
+    <div class="small">本線から外しても、この欄の候補は消去しません。園田5Rのような「A1片方脱落＋A2二頭侵入」を検証できます。</div>
+  </div>
+
   <div class="card ticket"><div class="title">🧾 第3段階：型専用の買い目</div>
     <div class="ticketBox"><div class="ticketL">単勝</div><div class="ticketV">${v.tickets.tan.length?v.tickets.tan.map(x=>x+'番').join('・'):'見送り'}</div></div>
     <div class="ticketBox"><div class="ticketL">馬連</div><div class="ticketV">${v.tickets.umaren.length?v.tickets.umaren.join(' ／ '):'見送り'}</div></div>
@@ -328,7 +449,7 @@ function run(){
     const d=parse(document.getElementById('input').value);
     if(!d.tf.length)throw new Error('TANFUKUがありません');
     if(d.compi.length<3)throw new Error('COMPIを3頭以上入力してください');
-    latest=build(d);document.getElementById('out').innerHTML=render(latest);document.title=d.title+'｜競馬メジアン V5.00';
+    latest=build(d);document.getElementById('out').innerHTML=render(latest);document.title=d.title+'｜競馬メジアン V5.10';
   }catch(e){document.getElementById('out').innerHTML=`<div class="card"><div class="title">入力エラー</div><pre>${esc(e.message||e)}</pre></div>`}
 }
 function clearAll(){document.getElementById('input').value='';document.getElementById('out').innerHTML='';latest=null}
@@ -394,7 +515,7 @@ function chatText(){
   if(!latest)throw new Error('先に解析してください');
   const v=latest,g=v.gaps;
   return `【${v.d.title}】
-競馬メジアン V5.00 研究途中版
+競馬メジアン V5.10 V4機能復活＋WIN5統合版
 
 【コンピ一次診断】
 レース型：${v.type}
@@ -425,6 +546,27 @@ C：${fmt(v.groups.C)}
 連対・相手本線：${fmt(v.placeCand)}
 3着・侵入穴：${fmt(v.third)}
 
+【V4候補保存】
+まっちゃん単勝本線：${fmt(v.matchanMain)}
+まっちゃん穴単：${fmt(v.matchanHole)}
+構造軸：${v.structureAxis?v.structureAxis+'番':'なし'}
+大荒れ頭：${v.ooareHead?v.ooareHead+'番':'なし'}
+軸回避：${v.axisAvoid?v.axisAvoid+'番':'なし'}
+相手保護：${fmt(v.protect)}
+大穴1着：${fmt(v.bigHoleWin)}
+大穴連対：${fmt(v.bigHolePlace)}
+大穴3着：${fmt(v.bigHoleThird)}
+青白光：${v.blueWhite.length?v.blueWhite.map(x=>x.h+'番['+x.gates.join('+')+']').join(' / '):'なし'}
+
+【WIN5式】
+本線：${fmt(v.win5Main)}
+穴候補：${fmt(v.win5Hole)}
+
+【削除禁止・監査】
+保護馬：${fmt(v.auditHorses)}
+A2保護：${v.auditPairs.join(' / ')||'なし'}
+監査三連複：${v.auditSan.join(' / ')||'なし'}
+
 【型専用買い目】
 単勝：${v.tickets.tan.length?v.tickets.tan.map(x=>x+'番').join('・'):'見送り'}
 馬連：${v.tickets.umaren.join(' / ')||'見送り'}
@@ -446,18 +588,22 @@ function csvEsc(v){v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'"
 function saveResearchCsv(){
   if(!latest){alert('先に解析してください');return}
   const v=latest,row={
-    日時:new Date().toISOString(),レース:v.d.title,解析:'V5.00-research-pipeline',
+    日時:new Date().toISOString(),レース:v.d.title,解析:'V5.10-v4-features-win5',
     レース型:v.type,P:v.p,上位3合計:v.sum,大谷条件:v.otani,
     差1_2:v.gaps.g12,差2_3:v.gaps.g23,差1_3:v.gaps.g13,差3_5:v.gaps.g35,差5_6:v.gaps.g56,差6_7:v.gaps.g67,
     最大壁位置:v.maxGap.after,最大壁差:v.maxGap.gap,
     A1:v.groups.A1.join('|'),A2:v.groups.A2.join('|'),B:v.groups.B.join('|'),C:v.groups.C.join('|'),
     市場支持B:v.bSupport.join('|'),市場支持C:v.cSupport.join('|'),
     一着本線:v.first.join('|'),頭替わり:v.headAlt.join('|'),馬券内軸:v.axis.join('|'),相手本線:v.placeCand.join('|'),三着侵入:v.third.join('|'),
+    WIN5本線:v.win5Main.join('|'),WIN5穴:v.win5Hole.join('|'),まっちゃん単勝本線:v.matchanMain.join('|'),まっちゃん穴単:v.matchanHole.join('|'),
+    構造軸:v.structureAxis,大荒れ頭:v.ooareHead,軸回避:v.axisAvoid,相手保護:v.protect.join('|'),
+    大穴一着:v.bigHoleWin.join('|'),大穴連対:v.bigHolePlace.join('|'),大穴三着:v.bigHoleThird.join('|'),
+    青白光:v.blueWhite.map(x=>x.h+':'+x.gates.join('+')).join('|'),監査保護馬:v.auditHorses.join('|'),監査三連複:v.auditSan.join('|'),
     単勝:v.tickets.tan.join('|'),馬連:v.tickets.umaren.join('|'),ワイド:v.tickets.wide.join('|'),三連複:v.tickets.san.join('|'),最重要一点:v.tickets.bestOne
   };
   const keys=Object.keys(row),csv='\ufeff'+keys.map(csvEsc).join(',')+'\n'+keys.map(k=>csvEsc(row[k])).join(',');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);a.download='競馬メジアン_V5研究_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  a.href=URL.createObjectURL(blob);a.download='競馬メジアン_V5.10研究_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 </script>
 </body>
