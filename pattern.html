@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="V5.24-compi-median-integrated">
-<title>競馬メジアン V5.24 コンピメジアン研究統合版</title>
+<meta name="app-build" content="V5.24-compi-median-stable">
+<title>競馬メジアン V5.24 コンピメジアン研究統合・安定版</title>
 <style>
 :root{
   --bg:#07101f;--card:#10224a;--card2:#020617;--line:#475569;
@@ -239,7 +239,7 @@ function build(d){
     if(i===n-1 || (compiWalls[i]&&compiWalls[i].gap>=7)){compiTiers.push(tier);tier=[]}
   });
   const groups={A1:cr.slice(0,2),A2:cr.slice(2,5),B:cr.slice(5,10),C:cr.slice(10)};
-  // V5.24 朝検証統合：A群内メジアン・A2密集・1位抜きA群三角
+  // V5.24 朝検証統合：A群内メジアン・A2密集度・85以上保護
   const groupA=cr.slice(0,Math.min(5,n));
   const aMedian=medianHorses(groupA);
   const a2Spread=groups.A2.length>=2?(compi[2].pt-compi[Math.min(4,n-1)].pt):null;
@@ -279,22 +279,6 @@ function build(d){
   const bSupport=groups.B.filter(h=>oddsTop(h)||connected(h)).sort((a,b)=>(score[b]?.score||0)-(score[a]?.score||0));
   const cSupport=groups.C.filter(h=>connected(h)&&(rm.fuku[h]||99)<=8).sort((a,b)=>(score[b]?.score||0)-(score[a]?.score||0));
 
-  const aMedianSupport=aMedian.filter(h=>supportCount(h)>=2||(rm.san[h]||99)<=8||(rm.uma[h]||99)<=7);
-  const pMedianMode=(p==='P1'||p==='P2')&&otani<=1?'A群内組替え優先':(otani===3?'下位侵入優先':'上下併用');
-  const aDecisionPressure=(a2Density==='強'&&aMedianSupport.length)?'強':(a2Density!=='弱'||aMedianSupport.length)?'中':'弱';
-  const sanOdds={};sorted(d.san).forEach(x=>sanOdds[triKey(x.a,x.b,x.c)]=x.od);
-  const aNo1Candidates=[];
-  for(let i=0;i<groupA.length;i++)for(let j=i+1;j<groupA.length;j++)for(let k=j+1;k<groupA.length;k++){
-    const hs=[groupA[i],groupA[j],groupA[k]], key=triKey(...hs);
-    if(hs.includes(cr[0])||!hs.some(h=>aMedian.includes(h)))continue;
-    const market=Number(sanOdds[key]??99999);
-    const support=hs.reduce((z,h)=>z+supportCount(h),0);
-    aNo1Candidates.push({key,hs,market,support});
-  }
-  aNo1Candidates.sort((a,b)=>a.market-b.market||b.support-a.support);
-  const aNo1Insurance=aNo1Candidates[0]?.key||'';
-  const medianCorrection=aMedianSupport.length?`A内メジアン${aMedianSupport.join('・')}番を3着以内保護`:'A内メジアンは市場接続弱';
-
   let type='標準順当型',fixed='中',place='2～3着',why=[];
   if(n<=7&&gaps.g23!=null&&gaps.g23>=12){type='少頭数・二強固定型';fixed='高';place='3着';why.push('上位2頭後に大壁')}
   else if(compi[0]?.pt>=85&&gaps.g13>=18){type='一強・相手荒れ型';fixed='高';place='2～3着';why.push('コンピ1位85以上','1位－3位差18以上')}
@@ -333,6 +317,27 @@ function build(d){
   const supportCount=h=>[
     (rm.tan[h]||99)<=6,(rm.fuku[h]||99)<=7,(rm.uma[h]||99)<=7,(rm.san[h]||99)<=8
   ].filter(Boolean).length;
+
+  // V5.24 メジアン補正は既存の役割判定を壊さず、保護と監査へ追加する
+  const aMedianSupport=aMedian.filter(h=>supportCount(h)>=2||(rm.san[h]||99)<=8||(rm.uma[h]||99)<=7);
+  const pMedianMode=(p==='P1'||p==='P2')&&otani<=1?'A群内組替え優先':(otani===3?'下位侵入優先':'上下併用');
+  const aDecisionPressure=(a2Density==='強'&&aMedianSupport.length)?'強':(a2Density!=='弱'||aMedianSupport.length)?'中':'弱';
+  const sanOdds={};
+  sorted(d.san).forEach(x=>{sanOdds[triKey(x.a,x.b,x.c)]=x.od});
+  const aNo1Candidates=[];
+  for(let i=0;i<groupA.length;i++){
+    for(let j=i+1;j<groupA.length;j++){
+      for(let k=j+1;k<groupA.length;k++){
+        const hs=[groupA[i],groupA[j],groupA[k]];
+        const key=triKey(hs[0],hs[1],hs[2]);
+        if(hs.includes(cr[0])||!hs.some(h=>aMedian.includes(h)))continue;
+        aNo1Candidates.push({key,market:Number(sanOdds[key]??99999),support:hs.reduce((z,h)=>z+supportCount(h),0)});
+      }
+    }
+  }
+  aNo1Candidates.sort((a,b)=>a.market-b.market||b.support-a.support);
+  const aNo1Insurance=aNo1Candidates.length?aNo1Candidates[0].key:'';
+  const medianCorrection=aMedianSupport.length?`A内メジアン${aMedianSupport.join('・')}番を3着以内保護`:'A内メジアンは市場接続弱';
 
   // WIN5式：複勝3.0以内を強制保護し、複数市場接続とコンピを加味
   const win5=uniq([
@@ -457,9 +462,10 @@ function build(d){
     const pool=uniq([...axis,...first,...placeCand,...stealthS,...third]).slice(0,7);
     for(let i=0;i<pool.length&&san.length<5;i++)for(let j=i+1;j<pool.length&&san.length<5;j++)for(let k=j+1;k<pool.length&&san.length<5;k++)pushTri(pool[i],pool[j],pool[k]);
   }
-  // V5.24：A内メジアンを含むA群三角を強制保存。P1/P2＋大谷弱＋A2密集では1位抜き保険を優先。
+  // A内メジアンを含むA群三角を既存買い目とは別に保護する
   const medianMarketTris=sorted(d.san).filter(x=>{
-    const hs=[x.a,x.b,x.c];return hs.every(h=>groupA.includes(h))&&hs.some(h=>aMedian.includes(h));
+    const hs=[x.a,x.b,x.c];
+    return hs.every(h=>groupA.includes(h))&&hs.some(h=>aMedian.includes(h));
   }).map(x=>triKey(x.a,x.b,x.c));
   medianMarketTris.slice(0,3).forEach(k=>{if(!san.includes(k))san.push(k)});
   const no1InsuranceOn=!!aNo1Insurance&&aMedianSupport.length>0&&((p==='P1'||p==='P2')||a2Density==='強'||fixed==='高');
@@ -569,7 +575,7 @@ function render(v){
     <div><b>メジアン補正：</b>${esc(v.medianCorrection)}</div>
     <div><b>コンピ85以上・馬券内保護：</b>${fmt(v.high85)}</div>
     <div><b>コンピ1位抜きA群三角：</b><span class="deleteSafe">${v.aNo1Insurance||'なし'}</span> ${v.no1InsuranceOn?'【削除禁止ON】':''}</div>
-    <div class="small">メジアンは荒れ判定の主役ではなく、A群内の残存馬・軸飛び保険・C/D侵入候補を補正します。85以上は1着固定ではなく馬券内保護。</div>
+    <div class="small">メジアンは荒れ判定の主役ではなく、A群内の残存馬と軸飛び保険を補正します。85以上は1着固定ではなく馬券内保護。</div>
   </div>
 
   <div class="card roles"><div class="title">🎯 第2段階：オッズ統合後の役割</div>
@@ -612,7 +618,7 @@ function render(v){
     <div class="ticketBox"><div class="ticketL">A2保護ワイド・馬連候補</div><div class="ticketV">${v.auditPairs.length?v.auditPairs.join(' ／ '):'なし'}</div></div>
     <div class="ticketBox"><div class="ticketL">軸＋A2＋A2／穴侵入三連複</div><div class="ticketV">${v.auditSan.length?v.auditSan.join(' ／ '):'なし'}</div></div>
     <div class="ticketBox"><div class="ticketL">A内メジアン＋A群／1位抜き保険</div><div class="ticketV">${v.medianMarketTris.length?v.medianMarketTris.slice(0,4).join(' ／ '):'なし'}${v.aNo1Insurance?' ／ 強制：'+v.aNo1Insurance:''}</div></div>
-    <div class="small">本線から外しても、この欄の候補は消去しません。園田5Rのような「A1片方脱落＋A2二頭侵入」を検証できます。</div>
+    <div class="small">本線から外しても、この欄の候補は消去しません。A1脱落＋A2複数侵入、コンピ1位飛びを検証できます。</div>
   </div>
 
   <div class="card ticket"><div class="title">🧾 第3段階：型専用の買い目</div>
@@ -698,7 +704,7 @@ function chatText(){
   if(!latest)throw new Error('先に解析してください');
   const v=latest,g=v.gaps;
   return `【${v.d.title}】
-競馬メジアン V5.24 コンピメジアン研究統合版
+競馬メジアン V5.24 コンピメジアン研究統合・安定版
 
 【コンピ一次診断】
 レース型：${v.type}
@@ -788,7 +794,7 @@ function csvEsc(v){v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'"
 function saveResearchCsv(){
   if(!latest){alert('先に解析してください');return}
   const v=latest,row={
-    日時:new Date().toISOString(),レース:v.d.title,解析:'V5.24-compi-median-integrated',
+    日時:new Date().toISOString(),レース:v.d.title,解析:'V5.24-compi-median-stable',
     レース型:v.type,P:v.p,上位3合計:v.sum,大谷条件:v.otani,
     差1_2:v.gaps.g12,差2_3:v.gaps.g23,差1_3:v.gaps.g13,差3_5:v.gaps.g35,差5_6:v.gaps.g56,差6_7:v.gaps.g67,
     最大壁位置:v.maxGap.after,最大壁差:v.maxGap.gap,最大壁前:v.maxGap.before,最大壁直後:v.maxGap.next,
