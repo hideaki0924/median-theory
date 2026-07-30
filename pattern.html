@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="V5.23-stealth-restored">
-<title>競馬メジアン V5.23 ステルス馬復活版</title>
+<meta name="app-build" content="V5.24-compi-median-integrated">
+<title>競馬メジアン V5.24 コンピメジアン研究統合版</title>
 <style>
 :root{
   --bg:#07101f;--card:#10224a;--card2:#020617;--line:#475569;
@@ -105,7 +105,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#020617;padding:11px;b
 </head>
 <body>
 <main>
-<h1>競馬メジアン <span class="tag">V5.23</span><br>ステルス馬復活＋V4候補保存＋WIN5式</h1>
+<h1>競馬メジアン <span class="tag">V5.24</span><br>コンピメジアン研究＋A1/A2補正＋ステルス馬</h1>
 
 <div class="card">
   <div class="title">レースデータ入力</div>
@@ -125,7 +125,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#020617;padding:11px;b
 
 [COMPI]
 馬番 指数 推奨"></textarea>
-  <button class="go" onclick="run()">V5.23解析</button>
+  <button class="go" onclick="run()">V5.24解析</button>
   <button class="sample" onclick="sample()">サンプル</button>
   <button class="clear" onclick="clearAll()">リセット</button>
   <button class="copy" onclick="copyForChat()">チャッピー用コピー</button>
@@ -239,6 +239,12 @@ function build(d){
     if(i===n-1 || (compiWalls[i]&&compiWalls[i].gap>=7)){compiTiers.push(tier);tier=[]}
   });
   const groups={A1:cr.slice(0,2),A2:cr.slice(2,5),B:cr.slice(5,10),C:cr.slice(10)};
+  // V5.24 朝検証統合：A群内メジアン・A2密集・1位抜きA群三角
+  const groupA=cr.slice(0,Math.min(5,n));
+  const aMedian=medianHorses(groupA);
+  const a2Spread=groups.A2.length>=2?(compi[2].pt-compi[Math.min(4,n-1)].pt):null;
+  const a2Density=a2Spread==null?'判定不可':a2Spread<=4?'強':a2Spread<=7?'中':'弱';
+  const high85=compi.filter(x=>x.pt>=85).map(x=>x.h);
   const linePos=Math.max(1,Math.min(n,Math.ceil(n*0.75)));
   const lineHorse=compi[linePos-1];
   const otaniRules=[
@@ -272,6 +278,22 @@ function build(d){
   const connected=h=>(rm.uma[h]||99)<=6||(rm.san[h]||99)<=7;
   const bSupport=groups.B.filter(h=>oddsTop(h)||connected(h)).sort((a,b)=>(score[b]?.score||0)-(score[a]?.score||0));
   const cSupport=groups.C.filter(h=>connected(h)&&(rm.fuku[h]||99)<=8).sort((a,b)=>(score[b]?.score||0)-(score[a]?.score||0));
+
+  const aMedianSupport=aMedian.filter(h=>supportCount(h)>=2||(rm.san[h]||99)<=8||(rm.uma[h]||99)<=7);
+  const pMedianMode=(p==='P1'||p==='P2')&&otani<=1?'A群内組替え優先':(otani===3?'下位侵入優先':'上下併用');
+  const aDecisionPressure=(a2Density==='強'&&aMedianSupport.length)?'強':(a2Density!=='弱'||aMedianSupport.length)?'中':'弱';
+  const sanOdds={};sorted(d.san).forEach(x=>sanOdds[triKey(x.a,x.b,x.c)]=x.od);
+  const aNo1Candidates=[];
+  for(let i=0;i<groupA.length;i++)for(let j=i+1;j<groupA.length;j++)for(let k=j+1;k<groupA.length;k++){
+    const hs=[groupA[i],groupA[j],groupA[k]], key=triKey(...hs);
+    if(hs.includes(cr[0])||!hs.some(h=>aMedian.includes(h)))continue;
+    const market=Number(sanOdds[key]??99999);
+    const support=hs.reduce((z,h)=>z+supportCount(h),0);
+    aNo1Candidates.push({key,hs,market,support});
+  }
+  aNo1Candidates.sort((a,b)=>a.market-b.market||b.support-a.support);
+  const aNo1Insurance=aNo1Candidates[0]?.key||'';
+  const medianCorrection=aMedianSupport.length?`A内メジアン${aMedianSupport.join('・')}番を3着以内保護`:'A内メジアンは市場接続弱';
 
   let type='標準順当型',fixed='中',place='2～3着',why=[];
   if(n<=7&&gaps.g23!=null&&gaps.g23>=12){type='少頭数・二強固定型';fixed='高';place='3着';why.push('上位2頭後に大壁')}
@@ -379,8 +401,10 @@ function build(d){
     ...groups.A2,
     ...third,
     ...win5,
-    ...strongCompiWalls.flatMap(w=>[w.before,w.next])
-  ]).filter(h=>h&&h!==structureAxis).slice(0,9);
+    ...strongCompiWalls.flatMap(w=>[w.before,w.next]),
+    ...aMedianSupport,
+    ...high85
+  ]).filter(h=>h&&h!==structureAxis).slice(0,12);
 
   // 青白光：壁・連系・市場逆行・メジアンの複数関門
   const blueWhite=all.map(x=>{
@@ -408,7 +432,8 @@ function build(d){
   groups.A2.slice(0,3).forEach(h=>pushAuditPair(auditAxis,h));
   for(let i=0;i<groups.A2.length;i++)for(let j=i+1;j<groups.A2.length;j++)pushAuditTri(auditAxis,groups.A2[i],groups.A2[j]);
   matchanHole.slice(0,2).forEach(h=>{placeCand.slice(0,2).forEach(p=>pushAuditTri(auditAxis,p,h))});
-  const auditHorses=uniq([auditAxis,...stealthProtect,...groups.A2,...matchanHole,...third,...protect,...strongCompiWalls.flatMap(w=>[w.before,w.next])]).slice(0,12);
+  if(aNo1Insurance){const q=aNo1Insurance.split('-');pushAuditTri(q[0],q[1],q[2])}
+  const auditHorses=uniq([auditAxis,...high85,...aMedianSupport,...stealthProtect,...groups.A2,...matchanHole,...third,...protect,...strongCompiWalls.flatMap(w=>[w.before,w.next])]).slice(0,14);
 
   // tickets
   const wide=[],umaren=[],san=[],tanBet=[];
@@ -432,11 +457,19 @@ function build(d){
     const pool=uniq([...axis,...first,...placeCand,...stealthS,...third]).slice(0,7);
     for(let i=0;i<pool.length&&san.length<5;i++)for(let j=i+1;j<pool.length&&san.length<5;j++)for(let k=j+1;k<pool.length&&san.length<5;k++)pushTri(pool[i],pool[j],pool[k]);
   }
-  const bestOne=san[0]||wide[0]||umaren[0]||tanBet[0]||'なし';
+  // V5.24：A内メジアンを含むA群三角を強制保存。P1/P2＋大谷弱＋A2密集では1位抜き保険を優先。
+  const medianMarketTris=sorted(d.san).filter(x=>{
+    const hs=[x.a,x.b,x.c];return hs.every(h=>groupA.includes(h))&&hs.some(h=>aMedian.includes(h));
+  }).map(x=>triKey(x.a,x.b,x.c));
+  medianMarketTris.slice(0,3).forEach(k=>{if(!san.includes(k))san.push(k)});
+  const no1InsuranceOn=!!aNo1Insurance&&aMedianSupport.length>0&&((p==='P1'||p==='P2')||a2Density==='強'||fixed==='高');
+  if(no1InsuranceOn&&!san.includes(aNo1Insurance))san.push(aNo1Insurance);
+  const bestOne=(no1InsuranceOn&&pMedianMode==='A群内組替え優先'&&a2Density==='強')?aNo1Insurance:(san[0]||wide[0]||umaren[0]||tanBet[0]||'なし');
 
   return {d,compi,cr,tr,fr,ur,sr,walls,sum,p,gaps,maxGap,compiWalls,strongCompiWalls,compiTiers,groups,linePos,lineHorse,otaniRules,otani,type,fixed,place,why,all,bSupport,cSupport,first,headAlt,axis,placeCand,third,
     win5,win5Main,win5Hole,matchanMain,matchanHole,stealth,stealthS,stealthProtect,structureAxis,ooareHead,axisAvoid,protect,blueWhite,bigHoleWin,bigHolePlace,bigHoleThird,auditPairs,auditSan,auditHorses,
-    tickets:{tan:uniq(tanBet).slice(0,2),wide:wide.slice(0,4),umaren:umaren.slice(0,4),san:san.slice(0,5),bestOne}};
+    groupA,aMedian,aMedianSupport,a2Spread,a2Density,aDecisionPressure,pMedianMode,medianCorrection,high85,aNo1Insurance,no1InsuranceOn,medianMarketTris,
+    tickets:{tan:uniq(tanBet).slice(0,2),wide:wide.slice(0,4),umaren:umaren.slice(0,4),san:san.slice(0,7),bestOne}};
 }
 
 function wallMarkers(v,type,i){
@@ -528,7 +561,15 @@ function render(v){
     <div>75%地点：${v.linePos}位 ${v.lineHorse?v.lineHorse.h+'番('+v.lineHorse.pt+')':'なし'}</div>
     <div><span class="orange">市場支持のあるB群：</span><b>${fmt(v.bSupport)}</b></div>
     <div><span class="warn">市場支持のあるC群：</span><b>${fmt(v.cSupport)}</b></div>
-    <div class="small">大谷式条件は研究途中の暫定実装。検証が増えたら条件・頭数補正を更新します。</div>
+    <hr>
+    <div><b>A群内メジアン：</b><span class="cyan">${fmt(v.aMedian)}</span></div>
+    <div><b>市場接続メジアン：</b>${fmt(v.aMedianSupport)}</div>
+    <div><b>A2密集度：</b>${v.a2Density}（3～5位幅 ${v.a2Spread??'-'}P）</div>
+    <div><b>A群決着圧：</b>${v.aDecisionPressure} ／ <b>P×メジアン補正：</b>${v.pMedianMode}</div>
+    <div><b>メジアン補正：</b>${esc(v.medianCorrection)}</div>
+    <div><b>コンピ85以上・馬券内保護：</b>${fmt(v.high85)}</div>
+    <div><b>コンピ1位抜きA群三角：</b><span class="deleteSafe">${v.aNo1Insurance||'なし'}</span> ${v.no1InsuranceOn?'【削除禁止ON】':''}</div>
+    <div class="small">メジアンは荒れ判定の主役ではなく、A群内の残存馬・軸飛び保険・C/D侵入候補を補正します。85以上は1着固定ではなく馬券内保護。</div>
   </div>
 
   <div class="card roles"><div class="title">🎯 第2段階：オッズ統合後の役割</div>
@@ -570,6 +611,7 @@ function render(v){
     <div><b>全保護馬：</b><span class="deleteSafe">${fmt(v.auditHorses)}</span></div>
     <div class="ticketBox"><div class="ticketL">A2保護ワイド・馬連候補</div><div class="ticketV">${v.auditPairs.length?v.auditPairs.join(' ／ '):'なし'}</div></div>
     <div class="ticketBox"><div class="ticketL">軸＋A2＋A2／穴侵入三連複</div><div class="ticketV">${v.auditSan.length?v.auditSan.join(' ／ '):'なし'}</div></div>
+    <div class="ticketBox"><div class="ticketL">A内メジアン＋A群／1位抜き保険</div><div class="ticketV">${v.medianMarketTris.length?v.medianMarketTris.slice(0,4).join(' ／ '):'なし'}${v.aNo1Insurance?' ／ 強制：'+v.aNo1Insurance:''}</div></div>
     <div class="small">本線から外しても、この欄の候補は消去しません。園田5Rのような「A1片方脱落＋A2二頭侵入」を検証できます。</div>
   </div>
 
@@ -590,7 +632,7 @@ function run(){
     const d=parse(document.getElementById('input').value);
     if(!d.tf.length)throw new Error('TANFUKUがありません');
     if(d.compi.length<3)throw new Error('COMPIを3頭以上入力してください');
-    latest=build(d);document.getElementById('out').innerHTML=render(latest);document.title=d.title+'｜競馬メジアン V5.23';
+    latest=build(d);document.getElementById('out').innerHTML=render(latest);document.title=d.title+'｜競馬メジアン V5.24';
   }catch(e){document.getElementById('out').innerHTML=`<div class="card"><div class="title">入力エラー</div><pre>${esc(e.message||e)}</pre></div>`}
 }
 function clearAll(){document.getElementById('input').value='';document.getElementById('out').innerHTML='';latest=null}
@@ -656,7 +698,7 @@ function chatText(){
   if(!latest)throw new Error('先に解析してください');
   const v=latest,g=v.gaps;
   return `【${v.d.title}】
-競馬メジアン V5.23 ステルス馬復活版
+競馬メジアン V5.24 コンピメジアン研究統合版
 
 【コンピ一次診断】
 レース型：${v.type}
@@ -688,6 +730,13 @@ B：${fmt(v.groups.B)}
 C：${fmt(v.groups.C)}
 市場支持B：${fmt(v.bSupport)}
 市場支持C：${fmt(v.cSupport)}
+A群内メジアン：${fmt(v.aMedian)}
+市場接続メジアン：${fmt(v.aMedianSupport)}
+A2密集度：${v.a2Density}（3～5位幅${v.a2Spread??'-'}P）
+A群決着圧：${v.aDecisionPressure}
+P×メジアン補正：${v.pMedianMode}
+コンピ85以上馬券内保護：${fmt(v.high85)}
+コンピ1位抜きA群三角：${v.aNo1Insurance||'なし'}${v.no1InsuranceOn?'【削除禁止】':''}
 
 【オッズ統合後の役割】
 1着本線：${fmt(v.first)}
@@ -739,7 +788,7 @@ function csvEsc(v){v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'"
 function saveResearchCsv(){
   if(!latest){alert('先に解析してください');return}
   const v=latest,row={
-    日時:new Date().toISOString(),レース:v.d.title,解析:'V5.23-stealth-restored',
+    日時:new Date().toISOString(),レース:v.d.title,解析:'V5.24-compi-median-integrated',
     レース型:v.type,P:v.p,上位3合計:v.sum,大谷条件:v.otani,
     差1_2:v.gaps.g12,差2_3:v.gaps.g23,差1_3:v.gaps.g13,差3_5:v.gaps.g35,差5_6:v.gaps.g56,差6_7:v.gaps.g67,
     最大壁位置:v.maxGap.after,最大壁差:v.maxGap.gap,最大壁前:v.maxGap.before,最大壁直後:v.maxGap.next,
@@ -753,6 +802,8 @@ function saveResearchCsv(){
     複勝15倍壁:v.walls.f15?v.walls.f15.before+'>'+v.walls.f15.next:'',
     単勝80倍壁:v.walls.t80?v.walls.t80.before+'>'+v.walls.t80.next:'',
     A1:v.groups.A1.join('|'),A2:v.groups.A2.join('|'),B:v.groups.B.join('|'),C:v.groups.C.join('|'),
+    A群内メジアン:v.aMedian.join('|'),市場接続メジアン:v.aMedianSupport.join('|'),A2密集度:v.a2Density,A2幅:v.a2Spread,A群決着圧:v.aDecisionPressure,Pメジアン補正:v.pMedianMode,
+    コンピ85以上保護:v.high85.join('|'),一位抜きA群三角:v.aNo1Insurance,一位抜き保険ON:v.no1InsuranceOn?'ON':'OFF',
     市場支持B:v.bSupport.join('|'),市場支持C:v.cSupport.join('|'),
     一着本線:v.first.join('|'),頭替わり:v.headAlt.join('|'),馬券内軸:v.axis.join('|'),相手本線:v.placeCand.join('|'),三着侵入:v.third.join('|'),
     WIN5本線:v.win5Main.join('|'),WIN5穴:v.win5Hole.join('|'),まっちゃん単勝本線:v.matchanMain.join('|'),まっちゃん穴単:v.matchanHole.join('|'),
@@ -763,7 +814,7 @@ function saveResearchCsv(){
   };
   const keys=Object.keys(row),csv='\ufeff'+keys.map(csvEsc).join(',')+'\n'+keys.map(k=>csvEsc(row[k])).join(',');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);a.download='競馬メジアン_V5.22研究_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  a.href=URL.createObjectURL(blob);a.download='競馬メジアン_V5.24研究_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 </script>
 </body>
