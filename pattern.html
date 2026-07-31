@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="V5.27-role-change-stable">
-<title>競馬メジアン V5.27 コンピ原型＋市場役割変更・安定版</title>
+<meta name="app-build" content="V5.28-pdetail-fivewalls">
+<title>競馬メジアン V5.28 P詳細型＋五市場壁・完全復元版</title>
 <style>
 :root{
   --bg:#07101f;--card:#10224a;--card2:#020617;--line:#475569;
@@ -69,7 +69,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#020617;padding:11px;b
 </head>
 <body>
 <main>
-<h1>競馬メジアン <span class="tag">V5.27</span><br>コンピ単独予想＋市場補正・完全統合版</h1>
+<h1>競馬メジアン <span class="tag">V5.28</span><br>コンピ単独予想＋市場補正・完全統合版</h1>
 
 <div class="card">
   <div class="title">レースデータ入力</div>
@@ -105,7 +105,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#020617;padding:11px;b
 </div>
 
 <div class="card pipeline">
-  <div class="title">🔁 V5.27の判定工程</div>
+  <div class="title">🔁 V5.28の判定工程</div>
   <div class="step"><span class="stepNo">1</span><b>コンピだけで原型予想</b><div class="small">固定1着候補・馬券内軸・頭替わり・上位本線・3着侵入候補を先に保存。</div></div>
   <div class="step"><span class="stepNo">2</span><b>上位4頭密集／一強・相手横並び／壁直後侵入</b><div class="small">今日の検証を正式ロジック化。上位で1・2着、壁直後～6位を3着監査。</div></div>
   <div class="step"><span class="stepNo">3</span><b>市場は順位ではなく役割を変更</b><div class="small">コンピ順位は保存したまま、軸・頭候補・相手・保険・3着穴の役割だけを変更する。</div></div>
@@ -151,6 +151,42 @@ function parse(raw){
   return d;
 }
 function pClass(sum){return sum<=205?'P1':sum<=209?'P2':sum<=213?'P3':sum<=216?'P4':sum<=219?'P5':'P6'}
+function pDetail(p,type,ctx){
+  const {g13,firstMajor,g56,top1}=ctx;
+  let code=p+'-S',name='標準構造型',feature='上位構造と壁位置を併用して判断';
+  if(type==='上位4頭密集・頭替わり型'){
+    code=p+'-A';name='上位4頭密集・頭替わり型';
+    feature='1着固定なし／上位4頭の頭替わり／5～6位と壁直後を3着監査';
+  }else if(type==='一強・相手横並び型'){
+    code=p+'-B';name='一強・相手横並び型';
+    feature='コンピ1位を馬券内軸／2・3着の横並びと壁穴を重視';
+  }else if(type==='一強・相手入替型'){
+    code=p+'-C';name='一強・相手入替型';
+    feature='1位の固定性は高め／相手順位は市場で役割変更';
+  }else if(type==='上位核＋壁直後侵入型'){
+    code=p+'-D';name='上位核＋壁直後侵入型';
+    feature='壁前を上位核／壁直後を3着侵入候補として強制監査';
+  }else if(type==='大谷式大穴型'){
+    code=p+'-E';name='大谷式・大穴警戒型';
+    feature='大谷3条件成立／上位固定を弱め中位・壁前後を保護';
+  }else if(type==='低P・上位崩れ警戒型'){
+    code=p+'-F';name='低P・上位崩れ警戒型';
+    feature='上位合計が低い／固定軸を作らず下位侵入まで監査';
+  }else if(type==='上位5頭ロック型'){
+    code=p+'-G';name='上位5頭ロック型';
+    feature='5位後の壁を境に上位5頭内決着を優先';
+  }else if(top1>=85&&g13>=18){
+    code=p+'-B';name='一強・相手荒れ型';
+    feature='1位能力抜け／相手だけ崩れる形を優先';
+  }else if(firstMajor&&firstMajor.after<=4){
+    code=p+'-D';name='前半壁・侵入監査型';
+    feature='前半の強い壁前後で役割を分離';
+  }else if(g56!=null&&g56>=8){
+    code=p+'-G';name='上位5頭境界型';
+    feature='5位－6位の境界を決着圏の目安にする';
+  }
+  return {code,name,feature};
+}
 function medianHorses(arr){if(!arr.length)return[];return arr.length%2?[arr[Math.floor(arr.length/2)]]:[arr[arr.length/2-1],arr[arr.length/2]]}
 function rankMap(arr){return Object.fromEntries(arr.map((h,i)=>[h,i+1]))}
 function rankPairs(list){
@@ -218,6 +254,8 @@ function build(d){
   else if(g56!=null&&g56>=8){type='上位5頭ロック型';fixed='中';place='上位5頭内';why.push('5位－6位に大壁')}
   else why.push('決定的な固定条件なし');
 
+  const pDetailInfo=pDetail(p,type,{g13,firstMajor,g56,top1:compi[0]?.pt||0});
+
   let first=[],axis=[],headAlt=[],main=[],third=[];
   if(type==='上位4頭密集・頭替わり型'){
     first=uniq([rec,...cr.slice(0,4)]).slice(0,4);
@@ -257,8 +295,14 @@ function build(d){
   const tr=tan.map(x=>x.h),fr=fuku.map(x=>x.h),ur=rankPairs(d.uma),wr=rankPairs(d.wide),sr=rankTri(d.san);
   const tv=Object.fromEntries(tan.map(x=>[x.h,x.tan])),fv=Object.fromEntries(fuku.map(x=>[x.h,x.fuku]));
   const uv={};sorted(d.uma).forEach(p=>[p.a,p.b].forEach(h=>{if(uv[h]==null)uv[h]=p.od}));
+  const wv={};sorted(d.wide).forEach(p=>[p.a,p.b].forEach(h=>{if(wv[h]==null)wv[h]=p.od}));
   const sv={};sorted(d.san).forEach(p=>[p.a,p.b,p.c].forEach(h=>{if(sv[h]==null)sv[h]=p.od}));
-  const walls={tan:ratioWalls(tr,tv),fuku:ratioWalls(fr,fv),uma:ratioWalls(ur,uv),san:ratioWalls(sr,sv),f6:thresholdWall(fr,fv,6),f15:thresholdWall(fr,fv,15),t80:thresholdWall(tr,tv,80)};
+  const walls={
+    tan:ratioWalls(tr,tv),fuku:ratioWalls(fr,fv),uma:ratioWalls(ur,uv),
+    wide:ratioWalls(wr,wv),san:ratioWalls(sr,sv),
+    f6:thresholdWall(fr,fv,6),f10:thresholdWall(fr,fv,10),f15:thresholdWall(fr,fv,15),
+    t10:thresholdWall(tr,tv,10),t30:thresholdWall(tr,tv,30),t80:thresholdWall(tr,tv,80)
+  };
   const rm={compi:rankMap(cr),tan:rankMap(tr),fuku:rankMap(fr),uma:rankMap(ur),wide:rankMap(wr),san:rankMap(sr)};
   const tfMap=Object.fromEntries(d.tf.map(x=>[x.h,x]));
   const support=h=>[(rm.tan[h]||99)<=6,(rm.fuku[h]||99)<=7,(rm.uma[h]||99)<=7,(rm.wide[h]||99)<=7,(rm.san[h]||99)<=8].filter(Boolean).length;
@@ -452,7 +496,7 @@ function build(d){
   const bestOne=san[0]||wide[0]||umaren[0]||tanBet[0]||'なし';
 
   return {
-    d,compi,cr,sum,p,g12,g23,g13,g35,g56,g67,top4Spread,rec,gaps,maxGap,strongCompiWalls,firstMajor,compiTiers,
+    d,compi,cr,sum,p,pDetailInfo,g12,g23,g13,g35,g56,g67,top4Spread,rec,gaps,maxGap,strongCompiWalls,firstMajor,compiTiers,
     groups,groupA,aMedian,aMedianSupport,a2Spread,a2Density,aDecisionPressure,pMedianMode,high85,linePos,lineHorse,otaniRules,otani,
     type,fixed,place,why,first,axis,headAlt,main,third,compiSan,hasOdds,tr,fr,ur,wr,sr,walls,marketAxis,marketHead,marketMain,marketInsurance,marketThird,marketRole,marketMove,marketSan,marketType,
     all,bSupport,cSupport,stealth,stealthProtect,win5Main,win5Hole,matchanMain,matchanHole,structureAxis,ooareHead,axisAvoid,protect,blueWhite,bigHoleWin,bigHolePlace,bigHoleThird,
@@ -470,18 +514,36 @@ function compiRow(v){
   return s+'</div>';
 }
 function simpleRow(label,arr){if(!arr.length)return'';return `<div class="row"><div class="label">${label}</div>${arr.map(h=>`<div class="cell">${h}</div>`).join('<i class="sep"></i>')}</div>`}
+function wallText(list){
+  return list&&list.length?list.map(w=>`${w.before}番→${w.next}番 ${w.ratio}倍`).join(' ／ '):'明確な比率壁なし';
+}
+function thresholdText(w,label){
+  return w?`${label}壁前 ${w.before}番 ／ 直後 ${w.next}番`:`${label}壁なし`;
+}
 
 function render(v){
   return `
   <div class="card market"><div class="title">📊 コンピ＋四市場順位</div><div class="marketScroll">
     ${compiRow(v)}${simpleRow('馬連',v.ur)}${simpleRow('単勝',v.tr)}${simpleRow('複勝',v.fr)}${simpleRow('ワイド',v.wr)}${simpleRow('三連複',v.sr)}
   </div>
-  <div class="note"><b>最大壁：</b>${v.maxGap.after}位後 ${v.maxGap.gap}P（${v.maxGap.before}番→${v.maxGap.next}番）<br>
+  <div class="note"><b>最大コンピ壁：</b>${v.maxGap.after}位後 ${v.maxGap.gap}P（${v.maxGap.before}番→${v.maxGap.next}番）<br>
   <b>強いコンピ壁：</b>${v.strongCompiWalls.length?v.strongCompiWalls.map(w=>`${w.after}位後${w.gap}P［${w.before}→${w.next}］`).join(' ／ '):'なし'}<br>
-  <b>壁内層：</b>${v.compiTiers.map((a,i)=>`${i+1}層［${a.join('・')}］`).join(' ／ ')}</div></div>
+  <b>壁内層：</b>${v.compiTiers.map((a,i)=>`${i+1}層［${a.join('・')}］`).join(' ／ ')}</div>
+  <div class="note" style="margin-top:10px"><b>🧱 五市場・オッズの壁（比率1.8倍）</b><br>
+  <b>馬連壁：</b>${wallText(v.walls.uma)}<br>
+  <b>単勝壁：</b>${wallText(v.walls.tan)}<br>
+  <b>複勝壁：</b>${wallText(v.walls.fuku)}<br>
+  <b>ワイド壁：</b>${wallText(v.walls.wide)}<br>
+  <b>三連複壁：</b>${wallText(v.walls.san)}<br>
+  <b>複勝基準壁：</b>${thresholdText(v.walls.f6,'6倍')} ／ ${thresholdText(v.walls.f10,'10倍')} ／ ${thresholdText(v.walls.f15,'15倍')}<br>
+  <b>単勝基準壁：</b>${thresholdText(v.walls.t10,'10倍')} ／ ${thresholdText(v.walls.t30,'30倍')} ／ ${thresholdText(v.walls.t80,'80倍')}</div></div>
 
   <div class="card commander"><div class="title">🩺 第1段階：コンピ一次診断</div>
     <div class="typeName">${esc(v.type)}</div>
+    <div class="note" style="margin-bottom:10px">
+      <b>P詳細タイプ：</b><span class="cyan">${esc(v.pDetailInfo.code)} ${esc(v.pDetailInfo.name)}</span><br>
+      <b>型の使い方：</b>${esc(v.pDetailInfo.feature)}
+    </div>
     <div class="metaGrid">
       <div class="meta"><div class="metaL">P判定</div><div class="metaV">${v.p}（${v.sum}）</div></div>
       <div class="meta"><div class="metaL">大谷式</div><div class="metaV">${v.otani}/3条件</div></div>
@@ -494,7 +556,7 @@ function render(v){
   </div>
 
   <div class="card compiOnly"><div class="title">🧠 コンピ単独予想（原型保存）</div>
-    <div class="role"><div class="roleL">固定1着候補</div><div class="roleV">${fmt(v.first)}</div></div>
+    <div class="role"><div class="roleL">${v.fixed==='低'?'1着候補（固定なし）':'固定1着候補'}</div><div class="roleV">${fmt(v.first)}</div></div>
     <div class="role"><div class="roleL">馬券内軸</div><div class="roleV">${fmt(v.axis)}</div></div>
     <div class="role"><div class="roleL">頭替わり候補</div><div class="roleV">${fmt(v.headAlt)}</div></div>
     <div class="role"><div class="roleL">上位本線</div><div class="roleV">${fmt(v.main)}</div></div>
@@ -577,7 +639,7 @@ function run(){
   try{
     const d=parse(document.getElementById('input').value);
     if(d.compi.length<3)throw new Error('COMPIを3頭以上入力してください');
-    latest=build(d);document.getElementById('out').innerHTML=render(latest);document.title=d.title+'｜競馬メジアン V5.27';
+    latest=build(d);document.getElementById('out').innerHTML=render(latest);document.title=d.title+'｜競馬メジアン V5.28';
   }catch(e){document.getElementById('out').innerHTML=`<div class="card"><div class="title">入力エラー</div><pre>${esc(e.message||e)}</pre></div>`}
 }
 function clearAll(){document.getElementById('input').value='';document.getElementById('out').innerHTML='';latest=null}
@@ -601,11 +663,13 @@ function chatText(){
   if(!latest)throw new Error('先に解析してください');
   const v=latest;
   return `【${v.d.title}】
-競馬メジアン V5.27 役割変更安定版
+競馬メジアン V5.28 役割変更安定版
 
 【コンピ一次診断】
 レース型：${v.type}
 P判定：${v.p}（上位3頭合計${v.sum}）
+P詳細タイプ：${v.pDetailInfo.code} ${v.pDetailInfo.name}
+型の使い方：${v.pDetailInfo.feature}
 大谷式：${v.otani}/3条件
 1-2差：${v.g12}P
 2-3差：${v.g23}P
@@ -613,8 +677,17 @@ P判定：${v.p}（上位3頭合計${v.sum}）
 上位4頭幅：${v.top4Spread}P
 最大壁：${v.maxGap.after}位後${v.maxGap.gap}P（${v.maxGap.before}→${v.maxGap.next}）
 
+【五市場・オッズの壁】
+馬連壁：${wallText(v.walls.uma)}
+単勝壁：${wallText(v.walls.tan)}
+複勝壁：${wallText(v.walls.fuku)}
+ワイド壁：${wallText(v.walls.wide)}
+三連複壁：${wallText(v.walls.san)}
+複勝基準壁：${thresholdText(v.walls.f6,'6倍')} / ${thresholdText(v.walls.f10,'10倍')} / ${thresholdText(v.walls.f15,'15倍')}
+単勝基準壁：${thresholdText(v.walls.t10,'10倍')} / ${thresholdText(v.walls.t30,'30倍')} / ${thresholdText(v.walls.t80,'80倍')}
+
 【コンピ単独予想】
-固定1着候補：${fmt(v.first)}
+${v.fixed==='低'?'1着候補（固定なし）':'固定1着候補'}：${fmt(v.first)}
 馬券内軸：${fmt(v.axis)}
 頭替わり：${fmt(v.headAlt)}
 上位本線：${fmt(v.main)}
@@ -661,17 +734,19 @@ async function copyForChat(){
     const t=chatText();
     if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(t);
     else{const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}
-    alert('V5.27解析結果をコピーしました');
+    alert('V5.28解析結果をコピーしました');
   }catch(e){alert(e.message||e)}
 }
 function csvEsc(v){v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
 function saveResearchCsv(){
   if(!latest){alert('先に解析してください');return}
   const v=latest,row={
-    日時:new Date().toISOString(),レース:v.d.title,解析:'V5.27-role-change-stable',
-    レース型:v.type,P:v.p,上位3合計:v.sum,大谷条件:v.otani,
+    日時:new Date().toISOString(),レース:v.d.title,解析:'V5.28-pdetail-fivewalls',
+    レース型:v.type,P:v.p,P詳細コード:v.pDetailInfo.code,P詳細名:v.pDetailInfo.name,P詳細特徴:v.pDetailInfo.feature,上位3合計:v.sum,大谷条件:v.otani,
     差1_2:v.g12,差2_3:v.g23,差1_3:v.g13,差3_5:v.g35,差5_6:v.g56,差6_7:v.g67,上位4頭幅:v.top4Spread,
     最大壁位置:v.maxGap.after,最大壁差:v.maxGap.gap,最大壁前:v.maxGap.before,最大壁直後:v.maxGap.next,
+    馬連壁:wallText(v.walls.uma),単勝壁:wallText(v.walls.tan),複勝壁:wallText(v.walls.fuku),ワイド壁:wallText(v.walls.wide),三連複壁:wallText(v.walls.san),
+    複勝6倍壁:thresholdText(v.walls.f6,'6倍'),複勝10倍壁:thresholdText(v.walls.f10,'10倍'),複勝15倍壁:thresholdText(v.walls.f15,'15倍'),
     A1:v.groups.A1.join('|'),A2:v.groups.A2.join('|'),B:v.groups.B.join('|'),C:v.groups.C.join('|'),
     A群内メジアン:v.aMedian.join('|'),市場接続メジアン:v.aMedianSupport.join('|'),A2密集度:v.a2Density,A2幅:v.a2Spread,
     コンピ85以上保護:v.high85.join('|'),一位抜きA群三角:v.aNo1Insurance,一位抜き保険ON:v.no1InsuranceOn?'ON':'OFF',
@@ -685,7 +760,7 @@ function saveResearchCsv(){
   };
   const keys=Object.keys(row),csv='\ufeff'+keys.map(csvEsc).join(',')+'\n'+keys.map(k=>csvEsc(row[k])).join(',');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);a.download='競馬メジアン_V5.27役割変更安定_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  a.href=URL.createObjectURL(blob);a.download='競馬メジアン_V5.28_P詳細五市場壁_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 </script>
 </body>
