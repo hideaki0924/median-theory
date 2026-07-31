@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="V5.28-pdetail-fivewalls">
-<title>競馬メジアン V5.28 P詳細型＋五市場壁・完全復元版</title>
+<meta name="app-build" content="V5.29-table-wall-restored">
+<title>競馬メジアン V5.29 表内五市場壁・完全復元版</title>
 <style>
 :root{
   --bg:#07101f;--card:#10224a;--card2:#020617;--line:#475569;
@@ -55,6 +55,15 @@ pre{white-space:pre-wrap;word-break:break-word;background:#020617;padding:11px;b
 .pt{display:block;font-size:10px;color:#d8b4fe}
 .sep{width:4px;min-width:4px;height:28px;margin:0 3px;border-radius:5px;background:#35517a}
 .sep.big{background:#fb7185;box-shadow:0 0 8px #fb7185}.sep.mid{background:#f59e0b;box-shadow:0 0 8px #f59e0b}.sep.small{background:#22d3ee}
+.sep.marketWall{width:6px;min-width:6px;height:34px;background:#22d3ee;box-shadow:0 0 10px #22d3ee;border:1px solid #ecfeff}
+.sep.baseWall{width:6px;min-width:6px;height:34px;background:#fde047;box-shadow:0 0 10px #fde047;border:1px solid #fff7a8}
+.sep.doubleWall{width:8px;min-width:8px;height:38px;background:linear-gradient(#22d3ee 0 50%,#fde047 50%);box-shadow:0 0 12px #67e8f9;border:1px solid #fff}
+.wallLegend{display:flex;gap:12px;flex-wrap:wrap;margin:8px 4px 2px;font-size:12px;font-weight:900}
+.wallLegend span{display:inline-flex;align-items:center;gap:5px}
+.legendBar{display:inline-block;width:6px;height:20px;border-radius:4px}
+.legendRatio{background:#22d3ee;box-shadow:0 0 7px #22d3ee}
+.legendBase{background:#fde047;box-shadow:0 0 7px #fde047}
+.legendDouble{background:linear-gradient(#22d3ee 0 50%,#fde047 50%);box-shadow:0 0 7px #67e8f9}
 .note{margin-top:8px;padding:9px;background:#020617;border:1px solid #35517a;border-radius:11px;font-size:13px;line-height:1.65}
 .grid2,.legacyGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .box,.legacyBox{background:#020617;border:1px solid #475569;border-radius:12px;padding:9px}
@@ -69,7 +78,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#020617;padding:11px;b
 </head>
 <body>
 <main>
-<h1>競馬メジアン <span class="tag">V5.28</span><br>コンピ単独予想＋市場補正・完全統合版</h1>
+<h1>競馬メジアン <span class="tag">V5.29</span><br>コンピ単独予想＋市場補正・完全統合版</h1>
 
 <div class="card">
   <div class="title">レースデータ入力</div>
@@ -97,7 +106,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#020617;padding:11px;b
 
 [SANPUKU]
 馬番-馬番-馬番 オッズ"></textarea>
-  <button class="go" onclick="run()">V5.27解析</button>
+  <button class="go" onclick="run()">V5.29解析</button>
   <button class="sample" onclick="sample()">サンプル</button>
   <button class="clear" onclick="clearAll()">リセット</button>
   <button class="copy" onclick="copyForChat()">チャッピー用コピー</button>
@@ -105,7 +114,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#020617;padding:11px;b
 </div>
 
 <div class="card pipeline">
-  <div class="title">🔁 V5.28の判定工程</div>
+  <div class="title">🔁 V5.29の判定工程</div>
   <div class="step"><span class="stepNo">1</span><b>コンピだけで原型予想</b><div class="small">固定1着候補・馬券内軸・頭替わり・上位本線・3着侵入候補を先に保存。</div></div>
   <div class="step"><span class="stepNo">2</span><b>上位4頭密集／一強・相手横並び／壁直後侵入</b><div class="small">今日の検証を正式ロジック化。上位で1・2着、壁直後～6位を3着監査。</div></div>
   <div class="step"><span class="stepNo">3</span><b>市場は順位ではなく役割を変更</b><div class="small">コンピ順位は保存したまま、軸・頭候補・相手・保険・3着穴の役割だけを変更する。</div></div>
@@ -514,6 +523,22 @@ function compiRow(v){
   return s+'</div>';
 }
 function simpleRow(label,arr){if(!arr.length)return'';return `<div class="row"><div class="label">${label}</div>${arr.map(h=>`<div class="cell">${h}</div>`).join('<i class="sep"></i>')}</div>`}
+function marketRow(label,arr,ratioList=[],baseList=[]){
+  if(!arr.length)return'';
+  const ratioPairs=new Set((ratioList||[]).map(w=>`${w.before}>${w.next}`));
+  const basePairs=new Set((baseList||[]).filter(Boolean).map(w=>`${w.before}>${w.next}`));
+  let s=`<div class="row"><div class="label">${label}</div>`;
+  arr.forEach((h,i)=>{
+    s+=`<div class="cell">${h}</div>`;
+    if(i<arr.length-1){
+      const pair=`${h}>${arr[i+1]}`;
+      const r=ratioPairs.has(pair),b=basePairs.has(pair);
+      const cls=r&&b?'doubleWall':r?'marketWall':b?'baseWall':'';
+      s+=`<i class="sep ${cls}"></i>`;
+    }
+  });
+  return s+'</div>';
+}
 function wallText(list){
   return list&&list.length?list.map(w=>`${w.before}番→${w.next}番 ${w.ratio}倍`).join(' ／ '):'明確な比率壁なし';
 }
@@ -523,8 +548,18 @@ function thresholdText(w,label){
 
 function render(v){
   return `
-  <div class="card market"><div class="title">📊 コンピ＋四市場順位</div><div class="marketScroll">
-    ${compiRow(v)}${simpleRow('馬連',v.ur)}${simpleRow('単勝',v.tr)}${simpleRow('複勝',v.fr)}${simpleRow('ワイド',v.wr)}${simpleRow('三連複',v.sr)}
+  <div class="card market"><div class="title">📊 コンピ＋四市場順位・表内壁表示</div><div class="marketScroll">
+    ${compiRow(v)}
+    ${marketRow('馬連',v.ur,v.walls.uma,[])}
+    ${marketRow('単勝',v.tr,v.walls.tan,[v.walls.t10,v.walls.t30,v.walls.t80])}
+    ${marketRow('複勝',v.fr,v.walls.fuku,[v.walls.f6,v.walls.f10,v.walls.f15])}
+    ${marketRow('ワイド',v.wr,v.walls.wide,[])}
+    ${marketRow('三連複',v.sr,v.walls.san,[])}
+  </div>
+  <div class="wallLegend">
+    <span><i class="legendBar legendRatio"></i>水色＝比率壁1.8倍</span>
+    <span><i class="legendBar legendBase"></i>黄色＝基準壁</span>
+    <span><i class="legendBar legendDouble"></i>二色＝両方重複</span>
   </div>
   <div class="note"><b>最大コンピ壁：</b>${v.maxGap.after}位後 ${v.maxGap.gap}P（${v.maxGap.before}番→${v.maxGap.next}番）<br>
   <b>強いコンピ壁：</b>${v.strongCompiWalls.length?v.strongCompiWalls.map(w=>`${w.after}位後${w.gap}P［${w.before}→${w.next}］`).join(' ／ '):'なし'}<br>
@@ -639,7 +674,7 @@ function run(){
   try{
     const d=parse(document.getElementById('input').value);
     if(d.compi.length<3)throw new Error('COMPIを3頭以上入力してください');
-    latest=build(d);document.getElementById('out').innerHTML=render(latest);document.title=d.title+'｜競馬メジアン V5.28';
+    latest=build(d);document.getElementById('out').innerHTML=render(latest);document.title=d.title+'｜競馬メジアン V5.29';
   }catch(e){document.getElementById('out').innerHTML=`<div class="card"><div class="title">入力エラー</div><pre>${esc(e.message||e)}</pre></div>`}
 }
 function clearAll(){document.getElementById('input').value='';document.getElementById('out').innerHTML='';latest=null}
@@ -663,7 +698,7 @@ function chatText(){
   if(!latest)throw new Error('先に解析してください');
   const v=latest;
   return `【${v.d.title}】
-競馬メジアン V5.28 役割変更安定版
+競馬メジアン V5.29 役割変更安定版
 
 【コンピ一次診断】
 レース型：${v.type}
@@ -734,14 +769,14 @@ async function copyForChat(){
     const t=chatText();
     if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(t);
     else{const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}
-    alert('V5.28解析結果をコピーしました');
+    alert('V5.29解析結果をコピーしました');
   }catch(e){alert(e.message||e)}
 }
 function csvEsc(v){v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
 function saveResearchCsv(){
   if(!latest){alert('先に解析してください');return}
   const v=latest,row={
-    日時:new Date().toISOString(),レース:v.d.title,解析:'V5.28-pdetail-fivewalls',
+    日時:new Date().toISOString(),レース:v.d.title,解析:'V5.29-table-wall-restored',
     レース型:v.type,P:v.p,P詳細コード:v.pDetailInfo.code,P詳細名:v.pDetailInfo.name,P詳細特徴:v.pDetailInfo.feature,上位3合計:v.sum,大谷条件:v.otani,
     差1_2:v.g12,差2_3:v.g23,差1_3:v.g13,差3_5:v.g35,差5_6:v.g56,差6_7:v.g67,上位4頭幅:v.top4Spread,
     最大壁位置:v.maxGap.after,最大壁差:v.maxGap.gap,最大壁前:v.maxGap.before,最大壁直後:v.maxGap.next,
@@ -760,7 +795,7 @@ function saveResearchCsv(){
   };
   const keys=Object.keys(row),csv='\ufeff'+keys.map(csvEsc).join(',')+'\n'+keys.map(k=>csvEsc(row[k])).join(',');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);a.download='競馬メジアン_V5.28_P詳細五市場壁_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  a.href=URL.createObjectURL(blob);a.download='競馬メジアン_V5.29_表内五市場壁_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 </script>
 </body>
