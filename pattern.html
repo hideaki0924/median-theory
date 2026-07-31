@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="V5.26-role-change-engine">
-<title>競馬メジアン V5.26 コンピ原型＋市場役割変更・完全統合版</title>
+<meta name="app-build" content="V5.27-role-change-stable">
+<title>競馬メジアン V5.27 コンピ原型＋市場役割変更・安定版</title>
 <style>
 :root{
   --bg:#07101f;--card:#10224a;--card2:#020617;--line:#475569;
@@ -69,7 +69,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#020617;padding:11px;b
 </head>
 <body>
 <main>
-<h1>競馬メジアン <span class="tag">V5.26</span><br>コンピ単独予想＋市場補正・完全統合版</h1>
+<h1>競馬メジアン <span class="tag">V5.27</span><br>コンピ単独予想＋市場補正・完全統合版</h1>
 
 <div class="card">
   <div class="title">レースデータ入力</div>
@@ -97,7 +97,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#020617;padding:11px;b
 
 [SANPUKU]
 馬番-馬番-馬番 オッズ"></textarea>
-  <button class="go" onclick="run()">V5.26解析</button>
+  <button class="go" onclick="run()">V5.27解析</button>
   <button class="sample" onclick="sample()">サンプル</button>
   <button class="clear" onclick="clearAll()">リセット</button>
   <button class="copy" onclick="copyForChat()">チャッピー用コピー</button>
@@ -105,7 +105,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#020617;padding:11px;b
 </div>
 
 <div class="card pipeline">
-  <div class="title">🔁 V5.26の判定工程</div>
+  <div class="title">🔁 V5.27の判定工程</div>
   <div class="step"><span class="stepNo">1</span><b>コンピだけで原型予想</b><div class="small">固定1着候補・馬券内軸・頭替わり・上位本線・3着侵入候補を先に保存。</div></div>
   <div class="step"><span class="stepNo">2</span><b>上位4頭密集／一強・相手横並び／壁直後侵入</b><div class="small">今日の検証を正式ロジック化。上位で1・2着、壁直後～6位を3着監査。</div></div>
   <div class="step"><span class="stepNo">3</span><b>市場は順位ではなく役割を変更</b><div class="small">コンピ順位は保存したまま、軸・頭候補・相手・保険・3着穴の役割だけを変更する。</div></div>
@@ -342,8 +342,7 @@ function build(d){
     marketThird=uniq([
       ...marketScore.filter(x=>x.compiR>=5&&x.compiR<=6&&(x.wideR<=8||x.sanR<=8||x.umaR<=8)).map(x=>x.h),
       firstMajor?.next,
-      ...third,
-      ...stealthProtect
+      ...third
     ]).filter(h=>h&&!marketAxis.includes(h)).slice(0,6);
 
     // 役割ログ
@@ -403,6 +402,9 @@ function build(d){
     return {h,grade,points,reasons:[`コンピ${compiRank}位`,`単勝${tanRank}位`,`馬連上位${umaCount}回`,`ワイド上位${wideCount}回`,`三連複上位${sanCount}回`,placeSupport?'複勝支持あり':'複勝弱']};
   }).filter(Boolean).sort((a,b)=>b.points-a.points||+a.h-+b.h);
   const stealthProtect=stealth.filter(x=>x.grade==='S'||x.grade==='A').map(x=>x.h);
+  // ステルス保護は生成後に市場3着候補へ合流させる（未初期化参照防止）
+  marketThird=uniq([...marketThird,...stealthProtect]).filter(h=>h&&!marketAxis.includes(h)).slice(0,6);
+  stealthProtect.forEach(h=>setRole(h,'3着侵入','ステルスS/A保護'));
 
   // WIN5・旧機能
   const win5=uniq([...fr.filter(h=>Number(tfMap[h]?.fuku)<=3.0),...all.filter(x=>support(x.h)>=3&&(rm.compi[x.h]||99)<=5).map(x=>x.h),...first]).slice(0,5);
@@ -575,7 +577,7 @@ function run(){
   try{
     const d=parse(document.getElementById('input').value);
     if(d.compi.length<3)throw new Error('COMPIを3頭以上入力してください');
-    latest=build(d);document.getElementById('out').innerHTML=render(latest);document.title=d.title+'｜競馬メジアン V5.26';
+    latest=build(d);document.getElementById('out').innerHTML=render(latest);document.title=d.title+'｜競馬メジアン V5.27';
   }catch(e){document.getElementById('out').innerHTML=`<div class="card"><div class="title">入力エラー</div><pre>${esc(e.message||e)}</pre></div>`}
 }
 function clearAll(){document.getElementById('input').value='';document.getElementById('out').innerHTML='';latest=null}
@@ -599,7 +601,7 @@ function chatText(){
   if(!latest)throw new Error('先に解析してください');
   const v=latest;
   return `【${v.d.title}】
-競馬メジアン V5.26 役割変更統合版
+競馬メジアン V5.27 役割変更安定版
 
 【コンピ一次診断】
 レース型：${v.type}
@@ -659,14 +661,14 @@ async function copyForChat(){
     const t=chatText();
     if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(t);
     else{const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}
-    alert('V5.26解析結果をコピーしました');
+    alert('V5.27解析結果をコピーしました');
   }catch(e){alert(e.message||e)}
 }
 function csvEsc(v){v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
 function saveResearchCsv(){
   if(!latest){alert('先に解析してください');return}
   const v=latest,row={
-    日時:new Date().toISOString(),レース:v.d.title,解析:'V5.26-role-change-engine',
+    日時:new Date().toISOString(),レース:v.d.title,解析:'V5.27-role-change-stable',
     レース型:v.type,P:v.p,上位3合計:v.sum,大谷条件:v.otani,
     差1_2:v.g12,差2_3:v.g23,差1_3:v.g13,差3_5:v.g35,差5_6:v.g56,差6_7:v.g67,上位4頭幅:v.top4Spread,
     最大壁位置:v.maxGap.after,最大壁差:v.maxGap.gap,最大壁前:v.maxGap.before,最大壁直後:v.maxGap.next,
@@ -683,7 +685,7 @@ function saveResearchCsv(){
   };
   const keys=Object.keys(row),csv='\ufeff'+keys.map(csvEsc).join(',')+'\n'+keys.map(k=>csvEsc(row[k])).join(',');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);a.download='競馬メジアン_V5.26役割変更_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  a.href=URL.createObjectURL(blob);a.download='競馬メジアン_V5.27役割変更安定_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 </script>
 </body>
