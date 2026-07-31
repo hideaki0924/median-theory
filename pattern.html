@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
 <meta name="app-build" content="V5.29-table-restored-wall-display">
-<title>競馬メジアン V5.34 中央統合・五市場順位完全復元＋型順位帯ガード</title>
+<title>競馬メジアン V5.35 危険な1番人気・書籍原型統合版</title>
 <style>
 :root{
   --bg:#07101f;--card:#10224a;--card2:#020617;--line:#475569;
@@ -93,7 +93,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#020617;padding:11px;b
 .stealthReason{font-size:13px;color:#ddd6fe;line-height:1.55;margin-top:4px}
 @media(max-width:520px){body{padding:8px}.card{padding:10px}.metaV{font-size:17px}.roleV{font-size:22px}.legacyV{font-size:18px}}
 
-/* V5.34 iPhoneコンパクト表示：既存表示は削除せず寸法だけ圧縮 */
+/* V5.35 iPhoneコンパクト表示：既存表示は削除せず寸法だけ圧縮 */
 body{padding:8px;font-size:15px;line-height:1.48}
 main{max-width:720px}
 h1{font-size:20px;margin:3px 0 9px;line-height:1.25}
@@ -122,7 +122,7 @@ button{padding:9px 7px;margin-top:6px;font-size:14px;border-radius:10px}
 </head>
 <body>
 <main>
-<h1>競馬メジアン <span class="tag">V5.34</span><br>中央統合・五市場順位完全復元＋型順位帯ガード</h1>
+<h1>競馬メジアン <span class="tag">V5.35</span><br>危険な1番人気・書籍原型統合版</h1>
 
 <div class="card">
   <div class="title">レースデータ入力</div>
@@ -150,7 +150,7 @@ button{padding:9px 7px;margin-top:6px;font-size:14px;border-radius:10px}
 
 [SANPUKU]
 馬番-馬番-馬番 オッズ"></textarea>
-  <button class="go" onclick="run()">V5.34解析</button>
+  <button class="go" onclick="run()">V5.35解析</button>
   <button class="sample" onclick="sample()">サンプル</button>
   <button class="clear" onclick="clearAll()">リセット</button>
   <button class="copy" onclick="copyForChat()">チャッピー用コピー</button>
@@ -416,6 +416,30 @@ function build(d){
   const countInTop=(h,n)=>sanSorted.slice(0,Math.min(n,sanSorted.length)).filter(x=>sanContains(x,h)).length;
   const firstSanAbsenceIndex=marketFav?sanSorted.findIndex(x=>!sanContains(x,marketFav)):-1;
   const firstSanAbsence=firstSanAbsenceIndex>=0?firstSanAbsenceIndex+1:(sanSorted.length?sanSorted.length+1:null);
+  const firstSanAbsenceRow=firstSanAbsenceIndex>=0?sanSorted[firstSanAbsenceIndex]:null;
+  const firstSanAbsenceOdds=firstSanAbsenceRow?.od??null;
+  const firstSanAbsenceCombo=firstSanAbsenceRow?[firstSanAbsenceRow.a,firstSanAbsenceRow.b,firstSanAbsenceRow.c].sort((a,b)=>+a-+b).join('-'):'';
+
+  // 書籍原型①：馬複1・2番人気のタテ目。単勝1人気を含む上位2組の相手同士を調べ、馬複1人気比4倍未満なら危険。
+  const umaSorted=sorted(d.uma);
+  const umaWithFav=marketFav?umaSorted.filter(x=>[x.a,x.b].includes(String(marketFav))):[];
+  const umaTop1=umaSorted[0]||null;
+  const umaMate1=umaWithFav[0]?[umaWithFav[0].a,umaWithFav[0].b].find(h=>h!==String(marketFav)):'';
+  const umaMate2=umaWithFav[1]?[umaWithFav[1].a,umaWithFav[1].b].find(h=>h!==String(marketFav)):'';
+  const umaVerticalRow=(umaMate1&&umaMate2)?umaSorted.find(x=>[x.a,x.b].includes(String(umaMate1))&&[x.a,x.b].includes(String(umaMate2))):null;
+  const umaVerticalOdds=umaVerticalRow?.od??null;
+  const umaBaseOdds=umaTop1?.od??null;
+  const umaVerticalRatio=(umaVerticalOdds!=null&&umaBaseOdds)?umaVerticalOdds/umaBaseOdds:null;
+  const umaVerticalDanger=umaVerticalRatio!=null&&umaVerticalRatio<4;
+
+  // 書籍原型②：三連複で単勝1人気が初めて消える組のオッズ。
+  // 40倍未満＝危険、40～59.9倍＝厳格警戒、60倍以上＝強信頼。
+  const sanDanger40=firstSanAbsenceOdds!=null&&firstSanAbsenceOdds<40;
+  const sanCaution60=firstSanAbsenceOdds!=null&&firstSanAbsenceOdds>=40&&firstSanAbsenceOdds<60;
+  const compiFavPoint=compi.find(x=>x.h===marketFav)?.pt??null;
+  const weakCompiFavorite=compiFavPoint!=null&&compiFavPoint<88;
+  const dangerousFavorite=!!marketFav&&(umaVerticalDanger||sanDanger40);
+  const dangerousFavoriteStrong=!!marketFav&&umaVerticalDanger&&sanDanger40;
   const marketRanks={
     tan:rm.tan[marketFav]||99,fuku:rm.fuku[marketFav]||99,uma:rm.uma[marketFav]||99,
     wide:rm.wide[marketFav]||99,san:rm.san[marketFav]||99
@@ -426,7 +450,16 @@ function build(d){
   const sanTop10Base=Math.min(10,sanSorted.length)||1;
   const sanTop10Rate=sanSorted.length?Math.round(sanTop10Count/sanTop10Base*100):0;
   let concentrationLevel='通常',concentrationNote='市場とコンピの極端な乖離なし';
-  if(marketFav&&compiFavRank>=5&&marketFirstCount>=4){
+  if(dangerousFavoriteStrong){
+    concentrationLevel='危険な1番人気・強警報';
+    concentrationNote=`${marketFav}番は馬複タテ目${umaVerticalRatio?.toFixed(2)}倍（4倍未満）かつ三連複初消滅${firstSanAbsenceOdds}倍（40倍未満）。${weakCompiFavorite?'コンピ'+compiFavPoint+'Pで88P未満。':''}まっちゃん単勝本線から自動除外し、人気馬なし買い目を必須化`;
+  }else if(dangerousFavorite){
+    concentrationLevel='危険な1番人気';
+    concentrationNote=`${marketFav}番は${umaVerticalDanger?'馬複タテ目4倍未満':'三連複初消滅40倍未満'}。${weakCompiFavorite?'コンピ'+compiFavPoint+'Pで強い裏付けも不足。':''}単勝本線から外し、消滅型を保護`;
+  }else if(sanCaution60){
+    concentrationLevel='厳格警戒（40～60倍帯）';
+    concentrationNote=`${marketFav}番の三連複初消滅は${firstSanAbsenceOdds}倍。書籍40倍基準では信頼側だが、60倍厳格基準では警戒を残す`;
+  }else if(marketFav&&compiFavRank>=5&&marketFirstCount>=4){
     if(firstSanAbsence!=null&&firstSanAbsence<=3){
       concentrationLevel='極端乖離＋三連複早期消滅';
       concentrationNote=`${marketFav}番は五市場${marketFirstCount}/5で1位だが、三連複${firstSanAbsence}位で早くも不在。市場中心でも馬券内絶対視ではなく、受け皿崩壊・大荒れを強く警戒`;
@@ -439,8 +472,10 @@ function build(d){
     concentrationNote=`${marketFav}番はコンピ${compiFavRank}位に対し市場上位が集中。軸固定ではなく逆目も監査`;
   }
   const concentrationAudit={
-    horse:marketFav,compiRank:compiFavRank,marketFirstCount,marketRanks,
-    firstSanAbsence,sanTop5Count,sanTop10Count,sanTop20Count,sanTop10Rate,
+    horse:marketFav,compiRank:compiFavRank,compiPoint:compiFavPoint,marketFirstCount,marketRanks,
+    firstSanAbsence,firstSanAbsenceOdds,firstSanAbsenceCombo,sanTop5Count,sanTop10Count,sanTop20Count,sanTop10Rate,
+    umaBaseOdds,umaMate1,umaMate2,umaVerticalOdds,umaVerticalRatio,umaVerticalDanger,
+    sanDanger40,sanCaution60,dangerousFavorite,dangerousFavoriteStrong,
     sanInputCount:sanSorted.length,level:concentrationLevel,note:concentrationNote
   };
 
@@ -610,7 +645,9 @@ function build(d){
   // WIN5・旧機能
   const win5=uniq([...fr.filter(h=>Number(tfMap[h]?.fuku)<=3.0),...all.filter(x=>support(x.h)>=3&&(rm.compi[x.h]||99)<=5).map(x=>x.h),...first]).slice(0,5);
   const win5Main=win5.slice(0,fixed==='高'?2:3),win5Hole=win5.filter(h=>(rm.compi[h]||99)>=5||(rm.tan[h]||99)>=5).slice(0,2);
-  const matchanMain=uniq([...win5Main,...first,all.find(x=>x.reasons.includes('単勝上位')&&x.reasons.includes('馬連支持'))?.h]).slice(0,2);
+  const matchanMainRaw=uniq([...win5Main,...first,all.find(x=>x.reasons.includes('単勝上位')&&x.reasons.includes('馬連支持'))?.h]).slice(0,2);
+  const matchanExcluded=dangerousFavorite&&marketFav&&matchanMainRaw.includes(marketFav)?[marketFav]:[];
+  const matchanMain=matchanMainRaw.filter(h=>!matchanExcluded.includes(h));
   const bSupport=groups.B.filter(h=>support(h)>=2).sort((a,b)=>(score[b]?.score||0)-(score[a]?.score||0));
   const cSupport=groups.C.filter(h=>support(h)>=2).sort((a,b)=>(score[b]?.score||0)-(score[a]?.score||0));
   const matchanHole=uniq([...bSupport,walls.f15?.before,walls.t80?.before,...all.filter(x=>(rm.tan[x.h]||99)>=4&&(rm.tan[x.h]||99)<=9&&support(x.h)>=2).map(x=>x.h)]).filter(h=>h&&!matchanMain.includes(h)).slice(0,3);
@@ -644,7 +681,7 @@ function build(d){
   const auditHorses=uniq([auditAxis,...wallPriority,...high85,...aMedianSupport,...stealthProtect,...groups.A2,...matchanHole,...third,...marketThird,...protect,...strongCompiWalls.flatMap(w=>[w.before,w.next]),cr[5]]).slice(0,20);
 
   // 型専用買い目
-  const tanBet=uniq(fixed==='高'?[first[0]]:first.slice(0,2));
+  const tanBet=uniq(fixed==='高'?[first[0]]:first.slice(0,2)).filter(h=>!matchanExcluded.includes(h));
   const wide=[],umaren=[],san=[];
   const betAxis=marketAxis[0]||axis[0]||cr[0],betMain=(hasOdds?marketMain:main);
   betMain.slice(0,3).forEach(h=>{addPair(wide,betAxis,h);addPair(umaren,betAxis,h)});
@@ -656,13 +693,17 @@ function build(d){
     wallAfter.slice(0,2).forEach(h=>addTri(san,ax2,m1,h));
   }
   if(no1InsuranceOn&&!san.includes(aNo1Insurance))san.push(aNo1Insurance);
+  // 危険な1番人気が発動した場合、三連複の最初の人気馬なし組を削除禁止で先頭保護。
+  if(dangerousFavorite&&firstSanAbsenceCombo){
+    const i=san.indexOf(firstSanAbsenceCombo);if(i>=0)san.splice(i,1);san.unshift(firstSanAbsenceCombo);
+  }
   const bestOne=san[0]||wide[0]||umaren[0]||tanBet[0]||'なし';
 
   return {
     d,venue,compi,cr,sum,p,pDetailInfo,rankRange,g12,g23,g13,g35,g56,g67,top4Spread,rec,gaps,maxGap,strongCompiWalls,firstMajor,compiTiers,
     groups,groupA,aMedian,aMedianSupport,a2Spread,a2Density,aDecisionPressure,pMedianMode,high85,linePos,lineHorse,otaniRules,otani,
     type,fixed,place,why,first,axis,headAlt,main,third,compiSan,hasOdds,tr,fr,ur,wr,sr,walls,wallPriority,wallFront,wallAfter,concentrationAudit,marketAxis,marketHead,marketMain,marketInsurance,marketThird,marketRole,marketMove,marketSan,marketType,
-    all,bSupport,cSupport,stealth,stealthProtect,win5Main,win5Hole,matchanMain,matchanHole,structureAxis,ooareHead,axisAvoid,protect,blueWhite,bigHoleWin,bigHolePlace,bigHoleThird,
+    all,bSupport,cSupport,stealth,stealthProtect,win5Main,win5Hole,matchanMainRaw,matchanExcluded,matchanMain,matchanHole,structureAxis,ooareHead,axisAvoid,protect,blueWhite,bigHoleWin,bigHolePlace,bigHoleThird,
     aNo1Insurance,no1InsuranceOn,auditPairs,auditSan,auditHorses,tickets:{tan:tanBet,wide,umaren,san:san.slice(0,14),bestOne}
   };
 }
@@ -797,7 +838,9 @@ function render(v){
     <div class="diag"><b>対象：</b>${v.concentrationAudit.horse?v.concentrationAudit.horse+'番（単勝1人気）':'判定不可'}<br>
     <b>コンピ順位：</b>${v.concentrationAudit.compiRank===99?'不明':v.concentrationAudit.compiRank+'位'}　
     <b>五市場1位：</b>${v.concentrationAudit.marketFirstCount}/5<br>
-    <b>三連複の初消滅：</b>${v.concentrationAudit.firstSanAbsence==null?'入力なし':(v.concentrationAudit.firstSanAbsence>v.concentrationAudit.sanInputCount?'入力範囲内では消滅なし':v.concentrationAudit.firstSanAbsence+'位')}<br>
+    <b>馬複タテ目：</b>${v.concentrationAudit.umaVerticalRatio==null?'判定不可':`${v.concentrationAudit.umaMate1}-${v.concentrationAudit.umaMate2}＝${v.concentrationAudit.umaVerticalOdds}倍 ／ 1人気比${v.concentrationAudit.umaVerticalRatio.toFixed(2)}倍 ${v.concentrationAudit.umaVerticalDanger?'【4倍未満・危険】':'【4倍以上・信頼側】'}`}<br>
+    <b>三連複の初消滅：</b>${v.concentrationAudit.firstSanAbsence==null?'入力なし':(v.concentrationAudit.firstSanAbsence>v.concentrationAudit.sanInputCount?'入力範囲内では消滅なし':`${v.concentrationAudit.firstSanAbsence}位 ${v.concentrationAudit.firstSanAbsenceCombo}＝${v.concentrationAudit.firstSanAbsenceOdds}倍`)}<br>
+    <b>三連複40/60倍判定：</b>${v.concentrationAudit.firstSanAbsenceOdds==null?'判定不可':v.concentrationAudit.sanDanger40?'40倍未満・危険':v.concentrationAudit.sanCaution60?'40～59.9倍・厳格警戒':'60倍以上・強信頼'}<br>
     <b>三連複登場数：</b>上位5＝${v.concentrationAudit.sanTop5Count}/${Math.min(5,v.concentrationAudit.sanInputCount)}　上位10＝${v.concentrationAudit.sanTop10Count}/${Math.min(10,v.concentrationAudit.sanInputCount)}　上位20＝${v.concentrationAudit.sanTop20Count}/${Math.min(20,v.concentrationAudit.sanInputCount)}<br>
     <b>判定：</b>${esc(v.concentrationAudit.level)}</div>
     <div class="note">${esc(v.concentrationAudit.note)}</div>
@@ -829,7 +872,7 @@ function render(v){
 
   <div class="card legacy"><div class="title">🧰 V5.24候補保存</div>
     <div class="legacyGrid">
-      <div class="legacyBox"><div class="legacyL">まっちゃん単勝・本線</div><div class="legacyV">${fmt(v.matchanMain)}</div></div>
+      <div class="legacyBox"><div class="legacyL">まっちゃん単勝・本線</div><div class="legacyV">${fmt(v.matchanMain)}</div>${v.matchanExcluded.length?`<div class="small warn">危険な1番人気と重複のため除外：${fmt(v.matchanExcluded)}</div>`:''}</div>
       <div class="legacyBox"><div class="legacyL">まっちゃん単勝・穴単</div><div class="legacyV">${fmt(v.matchanHole)}</div></div>
       <div class="legacyBox"><div class="legacyL">構造軸</div><div class="legacyV">${v.structureAxis?v.structureAxis+'番':'なし'}</div></div>
       <div class="legacyBox"><div class="legacyL">V2.65 大荒れ頭</div><div class="legacyV">${v.ooareHead?v.ooareHead+'番':'なし'}</div></div>
@@ -869,7 +912,7 @@ function run(){
   try{
     const d=parse(document.getElementById('input').value);
     if(d.compi.length<3)throw new Error('COMPIを3頭以上入力してください');
-    latest=build(d);document.getElementById('out').innerHTML=render(latest);document.title=d.title+'｜競馬メジアン V5.34';
+    latest=build(d);document.getElementById('out').innerHTML=render(latest);document.title=d.title+'｜競馬メジアン V5.35';
   }catch(e){document.getElementById('out').innerHTML=`<div class="card"><div class="title">入力エラー</div><pre>${esc(e.message||e)}</pre></div>`}
 }
 function clearAll(){document.getElementById('input').value='';document.getElementById('out').innerHTML='';latest=null}
@@ -943,7 +986,7 @@ function chatText(){
   if(!latest)throw new Error('先に解析してください');
   const v=latest;
   return `【${v.d.title}】
-競馬メジアン V5.34 中央統合・五市場順位完全復元版
+競馬メジアン V5.35 中央統合・五市場順位完全復元版
 
 【開催区分・統合方針】
 開催：${v.venue.name}${v.venue.place?'（'+v.venue.place+'）':''}
@@ -988,7 +1031,8 @@ ${v.fixed==='低'?'1着候補（固定なし）':'固定1着候補'}：${fmt(v.f
 対象：${v.concentrationAudit.horse?v.concentrationAudit.horse+'番（単勝1人気）':'判定不可'}
 コンピ順位：${v.concentrationAudit.compiRank===99?'不明':v.concentrationAudit.compiRank+'位'}
 五市場1位：${v.concentrationAudit.marketFirstCount}/5
-三連複初消滅：${v.concentrationAudit.firstSanAbsence==null?'入力なし':(v.concentrationAudit.firstSanAbsence>v.concentrationAudit.sanInputCount?'入力範囲内では消滅なし':v.concentrationAudit.firstSanAbsence+'位')}
+馬複タテ目倍率：${v.concentrationAudit.umaVerticalRatio==null?'判定不可':v.concentrationAudit.umaVerticalRatio.toFixed(2)+'倍'}
+三連複初消滅：${v.concentrationAudit.firstSanAbsence==null?'入力なし':(v.concentrationAudit.firstSanAbsence>v.concentrationAudit.sanInputCount?'入力範囲内では消滅なし':v.concentrationAudit.firstSanAbsence+'位 '+v.concentrationAudit.firstSanAbsenceCombo+' '+v.concentrationAudit.firstSanAbsenceOdds+'倍')}
 三連複登場：上位5 ${v.concentrationAudit.sanTop5Count}/${Math.min(5,v.concentrationAudit.sanInputCount)} / 上位10 ${v.concentrationAudit.sanTop10Count}/${Math.min(10,v.concentrationAudit.sanInputCount)} / 上位20 ${v.concentrationAudit.sanTop20Count}/${Math.min(20,v.concentrationAudit.sanInputCount)}
 判定：${v.concentrationAudit.level}
 警報内容：${v.concentrationAudit.note}
@@ -1011,6 +1055,7 @@ A群内メジアン：${fmt(v.aMedian)}
 WIN5本線：${fmt(v.win5Main)}
 WIN5穴：${fmt(v.win5Hole)}
 まっちゃん単勝本線：${fmt(v.matchanMain)}
+危険重複による除外：${fmt(v.matchanExcluded)}
 まっちゃん穴単：${fmt(v.matchanHole)}
 構造軸：${v.structureAxis||'なし'}
 大荒れ頭：${v.ooareHead||'なし'}
@@ -1063,4 +1108,3 @@ function saveResearchCsv(){
 }
 </script>
 </body>
-</html>
