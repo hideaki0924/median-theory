@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="V5.25-full-merge">
-<title>競馬メジアン V5.25 コンピ単独予想＋市場補正・完全統合版</title>
+<meta name="app-build" content="V5.26-role-change-engine">
+<title>競馬メジアン V5.26 コンピ原型＋市場役割変更・完全統合版</title>
 <style>
 :root{
   --bg:#07101f;--card:#10224a;--card2:#020617;--line:#475569;
@@ -69,7 +69,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#020617;padding:11px;b
 </head>
 <body>
 <main>
-<h1>競馬メジアン <span class="tag">V5.25</span><br>コンピ単独予想＋市場補正・完全統合版</h1>
+<h1>競馬メジアン <span class="tag">V5.26</span><br>コンピ単独予想＋市場補正・完全統合版</h1>
 
 <div class="card">
   <div class="title">レースデータ入力</div>
@@ -97,7 +97,7 @@ pre{white-space:pre-wrap;word-break:break-word;background:#020617;padding:11px;b
 
 [SANPUKU]
 馬番-馬番-馬番 オッズ"></textarea>
-  <button class="go" onclick="run()">V5.25解析</button>
+  <button class="go" onclick="run()">V5.26解析</button>
   <button class="sample" onclick="sample()">サンプル</button>
   <button class="clear" onclick="clearAll()">リセット</button>
   <button class="copy" onclick="copyForChat()">チャッピー用コピー</button>
@@ -105,10 +105,10 @@ pre{white-space:pre-wrap;word-break:break-word;background:#020617;padding:11px;b
 </div>
 
 <div class="card pipeline">
-  <div class="title">🔁 V5.25の判定工程</div>
+  <div class="title">🔁 V5.26の判定工程</div>
   <div class="step"><span class="stepNo">1</span><b>コンピだけで原型予想</b><div class="small">固定1着候補・馬券内軸・頭替わり・上位本線・3着侵入候補を先に保存。</div></div>
   <div class="step"><span class="stepNo">2</span><b>上位4頭密集／一強・相手横並び／壁直後侵入</b><div class="small">今日の検証を正式ロジック化。上位で1・2着、壁直後～6位を3着監査。</div></div>
-  <div class="step"><span class="stepNo">3</span><b>オッズで相手順位を入替</b><div class="small">コンピ2位を自動固定せず、馬連・ワイド・三連複接続が強い馬を上位化。</div></div>
+  <div class="step"><span class="stepNo">3</span><b>市場は順位ではなく役割を変更</b><div class="small">コンピ順位は保存したまま、軸・頭候補・相手・保険・3着穴の役割だけを変更する。</div></div>
   <div class="step"><span class="stepNo">4</span><b>V5.24機能を削除せず保存</b><div class="small">大谷式、A1/A2/B/C、A群メジアン、WIN5、ステルス、青白光、構造軸、大荒れ頭、監査枠を残す。</div></div>
 </div>
 
@@ -278,25 +278,97 @@ function build(d){
   [...medianHorses(tr),...medianHorses(fr),...medianHorses(ur),...medianHorses(sr)].forEach(h=>add(h,3,'メジアン'));
   const all=Object.values(score).sort((a,b)=>b.score-a.score||+a.h-+b.h);
 
-  // 市場補正
-  let marketAxis=axis.slice(),marketMain=main.slice(),marketThird=third.slice(),marketMove=[],marketSan=compiSan.slice(),marketType='オッズ未入力';
+  // 市場役割変更エンジン
+  // コンピ順位は保存したまま、市場中心度により役割のみを変更する。
+  let marketAxis=axis.slice(),marketHead=headAlt.slice(),marketMain=main.slice(),marketInsurance=[],marketThird=third.slice();
+  let marketMove=[],marketSan=compiSan.slice(),marketType='オッズ未入力';
+  const marketRole={};
+  const setRole=(h,role,reason)=>{
+    if(!h)return;
+    marketRole[h]=marketRole[h]||{h,roles:[],reasons:[]};
+    if(!marketRole[h].roles.includes(role))marketRole[h].roles.push(role);
+    if(reason&&!marketRole[h].reasons.includes(reason))marketRole[h].reasons.push(reason);
+  };
   if(hasOdds){
-    marketType='市場補正あり';
-    const anchor=cr[0];
-    const candidate=uniq([...ur.slice(0,6),...sr.slice(0,7),...wr.slice(0,6),...tr.slice(0,6),...cr.slice(0,6)]);
-    const scored=candidate.map(h=>({h,s:support(h)*12+(rm.uma[h]?9-rm.uma[h]:0)+(rm.san[h]?10-rm.san[h]:0)+(rm.wide[h]?9-rm.wide[h]:0)+(rm.compi[h]?Math.max(0,8-rm.compi[h]):0)}))
-      .sort((a,b)=>b.s-a.s||+a.h-+b.h);
-    marketMain=uniq(scored.filter(x=>x.h!==anchor).map(x=>x.h)).slice(0,5);
-    marketAxis=uniq([anchor,scored[0]?.h]).slice(0,2);
-    const quiet=cr.filter(h=>(rm.compi[h]||99)>=4&&support(h)>=2).sort((a,b)=>support(b)-support(a)||(rm.san[a]||99)-(rm.san[b]||99));
-    marketThird=uniq([...quiet,...third,...marketMain.slice(2)]).slice(0,6);
-    if(marketMain[0]&&marketMain[0]!==cr[1])marketMove.push(`コンピ2位${cr[1]}番より市場相手${marketMain[0]}番を上位化`);
-    quiet.slice(0,3).forEach(h=>marketMove.push(`${h}番を市場逆行・3着保護`));
+    marketType='市場役割変更あり';
+
+    const marketScore=cr.map(h=>{
+      const tanR=rm.tan[h]||99,fukuR=rm.fuku[h]||99,umaR=rm.uma[h]||99,wideR=rm.wide[h]||99,sanR=rm.san[h]||99;
+      const center =
+        (tanR<=3?18:tanR<=5?10:0)+
+        (umaR<=3?18:umaR<=6?10:0)+
+        (wideR<=3?16:wideR<=6?9:0)+
+        (sanR<=3?20:sanR<=6?11:0)+
+        (fukuR<=3?12:fukuR<=6?7:0);
+      const compiProtect=(rm.compi[h]||99)<=4?8:(rm.compi[h]||99)<=6?4:0;
+      const anchorBonus=(umaR===1||wideR===1||sanR===1?10:0)+(tanR===1?8:0);
+      return {h,center:center+compiProtect+anchorBonus,tanR,fukuR,umaR,wideR,sanR,compiR:rm.compi[h]||99};
+    }).sort((a,b)=>b.center-a.center||a.tanR-b.tanR||a.sanR-b.sanR||a.compiR-b.compiR);
+
+    const center1=marketScore[0],center2=marketScore[1];
+    const clearCenter = !!center1 && (center1.center-(center2?.center||0)>=10 || center1.tanR===1 || center1.sanR===1);
+
+    // 軸：市場中心馬を優先。コンピ1位は自動固定しない。
+    marketAxis=uniq([
+      clearCenter?center1.h:null,
+      marketScore.find(x=>x.h!==center1?.h && x.compiR<=4 && x.center>=35)?.h
+    ]).slice(0,2);
+
+    // 頭候補：市場中心軸そのもの、単勝上位、コンピ推奨、市場接続上位
+    marketHead=uniq([
+      center1?.h,
+      ...marketScore.filter(x=>x.tanR<=3&&x.center>=35).map(x=>x.h),
+      rec,
+      ...first
+    ]).slice(0,4);
+
+    // 相手本線：馬連・ワイド・三連複中心
+    marketMain=uniq(
+      marketScore
+        .filter(x=>x.h!==marketAxis[0] && (x.umaR<=6||x.wideR<=6||x.sanR<=6))
+        .map(x=>x.h)
+    ).slice(0,5);
+
+    // 保険：コンピ上位だが市場中心ではない馬
+    marketInsurance=uniq(
+      cr.slice(0,5).filter(h=>
+        !marketAxis.includes(h) &&
+        !marketHead.slice(0,2).includes(h) &&
+        (rm.tan[h]||99)>=4
+      )
+    ).slice(0,3);
+
+    // 3着穴：コンピ5～6位＋市場接続、または壁直後
+    marketThird=uniq([
+      ...marketScore.filter(x=>x.compiR>=5&&x.compiR<=6&&(x.wideR<=8||x.sanR<=8||x.umaR<=8)).map(x=>x.h),
+      firstMajor?.next,
+      ...third,
+      ...stealthProtect
+    ]).filter(h=>h&&!marketAxis.includes(h)).slice(0,6);
+
+    // 役割ログ
+    marketAxis.forEach(h=>setRole(h,'軸','市場中心度が高い'));
+    marketHead.forEach(h=>setRole(h,'頭候補',(rm.tan[h]||99)<=3?'単勝上位':'コンピ・市場接続'));
+    marketMain.forEach(h=>setRole(h,'相手本線','馬連・ワイド・三連複接続'));
+    marketInsurance.forEach(h=>setRole(h,'コンピ保険','コンピ上位だが市場中心ではない'));
+    marketThird.forEach(h=>setRole(h,'3着侵入','中位コンピ＋市場接続または壁直後'));
+
+    if(cr[0]!==marketAxis[0])marketMove.push(`コンピ1位${cr[0]}番は順位を維持したまま軸から保険へ変更`);
+    if(marketAxis[0])marketMove.push(`${marketAxis[0]}番を市場中心軸へ変更`);
+    marketHead.filter(h=>h!==marketAxis[0]).slice(0,2).forEach(h=>marketMove.push(`${h}番を頭替わり候補へ変更`));
+    marketMain.slice(0,3).forEach(h=>marketMove.push(`${h}番を相手本線へ変更`));
+    marketThird.slice(0,3).forEach(h=>marketMove.push(`${h}番を3着侵入候補へ変更`));
+
+    // 市場役割に基づく三連複
     marketSan=[];
-    const a=marketMain[0],b=marketMain[1],c=marketMain[2];
-    addTri(marketSan,anchor,a,b);addTri(marketSan,anchor,a,c);
-    if(marketThird[0])addTri(marketSan,anchor,a,marketThird[0]);
-    if(marketThird[1])addTri(marketSan,anchor,a,marketThird[1]);
+    const ax=marketAxis[0]||center1?.h||cr[0];
+    const a=marketMain[0]||marketHead.find(h=>h!==ax);
+    const b=marketMain[1]||marketHead.find(h=>h!==ax&&h!==a);
+    const c=marketMain[2];
+    addTri(marketSan,ax,a,b);
+    addTri(marketSan,ax,a,c);
+    if(marketThird[0])addTri(marketSan,ax,a,marketThird[0]);
+    if(marketInsurance[0])addTri(marketSan,ax,a,marketInsurance[0]);
     sorted(d.san).slice(0,3).forEach(x=>addTri(marketSan,x.a,x.b,x.c));
   }
 
@@ -380,7 +452,7 @@ function build(d){
   return {
     d,compi,cr,sum,p,g12,g23,g13,g35,g56,g67,top4Spread,rec,gaps,maxGap,strongCompiWalls,firstMajor,compiTiers,
     groups,groupA,aMedian,aMedianSupport,a2Spread,a2Density,aDecisionPressure,pMedianMode,high85,linePos,lineHorse,otaniRules,otani,
-    type,fixed,place,why,first,axis,headAlt,main,third,compiSan,hasOdds,tr,fr,ur,wr,sr,walls,marketAxis,marketMain,marketThird,marketMove,marketSan,marketType,
+    type,fixed,place,why,first,axis,headAlt,main,third,compiSan,hasOdds,tr,fr,ur,wr,sr,walls,marketAxis,marketHead,marketMain,marketInsurance,marketThird,marketRole,marketMove,marketSan,marketType,
     all,bSupport,cSupport,stealth,stealthProtect,win5Main,win5Hole,matchanMain,matchanHole,structureAxis,ooareHead,axisAvoid,protect,blueWhite,bigHoleWin,bigHolePlace,bigHoleThird,
     aNo1Insurance,no1InsuranceOn,auditPairs,auditSan,auditHorses,tickets:{tan:tanBet,wide,umaren,san:san.slice(0,8),bestOne}
   };
@@ -445,14 +517,16 @@ function render(v){
     <div><span class="orange">市場支持B：</span>${fmt(v.bSupport)} ／ <span class="warn">市場支持C：</span>${fmt(v.cSupport)}</div>
   </div>
 
-  <div class="card roles"><div class="title">🎯 第2段階：市場補正後</div>
+  <div class="card roles"><div class="title">🎯 第2段階：市場による役割変更</div>
     <div class="typeName" style="font-size:24px">${v.marketType}</div>
     ${v.hasOdds?`
-      <div class="role"><div class="roleL">市場補正後の軸</div><div class="roleV">${fmt(v.marketAxis)}</div></div>
-      <div class="role"><div class="roleL">実質相手順位</div><div class="roleV">${fmt(v.marketMain)}</div></div>
-      <div class="role"><div class="roleL">市場逆行・3着保護</div><div class="roleV">${fmt(v.marketThird)}</div></div>
-      <div class="note">${v.marketMove.length?v.marketMove.map(x=>'・'+esc(x)).join('<br>'):'大きな順位入替なし'}</div>
-    `:'<div class="small">今回はコンピだけのため、市場補正は行っていません。</div>'}
+      <div class="role"><div class="roleL">市場中心軸</div><div class="roleV">${fmt(v.marketAxis)}</div></div>
+      <div class="role"><div class="roleL">頭替わり候補</div><div class="roleV">${fmt(v.marketHead)}</div></div>
+      <div class="role"><div class="roleL">相手本線</div><div class="roleV">${fmt(v.marketMain)}</div></div>
+      <div class="role"><div class="roleL">コンピ保険</div><div class="roleV">${fmt(v.marketInsurance)}</div></div>
+      <div class="role"><div class="roleL">3着侵入候補</div><div class="roleV">${fmt(v.marketThird)}</div></div>
+      <div class="note"><b>順位は変更せず、役割だけ変更：</b><br>${v.marketMove.length?v.marketMove.map(x=>'・'+esc(x)).join('<br>'):'役割変更なし'}</div>
+    `:'<div class="small">今回はコンピだけのため、市場による役割変更は行っていません。</div>'}
   </div>
 
   <div class="card stealth"><div class="title">👻 ステルス馬</div>
@@ -501,7 +575,7 @@ function run(){
   try{
     const d=parse(document.getElementById('input').value);
     if(d.compi.length<3)throw new Error('COMPIを3頭以上入力してください');
-    latest=build(d);document.getElementById('out').innerHTML=render(latest);document.title=d.title+'｜競馬メジアン V5.25';
+    latest=build(d);document.getElementById('out').innerHTML=render(latest);document.title=d.title+'｜競馬メジアン V5.26';
   }catch(e){document.getElementById('out').innerHTML=`<div class="card"><div class="title">入力エラー</div><pre>${esc(e.message||e)}</pre></div>`}
 }
 function clearAll(){document.getElementById('input').value='';document.getElementById('out').innerHTML='';latest=null}
@@ -525,7 +599,7 @@ function chatText(){
   if(!latest)throw new Error('先に解析してください');
   const v=latest;
   return `【${v.d.title}】
-競馬メジアン V5.25 完全統合版
+競馬メジアン V5.26 役割変更統合版
 
 【コンピ一次診断】
 レース型：${v.type}
@@ -545,13 +619,13 @@ P判定：${v.p}（上位3頭合計${v.sum}）
 3着侵入：${fmt(v.third)}
 三連複：${v.compiSan.join(' / ')||'なし'}
 
-【市場補正】
+【市場による役割変更】
 状態：${v.marketType}
-補正後軸：${fmt(v.marketAxis)}
-実質相手：${fmt(v.marketMain)}
-市場逆行・3着保護：${fmt(v.marketThird)}
-補正内容：${v.marketMove.join(' / ')||'なし'}
-補正後三連複：${v.marketSan.join(' / ')||'なし'}
+市場中心軸：${fmt(v.marketAxis)}
+頭替わり：${fmt(v.marketHead)}\n相手本線：${fmt(v.marketMain)}\nコンピ保険：${fmt(v.marketInsurance)}
+3着侵入候補：${fmt(v.marketThird)}
+役割変更内容：${v.marketMove.join(' / ')||'なし'}
+役割変更後三連複：${v.marketSan.join(' / ')||'なし'}
 
 【V5.24保存】
 A1：${fmt(v.groups.A1)}
@@ -585,14 +659,14 @@ async function copyForChat(){
     const t=chatText();
     if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(t);
     else{const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}
-    alert('V5.25解析結果をコピーしました');
+    alert('V5.26解析結果をコピーしました');
   }catch(e){alert(e.message||e)}
 }
 function csvEsc(v){v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
 function saveResearchCsv(){
   if(!latest){alert('先に解析してください');return}
   const v=latest,row={
-    日時:new Date().toISOString(),レース:v.d.title,解析:'V5.25-full-merge',
+    日時:new Date().toISOString(),レース:v.d.title,解析:'V5.26-role-change-engine',
     レース型:v.type,P:v.p,上位3合計:v.sum,大谷条件:v.otani,
     差1_2:v.g12,差2_3:v.g23,差1_3:v.g13,差3_5:v.g35,差5_6:v.g56,差6_7:v.g67,上位4頭幅:v.top4Spread,
     最大壁位置:v.maxGap.after,最大壁差:v.maxGap.gap,最大壁前:v.maxGap.before,最大壁直後:v.maxGap.next,
@@ -600,7 +674,7 @@ function saveResearchCsv(){
     A群内メジアン:v.aMedian.join('|'),市場接続メジアン:v.aMedianSupport.join('|'),A2密集度:v.a2Density,A2幅:v.a2Spread,
     コンピ85以上保護:v.high85.join('|'),一位抜きA群三角:v.aNo1Insurance,一位抜き保険ON:v.no1InsuranceOn?'ON':'OFF',
     コンピ固定一着:v.first.join('|'),コンピ馬券内軸:v.axis.join('|'),コンピ頭替わり:v.headAlt.join('|'),コンピ上位本線:v.main.join('|'),コンピ三着侵入:v.third.join('|'),コンピ三連複:v.compiSan.join('|'),
-    市場補正:v.marketType,市場軸:v.marketAxis.join('|'),市場相手:v.marketMain.join('|'),市場三着:v.marketThird.join('|'),市場補正内容:v.marketMove.join('|'),市場三連複:v.marketSan.join('|'),
+    市場役割変更:v.marketType,市場軸:v.marketAxis.join('|'),市場頭候補:v.marketHead.join('|'),市場相手:v.marketMain.join('|'),コンピ保険:v.marketInsurance.join('|'),市場三着:v.marketThird.join('|'),役割変更内容:v.marketMove.join('|'),市場三連複:v.marketSan.join('|'),
     WIN5本線:v.win5Main.join('|'),WIN5穴:v.win5Hole.join('|'),まっちゃん単勝本線:v.matchanMain.join('|'),まっちゃん穴単:v.matchanHole.join('|'),
     構造軸:v.structureAxis,大荒れ頭:v.ooareHead,軸回避:v.axisAvoid,相手保護:v.protect.join('|'),
     ステルス馬:v.stealth.map(x=>x.h+':'+x.grade).join('|'),青白光:v.blueWhite.map(x=>x.h+':'+x.gates.join('+')).join('|'),
@@ -609,7 +683,7 @@ function saveResearchCsv(){
   };
   const keys=Object.keys(row),csv='\ufeff'+keys.map(csvEsc).join(',')+'\n'+keys.map(k=>csvEsc(row[k])).join(',');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);a.download='競馬メジアン_V5.25完全統合_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  a.href=URL.createObjectURL(blob);a.download='競馬メジアン_V5.26役割変更_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 </script>
 </body>
