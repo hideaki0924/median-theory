@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
 <meta name="app-build" content="V5.29-table-restored-wall-display">
-<title>競馬メジアン V5.29 表復旧・オッズ壁表示復元版</title>
+<title>競馬メジアン V5.30 表復旧・オッズ壁表示復元版</title>
 <style>
 :root{
   --bg:#07101f;--card:#10224a;--card2:#020617;--line:#475569;
@@ -239,7 +239,18 @@ function thresholdWall(rank,values,limit){
 function addTri(arr,a,b,c){if(a&&b&&c&&new Set([a,b,c]).size===3){const k=triKey(a,b,c);if(!arr.includes(k))arr.push(k)}}
 function addPair(arr,a,b){if(a&&b&&a!==b){const k=pairKey(a,b);if(!arr.includes(k))arr.push(k)}}
 
+function venueMode(title=''){
+  const central=['札幌','函館','福島','新潟','東京','中山','中京','京都','阪神','小倉'];
+  const local=['門別','盛岡','水沢','浦和','船橋','大井','川崎','金沢','笠松','名古屋','園田','姫路','高知','佐賀','帯広'];
+  const c=central.find(x=>title.includes(x));
+  const l=local.find(x=>title.includes(x));
+  if(c)return {code:'JRA',name:'中央',place:c,compiWeight:'基準',marketWeight:'同等競合',note:'コンピ判定と市場判定を同等に競合'};
+  if(l)return {code:'NAR',name:'地方',place:l,compiWeight:'構造指標',marketWeight:'最終優先',note:'中央由来のP・大谷式コンピは骨格として保存し、直前オッズを最終判断で優先'};
+  return {code:'AUTO',name:'自動判定不明',place:'',compiWeight:'参考',marketWeight:'同等競合',note:'開催場を判別できないため通常モード'};
+}
+
 function build(d){
+  const venue=venueMode(d.title);
   const compi=d.compi.slice().sort((a,b)=>b.pt-a.pt||+a.h-+b.h),cr=compi.map(x=>x.h),n=compi.length;
   const sum=compi.slice(0,3).reduce((s,x)=>s+x.pt,0),p=pClass(sum);
   const gaps=[],compiWalls=[];
@@ -330,6 +341,18 @@ function build(d){
     f6:thresholdWall(fr,fv,6),f10:thresholdWall(fr,fv,10),f15:thresholdWall(fr,fv,15),
     t10:thresholdWall(tr,tv,10),t30:thresholdWall(tr,tv,30),t80:thresholdWall(tr,tv,80)
   };
+  const wallPriority=uniq([
+    walls.f15?.before,walls.f15?.next,
+    walls.f10?.before,walls.f10?.next,
+    walls.f6?.before,walls.f6?.next,
+    walls.t80?.before,walls.t80?.next,
+    ...walls.fuku.flatMap(w=>[w.before,w.next]),
+    ...walls.uma.flatMap(w=>[w.before,w.next]),
+    ...walls.wide.flatMap(w=>[w.before,w.next]),
+    ...walls.san.flatMap(w=>[w.before,w.next])
+  ]);
+  const wallFront=uniq([walls.f15?.before,walls.f10?.before,walls.f6?.before,walls.t80?.before,...walls.fuku.map(w=>w.before),...walls.uma.map(w=>w.before),...walls.wide.map(w=>w.before),...walls.san.map(w=>w.before)]);
+  const wallAfter=uniq([walls.f15?.next,walls.f10?.next,walls.f6?.next,walls.t80?.next,...walls.fuku.map(w=>w.next),...walls.uma.map(w=>w.next),...walls.wide.map(w=>w.next),...walls.san.map(w=>w.next)]);
   const rm={compi:rankMap(cr),tan:rankMap(tr),fuku:rankMap(fr),uma:rankMap(ur),wide:rankMap(wr),san:rankMap(sr)};
   const tfMap=Object.fromEntries(d.tf.map(x=>[x.h,x]));
   const support=h=>[(rm.tan[h]||99)<=6,(rm.fuku[h]||99)<=7,(rm.uma[h]||99)<=7,(rm.wide[h]||99)<=7,(rm.san[h]||99)<=8].filter(Boolean).length;
@@ -345,7 +368,8 @@ function build(d){
   wr.slice(0,7).forEach((h,i)=>add(h,7-i,'ワイド支持'));
   sr.slice(0,8).forEach((h,i)=>add(h,8-i,'三連複支持'));
   strongCompiWalls.forEach(w=>{add(w.before,w.gap>=10?5:3,'コンピ壁前'+w.gap+'P');add(w.next,w.gap>=10?3:2,'コンピ壁直後'+w.gap+'P')});
-  [walls.f6,walls.f15,walls.t80].forEach(w=>{if(w){add(w.before,4,'オッズ壁前');add(w.next,2,'オッズ壁直後')}});
+  [walls.f6,walls.f10,walls.f15,walls.t10,walls.t30,walls.t80].forEach(w=>{if(w){add(w.before,5,'基準壁前');add(w.next,3,'基準壁直後')}});
+  ['tan','fuku','uma','wide','san'].forEach(k=>(walls[k]||[]).forEach(w=>{add(w.before,4,`${k}1.8壁前`);add(w.next,2,`${k}1.8壁直後`)}));
   [...medianHorses(tr),...medianHorses(fr),...medianHorses(ur),...medianHorses(sr)].forEach(h=>add(h,3,'メジアン'));
   const all=Object.values(score).sort((a,b)=>b.score-a.score||+a.h-+b.h);
 
@@ -411,10 +435,25 @@ function build(d){
 
     // 3着穴：コンピ5～6位＋市場接続、または壁直後
     marketThird=uniq([
-      ...marketScore.filter(x=>x.compiR>=5&&x.compiR<=6&&(x.wideR<=8||x.sanR<=8||x.umaR<=8)).map(x=>x.h),
+      ...wallFront,
+      ...wallAfter,
+      ...marketScore.filter(x=>x.compiR>=5&&(x.wideR<=10||x.sanR<=10||x.umaR<=10||x.fukuR<=10)).map(x=>x.h),
       firstMajor?.next,
       ...third
-    ]).filter(h=>h&&!marketAxis.includes(h)).slice(0,6);
+    ]).filter(h=>h&&!marketAxis.includes(h)).slice(0,10);
+
+    // 地方はコンピを骨格として保存しつつ、現在の市場と壁を最終役割で優先する。
+    if(venue.code==='NAR'){
+      const liveWallHead=wallFront.find(h=>{
+        const x=marketScore.find(z=>z.h===h);
+        return x&&(x.tanR<=10||x.fukuR<=10||x.umaR<=10||x.wideR<=10||x.sanR<=10);
+      });
+      marketHead=uniq([center1?.h,liveWallHead,...marketHead]).slice(0,5);
+      marketMain=uniq([...marketMain,...wallFront.filter(h=>support(h)>=2)]).slice(0,7);
+      if(liveWallHead)setRole(liveWallHead,'地方・壁穴頭候補','地方市場優先＋壁前＋市場接続');
+      marketMove.unshift('地方モード：コンピ順位は保存し、直前市場・壁を最終役割で優先');
+    }
+
 
     // 役割ログ
     marketAxis.forEach(h=>setRole(h,'軸','市場中心度が高い'));
@@ -439,7 +478,10 @@ function build(d){
     addTri(marketSan,ax,a,c);
     if(marketThird[0])addTri(marketSan,ax,a,marketThird[0]);
     if(marketInsurance[0])addTri(marketSan,ax,a,marketInsurance[0]);
-    sorted(d.san).slice(0,3).forEach(x=>addTri(marketSan,x.a,x.b,x.c));
+    wallFront.slice(0,4).forEach(h=>{addTri(marketSan,ax,a,h);if(b)addTri(marketSan,ax,b,h)});
+    // 大荒れ・地方市場優先時は壁前同士と市場本線の競合組も削除禁止で残す。
+    if(venue.code==='NAR'&&wallFront.length>=2){addTri(marketSan,a||ax,wallFront[0],wallFront[1]);}
+    sorted(d.san).slice(0,5).forEach(x=>addTri(marketSan,x.a,x.b,x.c));
   }
 
   // A群メジアン補正
@@ -487,7 +529,7 @@ function build(d){
   const structureAxis=uniq([axis[0],all.find(x=>x.reasons.includes('馬連支持')&&x.reasons.includes('三連複支持')&&support(x.h)>=3)?.h,cr[0]])[0]||'';
   const ooareHead=uniq([...matchanHole,...bSupport,walls.f15?.before])[0]||'';
   const axisAvoid=(fixed==='低'||type.includes('大穴')||type.includes('崩れ'))?structureAxis:'';
-  const protect=uniq([...stealthProtect,...marketMain,...marketThird,...groups.A2,...third,...win5,...strongCompiWalls.flatMap(w=>[w.before,w.next]),...aMedianSupport,...high85]).filter(h=>h&&h!==structureAxis).slice(0,14);
+  const protect=uniq([...wallPriority,...stealthProtect,...marketMain,...marketThird,...groups.A2,...third,...win5,...strongCompiWalls.flatMap(w=>[w.before,w.next]),...aMedianSupport,...high85]).filter(h=>h&&h!==structureAxis).slice(0,18);
 
   const blueWhite=all.map(x=>{
     const h=x.h,gates=[];
@@ -511,23 +553,29 @@ function build(d){
   for(let i=0;i<groups.A2.length;i++)for(let j=i+1;j<groups.A2.length;j++)addTri(auditSan,auditAxis,groups.A2[i],groups.A2[j]);
   matchanHole.slice(0,2).forEach(h=>marketMain.slice(0,2).forEach(m=>addTri(auditSan,auditAxis,m,h)));
   if(aNo1Insurance){const q=aNo1Insurance.split('-');addTri(auditSan,q[0],q[1],q[2])}
-  const auditHorses=uniq([auditAxis,...high85,...aMedianSupport,...stealthProtect,...groups.A2,...matchanHole,...third,...marketThird,...protect,...strongCompiWalls.flatMap(w=>[w.before,w.next]),cr[5]]).slice(0,15);
+  const auditHorses=uniq([auditAxis,...wallPriority,...high85,...aMedianSupport,...stealthProtect,...groups.A2,...matchanHole,...third,...marketThird,...protect,...strongCompiWalls.flatMap(w=>[w.before,w.next]),cr[5]]).slice(0,20);
 
   // 型専用買い目
   const tanBet=uniq(fixed==='高'?[first[0]]:first.slice(0,2));
   const wide=[],umaren=[],san=[];
   const betAxis=marketAxis[0]||axis[0]||cr[0],betMain=(hasOdds?marketMain:main);
   betMain.slice(0,3).forEach(h=>{addPair(wide,betAxis,h);addPair(umaren,betAxis,h)});
-  (hasOdds?marketSan:compiSan).slice(0,7).forEach(k=>{if(!san.includes(k))san.push(k)});
+  (hasOdds?marketSan:compiSan).slice(0,12).forEach(k=>{if(!san.includes(k))san.push(k)});
+  // 壁前・壁直後は検出だけで終わらせず、最終三連複へ必ず関連させる。
+  if(hasOdds){
+    const ax2=betAxis, m1=betMain[0]||marketHead.find(h=>h!==ax2);
+    wallFront.slice(0,4).forEach(h=>addTri(san,ax2,m1,h));
+    wallAfter.slice(0,2).forEach(h=>addTri(san,ax2,m1,h));
+  }
   if(no1InsuranceOn&&!san.includes(aNo1Insurance))san.push(aNo1Insurance);
   const bestOne=san[0]||wide[0]||umaren[0]||tanBet[0]||'なし';
 
   return {
-    d,compi,cr,sum,p,pDetailInfo,g12,g23,g13,g35,g56,g67,top4Spread,rec,gaps,maxGap,strongCompiWalls,firstMajor,compiTiers,
+    d,venue,compi,cr,sum,p,pDetailInfo,g12,g23,g13,g35,g56,g67,top4Spread,rec,gaps,maxGap,strongCompiWalls,firstMajor,compiTiers,
     groups,groupA,aMedian,aMedianSupport,a2Spread,a2Density,aDecisionPressure,pMedianMode,high85,linePos,lineHorse,otaniRules,otani,
-    type,fixed,place,why,first,axis,headAlt,main,third,compiSan,hasOdds,tr,fr,ur,wr,sr,walls,marketAxis,marketHead,marketMain,marketInsurance,marketThird,marketRole,marketMove,marketSan,marketType,
+    type,fixed,place,why,first,axis,headAlt,main,third,compiSan,hasOdds,tr,fr,ur,wr,sr,walls,wallPriority,wallFront,wallAfter,marketAxis,marketHead,marketMain,marketInsurance,marketThird,marketRole,marketMove,marketSan,marketType,
     all,bSupport,cSupport,stealth,stealthProtect,win5Main,win5Hole,matchanMain,matchanHole,structureAxis,ooareHead,axisAvoid,protect,blueWhite,bigHoleWin,bigHolePlace,bigHoleThird,
-    aNo1Insurance,no1InsuranceOn,auditPairs,auditSan,auditHorses,tickets:{tan:tanBet,wide,umaren,san:san.slice(0,8),bestOne}
+    aNo1Insurance,no1InsuranceOn,auditPairs,auditSan,auditHorses,tickets:{tan:tanBet,wide,umaren,san:san.slice(0,14),bestOne}
   };
 }
 
@@ -595,6 +643,15 @@ function render(v){
   <b>複勝基準壁：</b>${thresholdText(v.walls.f6,'6倍')} ／ ${thresholdText(v.walls.f10,'10倍')} ／ ${thresholdText(v.walls.f15,'15倍')}<br>
   <b>単勝基準壁：</b>${thresholdText(v.walls.t10,'10倍')} ／ ${thresholdText(v.walls.t30,'30倍')} ／ ${thresholdText(v.walls.t80,'80倍')}</div></div>
 
+  <div class="card commander"><div class="title">🏟️ 開催区分・統合方針</div>
+    <div class="typeName">${v.venue.name}${v.venue.place?'（'+v.venue.place+'）':''}</div>
+    <div class="metaGrid">
+      <div class="meta"><div class="metaL">コンピの扱い</div><div class="metaV">${v.venue.compiWeight}</div></div>
+      <div class="meta"><div class="metaL">市場の扱い</div><div class="metaV">${v.venue.marketWeight}</div></div>
+    </div>
+    <div class="note">${v.venue.note}<br><b>重要：</b>中央由来の基準を地方で自動的に「確定判定」にせず、コンピ＝骨格、市場＝現在値として分離します。</div>
+  </div>
+
   <div class="card commander"><div class="title">🩺 第1段階：コンピ一次診断</div>
     <div class="typeName">${esc(v.type)}</div>
     <div class="note" style="margin-bottom:10px">
@@ -654,6 +711,14 @@ function render(v){
     ${v.stealth.length?v.stealth.slice(0,5).map((x,i)=>`<div class="stealthHorse"><div class="stealthTop">${i+1}位 ${x.h}番 <span class="stealthRank">${x.grade}</span></div><div class="stealthReason">${x.reasons.join(' ／ ')}</div></div>`).join(''):'<div class="small">該当なし</div>'}
   </div>
 
+  <div class="card audit"><div class="title">🔗 壁→穴→役割→買い目 連携監査</div>
+    <div><b>壁前：</b><span class="deleteSafe">${fmt(v.wallFront)}</span></div>
+    <div><b>壁直後：</b><span class="orange">${fmt(v.wallAfter)}</span></div>
+    <div><b>市場3着・穴候補へ合流：</b>${fmt(v.marketThird)}</div>
+    <div><b>削除禁止保護へ合流：</b>${fmt(v.wallPriority)}</div>
+    <div class="small">複勝15倍壁を含む各壁は、表示だけで終わらず、穴候補・役割変更・監査枠・最終三連複まで通します。</div>
+  </div>
+
   <div class="card legacy"><div class="title">🧰 V5.24候補保存</div>
     <div class="legacyGrid">
       <div class="legacyBox"><div class="legacyL">まっちゃん単勝・本線</div><div class="legacyV">${fmt(v.matchanMain)}</div></div>
@@ -696,7 +761,7 @@ function run(){
   try{
     const d=parse(document.getElementById('input').value);
     if(d.compi.length<3)throw new Error('COMPIを3頭以上入力してください');
-    latest=build(d);document.getElementById('out').innerHTML=render(latest);document.title=d.title+'｜競馬メジアン V5.29';
+    latest=build(d);document.getElementById('out').innerHTML=render(latest);document.title=d.title+'｜競馬メジアン V5.30';
   }catch(e){document.getElementById('out').innerHTML=`<div class="card"><div class="title">入力エラー</div><pre>${esc(e.message||e)}</pre></div>`}
 }
 function clearAll(){document.getElementById('input').value='';document.getElementById('out').innerHTML='';latest=null}
@@ -720,7 +785,13 @@ function chatText(){
   if(!latest)throw new Error('先に解析してください');
   const v=latest;
   return `【${v.d.title}】
-競馬メジアン V5.29 役割変更安定版
+競馬メジアン V5.30 役割変更安定版
+
+【開催区分・統合方針】
+開催：${v.venue.name}${v.venue.place?'（'+v.venue.place+'）':''}
+コンピ：${v.venue.compiWeight}
+市場：${v.venue.marketWeight}
+方針：${v.venue.note}
 
 【コンピ一次診断】
 レース型：${v.type}
@@ -742,6 +813,8 @@ P詳細タイプ：${v.pDetailInfo.code} ${v.pDetailInfo.name}
 三連複壁：${wallText(v.walls.san)}
 複勝基準壁：${thresholdText(v.walls.f6,'6倍')} / ${thresholdText(v.walls.f10,'10倍')} / ${thresholdText(v.walls.f15,'15倍')}
 単勝基準壁：${thresholdText(v.walls.t10,'10倍')} / ${thresholdText(v.walls.t30,'30倍')} / ${thresholdText(v.walls.t80,'80倍')}
+壁前保護：${fmt(v.wallFront)}
+壁直後保護：${fmt(v.wallAfter)}
 
 【コンピ単独予想】
 ${v.fixed==='低'?'1着候補（固定なし）':'固定1着候補'}：${fmt(v.first)}
