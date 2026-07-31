@@ -1,15 +1,616 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07101f"><title>競馬メジアン V5.25</title><style>
-:root{--bg:#07101f;--card:#10224a;--line:#475569;--y:#fde047;--c:#67e8f9;--r:#fb7185;--o:#fb923c}*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:#fff}body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:10px;font-size:17px;line-height:1.55}main{max-width:800px;margin:auto}h1{font-size:clamp(23px,6vw,30px);line-height:1.3}.tag{background:#be123c;border-radius:999px;padding:3px 10px;font-size:.7em}.card{background:var(--card);border:1px solid #3b82f6;border-radius:18px;padding:13px;margin:12px 0;overflow-wrap:anywhere}.title{font-size:clamp(20px,5vw,26px);font-weight:950;color:var(--y);margin-bottom:9px}textarea{width:100%;height:330px;border-radius:16px;border:2px solid #3b82f6;padding:12px;background:#f8fafc;color:#111;font:16px/1.45 monospace}button{border:0;border-radius:15px;padding:13px 16px;margin:8px 5px 3px 0;font-size:17px;font-weight:950}.go{background:#22c55e;color:#052e16}.sample{background:#3b82f6;color:#fff}.clear{background:#64748b;color:#fff}.copy{background:#8b5cf6;color:#fff}.save{background:#0891b2;color:#fff}.compi{border:3px solid #22d3ee;background:linear-gradient(145deg,#00212b,#0c4a6e,#07101f)}.market{border:3px solid #60a5fa;background:linear-gradient(145deg,#061326,#10285b,#07101f)}.audit{border:3px solid #fb7185;background:linear-gradient(145deg,#3b0a16,#881337,#07101f)}.ticket{border:3px solid #facc15;background:linear-gradient(145deg,#2b2000,#713f12,#07101f)}.type{font-size:clamp(25px,7vw,34px);font-weight:950;color:var(--y)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.meta,.role,.ticketBox,.note{background:#020617;border:1px solid var(--line);border-radius:12px;padding:9px;margin:8px 0}.metaL,.roleL,.ticketL{font-size:12px;color:#93c5fd;font-weight:950}.metaV{font-size:19px;font-weight:950}.roleV{font-size:24px;font-weight:950}.ticketV{font-size:21px;font-weight:950;line-height:1.7}.small{font-size:13px;color:#cbd5e1}.badge{display:inline-block;margin:3px;padding:4px 8px;border-radius:999px;background:#1e293b;font-weight:900}.row{display:flex;align-items:center;min-width:max-content}.scroll{overflow-x:auto;background:#061326;border-radius:13px;padding:7px}.label{width:58px;min-width:58px;font-weight:950}.cell{width:42px;min-width:42px;text-align:center;font-size:20px;font-weight:950}.pt{display:block;font-size:10px;color:#d8b4fe}.sep{width:3px;min-width:3px;height:28px;background:#35517a;border-radius:5px;margin:0 3px}.sep.big{background:var(--r);box-shadow:0 0 8px var(--r)}.sep.mid{background:#f59e0b}.sep.small{background:#22d3ee}.safe{color:#fef08a;font-weight:950}pre{white-space:pre-wrap;background:#020617;padding:10px;border-radius:12px}@media(max-width:520px){body{padding:8px}.card{padding:10px}.roleV{font-size:21px}}
-</style></head><body><main><h1>競馬メジアン <span class="tag">V5.25</span><br>コンピ単独予想＋市場入替検証版</h1>
-<div class="card"><div class="title">レースデータ入力</div><textarea id="input" placeholder="【川崎2R】\n\n[COMPI]\n10 73\n7 70\n3 68 推奨\n4 67\n2 54\n6 50\n\n※コンピだけでも解析できます。"></textarea><button class="go" onclick="run()">V5.25解析</button><button class="sample" onclick="sample()">サンプル</button><button class="clear" onclick="clearAll()">リセット</button><button class="copy" onclick="copyForChat()">チャッピー用コピー</button><button class="save" onclick="saveCsv()">研究CSV</button></div><div id="out"></div></main>
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07101f">
+<meta name="app-build" content="V5.25-full-merge">
+<title>競馬メジアン V5.25 コンピ単独予想＋市場補正・完全統合版</title>
+<style>
+:root{
+  --bg:#07101f;--card:#10224a;--card2:#020617;--line:#475569;
+  --cyan:#67e8f9;--blue:#60a5fa;--yellow:#fde047;--orange:#fb923c;
+  --red:#fb7185;--green:#4ade80;--purple:#a78bfa;--pink:#f472b6;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:#fff;overflow-x:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:10px;padding-bottom:calc(30px + env(safe-area-inset-bottom));font-size:17px;line-height:1.55}
+main{max-width:800px;margin:0 auto}
+h1{font-size:clamp(23px,6vw,30px);line-height:1.3;margin:4px 0 12px}
+.tag{display:inline-block;border-radius:999px;padding:3px 10px;background:#be123c;font-size:.7em}
+.card{overflow:hidden;overflow-wrap:anywhere;background:var(--card);border:1px solid #3b82f6;border-radius:18px;padding:13px;margin:12px 0}
+.title{font-size:clamp(20px,5.4vw,26px);font-weight:950;color:var(--yellow);margin-bottom:9px}
+.small{font-size:13px;color:#cbd5e1}
+textarea{width:100%;height:320px;border-radius:16px;border:2px solid #3b82f6;padding:12px;background:#f8fafc;color:#111;font-family:monospace;font-size:16px;line-height:1.45}
+button{border:0;border-radius:15px;padding:13px 16px;margin:8px 5px 3px 0;font-size:17px;font-weight:950}
+.go{background:#22c55e;color:#052e16}.sample{background:#3b82f6;color:#fff}.clear{background:#64748b;color:#fff}.copy{background:#8b5cf6;color:#fff}.save{background:#0891b2;color:#ecfeff}
+.pipeline{border:3px solid #22d3ee;background:linear-gradient(145deg,#00212b,#0c4a6e,#07101f)}
+.step{background:#020617;border:1px solid #155e75;border-radius:13px;padding:10px;margin:8px 0}
+.stepNo{display:inline-block;border-radius:999px;background:#0891b2;color:#ecfeff;padding:2px 8px;font-weight:950;margin-right:7px}
+.compiOnly{border:3px solid #22d3ee;background:linear-gradient(145deg,#00212b,#0c4a6e,#07101f);box-shadow:0 0 16px rgba(34,211,238,.25)}
+.market{border:3px solid var(--blue);background:linear-gradient(145deg,#061326,#10285b,#07101f)}
+.commander{border:3px solid var(--purple);background:linear-gradient(145deg,#160b2e,#312e81,#07101f)}
+.roles{border:3px solid #f59e0b;background:linear-gradient(145deg,#2b1600,#78350f,#07101f)}
+.ticket{border:3px solid #facc15;background:linear-gradient(145deg,#2b2000,#713f12,#07101f)}
+.research{border:3px solid #14b8a6;background:linear-gradient(145deg,#032f2f,#134e4a,#07101f)}
+.audit{border:3px solid #fb7185;background:linear-gradient(145deg,#3b0a16,#881337,#07101f)}
+.stealth{border:3px solid #c084fc;background:linear-gradient(145deg,#1f1235,#4c1d95,#07101f)}
+.legacy{border:3px solid #22d3ee;background:linear-gradient(145deg,#002333,#164e63,#07101f)}
+.win5{border:3px solid #ec4899;background:linear-gradient(145deg,#3b0826,#831843,#07101f);box-shadow:0 0 18px rgba(236,72,153,.3)}
+.typeName{font-size:clamp(25px,7vw,35px);font-weight:950;color:var(--yellow);margin:5px 0}
+.metaGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.meta{background:rgba(2,6,23,.78);border:1px solid var(--line);border-radius:12px;padding:9px}
+.metaL{font-size:12px;color:#93c5fd;font-weight:900}.metaV{font-size:19px;font-weight:950}
+.role{background:#020617;border:1px solid #92400e;border-radius:12px;padding:10px;margin:8px 0}
+.roleL{font-size:13px;color:#fdba74;font-weight:950}.roleV{font-size:25px;font-weight:950}
+.ticketBox{background:#020617;border:1px solid #a16207;border-radius:12px;padding:10px;margin:8px 0}
+.ticketL{font-size:13px;color:#fde68a;font-weight:950}.ticketV{font-size:21px;font-weight:950;line-height:1.7}
+.badge{display:inline-block;margin:3px;padding:4px 8px;border-radius:999px;background:#1e293b;font-weight:900}
+.warn{color:var(--red);font-weight:950}.good{color:#86efac;font-weight:950}.cyan{color:var(--cyan);font-weight:950}.orange{color:var(--orange);font-weight:950}
+pre{white-space:pre-wrap;word-break:break-word;background:#020617;padding:11px;border-radius:12px;font-size:14px}
+.marketScroll{overflow-x:auto;background:#061326;border-radius:13px;padding:6px 3px}
+.row{display:flex;align-items:center;min-width:max-content;margin:5px 0}
+.label{width:58px;min-width:58px;font-size:14px;font-weight:950}
+.cell{width:40px;min-width:40px;text-align:center;font-size:20px;font-weight:950}
+.pt{display:block;font-size:10px;color:#d8b4fe}
+.sep{width:4px;min-width:4px;height:28px;margin:0 3px;border-radius:5px;background:#35517a}
+.sep.big{background:#fb7185;box-shadow:0 0 8px #fb7185}.sep.mid{background:#f59e0b;box-shadow:0 0 8px #f59e0b}.sep.small{background:#22d3ee}
+.note{margin-top:8px;padding:9px;background:#020617;border:1px solid #35517a;border-radius:11px;font-size:13px;line-height:1.65}
+.grid2,.legacyGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.box,.legacyBox{background:#020617;border:1px solid #475569;border-radius:12px;padding:9px}
+.boxL,.legacyL{font-size:12px;color:#93c5fd;font-weight:950}.boxV,.legacyV{font-size:20px;font-weight:950;margin-top:3px}
+.deleteSafe{color:#fef08a;font-weight:950;text-shadow:0 0 7px rgba(250,204,21,.5)}
+.stealthHorse{background:#020617;border:1px solid #7e22ce;border-radius:13px;padding:10px;margin:8px 0}
+.stealthTop{font-size:23px;font-weight:950;color:#e9d5ff}
+.stealthRank{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;background:#581c87;color:#f5d0fe;font-size:13px}
+.stealthReason{font-size:13px;color:#ddd6fe;line-height:1.55;margin-top:4px}
+@media(max-width:520px){body{padding:8px}.card{padding:10px}.metaV{font-size:17px}.roleV{font-size:22px}.legacyV{font-size:18px}}
+</style>
+</head>
+<body>
+<main>
+<h1>競馬メジアン <span class="tag">V5.25</span><br>コンピ単独予想＋市場補正・完全統合版</h1>
+
+<div class="card">
+  <div class="title">レースデータ入力</div>
+  <textarea id="input" placeholder="【川崎2R】
+
+[COMPI]
+10 73
+7 70
+3 68 推奨
+4 67
+2 54
+6 50
+
+※コンピだけでも解析できます。
+オッズがある場合は下へ追加。
+
+[TANFUKU]
+馬番 単勝 複勝上限
+
+[UMAREN]
+馬番-馬番 オッズ
+
+[WIDE]
+馬番-馬番 オッズ
+
+[SANPUKU]
+馬番-馬番-馬番 オッズ"></textarea>
+  <button class="go" onclick="run()">V5.25解析</button>
+  <button class="sample" onclick="sample()">サンプル</button>
+  <button class="clear" onclick="clearAll()">リセット</button>
+  <button class="copy" onclick="copyForChat()">チャッピー用コピー</button>
+  <button class="save" onclick="saveResearchCsv()">研究CSV</button>
+</div>
+
+<div class="card pipeline">
+  <div class="title">🔁 V5.25の判定工程</div>
+  <div class="step"><span class="stepNo">1</span><b>コンピだけで原型予想</b><div class="small">固定1着候補・馬券内軸・頭替わり・上位本線・3着侵入候補を先に保存。</div></div>
+  <div class="step"><span class="stepNo">2</span><b>上位4頭密集／一強・相手横並び／壁直後侵入</b><div class="small">今日の検証を正式ロジック化。上位で1・2着、壁直後～6位を3着監査。</div></div>
+  <div class="step"><span class="stepNo">3</span><b>オッズで相手順位を入替</b><div class="small">コンピ2位を自動固定せず、馬連・ワイド・三連複接続が強い馬を上位化。</div></div>
+  <div class="step"><span class="stepNo">4</span><b>V5.24機能を削除せず保存</b><div class="small">大谷式、A1/A2/B/C、A群メジアン、WIN5、ステルス、青白光、構造軸、大荒れ頭、監査枠を残す。</div></div>
+</div>
+
+<div id="out"></div>
+</main>
+
 <script>
-'use strict';let latest=null;const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const zen=s=>String(s||'').replace(/[０-９]/g,x=>String.fromCharCode(x.charCodeAt(0)-65248)).replace(/．/g,'.').replace(/[－ー―−]/g,'-').replace(/　/g,' ');const nums=s=>(zen(s).match(/\d+(?:\.\d+)?/g)||[]).map(Number);const uniq=a=>[...new Set((a||[]).filter(Boolean).map(String))];const sorted=(a,k='od')=>a.slice().sort((x,y)=>Number(x[k])-Number(y[k]));const triKey=(a,b,c)=>[String(a),String(b),String(c)].sort((x,y)=>+x-+y).join('-');const fmt=a=>a&&a.length?a.map(x=>x+'番').join('・'):'なし';
-function parse(raw){const d={title:'レース',tf:[],uma:[],wide:[],san:[],compi:[]};let sec='';for(let line of zen(raw).split(/\r?\n/)){line=line.trim();if(!line)continue;if(line.startsWith('【'))d.title=line.replace(/[【】]/g,'');const up=line.toUpperCase();if(up.startsWith('[')){if(up.includes('COMPI'))sec='C';else if(up.includes('TAN')||up.includes('単'))sec='TF';else if(up.includes('WIDE')||up.includes('ワイド'))sec='W';else if(up.includes('SAN')||up.includes('三')||up.includes('3'))sec='S';else if(up.includes('UMA')||up.includes('馬')||up.includes('2'))sec='U';continue}const n=nums(line);if(sec==='C'&&n.length>=2)d.compi.push({h:String(Math.floor(n[0])),pt:n[1],rec:/(推奨|推薦|推\b|赤|★|◎)/.test(line)});if(sec==='TF'&&n.length>=2)d.tf.push({h:String(Math.floor(n[0])),tan:n[1],fuku:n.length>=3?n[n.length-1]:null});if(sec==='U'){const m=line.match(/(\d+)\s*-\s*(\d+)/);if(m&&n.length)d.uma.push({a:m[1],b:m[2],od:n[n.length-1]})}if(sec==='W'){const m=line.match(/(\d+)\s*-\s*(\d+)/);if(m&&n.length)d.wide.push({a:m[1],b:m[2],od:n[n.length-1]})}if(sec==='S'){const m=line.match(/(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/);if(m&&n.length)d.san.push({a:m[1],b:m[2],c:m[3],od:n[n.length-1]})}}return d}
-function pClass(s){return s<=205?'P1':s<=209?'P2':s<=213?'P3':s<=216?'P4':s<=219?'P5':'P6'}function rankPairs(list){const s={};sorted(list).forEach((p,i)=>[p.a,p.b].forEach(h=>{s[h]=s[h]||{h,c:0,b:999,z:0};s[h].c++;s[h].b=Math.min(s[h].b,i+1);s[h].z+=i+1}));return Object.values(s).sort((x,y)=>y.c-x.c||x.b-y.b||x.z-y.z||+x.h-+y.h).map(x=>x.h)}function rankTri(list){const s={};sorted(list).forEach((p,i)=>[p.a,p.b,p.c].forEach(h=>{s[h]=s[h]||{h,c:0,b:999,z:0};s[h].c++;s[h].b=Math.min(s[h].b,i+1);s[h].z+=i+1}));return Object.values(s).sort((x,y)=>y.c-x.c||x.b-y.b||x.z-y.z||+x.h-+y.h).map(x=>x.h)}function rmap(a){return Object.fromEntries(a.map((h,i)=>[h,i+1]))}function addTri(a,x,y,z){if(x&&y&&z&&new Set([x,y,z]).size===3){const k=triKey(x,y,z);if(!a.includes(k))a.push(k)}}
-function build(d){const compi=d.compi.slice().sort((a,b)=>b.pt-a.pt||+a.h-+b.h),cr=compi.map(x=>x.h),n=compi.length,sum=compi.slice(0,3).reduce((s,x)=>s+x.pt,0),p=pClass(sum);const gaps=[];for(let i=0;i<n-1;i++)gaps.push({after:i+1,gap:compi[i].pt-compi[i+1].pt,before:compi[i].h,next:compi[i+1].h});const maxGap=gaps.slice().sort((a,b)=>b.gap-a.gap||a.after-b.after)[0]||{after:0,gap:0,before:'',next:''};const firstWall=gaps.find(x=>x.gap>=10)||gaps.find(x=>x.gap>=7)||null;const g12=n>1?compi[0].pt-compi[1].pt:null,g13=n>2?compi[0].pt-compi[2].pt:null,top4=n>=4?compi[0].pt-compi[3].pt:null,rec=compi.find(x=>x.rec)?.h||'';let type='標準上位型',fixed='中',reason=[];if(n>=4&&top4<=7){type='上位4頭密集・頭替わり型';fixed='低';reason.push('上位4頭が7P以内')}else if(compi[0].pt>=85&&g13>=18){type='一強・相手横並び型';fixed='高';reason.push('1位85以上','1-3差18P以上')}else if(compi[0].pt>=80&&g13>=14){type='一強・相手入替型';fixed='中～高';reason.push('1位80以上','1-3差14P以上')}else if(firstWall&&firstWall.after<=3){type='上位核＋壁直後侵入型';fixed='中';reason.push(firstWall.after+'位後'+firstWall.gap+'P壁')}else if(p==='P1'||p==='P2'){type='低P・上位崩れ警戒型';fixed='低';reason.push('P1/P2')}else reason.push('決定的な固定条件なし');let first=[],axis=[],head=[],main=[],third=[];if(type.includes('上位4頭密集')){first=uniq([rec,...cr.slice(0,4)]).slice(0,4);axis=uniq([rec,cr[0]]).slice(0,2);head=uniq(cr.slice(0,4).filter(h=>!axis.includes(h))).slice(0,3);main=cr.slice(0,4);third=uniq([cr[4],cr[5],firstWall?.next]).slice(0,3)}else if(type.includes('一強')){first=[cr[0]];axis=[cr[0]];head=uniq([rec,cr[1],cr[2]]).filter(h=>h!==cr[0]).slice(0,2);const flat=n>=5&&compi[2].pt-compi[4].pt<=7;main=flat?uniq([cr[2],cr[3],cr[4],cr[1]]):cr.slice(1,5);third=uniq([cr[3],cr[4],firstWall?.next,cr[5]]).slice(0,4)}else{first=uniq([rec,cr[0],cr[1],cr[2]]).slice(0,3);axis=uniq([cr[0],rec]).slice(0,2);head=uniq([cr[1],cr[2],cr[3]]).filter(h=>!axis.includes(h)).slice(0,3);main=cr.slice(0,5);third=uniq([firstWall?.next,cr[3],cr[4],cr[5]]).slice(0,4)}const compiSan=[];if(type.includes('上位4頭密集')){addTri(compiSan,cr[0],cr[1],cr[2]);addTri(compiSan,cr[0],cr[1],cr[3]);addTri(compiSan,cr[0],cr[2],cr[3]);addTri(compiSan,cr[1],cr[2],cr[3]);if(cr[4])addTri(compiSan,rec||cr[0],cr[0]===rec?cr[1]:cr[0],cr[4]);if(cr[5])addTri(compiSan,rec||cr[0],cr[0]===rec?cr[1]:cr[0],cr[5])}else{const ax=cr[0],a=main[0],b=main[1],c=main[2];addTri(compiSan,ax,a,b);addTri(compiSan,ax,a,c);if(third[0])addTri(compiSan,ax,a,third[0]);if(third[1])addTri(compiSan,ax,a,third[1])}const hasOdds=d.tf.length||d.uma.length||d.wide.length||d.san.length,tr=sorted(d.tf.map(x=>({...x,od:x.tan})),'tan').map(x=>x.h),fr=sorted(d.tf.filter(x=>x.fuku!=null).map(x=>({...x,od:x.fuku})),'fuku').map(x=>x.h),ur=rankPairs(d.uma),wr=rankPairs(d.wide),sr=rankTri(d.san),rm={c:rmap(cr),t:rmap(tr),f:rmap(fr),u:rmap(ur),w:rmap(wr),s:rmap(sr)};const support=h=>[(rm.t[h]||99)<=6,(rm.f[h]||99)<=7,(rm.u[h]||99)<=7,(rm.w[h]||99)<=7,(rm.s[h]||99)<=8].filter(Boolean).length;let marketAxis=axis.slice(),marketMain=main.slice(),marketThird=third.slice(),moves=[],marketSan=compiSan.slice();if(hasOdds){const anchor=cr[0],cand=uniq([...ur.slice(0,5),...sr.slice(0,6),...wr.slice(0,5),...tr.slice(0,5)]),scored=cand.map(h=>({h,s:support(h)*10+(rm.u[h]?8-rm.u[h]:0)+(rm.s[h]?9-rm.s[h]:0)+(rm.w[h]?8-rm.w[h]:0)+(rm.c[h]?Math.max(0,7-rm.c[h]):0)})).sort((a,b)=>b.s-a.s||+a.h-+b.h);marketMain=uniq(scored.filter(x=>x.h!==anchor).map(x=>x.h)).slice(0,5);marketAxis=uniq([anchor,scored[0]?.h]).slice(0,2);const quiet=cr.filter(h=>(rm.c[h]||99)>=4&&support(h)>=2).sort((a,b)=>support(b)-support(a)||(rm.s[a]||99)-(rm.s[b]||99));marketThird=uniq([...quiet,...third,...marketMain.slice(2)]).slice(0,5);if(marketMain[0]&&marketMain[0]!==cr[1])moves.push('コンピ2位'+cr[1]+'番より市場相手'+marketMain[0]+'番を上位化');quiet.slice(0,3).forEach(h=>moves.push(h+'番を市場逆行・3着保護'));marketSan=[];addTri(marketSan,anchor,marketMain[0],marketMain[1]);addTri(marketSan,anchor,marketMain[0],marketMain[2]);if(marketThird[0])addTri(marketSan,anchor,marketMain[0],marketThird[0]);if(marketThird[1])addTri(marketSan,anchor,marketMain[0],marketThird[1]);sorted(d.san).slice(0,3).forEach(x=>addTri(marketSan,x.a,x.b,x.c))}const audit=uniq([...cr.slice(0,4),...third,...marketThird,cr[5]]).slice(0,9),best=(hasOdds?marketSan[0]:compiSan[0])||'なし';return{d,compi,cr,sum,p,g12,g13,top4,gaps,maxGap,firstWall,type,fixed,reason,rec,first,axis,head,main,third,compiSan,hasOdds,tr,fr,ur,wr,sr,marketAxis,marketMain,marketThird,moves,marketSan,audit,best}}
-function cRow(v){let s='<div class="row"><div class="label">コンピ</div>';v.compi.forEach((x,i)=>{let c='sep';if(i<v.gaps.length){const g=v.gaps[i].gap;c+=g>=10?' big':g>=7?' mid':g>=4?' small':''}s+=`<div class="cell">${x.h}${x.rec?'★':''}<span class="pt">${x.pt}P</span></div>${i<v.compi.length-1?`<i class="${c}"></i>`:''}`});return s+'</div>'}function sRow(l,a){return a.length?`<div class="row"><div class="label">${l}</div>${a.map(h=>`<div class="cell">${h}</div>`).join('<i class="sep"></i>')}</div>`:''}
-function render(v){return `<div class="card market"><div class="title">📊 コンピ${v.hasOdds?'＋市場':''}順位</div><div class="scroll">${cRow(v)}${sRow('馬連',v.ur)}${sRow('単勝',v.tr)}${sRow('複勝',v.fr)}${sRow('ワイド',v.wr)}${sRow('三連複',v.sr)}</div><div class="note"><b>最大壁：</b>${v.maxGap.after}位後 ${v.maxGap.gap}P（${v.maxGap.before}→${v.maxGap.next}）<br><b>最初の強い壁：</b>${v.firstWall?`${v.firstWall.after}位後 ${v.firstWall.gap}P（${v.firstWall.before}→${v.firstWall.next}）`:'7P以上なし'}</div></div><div class="card"><div class="title">🩺 コンピ一次診断</div><div class="type">${esc(v.type)}</div><div class="grid"><div class="meta"><div class="metaL">P判定</div><div class="metaV">${v.p}（${v.sum}）</div></div><div class="meta"><div class="metaL">1着固定性</div><div class="metaV">${v.fixed}</div></div><div class="meta"><div class="metaL">1-2差</div><div class="metaV">${v.g12??'-'}P</div></div><div class="meta"><div class="metaL">1-3差</div><div class="metaV">${v.g13??'-'}P</div></div><div class="meta"><div class="metaL">上位4頭幅</div><div class="metaV">${v.top4??'-'}P</div></div><div class="meta"><div class="metaL">コンピ推奨</div><div class="metaV">${v.rec?v.rec+'番':'なし'}</div></div></div>${v.reason.map(x=>`<span class="badge">${esc(x)}</span>`).join('')}</div><div class="card compi"><div class="title">🧠 コンピ単独予想（保存）</div><div class="role"><div class="roleL">固定1着候補</div><div class="roleV">${fmt(v.first)}</div></div><div class="role"><div class="roleL">馬券内軸</div><div class="roleV">${fmt(v.axis)}</div></div><div class="role"><div class="roleL">頭替わり候補</div><div class="roleV">${fmt(v.head)}</div></div><div class="role"><div class="roleL">上位本線</div><div class="roleV">${fmt(v.main)}</div></div><div class="role"><div class="roleL">3着侵入候補</div><div class="roleV">${fmt(v.third)}</div></div><div class="ticketBox"><div class="ticketL">コンピ単独三連複</div><div class="ticketV">${v.compiSan.join(' ／ ')||'なし'}</div></div><div class="small">オッズを入れても原型を消さず、壁直後～6位を3着監査します。</div></div><div class="card market"><div class="title">🎯 市場補正後</div>${v.hasOdds?`<div class="role"><div class="roleL">補正後軸</div><div class="roleV">${fmt(v.marketAxis)}</div></div><div class="role"><div class="roleL">実質相手順位</div><div class="roleV">${fmt(v.marketMain)}</div></div><div class="role"><div class="roleL">市場逆行・3着保護</div><div class="roleV">${fmt(v.marketThird)}</div></div><div class="note">${v.moves.length?v.moves.map(x=>'・'+esc(x)).join('<br>'):'大きな順位入替なし'}</div>`:'<div class="small">オッズ未入力のため補正なし。</div>'}</div><div class="card audit"><div class="title">🛡️ 削除禁止・3着侵入監査</div><b class="safe">${fmt(v.audit)}</b><div class="small">上位4頭だけで切らず、壁直後・5位・6位を3列目に残します。</div></div><div class="card ticket"><div class="title">🧾 最終買い目</div><div class="ticketBox"><div class="ticketL">コンピ原型</div><div class="ticketV">${v.compiSan.join(' ／ ')||'なし'}</div></div><div class="ticketBox"><div class="ticketL">市場補正後</div><div class="ticketV">${v.hasOdds?(v.marketSan.join(' ／ ')||'なし'):'オッズ未入力'}</div></div><div class="ticketBox"><div class="ticketL">研究用・最重要1点</div><div class="ticketV">${v.best}</div></div></div>`}
-function run(){try{const d=parse(document.getElementById('input').value);if(d.compi.length<3)throw new Error('COMPIを3頭以上入力してください');latest=build(d);document.getElementById('out').innerHTML=render(latest);document.title=d.title+'｜競馬メジアン V5.25'}catch(e){document.getElementById('out').innerHTML='<div class="card"><div class="title">入力エラー</div><pre>'+esc(e.message||e)+'</pre></div>'}}function clearAll(){input.value='';out.innerHTML='';latest=null}function sample(){input.value=`【川崎2R】\n\n[COMPI]\n10 73\n7 70\n3 68 推奨\n4 67\n2 54\n6 50\n1 46\n5 43\n8 40\n9 39`;run()}
-function chatText(){if(!latest)throw new Error('先に解析してください');const v=latest;return `【${v.d.title}】\n競馬メジアン V5.25\n\nレース型：${v.type}\nP判定：${v.p}（${v.sum}）\n1-2差：${v.g12}P\n1-3差：${v.g13}P\n上位4頭幅：${v.top4}P\n最大壁：${v.maxGap.after}位後${v.maxGap.gap}P（${v.maxGap.before}→${v.maxGap.next}）\n\n【コンピ単独】\n固定1着：${fmt(v.first)}\n馬券内軸：${fmt(v.axis)}\n頭替わり：${fmt(v.head)}\n上位本線：${fmt(v.main)}\n3着侵入：${fmt(v.third)}\n三連複：${v.compiSan.join(' / ')||'なし'}\n\n【市場補正】\n補正後軸：${fmt(v.marketAxis)}\n実質相手：${fmt(v.marketMain)}\n市場3着：${fmt(v.marketThird)}\n補正内容：${v.moves.join(' / ')||'なし'}\n補正後三連複：${v.marketSan.join(' / ')||'なし'}\n\n削除禁止：${fmt(v.audit)}\n最重要1点：${v.best}`}
-async function copyForChat(){try{const t=chatText();if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(t);else{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}alert('コピーしました')}catch(e){alert(e.message||e)}}function csvEsc(v){v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}function saveCsv(){if(!latest){alert('先に解析してください');return}const v=latest,row={日時:new Date().toISOString(),レース:v.d.title,解析:'V5.25',レース型:v.type,P:v.p,上位3合計:v.sum,差1_2:v.g12,差1_3:v.g13,上位4頭幅:v.top4,最大壁差:v.maxGap.gap,固定一着:v.first.join('|'),馬券内軸:v.axis.join('|'),頭替わり:v.head.join('|'),上位本線:v.main.join('|'),三着侵入:v.third.join('|'),コンピ三連複:v.compiSan.join('|'),市場軸:v.marketAxis.join('|'),市場相手:v.marketMain.join('|'),市場三着:v.marketThird.join('|'),市場三連複:v.marketSan.join('|'),削除禁止:v.audit.join('|'),最重要一点:v.best};const keys=Object.keys(row),csv='\ufeff'+keys.map(csvEsc).join(',')+'\n'+keys.map(k=>csvEsc(row[k])).join(','),blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='競馬メジアン_V5.25研究_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-</script></body></html>
+'use strict';
+let latest=null;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const zen=s=>String(s||'').replace(/[０-９]/g,x=>String.fromCharCode(x.charCodeAt(0)-65248)).replace(/．/g,'.').replace(/[－ー―−]/g,'-').replace(/　/g,' ');
+const nums=s=>(zen(s).match(/\d+(?:\.\d+)?/g)||[]).map(Number);
+const uniq=a=>[...new Set((a||[]).filter(Boolean).map(String))];
+const sorted=(a,k='od')=>a.slice().sort((x,y)=>Number(x[k])-Number(y[k]));
+const pairKey=(a,b)=>[String(a),String(b)].sort((x,y)=>+x-+y).join('-');
+const triKey=(a,b,c)=>[String(a),String(b),String(c)].sort((x,y)=>+x-+y).join('-');
+const fmt=a=>a&&a.length?a.map(x=>x+'番').join('・'):'なし';
+
+function parse(raw){
+  const lines=zen(raw).split(/\r?\n/),d={title:'レース',tf:[],uma:[],wide:[],san:[],compi:[]};let sec='';
+  for(let line of lines){
+    line=line.trim();if(!line)continue;
+    if(line.startsWith('【'))d.title=line.replace(/[【】]/g,'');
+    const up=line.toUpperCase();
+    if(up.startsWith('[')){
+      if(up.includes('COMPI'))sec='C';
+      else if(up.includes('TAN')||up.includes('単'))sec='TF';
+      else if(up.includes('WIDE')||up.includes('ワイド'))sec='W';
+      else if(up.includes('SAN')||up.includes('三')||up.includes('3'))sec='S';
+      else if(up.includes('UMA')||up.includes('馬')||up.includes('2'))sec='U';
+      continue;
+    }
+    const n=nums(line);
+    if(sec==='TF'&&n.length>=2)d.tf.push({h:String(Math.floor(n[0])),tan:n[1],fuku:n.length>=3?n[n.length-1]:null});
+    if(sec==='C'&&n.length>=2)d.compi.push({h:String(Math.floor(n[0])),pt:n[1],rec:/(推奨|推薦|推\b|赤|★|◎)/.test(line)});
+    if(sec==='U'){const m=line.match(/(\d+)\s*-\s*(\d+)/);if(m&&n.length)d.uma.push({a:m[1],b:m[2],od:n[n.length-1]})}
+    if(sec==='W'){const m=line.match(/(\d+)\s*-\s*(\d+)/);if(m&&n.length)d.wide.push({a:m[1],b:m[2],od:n[n.length-1]})}
+    if(sec==='S'){const m=line.match(/(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/);if(m&&n.length)d.san.push({a:m[1],b:m[2],c:m[3],od:n[n.length-1]})}
+  }
+  return d;
+}
+function pClass(sum){return sum<=205?'P1':sum<=209?'P2':sum<=213?'P3':sum<=216?'P4':sum<=219?'P5':'P6'}
+function medianHorses(arr){if(!arr.length)return[];return arr.length%2?[arr[Math.floor(arr.length/2)]]:[arr[arr.length/2-1],arr[arr.length/2]]}
+function rankMap(arr){return Object.fromEntries(arr.map((h,i)=>[h,i+1]))}
+function rankPairs(list){
+  const s={};sorted(list).forEach((p,i)=>[p.a,p.b].forEach(h=>{s[h]=s[h]||{h,c:0,b:999,z:0};s[h].c++;s[h].b=Math.min(s[h].b,i+1);s[h].z+=i+1}));
+  return Object.values(s).sort((x,y)=>y.c-x.c||x.b-y.b||x.z-y.z||+x.h-+y.h).map(x=>x.h);
+}
+function rankTri(list){
+  const s={};sorted(list).forEach((p,i)=>[p.a,p.b,p.c].forEach(h=>{s[h]=s[h]||{h,c:0,b:999,z:0};s[h].c++;s[h].b=Math.min(s[h].b,i+1);s[h].z+=i+1}));
+  return Object.values(s).sort((x,y)=>y.c-x.c||x.b-y.b||x.z-y.z||+x.h-+y.h).map(x=>x.h);
+}
+function ratioWalls(rank,values,ratio=1.8){
+  const out=[];
+  for(let i=0;i<rank.length-1;i++){
+    const a=Number(values[rank[i]]),b=Number(values[rank[i+1]]);
+    if(a>0&&b/a>=ratio)out.push({idx:i,before:rank[i],next:rank[i+1],ratio:+(b/a).toFixed(2)});
+  }
+  return out;
+}
+function thresholdWall(rank,values,limit){
+  let idx=-1;rank.forEach((h,i)=>{if(Number(values[h])<=limit)idx=i});
+  return idx>=0&&idx<rank.length-1?{idx,before:rank[idx],next:rank[idx+1]}:null;
+}
+function addTri(arr,a,b,c){if(a&&b&&c&&new Set([a,b,c]).size===3){const k=triKey(a,b,c);if(!arr.includes(k))arr.push(k)}}
+function addPair(arr,a,b){if(a&&b&&a!==b){const k=pairKey(a,b);if(!arr.includes(k))arr.push(k)}}
+
+function build(d){
+  const compi=d.compi.slice().sort((a,b)=>b.pt-a.pt||+a.h-+b.h),cr=compi.map(x=>x.h),n=compi.length;
+  const sum=compi.slice(0,3).reduce((s,x)=>s+x.pt,0),p=pClass(sum);
+  const gaps=[],compiWalls=[];
+  for(let i=0;i<n-1;i++){
+    const gap=compi[i].pt-compi[i+1].pt;
+    const w={after:i+1,gap,before:compi[i].h,next:compi[i+1].h,level:gap>=10?'大壁':gap>=7?'中壁':gap>=4?'小壁':'平坦'};
+    gaps.push(w);compiWalls.push(w);
+  }
+  const maxGap=gaps.slice().sort((a,b)=>b.gap-a.gap||a.after-b.after)[0]||{after:0,gap:0,before:'',next:''};
+  const strongCompiWalls=compiWalls.filter(w=>w.gap>=7).sort((a,b)=>b.gap-a.gap||a.after-b.after);
+  const firstMajor=compiWalls.find(x=>x.gap>=10)||compiWalls.find(x=>x.gap>=7)||null;
+  const compiTiers=[];let tier=[];
+  compi.forEach((x,i)=>{tier.push(x.h);if(i===n-1||(compiWalls[i]&&compiWalls[i].gap>=7)){compiTiers.push(tier);tier=[]}});
+  const g12=n>1?compi[0].pt-compi[1].pt:null,g23=n>2?compi[1].pt-compi[2].pt:null,g13=n>2?compi[0].pt-compi[2].pt:null;
+  const g35=n>4?compi[2].pt-compi[4].pt:null,g56=n>5?compi[4].pt-compi[5].pt:null,g67=n>6?compi[5].pt-compi[6].pt:null;
+  const top4Spread=n>=4?compi[0].pt-compi[3].pt:null;
+  const rec=compi.find(x=>x.rec)?.h||'';
+  const groups={A1:cr.slice(0,2),A2:cr.slice(2,5),B:cr.slice(5,10),C:cr.slice(10)};
+  const groupA=cr.slice(0,Math.min(5,n)),aMedian=medianHorses(groupA);
+  const a2Spread=groups.A2.length>=2?(compi[2].pt-compi[Math.min(4,n-1)].pt):null;
+  const a2Density=a2Spread==null?'判定不可':a2Spread<=4?'強':a2Spread<=7?'中':'弱';
+  const high85=compi.filter(x=>x.pt>=85).map(x=>x.h);
+  const linePos=Math.max(1,Math.min(n,Math.ceil(n*0.75))),lineHorse=compi[linePos-1];
+  const otaniRules=[
+    {name:'コンピ1位78以下',ok:!!compi[0]&&compi[0].pt<=78},
+    {name:'1位－3位差12以下',ok:g13!=null&&g13<=12},
+    {name:'75%地点が40台',ok:!!lineHorse&&lineHorse.pt>=40&&lineHorse.pt<=49}
+  ];
+  const otani=otaniRules.filter(x=>x.ok).length;
+
+  // コンピ単独型
+  let type='標準上位型',fixed='中',place='2～3着',why=[];
+  if(n>=4&&top4Spread<=7){type='上位4頭密集・頭替わり型';fixed='低';place='1～3着';why.push('上位4頭が7P以内')}
+  else if(compi[0].pt>=85&&g13>=18){type='一強・相手横並び型';fixed='高';place='2～3着';why.push('1位85以上','1-3差18P以上')}
+  else if(compi[0].pt>=80&&g13>=14){type='一強・相手入替型';fixed='中～高';place='2～3着';why.push('1位80以上','1-3差14P以上')}
+  else if(firstMajor&&firstMajor.after<=3){type='上位核＋壁直後侵入型';fixed='中';place='3着';why.push(`${firstMajor.after}位後${firstMajor.gap}P壁`)}
+  else if(otani===3&&(p==='P1'||p==='P2'||p==='P3')){type='大谷式大穴型';fixed='低';place='1～3着';why.push('大谷式3条件','低P帯')}
+  else if(p==='P1'||p==='P2'){type='低P・上位崩れ警戒型';fixed='低';place='1～3着';why.push('P1/P2')}
+  else if(g56!=null&&g56>=8){type='上位5頭ロック型';fixed='中';place='上位5頭内';why.push('5位－6位に大壁')}
+  else why.push('決定的な固定条件なし');
+
+  let first=[],axis=[],headAlt=[],main=[],third=[];
+  if(type==='上位4頭密集・頭替わり型'){
+    first=uniq([rec,...cr.slice(0,4)]).slice(0,4);
+    axis=uniq([rec,cr[0]]).slice(0,2);
+    headAlt=uniq(cr.slice(0,4).filter(h=>!axis.includes(h))).slice(0,3);
+    main=cr.slice(0,4);
+    third=uniq([cr[4],cr[5],firstMajor?.next]).slice(0,3);
+  }else if(type.includes('一強')){
+    first=[cr[0]];axis=[cr[0]];
+    headAlt=uniq([rec,cr[1],cr[2]]).filter(h=>h!==cr[0]).slice(0,2);
+    const lowerFlat=n>=5&&(compi[2].pt-compi[4].pt<=7);
+    main=lowerFlat?uniq([cr[2],cr[3],cr[4],cr[1]]):cr.slice(1,5);
+    third=uniq([cr[3],cr[4],firstMajor?.next,cr[5]]).slice(0,4);
+  }else{
+    first=uniq([rec,cr[0],cr[1],cr[2]]).slice(0,3);
+    axis=uniq([cr[0],rec]).slice(0,2);
+    headAlt=uniq([cr[1],cr[2],cr[3]]).filter(h=>!axis.includes(h)).slice(0,3);
+    main=cr.slice(0,5);
+    third=uniq([firstMajor?.next,cr[3],cr[4],cr[5]]).slice(0,4);
+  }
+
+  const compiSan=[];
+  if(type==='上位4頭密集・頭替わり型'){
+    addTri(compiSan,cr[0],cr[1],cr[2]);addTri(compiSan,cr[0],cr[1],cr[3]);
+    addTri(compiSan,cr[0],cr[2],cr[3]);addTri(compiSan,cr[1],cr[2],cr[3]);
+    if(cr[4])addTri(compiSan,rec||cr[0],cr[0]===rec?cr[1]:cr[0],cr[4]);
+    if(cr[5])addTri(compiSan,rec||cr[0],cr[0]===rec?cr[1]:cr[0],cr[5]);
+  }else{
+    const ax=cr[0],a=main[0],b=main[1],c=main[2];
+    addTri(compiSan,ax,a,b);addTri(compiSan,ax,a,c);
+    if(third[0])addTri(compiSan,ax,a,third[0]);
+    if(third[1])addTri(compiSan,ax,a,third[1]);
+  }
+
+  // 市場
+  const tan=sorted(d.tf.map(x=>({...x,od:x.tan})),'tan'),fuku=sorted(d.tf.filter(x=>x.fuku!=null).map(x=>({...x,od:x.fuku})),'fuku');
+  const tr=tan.map(x=>x.h),fr=fuku.map(x=>x.h),ur=rankPairs(d.uma),wr=rankPairs(d.wide),sr=rankTri(d.san);
+  const tv=Object.fromEntries(tan.map(x=>[x.h,x.tan])),fv=Object.fromEntries(fuku.map(x=>[x.h,x.fuku]));
+  const uv={};sorted(d.uma).forEach(p=>[p.a,p.b].forEach(h=>{if(uv[h]==null)uv[h]=p.od}));
+  const sv={};sorted(d.san).forEach(p=>[p.a,p.b,p.c].forEach(h=>{if(sv[h]==null)sv[h]=p.od}));
+  const walls={tan:ratioWalls(tr,tv),fuku:ratioWalls(fr,fv),uma:ratioWalls(ur,uv),san:ratioWalls(sr,sv),f6:thresholdWall(fr,fv,6),f15:thresholdWall(fr,fv,15),t80:thresholdWall(tr,tv,80)};
+  const rm={compi:rankMap(cr),tan:rankMap(tr),fuku:rankMap(fr),uma:rankMap(ur),wide:rankMap(wr),san:rankMap(sr)};
+  const tfMap=Object.fromEntries(d.tf.map(x=>[x.h,x]));
+  const support=h=>[(rm.tan[h]||99)<=6,(rm.fuku[h]||99)<=7,(rm.uma[h]||99)<=7,(rm.wide[h]||99)<=7,(rm.san[h]||99)<=8].filter(Boolean).length;
+  const hasOdds=d.tf.length>0||d.uma.length>0||d.wide.length>0||d.san.length>0;
+
+  // 統合スコア
+  const score={};
+  const add=(h,pts,reason)=>{if(!h)return;score[h]=score[h]||{h,score:0,reasons:[]};score[h].score+=pts;if(!score[h].reasons.includes(reason))score[h].reasons.push(reason)};
+  compi.forEach((x,i)=>add(x.h,Math.max(0,14-i),'コンピ'+(i+1)+'位'));
+  tr.slice(0,6).forEach((h,i)=>add(h,8-i,'単勝上位'));
+  fr.slice(0,7).forEach((h,i)=>add(h,8-i,'複勝上位'));
+  ur.slice(0,7).forEach((h,i)=>add(h,8-i,'馬連支持'));
+  wr.slice(0,7).forEach((h,i)=>add(h,7-i,'ワイド支持'));
+  sr.slice(0,8).forEach((h,i)=>add(h,8-i,'三連複支持'));
+  strongCompiWalls.forEach(w=>{add(w.before,w.gap>=10?5:3,'コンピ壁前'+w.gap+'P');add(w.next,w.gap>=10?3:2,'コンピ壁直後'+w.gap+'P')});
+  [walls.f6,walls.f15,walls.t80].forEach(w=>{if(w){add(w.before,4,'オッズ壁前');add(w.next,2,'オッズ壁直後')}});
+  [...medianHorses(tr),...medianHorses(fr),...medianHorses(ur),...medianHorses(sr)].forEach(h=>add(h,3,'メジアン'));
+  const all=Object.values(score).sort((a,b)=>b.score-a.score||+a.h-+b.h);
+
+  // 市場補正
+  let marketAxis=axis.slice(),marketMain=main.slice(),marketThird=third.slice(),marketMove=[],marketSan=compiSan.slice(),marketType='オッズ未入力';
+  if(hasOdds){
+    marketType='市場補正あり';
+    const anchor=cr[0];
+    const candidate=uniq([...ur.slice(0,6),...sr.slice(0,7),...wr.slice(0,6),...tr.slice(0,6),...cr.slice(0,6)]);
+    const scored=candidate.map(h=>({h,s:support(h)*12+(rm.uma[h]?9-rm.uma[h]:0)+(rm.san[h]?10-rm.san[h]:0)+(rm.wide[h]?9-rm.wide[h]:0)+(rm.compi[h]?Math.max(0,8-rm.compi[h]):0)}))
+      .sort((a,b)=>b.s-a.s||+a.h-+b.h);
+    marketMain=uniq(scored.filter(x=>x.h!==anchor).map(x=>x.h)).slice(0,5);
+    marketAxis=uniq([anchor,scored[0]?.h]).slice(0,2);
+    const quiet=cr.filter(h=>(rm.compi[h]||99)>=4&&support(h)>=2).sort((a,b)=>support(b)-support(a)||(rm.san[a]||99)-(rm.san[b]||99));
+    marketThird=uniq([...quiet,...third,...marketMain.slice(2)]).slice(0,6);
+    if(marketMain[0]&&marketMain[0]!==cr[1])marketMove.push(`コンピ2位${cr[1]}番より市場相手${marketMain[0]}番を上位化`);
+    quiet.slice(0,3).forEach(h=>marketMove.push(`${h}番を市場逆行・3着保護`));
+    marketSan=[];
+    const a=marketMain[0],b=marketMain[1],c=marketMain[2];
+    addTri(marketSan,anchor,a,b);addTri(marketSan,anchor,a,c);
+    if(marketThird[0])addTri(marketSan,anchor,a,marketThird[0]);
+    if(marketThird[1])addTri(marketSan,anchor,a,marketThird[1]);
+    sorted(d.san).slice(0,3).forEach(x=>addTri(marketSan,x.a,x.b,x.c));
+  }
+
+  // A群メジアン補正
+  const aMedianSupport=aMedian.filter(h=>support(h)>=2||(rm.san[h]||99)<=8||(rm.uma[h]||99)<=7);
+  const pMedianMode=(p==='P1'||p==='P2')&&otani<=1?'A群内組替え優先':(otani===3?'下位侵入優先':'上下併用');
+  const aDecisionPressure=(a2Density==='強'&&aMedianSupport.length)?'強':(a2Density!=='弱'||aMedianSupport.length)?'中':'弱';
+  const aNo1Candidates=[];
+  const sanOdds={};sorted(d.san).forEach(x=>sanOdds[triKey(x.a,x.b,x.c)]=x.od);
+  for(let i=0;i<groupA.length;i++)for(let j=i+1;j<groupA.length;j++)for(let k=j+1;k<groupA.length;k++){
+    const hs=[groupA[i],groupA[j],groupA[k]],key=triKey(...hs);
+    if(hs.includes(cr[0])||!hs.some(h=>aMedian.includes(h)))continue;
+    aNo1Candidates.push({key,market:Number(sanOdds[key]??99999),support:hs.reduce((z,h)=>z+support(h),0)});
+  }
+  aNo1Candidates.sort((a,b)=>a.market-b.market||b.support-a.support);
+  const aNo1Insurance=aNo1Candidates[0]?.key||'';
+  const no1InsuranceOn=!!aNo1Insurance&&aMedianSupport.length>0&&((p==='P1'||p==='P2')||a2Density==='強'||fixed==='高');
+
+  // ステルス
+  const appearCount=(list,h,limit)=>sorted(list).slice(0,limit).reduce((n,x)=>n+([x.a,x.b,x.c].filter(Boolean).includes(h)?1:0),0);
+  const stealth=cr.map(h=>{
+    const compiRank=rm.compi[h]||99,tanRank=rm.tan[h]||99,fukuRank=rm.fuku[h]||99;
+    const umaCount=appearCount(d.uma,h,12),wideCount=appearCount(d.wide,h,12),sanCount=appearCount(d.san,h,20);
+    const markets=[umaCount>=2,wideCount>=2,sanCount>=2].filter(Boolean).length,total=umaCount+wideCount+sanCount;
+    const quiet=compiRank>=6&&tanRank>=4,placeSupport=fukuRank<=8||Number(tfMap[h]?.fuku)<=6;
+    let grade='';
+    if(quiet&&markets===3&&total>=7&&placeSupport)grade='S';
+    else if(quiet&&markets>=2&&total>=5&&placeSupport)grade='A';
+    else if(quiet&&markets>=2&&total>=4)grade='B';
+    if(!grade)return null;
+    const points=(grade==='S'?30:grade==='A'?20:10)+markets*4+Math.min(total,12)+(placeSupport?4:0);
+    return {h,grade,points,reasons:[`コンピ${compiRank}位`,`単勝${tanRank}位`,`馬連上位${umaCount}回`,`ワイド上位${wideCount}回`,`三連複上位${sanCount}回`,placeSupport?'複勝支持あり':'複勝弱']};
+  }).filter(Boolean).sort((a,b)=>b.points-a.points||+a.h-+b.h);
+  const stealthProtect=stealth.filter(x=>x.grade==='S'||x.grade==='A').map(x=>x.h);
+
+  // WIN5・旧機能
+  const win5=uniq([...fr.filter(h=>Number(tfMap[h]?.fuku)<=3.0),...all.filter(x=>support(x.h)>=3&&(rm.compi[x.h]||99)<=5).map(x=>x.h),...first]).slice(0,5);
+  const win5Main=win5.slice(0,fixed==='高'?2:3),win5Hole=win5.filter(h=>(rm.compi[h]||99)>=5||(rm.tan[h]||99)>=5).slice(0,2);
+  const matchanMain=uniq([...win5Main,...first,all.find(x=>x.reasons.includes('単勝上位')&&x.reasons.includes('馬連支持'))?.h]).slice(0,2);
+  const bSupport=groups.B.filter(h=>support(h)>=2).sort((a,b)=>(score[b]?.score||0)-(score[a]?.score||0));
+  const cSupport=groups.C.filter(h=>support(h)>=2).sort((a,b)=>(score[b]?.score||0)-(score[a]?.score||0));
+  const matchanHole=uniq([...bSupport,walls.f15?.before,walls.t80?.before,...all.filter(x=>(rm.tan[x.h]||99)>=4&&(rm.tan[x.h]||99)<=9&&support(x.h)>=2).map(x=>x.h)]).filter(h=>h&&!matchanMain.includes(h)).slice(0,3);
+  const structureAxis=uniq([axis[0],all.find(x=>x.reasons.includes('馬連支持')&&x.reasons.includes('三連複支持')&&support(x.h)>=3)?.h,cr[0]])[0]||'';
+  const ooareHead=uniq([...matchanHole,...bSupport,walls.f15?.before])[0]||'';
+  const axisAvoid=(fixed==='低'||type.includes('大穴')||type.includes('崩れ'))?structureAxis:'';
+  const protect=uniq([...stealthProtect,...marketMain,...marketThird,...groups.A2,...third,...win5,...strongCompiWalls.flatMap(w=>[w.before,w.next]),...aMedianSupport,...high85]).filter(h=>h&&h!==structureAxis).slice(0,14);
+
+  const blueWhite=all.map(x=>{
+    const h=x.h,gates=[];
+    if(x.reasons.some(r=>r.includes('壁')))gates.push('壁');
+    if((rm.uma[h]||99)<=7)gates.push('馬連');
+    if((rm.wide[h]||99)<=7)gates.push('ワイド');
+    if((rm.san[h]||99)<=8)gates.push('三連複');
+    if((rm.compi[h]||99)>=6&&support(h)>=2)gates.push('市場逆行');
+    if(x.reasons.includes('メジアン'))gates.push('メジアン');
+    if(Number(tfMap[h]?.fuku)<=3)gates.push('WIN5');
+    return {h,gates:uniq(gates)};
+  }).filter(x=>x.gates.length>=3).sort((a,b)=>b.gates.length-a.gates.length||(score[b.h]?.score||0)-(score[a.h]?.score||0));
+
+  const bigHoleWin=uniq([ooareHead,...matchanHole,...bSupport]).slice(0,3);
+  const bigHolePlace=uniq([...matchanHole,...marketThird,walls.f15?.before]).slice(0,4);
+  const bigHoleThird=uniq([...stealthProtect,...marketThird,walls.f15?.next,walls.f6?.next,...groups.A2]).slice(0,6);
+
+  const auditPairs=[],auditSan=[];
+  const auditAxis=structureAxis||axis[0]||cr[0];
+  groups.A2.slice(0,3).forEach(h=>addPair(auditPairs,auditAxis,h));
+  for(let i=0;i<groups.A2.length;i++)for(let j=i+1;j<groups.A2.length;j++)addTri(auditSan,auditAxis,groups.A2[i],groups.A2[j]);
+  matchanHole.slice(0,2).forEach(h=>marketMain.slice(0,2).forEach(m=>addTri(auditSan,auditAxis,m,h)));
+  if(aNo1Insurance){const q=aNo1Insurance.split('-');addTri(auditSan,q[0],q[1],q[2])}
+  const auditHorses=uniq([auditAxis,...high85,...aMedianSupport,...stealthProtect,...groups.A2,...matchanHole,...third,...marketThird,...protect,...strongCompiWalls.flatMap(w=>[w.before,w.next]),cr[5]]).slice(0,15);
+
+  // 型専用買い目
+  const tanBet=uniq(fixed==='高'?[first[0]]:first.slice(0,2));
+  const wide=[],umaren=[],san=[];
+  const betAxis=marketAxis[0]||axis[0]||cr[0],betMain=(hasOdds?marketMain:main);
+  betMain.slice(0,3).forEach(h=>{addPair(wide,betAxis,h);addPair(umaren,betAxis,h)});
+  (hasOdds?marketSan:compiSan).slice(0,7).forEach(k=>{if(!san.includes(k))san.push(k)});
+  if(no1InsuranceOn&&!san.includes(aNo1Insurance))san.push(aNo1Insurance);
+  const bestOne=san[0]||wide[0]||umaren[0]||tanBet[0]||'なし';
+
+  return {
+    d,compi,cr,sum,p,g12,g23,g13,g35,g56,g67,top4Spread,rec,gaps,maxGap,strongCompiWalls,firstMajor,compiTiers,
+    groups,groupA,aMedian,aMedianSupport,a2Spread,a2Density,aDecisionPressure,pMedianMode,high85,linePos,lineHorse,otaniRules,otani,
+    type,fixed,place,why,first,axis,headAlt,main,third,compiSan,hasOdds,tr,fr,ur,wr,sr,walls,marketAxis,marketMain,marketThird,marketMove,marketSan,marketType,
+    all,bSupport,cSupport,stealth,stealthProtect,win5Main,win5Hole,matchanMain,matchanHole,structureAxis,ooareHead,axisAvoid,protect,blueWhite,bigHoleWin,bigHolePlace,bigHoleThird,
+    aNo1Insurance,no1InsuranceOn,auditPairs,auditSan,auditHorses,tickets:{tan:tanBet,wide,umaren,san:san.slice(0,8),bestOne}
+  };
+}
+
+function compiRow(v){
+  let s='<div class="row"><div class="label">コンピ</div>';
+  v.compi.forEach((x,i)=>{
+    let c='sep';
+    if(i<v.gaps.length){const g=v.gaps[i].gap;c+=g>=10?' big':g>=7?' mid':g>=4?' small':''}
+    s+=`<div class="cell">${x.h}${x.rec?'★':''}<span class="pt">${x.pt}P</span></div>${i<v.compi.length-1?`<i class="${c}"></i>`:''}`;
+  });
+  return s+'</div>';
+}
+function simpleRow(label,arr){if(!arr.length)return'';return `<div class="row"><div class="label">${label}</div>${arr.map(h=>`<div class="cell">${h}</div>`).join('<i class="sep"></i>')}</div>`}
+
+function render(v){
+  return `
+  <div class="card market"><div class="title">📊 コンピ＋四市場順位</div><div class="marketScroll">
+    ${compiRow(v)}${simpleRow('馬連',v.ur)}${simpleRow('単勝',v.tr)}${simpleRow('複勝',v.fr)}${simpleRow('ワイド',v.wr)}${simpleRow('三連複',v.sr)}
+  </div>
+  <div class="note"><b>最大壁：</b>${v.maxGap.after}位後 ${v.maxGap.gap}P（${v.maxGap.before}番→${v.maxGap.next}番）<br>
+  <b>強いコンピ壁：</b>${v.strongCompiWalls.length?v.strongCompiWalls.map(w=>`${w.after}位後${w.gap}P［${w.before}→${w.next}］`).join(' ／ '):'なし'}<br>
+  <b>壁内層：</b>${v.compiTiers.map((a,i)=>`${i+1}層［${a.join('・')}］`).join(' ／ ')}</div></div>
+
+  <div class="card commander"><div class="title">🩺 第1段階：コンピ一次診断</div>
+    <div class="typeName">${esc(v.type)}</div>
+    <div class="metaGrid">
+      <div class="meta"><div class="metaL">P判定</div><div class="metaV">${v.p}（${v.sum}）</div></div>
+      <div class="meta"><div class="metaL">大谷式</div><div class="metaV">${v.otani}/3条件</div></div>
+      <div class="meta"><div class="metaL">1-3差</div><div class="metaV">${v.g13??'-'}P</div></div>
+      <div class="meta"><div class="metaL">上位4頭幅</div><div class="metaV">${v.top4Spread??'-'}P</div></div>
+      <div class="meta"><div class="metaL">1着固定性</div><div class="metaV">${v.fixed}</div></div>
+      <div class="meta"><div class="metaL">荒れる位置</div><div class="metaV">${v.place}</div></div>
+    </div>
+    <div style="margin-top:8px">${v.why.map(x=>`<span class="badge">${esc(x)}</span>`).join('')}</div>
+  </div>
+
+  <div class="card compiOnly"><div class="title">🧠 コンピ単独予想（原型保存）</div>
+    <div class="role"><div class="roleL">固定1着候補</div><div class="roleV">${fmt(v.first)}</div></div>
+    <div class="role"><div class="roleL">馬券内軸</div><div class="roleV">${fmt(v.axis)}</div></div>
+    <div class="role"><div class="roleL">頭替わり候補</div><div class="roleV">${fmt(v.headAlt)}</div></div>
+    <div class="role"><div class="roleL">上位本線</div><div class="roleV">${fmt(v.main)}</div></div>
+    <div class="role"><div class="roleL">3着侵入候補</div><div class="roleV">${fmt(v.third)}</div></div>
+    <div class="ticketBox"><div class="ticketL">コンピ単独三連複</div><div class="ticketV">${v.compiSan.join(' ／ ')||'なし'}</div></div>
+    <div class="small">オッズ入力後も削除しません。1・2着は上位中心、3着は壁直後～コンピ6位まで監査。</div>
+  </div>
+
+  <div class="card research"><div class="title">🧪 コンピ研究判定</div>
+    <div><b>A1：</b>${fmt(v.groups.A1)} ／ <b>A2：</b>${fmt(v.groups.A2)}</div>
+    <div><b>B：</b>${fmt(v.groups.B)} ／ <b>C：</b>${fmt(v.groups.C)}</div>
+    <div>差：1-2=<b>${v.g12??'-'}</b>／2-3=<b>${v.g23??'-'}</b>／3-5=<b>${v.g35??'-'}</b>／5-6=<b>${v.g56??'-'}</b>／6-7=<b>${v.g67??'-'}</b></div>
+    <div>大谷式：${v.otaniRules.map(x=>`<span class="badge">${x.ok?'○':'×'} ${esc(x.name)}</span>`).join('')}</div>
+    <div>75%地点：${v.linePos}位 ${v.lineHorse?v.lineHorse.h+'番('+v.lineHorse.pt+')':'なし'}</div>
+    <hr>
+    <div><b>A群内メジアン：</b><span class="cyan">${fmt(v.aMedian)}</span></div>
+    <div><b>市場接続メジアン：</b>${fmt(v.aMedianSupport)}</div>
+    <div><b>A2密集度：</b>${v.a2Density}（3～5位幅 ${v.a2Spread??'-'}P）</div>
+    <div><b>A群決着圧：</b>${v.aDecisionPressure} ／ <b>P×メジアン補正：</b>${v.pMedianMode}</div>
+    <div><b>コンピ85以上・馬券内保護：</b>${fmt(v.high85)}</div>
+    <div><b>コンピ1位抜きA群三角：</b><span class="deleteSafe">${v.aNo1Insurance||'なし'}</span> ${v.no1InsuranceOn?'【削除禁止ON】':''}</div>
+    <div><span class="orange">市場支持B：</span>${fmt(v.bSupport)} ／ <span class="warn">市場支持C：</span>${fmt(v.cSupport)}</div>
+  </div>
+
+  <div class="card roles"><div class="title">🎯 第2段階：市場補正後</div>
+    <div class="typeName" style="font-size:24px">${v.marketType}</div>
+    ${v.hasOdds?`
+      <div class="role"><div class="roleL">市場補正後の軸</div><div class="roleV">${fmt(v.marketAxis)}</div></div>
+      <div class="role"><div class="roleL">実質相手順位</div><div class="roleV">${fmt(v.marketMain)}</div></div>
+      <div class="role"><div class="roleL">市場逆行・3着保護</div><div class="roleV">${fmt(v.marketThird)}</div></div>
+      <div class="note">${v.marketMove.length?v.marketMove.map(x=>'・'+esc(x)).join('<br>'):'大きな順位入替なし'}</div>
+    `:'<div class="small">今回はコンピだけのため、市場補正は行っていません。</div>'}
+  </div>
+
+  <div class="card stealth"><div class="title">👻 ステルス馬</div>
+    ${v.stealth.length?v.stealth.slice(0,5).map((x,i)=>`<div class="stealthHorse"><div class="stealthTop">${i+1}位 ${x.h}番 <span class="stealthRank">${x.grade}</span></div><div class="stealthReason">${x.reasons.join(' ／ ')}</div></div>`).join(''):'<div class="small">該当なし</div>'}
+  </div>
+
+  <div class="card legacy"><div class="title">🧰 V5.24候補保存</div>
+    <div class="legacyGrid">
+      <div class="legacyBox"><div class="legacyL">まっちゃん単勝・本線</div><div class="legacyV">${fmt(v.matchanMain)}</div></div>
+      <div class="legacyBox"><div class="legacyL">まっちゃん単勝・穴単</div><div class="legacyV">${fmt(v.matchanHole)}</div></div>
+      <div class="legacyBox"><div class="legacyL">構造軸</div><div class="legacyV">${v.structureAxis?v.structureAxis+'番':'なし'}</div></div>
+      <div class="legacyBox"><div class="legacyL">V2.65 大荒れ頭</div><div class="legacyV">${v.ooareHead?v.ooareHead+'番':'なし'}</div></div>
+      <div class="legacyBox"><div class="legacyL">軸回避</div><div class="legacyV">${v.axisAvoid?v.axisAvoid+'番':'なし'}</div></div>
+      <div class="legacyBox"><div class="legacyL">相手保護</div><div class="legacyV">${fmt(v.protect)}</div></div>
+    </div>
+    <div class="role"><div class="roleL">大穴・1着穴</div><div class="roleV">${fmt(v.bigHoleWin)}</div></div>
+    <div class="role"><div class="roleL">大穴・連対穴</div><div class="roleV">${fmt(v.bigHolePlace)}</div></div>
+    <div class="role"><div class="roleL">大穴・3着穴</div><div class="roleV">${fmt(v.bigHoleThird)}</div></div>
+    <div class="role"><div class="roleL">青白光 3関門以上</div><div class="roleV">${v.blueWhite.length?v.blueWhite.map(x=>x.h+'番').join('・'):'なし'}</div><div class="small">${v.blueWhite.length?v.blueWhite.map(x=>x.h+'番['+x.gates.join('+')+']').join(' ／ '):'該当なし'}</div></div>
+  </div>
+
+  <div class="card win5"><div class="title">🏆 WIN5式・1着候補</div>
+    <div class="role"><div class="roleL">WIN5本線</div><div class="roleV">${fmt(v.win5Main)}</div></div>
+    <div class="role"><div class="roleL">WIN5穴候補</div><div class="roleV">${fmt(v.win5Hole)}</div></div>
+  </div>
+
+  <div class="card audit"><div class="title">🛡️ 削除禁止・チャッピー監査枠</div>
+    <div><b>全保護馬：</b><span class="deleteSafe">${fmt(v.auditHorses)}</span></div>
+    <div class="ticketBox"><div class="ticketL">A2保護ワイド・馬連候補</div><div class="ticketV">${v.auditPairs.join(' ／ ')||'なし'}</div></div>
+    <div class="ticketBox"><div class="ticketL">軸＋A2＋A2／穴侵入三連複</div><div class="ticketV">${v.auditSan.join(' ／ ')||'なし'}</div></div>
+    <div class="small">上位4頭だけで切らず、壁直後・5位・6位を3列目候補として残します。</div>
+  </div>
+
+  <div class="card ticket"><div class="title">🧾 第3段階：型専用買い目</div>
+    <div class="ticketBox"><div class="ticketL">単勝</div><div class="ticketV">${v.tickets.tan.length?v.tickets.tan.map(x=>x+'番').join('・'):'見送り'}</div></div>
+    <div class="ticketBox"><div class="ticketL">馬連</div><div class="ticketV">${v.tickets.umaren.join(' ／ ')||'見送り'}</div></div>
+    <div class="ticketBox"><div class="ticketL">ワイド</div><div class="ticketV">${v.tickets.wide.join(' ／ ')||'見送り'}</div></div>
+    <div class="ticketBox"><div class="ticketL">三連複</div><div class="ticketV">${v.tickets.san.join(' ／ ')||'見送り'}</div></div>
+    <div class="ticketBox"><div class="ticketL">研究用・最重要1点</div><div class="ticketV">${esc(v.tickets.bestOne)}</div></div>
+  </div>
+
+  <details class="card"><summary>全馬統合スコア</summary><pre>${esc(v.all.map(x=>`${x.h}番 ${x.score}点｜${x.reasons.join('・')}`).join('\n'))}</pre></details>`;
+}
+
+function run(){
+  try{
+    const d=parse(document.getElementById('input').value);
+    if(d.compi.length<3)throw new Error('COMPIを3頭以上入力してください');
+    latest=build(d);document.getElementById('out').innerHTML=render(latest);document.title=d.title+'｜競馬メジアン V5.25';
+  }catch(e){document.getElementById('out').innerHTML=`<div class="card"><div class="title">入力エラー</div><pre>${esc(e.message||e)}</pre></div>`}
+}
+function clearAll(){document.getElementById('input').value='';document.getElementById('out').innerHTML='';latest=null}
+function sample(){
+document.getElementById('input').value=`【川崎2R】
+
+[COMPI]
+10 73
+7 70
+3 68 推奨
+4 67
+2 54
+6 50
+1 46
+5 43
+8 40
+9 39`;
+run();
+}
+function chatText(){
+  if(!latest)throw new Error('先に解析してください');
+  const v=latest;
+  return `【${v.d.title}】
+競馬メジアン V5.25 完全統合版
+
+【コンピ一次診断】
+レース型：${v.type}
+P判定：${v.p}（上位3頭合計${v.sum}）
+大谷式：${v.otani}/3条件
+1-2差：${v.g12}P
+2-3差：${v.g23}P
+1-3差：${v.g13}P
+上位4頭幅：${v.top4Spread}P
+最大壁：${v.maxGap.after}位後${v.maxGap.gap}P（${v.maxGap.before}→${v.maxGap.next}）
+
+【コンピ単独予想】
+固定1着候補：${fmt(v.first)}
+馬券内軸：${fmt(v.axis)}
+頭替わり：${fmt(v.headAlt)}
+上位本線：${fmt(v.main)}
+3着侵入：${fmt(v.third)}
+三連複：${v.compiSan.join(' / ')||'なし'}
+
+【市場補正】
+状態：${v.marketType}
+補正後軸：${fmt(v.marketAxis)}
+実質相手：${fmt(v.marketMain)}
+市場逆行・3着保護：${fmt(v.marketThird)}
+補正内容：${v.marketMove.join(' / ')||'なし'}
+補正後三連複：${v.marketSan.join(' / ')||'なし'}
+
+【V5.24保存】
+A1：${fmt(v.groups.A1)}
+A2：${fmt(v.groups.A2)}
+B：${fmt(v.groups.B)}
+C：${fmt(v.groups.C)}
+A群内メジアン：${fmt(v.aMedian)}
+市場接続メジアン：${fmt(v.aMedianSupport)}
+WIN5本線：${fmt(v.win5Main)}
+WIN5穴：${fmt(v.win5Hole)}
+まっちゃん単勝本線：${fmt(v.matchanMain)}
+まっちゃん穴単：${fmt(v.matchanHole)}
+構造軸：${v.structureAxis||'なし'}
+大荒れ頭：${v.ooareHead||'なし'}
+ステルス馬：${v.stealth.map(x=>x.h+'番['+x.grade+']').join(' / ')||'なし'}
+青白光：${v.blueWhite.map(x=>x.h+'番['+x.gates.join('+')+']').join(' / ')||'なし'}
+
+【削除禁止】
+保護馬：${fmt(v.auditHorses)}
+監査三連複：${v.auditSan.join(' / ')||'なし'}
+
+【型専用買い目】
+単勝：${v.tickets.tan.map(x=>x+'番').join('・')||'見送り'}
+馬連：${v.tickets.umaren.join(' / ')||'見送り'}
+ワイド：${v.tickets.wide.join(' / ')||'見送り'}
+三連複：${v.tickets.san.join(' / ')||'見送り'}
+最重要1点：${v.tickets.bestOne}`;
+}
+async function copyForChat(){
+  try{
+    const t=chatText();
+    if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(t);
+    else{const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}
+    alert('V5.25解析結果をコピーしました');
+  }catch(e){alert(e.message||e)}
+}
+function csvEsc(v){v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+function saveResearchCsv(){
+  if(!latest){alert('先に解析してください');return}
+  const v=latest,row={
+    日時:new Date().toISOString(),レース:v.d.title,解析:'V5.25-full-merge',
+    レース型:v.type,P:v.p,上位3合計:v.sum,大谷条件:v.otani,
+    差1_2:v.g12,差2_3:v.g23,差1_3:v.g13,差3_5:v.g35,差5_6:v.g56,差6_7:v.g67,上位4頭幅:v.top4Spread,
+    最大壁位置:v.maxGap.after,最大壁差:v.maxGap.gap,最大壁前:v.maxGap.before,最大壁直後:v.maxGap.next,
+    A1:v.groups.A1.join('|'),A2:v.groups.A2.join('|'),B:v.groups.B.join('|'),C:v.groups.C.join('|'),
+    A群内メジアン:v.aMedian.join('|'),市場接続メジアン:v.aMedianSupport.join('|'),A2密集度:v.a2Density,A2幅:v.a2Spread,
+    コンピ85以上保護:v.high85.join('|'),一位抜きA群三角:v.aNo1Insurance,一位抜き保険ON:v.no1InsuranceOn?'ON':'OFF',
+    コンピ固定一着:v.first.join('|'),コンピ馬券内軸:v.axis.join('|'),コンピ頭替わり:v.headAlt.join('|'),コンピ上位本線:v.main.join('|'),コンピ三着侵入:v.third.join('|'),コンピ三連複:v.compiSan.join('|'),
+    市場補正:v.marketType,市場軸:v.marketAxis.join('|'),市場相手:v.marketMain.join('|'),市場三着:v.marketThird.join('|'),市場補正内容:v.marketMove.join('|'),市場三連複:v.marketSan.join('|'),
+    WIN5本線:v.win5Main.join('|'),WIN5穴:v.win5Hole.join('|'),まっちゃん単勝本線:v.matchanMain.join('|'),まっちゃん穴単:v.matchanHole.join('|'),
+    構造軸:v.structureAxis,大荒れ頭:v.ooareHead,軸回避:v.axisAvoid,相手保護:v.protect.join('|'),
+    ステルス馬:v.stealth.map(x=>x.h+':'+x.grade).join('|'),青白光:v.blueWhite.map(x=>x.h+':'+x.gates.join('+')).join('|'),
+    監査保護馬:v.auditHorses.join('|'),監査三連複:v.auditSan.join('|'),
+    単勝:v.tickets.tan.join('|'),馬連:v.tickets.umaren.join('|'),ワイド:v.tickets.wide.join('|'),三連複:v.tickets.san.join('|'),最重要一点:v.tickets.bestOne
+  };
+  const keys=Object.keys(row),csv='\ufeff'+keys.map(csvEsc).join(',')+'\n'+keys.map(k=>csvEsc(row[k])).join(',');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download='競馬メジアン_V5.25完全統合_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+</script>
+</body>
+</html>
