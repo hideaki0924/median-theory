@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="V5.29-table-restored-compi-wall-only">
-<title>競馬メジアン V5.29 表復旧・コンピ壁分離版</title>
+<meta name="app-build" content="V5.29-table-restored-wall-display">
+<title>競馬メジアン V5.29 表復旧・オッズ壁表示復元版</title>
 <style>
 :root{
   --bg:#07101f;--card:#10224a;--card2:#020617;--line:#475569;
@@ -64,6 +64,24 @@ pre{white-space:pre-wrap;word-break:break-word;background:#020617;padding:11px;b
 .legendRatio{background:#22d3ee;box-shadow:0 0 7px #22d3ee}
 .legendBase{background:#fde047;box-shadow:0 0 7px #fde047}
 .legendDouble{background:linear-gradient(#22d3ee 0 50%,#fde047 50%);box-shadow:0 0 7px #67e8f9}
+.sep.marketWall.uma{background:#fb7185;box-shadow:0 0 10px #fb7185}
+.sep.marketWall.tan{background:#38bdf8;box-shadow:0 0 10px #38bdf8}
+.sep.marketWall.fuku{background:#fde047;box-shadow:0 0 10px #fde047}
+.sep.marketWall.wide{background:#a78bfa;box-shadow:0 0 10px #a78bfa}
+.sep.marketWall.san{background:#4ade80;box-shadow:0 0 10px #4ade80}
+.sep.baseWall.tan{background:#f472b6;box-shadow:0 0 10px #f472b6}
+.sep.baseWall.fuku{background:#fb923c;box-shadow:0 0 10px #fb923c}
+.sep.doubleWall{background:linear-gradient(#fff 0 18%,currentColor 18% 82%,#fff 82%);}
+.wallLegend{gap:8px;margin-top:10px}
+.wallLegend span{border:1px solid #475569;background:#111c35;border-radius:999px;padding:5px 10px;font-size:12px}
+.legendLine{display:inline-block;width:28px;height:6px;border-radius:999px}
+.legendLine.uma{background:#fb7185;box-shadow:0 0 8px #fb7185}
+.legendLine.tan{background:#38bdf8;box-shadow:0 0 8px #38bdf8}
+.legendLine.fuku{background:#fde047;box-shadow:0 0 8px #fde047}
+.legendLine.san{background:#4ade80;box-shadow:0 0 8px #4ade80}
+.legendLine.f6{background:#fde047;box-shadow:0 0 8px #fde047}
+.legendLine.f15{background:#fb923c;box-shadow:0 0 8px #fb923c}
+.legendLine.t80{background:#f472b6;box-shadow:0 0 8px #f472b6}
 .note{margin-top:8px;padding:9px;background:#020617;border:1px solid #35517a;border-radius:11px;font-size:13px;line-height:1.65}
 .grid2,.legacyGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .box,.legacyBox{background:#020617;border:1px solid #475569;border-radius:12px;padding:9px}
@@ -523,7 +541,7 @@ function compiRow(v){
   return s+'</div>';
 }
 function simpleRow(label,arr){if(!arr.length)return'';return `<div class="row"><div class="label">${label}</div>${arr.map(h=>`<div class="cell">${h}</div>`).join('<i class="sep"></i>')}</div>`}
-function marketRow(label,arr,ratioList=[],baseList=[]){
+function marketRow(label,arr,ratioList=[],baseList=[],market='uma'){
   if(!arr.length)return'';
   const ratioPairs=new Set((ratioList||[]).map(w=>`${w.before}>${w.next}`));
   const basePairs=new Set((baseList||[]).filter(Boolean).map(w=>`${w.before}>${w.next}`));
@@ -533,7 +551,7 @@ function marketRow(label,arr,ratioList=[],baseList=[]){
     if(i<arr.length-1){
       const pair=`${h}>${arr[i+1]}`;
       const r=ratioPairs.has(pair),b=basePairs.has(pair);
-      const cls=r&&b?'doubleWall':r?'marketWall':b?'baseWall':'';
+      const cls=r&&b?`doubleWall ${market}`:r?`marketWall ${market}`:b?`baseWall ${market}`:'';
       s+=`<i class="sep ${cls}"></i>`;
     }
   });
@@ -550,13 +568,21 @@ function render(v){
   return `
   <div class="card market"><div class="title">📊 コンピ＋五市場順位</div><div class="marketScroll">
     ${compiRow(v)}
-    ${simpleRow('馬連',v.ur)}
-    ${simpleRow('単勝',v.tr)}
-    ${simpleRow('複勝',v.fr)}
-    ${simpleRow('ワイド',v.wr)}
-    ${simpleRow('三連複',v.sr)}
+    ${marketRow('馬連',v.ur,v.walls.uma,[],'uma')}
+    ${marketRow('単勝',v.tr,v.walls.tan,[v.walls.t80],'tan')}
+    ${marketRow('複勝',v.fr,v.walls.fuku,[v.walls.f6,v.walls.f15],'fuku')}
+    ${marketRow('ワイド',v.wr,v.walls.wide,[],'wide')}
+    ${marketRow('三連複',v.sr,v.walls.san,[],'san')}
   </div>
-  <div class="small" style="margin:6px 3px 0">※表内の色付き線はコンピ指数差だけ。オッズ壁は下の別欄で判定。</div>
+  <div class="wallLegend">
+    <span><i class="legendLine uma"></i>馬連1.8壁</span>
+    <span><i class="legendLine tan"></i>単勝1.8壁</span>
+    <span><i class="legendLine fuku"></i>複勝1.8壁</span>
+    <span><i class="legendLine san"></i>三連複1.8壁</span>
+    <span><i class="legendLine f6"></i>複勝6倍</span>
+    <span><i class="legendLine f15"></i>複勝15倍</span>
+    <span><i class="legendLine t80"></i>単勝80倍</span>
+  </div>
   <div class="note"><b>最大コンピ壁：</b>${v.maxGap.after}位後 ${v.maxGap.gap}P（${v.maxGap.before}番→${v.maxGap.next}番）<br>
   <b>強いコンピ壁：</b>${v.strongCompiWalls.length?v.strongCompiWalls.map(w=>`${w.after}位後${w.gap}P［${w.before}→${w.next}］`).join(' ／ '):'なし'}<br>
   <b>壁内層：</b>${v.compiTiers.map((a,i)=>`${i+1}層［${a.join('・')}］`).join(' ／ ')}</div>
@@ -772,7 +798,7 @@ function csvEsc(v){v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'"
 function saveResearchCsv(){
   if(!latest){alert('先に解析してください');return}
   const v=latest,row={
-    日時:new Date().toISOString(),レース:v.d.title,解析:'V5.29-table-restored-compi-wall-only',
+    日時:new Date().toISOString(),レース:v.d.title,解析:'V5.29-table-restored-wall-display',
     レース型:v.type,P:v.p,P詳細コード:v.pDetailInfo.code,P詳細名:v.pDetailInfo.name,P詳細特徴:v.pDetailInfo.feature,上位3合計:v.sum,大谷条件:v.otani,
     差1_2:v.g12,差2_3:v.g23,差1_3:v.g13,差3_5:v.g35,差5_6:v.g56,差6_7:v.g67,上位4頭幅:v.top4Spread,
     最大壁位置:v.maxGap.after,最大壁差:v.maxGap.gap,最大壁前:v.maxGap.before,最大壁直後:v.maxGap.next,
