@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="V5.29-table-wall-restored">
-<title>競馬メジアン V5.29 表内五市場壁・完全復元版</title>
+<meta name="app-build" content="V5.29-table-restored-compi-wall-only">
+<title>競馬メジアン V5.29 表復旧・コンピ壁分離版</title>
 <style>
 :root{
   --bg:#07101f;--card:#10224a;--card2:#020617;--line:#475569;
@@ -48,13 +48,13 @@ button{border:0;border-radius:15px;padding:13px 16px;margin:8px 5px 3px 0;font-s
 .badge{display:inline-block;margin:3px;padding:4px 8px;border-radius:999px;background:#1e293b;font-weight:900}
 .warn{color:var(--red);font-weight:950}.good{color:#86efac;font-weight:950}.cyan{color:var(--cyan);font-weight:950}.orange{color:var(--orange);font-weight:950}
 pre{white-space:pre-wrap;word-break:break-word;background:#020617;padding:11px;border-radius:12px;font-size:14px}
-.marketScroll{overflow-x:auto;background:#061326;border-radius:13px;padding:6px 3px}
-.row{display:flex;align-items:center;min-width:max-content;margin:5px 0}
-.label{width:58px;min-width:58px;font-size:14px;font-weight:950}
-.cell{width:40px;min-width:40px;text-align:center;font-size:20px;font-weight:950}
-.pt{display:block;font-size:10px;color:#d8b4fe}
-.sep{width:4px;min-width:4px;height:28px;margin:0 3px;border-radius:5px;background:#35517a}
-.sep.big{background:#fb7185;box-shadow:0 0 8px #fb7185}.sep.mid{background:#f59e0b;box-shadow:0 0 8px #f59e0b}.sep.small{background:#22d3ee}
+.marketScroll{overflow-x:auto;background:#061326;border-radius:12px;padding:5px 2px}
+.row{display:flex;align-items:center;min-width:max-content;margin:3px 0}
+.label{width:52px;min-width:52px;font-size:13px;font-weight:950}
+.cell{width:36px;min-width:36px;text-align:center;font-size:18px;font-weight:950;line-height:1.12}
+.pt{display:block;font-size:9px;color:#d8b4fe;line-height:1.1}
+.sep{width:2px;min-width:2px;height:24px;margin:0 2px;border-radius:4px;background:#35517a}
+.sep.big{width:5px;min-width:5px;height:28px;background:#fb7185;box-shadow:0 0 7px #fb7185}.sep.mid{width:4px;min-width:4px;height:27px;background:#f59e0b;box-shadow:0 0 6px #f59e0b}.sep.small{width:3px;min-width:3px;height:25px;background:#22d3ee}
 .sep.marketWall{width:6px;min-width:6px;height:34px;background:#22d3ee;box-shadow:0 0 10px #22d3ee;border:1px solid #ecfeff}
 .sep.baseWall{width:6px;min-width:6px;height:34px;background:#fde047;box-shadow:0 0 10px #fde047;border:1px solid #fff7a8}
 .sep.doubleWall{width:8px;min-width:8px;height:38px;background:linear-gradient(#22d3ee 0 50%,#fde047 50%);box-shadow:0 0 12px #67e8f9;border:1px solid #fff}
@@ -548,19 +548,15 @@ function thresholdText(w,label){
 
 function render(v){
   return `
-  <div class="card market"><div class="title">📊 コンピ＋四市場順位・表内壁表示</div><div class="marketScroll">
+  <div class="card market"><div class="title">📊 コンピ＋五市場順位</div><div class="marketScroll">
     ${compiRow(v)}
-    ${marketRow('馬連',v.ur,v.walls.uma,[])}
-    ${marketRow('単勝',v.tr,v.walls.tan,[v.walls.t10,v.walls.t30,v.walls.t80])}
-    ${marketRow('複勝',v.fr,v.walls.fuku,[v.walls.f6,v.walls.f10,v.walls.f15])}
-    ${marketRow('ワイド',v.wr,v.walls.wide,[])}
-    ${marketRow('三連複',v.sr,v.walls.san,[])}
+    ${simpleRow('馬連',v.ur)}
+    ${simpleRow('単勝',v.tr)}
+    ${simpleRow('複勝',v.fr)}
+    ${simpleRow('ワイド',v.wr)}
+    ${simpleRow('三連複',v.sr)}
   </div>
-  <div class="wallLegend">
-    <span><i class="legendBar legendRatio"></i>水色＝比率壁1.8倍</span>
-    <span><i class="legendBar legendBase"></i>黄色＝基準壁</span>
-    <span><i class="legendBar legendDouble"></i>二色＝両方重複</span>
-  </div>
+  <div class="small" style="margin:6px 3px 0">※表内の色付き線はコンピ指数差だけ。オッズ壁は下の別欄で判定。</div>
   <div class="note"><b>最大コンピ壁：</b>${v.maxGap.after}位後 ${v.maxGap.gap}P（${v.maxGap.before}番→${v.maxGap.next}番）<br>
   <b>強いコンピ壁：</b>${v.strongCompiWalls.length?v.strongCompiWalls.map(w=>`${w.after}位後${w.gap}P［${w.before}→${w.next}］`).join(' ／ '):'なし'}<br>
   <b>壁内層：</b>${v.compiTiers.map((a,i)=>`${i+1}層［${a.join('・')}］`).join(' ／ ')}</div>
@@ -776,7 +772,7 @@ function csvEsc(v){v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'"
 function saveResearchCsv(){
   if(!latest){alert('先に解析してください');return}
   const v=latest,row={
-    日時:new Date().toISOString(),レース:v.d.title,解析:'V5.29-table-wall-restored',
+    日時:new Date().toISOString(),レース:v.d.title,解析:'V5.29-table-restored-compi-wall-only',
     レース型:v.type,P:v.p,P詳細コード:v.pDetailInfo.code,P詳細名:v.pDetailInfo.name,P詳細特徴:v.pDetailInfo.feature,上位3合計:v.sum,大谷条件:v.otani,
     差1_2:v.g12,差2_3:v.g23,差1_3:v.g13,差3_5:v.g35,差5_6:v.g56,差6_7:v.g67,上位4頭幅:v.top4Spread,
     最大壁位置:v.maxGap.after,最大壁差:v.maxGap.gap,最大壁前:v.maxGap.before,最大壁直後:v.maxGap.next,
