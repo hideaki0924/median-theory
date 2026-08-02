@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="V5.29-table-restored-wall-display">
-<title>競馬メジアン V5.35 危険な1番人気・書籍原型統合版</title>
+<meta name="app-build" content="V5.36-book-favorite-all-vertical-opponent-wide">
+<title>競馬メジアン V5.36 書籍信頼度＋全馬タテ目＋相手荒れワイド版</title>
 <style>
 :root{
   --bg:#07101f;--card:#10224a;--card2:#020617;--line:#475569;
@@ -1107,4 +1107,240 @@ function saveResearchCsv(){
   a.href=URL.createObjectURL(blob);a.download='競馬メジアン_V5.29_表内五市場壁_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 </script>
+
+<script>
+/* 競馬メジアン V5.36 追加パッチ
+   - 書籍原型の単勝1番人気信頼度を独立表示
+   - 全馬タテ目倍率（独自研究）
+   - 相手荒れワイド
+   - 通常最重要／人気馬飛び最重要／大荒れ完成形を分離
+   - チャッピーコピー・研究CSVへ追加
+*/
+(function(){
+'use strict';
+if(typeof build!=='function'||typeof render!=='function'){
+  alert('V5.35本体を読み込めません。パッチはV5.35の末尾に入れてください。');
+  return;
+}
+const V536='V5.36';
+const __build535=build;
+const __render535=render;
+const __chatText535=chatText;
+const __run535=run;
+const __saveCsv535=saveResearchCsv;
+
+function horsePairAnalysis(h, umaSorted){
+  h=String(h);
+  const withHorse=umaSorted.filter(x=>x.a===h||x.b===h);
+  if(withHorse.length<2)return {h,status:'馬連入力不足',ratio:null};
+  const p1=withHorse[0],p2=withHorse[1];
+  const m1=p1.a===h?p1.b:p1.a;
+  const m2=p2.a===h?p2.b:p2.a;
+  const cross=umaSorted.find(x=>pairKey(x.a,x.b)===pairKey(m1,m2));
+  if(!cross)return {h,status:'タテ目未入力',pair1:pairKey(p1.a,p1.b),pair2:pairKey(p2.a,p2.b),mate1:m1,mate2:m2,baseOdds:p1.od,ratio:null};
+  return {
+    h,status:'OK',pair1:pairKey(p1.a,p1.b),pair2:pairKey(p2.a,p2.b),
+    mate1:m1,mate2:m2,verticalPair:pairKey(m1,m2),baseOdds:Number(p1.od),
+    verticalOdds:Number(cross.od),ratio:Number(cross.od)/Number(p1.od)
+  };
+}
+function pairCandidateScore(a,b,v,order){
+  let z=100-(order[a]||30)-(order[b]||30);
+  if(v.bigHolePlace.includes(a)||v.bigHolePlace.includes(b))z+=12;
+  if(v.bigHoleThird.includes(a)||v.bigHoleThird.includes(b))z+=8;
+  if(v.marketMain.includes(a)&&v.marketMain.includes(b))z+=10;
+  if(v.marketThird.includes(a)||v.marketThird.includes(b))z+=5;
+  return z;
+}
+function makeOpponentWide(v){
+  const head=String(v.marketAxis?.[0]||v.axis?.[0]||v.first?.[0]||'');
+  const pool=uniq([...(v.marketMain||[]),...(v.marketThird||[]),...(v.bigHolePlace||[]),...(v.bigHoleThird||[]),...(v.protect||[])])
+    .filter(h=>h&&h!==head).slice(0,10);
+  const order=Object.fromEntries(pool.map((h,i)=>[h,i]));
+  const rows=[];
+  for(let i=0;i<pool.length;i++)for(let j=i+1;j<pool.length;j++){
+    rows.push({key:pairKey(pool[i],pool[j]),score:pairCandidateScore(pool[i],pool[j],v,order)});
+  }
+  rows.sort((x,y)=>y.score-x.score||x.key.localeCompare(y.key,undefined,{numeric:true}));
+  return uniq(rows.map(x=>x.key)).slice(0,3);
+}
+function makeBigCompletion(v){
+  const head=v.bigHoleWin?.[0]||v.matchanHole?.[0]||'';
+  const receiver=uniq([...(v.marketMain||[]),...(v.protect||[])]).find(h=>h&&h!==head)||'';
+  const third=uniq([...(v.bigHoleThird||[]),...(v.marketThird||[])]).find(h=>h&&h!==head&&h!==receiver)||'';
+  return head&&receiver&&third?triKey(head,receiver,third):'';
+}
+function safeNormalBest(v,favOut){
+  const candidates=uniq([...(v.marketSan||[]),...(v.compiSan||[]),...(v.tickets?.san||[])]);
+  return candidates.find(k=>k&&k!==favOut)||candidates[0]||'なし';
+}
+function bookOverall(verticalSafe,sanSafe){
+  if(verticalSafe==null||sanSafe==null)return '判定材料不足';
+  if(verticalSafe&&sanSafe)return '書籍原型：信頼側';
+  if(!verticalSafe&&!sanSafe)return '書籍原型：危険';
+  return '書籍原型：注意（1条件不一致）';
+}
+
+build=function(d){
+  const v=__build535(d);
+  const umaSorted=sorted(d.uma);
+  const allHorseVertical=(v.cr||[]).map(h=>horsePairAnalysis(h,umaSorted));
+  const fav=String(v.concentrationAudit?.horse||'');
+  const favVertical=allHorseVertical.find(x=>x.h===fav)||{h:fav,status:'判定不可',ratio:null};
+  const sanOdds=v.concentrationAudit?.firstSanAbsenceOdds;
+  const verticalSafe=favVertical.ratio==null?null:favVertical.ratio>=4;
+  const sanSafe=sanOdds==null?null:Number(sanOdds)>=40;
+  const bookFavorite={
+    horse:fav,
+    pair1:favVertical.pair1||'',pair2:favVertical.pair2||'',
+    mate1:favVertical.mate1||'',mate2:favVertical.mate2||'',
+    verticalPair:favVertical.verticalPair||'',baseOdds:favVertical.baseOdds??null,
+    verticalOdds:favVertical.verticalOdds??null,ratio:favVertical.ratio??null,
+    verticalSafe,sanSafe,
+    sanAbsenceRank:v.concentrationAudit?.firstSanAbsence??null,
+    sanAbsenceCombo:v.concentrationAudit?.firstSanAbsenceCombo||'',
+    sanAbsenceOdds:sanOdds??null,
+    sanTop5:v.concentrationAudit?.sanTop5Count??0,
+    sanTop10:v.concentrationAudit?.sanTop10Count??0,
+    sanTop20:v.concentrationAudit?.sanTop20Count??0,
+    overall:bookOverall(verticalSafe,sanSafe)
+  };
+  const opponentWide=makeOpponentWide(v);
+  const favOut=v.concentrationAudit?.firstSanAbsenceCombo||'';
+  const normalBest=safeNormalBest(v,favOut);
+  const bigCompletion=makeBigCompletion(v);
+  v.bookFavorite=bookFavorite;
+  v.allHorseVertical=allHorseVertical;
+  v.opponentWide=opponentWide;
+  v.ticketGroups={
+    normalBest,
+    favoriteOutBest:(v.concentrationAudit?.dangerousFavorite&&favOut)?favOut:'なし',
+    bigCompletion:bigCompletion||'なし'
+  };
+  // 旧ロジックによる「人気馬なし組の先頭自動昇格」は表示上分離する。
+  v.tickets.bestOne=normalBest;
+  return v;
+};
+
+function ratioFmt(x){return x==null?'判定不可':Number(x).toFixed(2)+'倍'}
+function bookCard(v){
+  const b=v.bookFavorite;
+  const sanBase=Math.min(20,v.concentrationAudit?.sanInputCount||0);
+  return `<div class="card audit"><div class="title">📕 単勝1番人気・書籍原型信頼度</div>
+    <div class="role"><div class="roleL">対象</div><div class="roleV">${b.horse?b.horse+'番':'判定不可'}</div></div>
+    <div class="note"><b>① 馬連タテ目判定（書籍原型）</b><br>
+      馬連上位2組：${b.pair1||'不足'}（${b.baseOdds??'-'}倍）／${b.pair2||'不足'}<br>
+      相手同士のタテ目：${b.verticalPair||'不足'}＝${b.verticalOdds??'-'}倍<br>
+      計算：${b.verticalOdds??'-'} ÷ ${b.baseOdds??'-'} ＝ <b>${ratioFmt(b.ratio)}</b><br>
+      判定：${b.verticalSafe==null?'判定不可':b.verticalSafe?'<span class="good">4倍以上・信頼側</span>':'<span class="warn">4倍未満・危険</span>'}
+    </div>
+    <div class="note"><b>② 三連複・単勝1番人気の残存力</b><br>
+      初めて不在：${b.sanAbsenceRank==null?'入力なし':b.sanAbsenceRank+'位 '+(b.sanAbsenceCombo||'')+'＝'+(b.sanAbsenceOdds??'-')+'倍'}<br>
+      40倍判定：${b.sanSafe==null?'判定不可':b.sanSafe?'<span class="good">40倍以上・信頼側</span>':'<span class="warn">40倍未満・危険</span>'}<br>
+      登場数：上位5＝${b.sanTop5}／上位10＝${b.sanTop10}／上位20＝${b.sanTop20}${sanBase?'（入力'+sanBase+'組以上を推奨）':''}
+    </div>
+    <div class="typeName" style="font-size:22px">${esc(b.overall)}</div>
+    <div class="small">ここは書籍原型だけを表示。コンピ・P・青白光などの独自補正とは混ぜません。</div>
+  </div>`;
+}
+function allVerticalCard(v){
+  const rows=v.allHorseVertical||[];
+  return `<div class="card research"><div class="title">🧪 全馬タテ目倍率（独自研究）</div>
+    <div class="small">各馬を仮想中心馬として、その馬を含む馬連上位2組の相手同士をタテ目にして計算。現時点では判定に使わず、表示・保存のみ。</div>
+    <div class="marketScroll" style="margin-top:8px"><table style="width:100%;border-collapse:collapse;min-width:620px;font-size:12px">
+      <thead><tr><th>馬</th><th>上位1組</th><th>上位2組</th><th>タテ目</th><th>基準</th><th>タテ目</th><th>倍率</th></tr></thead>
+      <tbody>${rows.map(x=>`<tr style="border-top:1px solid #334155"><td style="padding:5px;text-align:center;font-weight:900">${x.h}</td><td>${x.pair1||'-'}</td><td>${x.pair2||'-'}</td><td>${x.verticalPair||'-'}</td><td>${x.baseOdds??'-'}</td><td>${x.verticalOdds??'-'}</td><td class="${x.ratio!=null&&x.ratio>=4?'good':x.ratio!=null?'warn':''}">${x.ratio==null?x.status:Number(x.ratio).toFixed(2)}</td></tr>`).join('')}</tbody>
+    </table></div>
+  </div>`;
+}
+function ticketSplitCard(v){
+  return `<div class="card ticket"><div class="title">🧭 最重要買い目・用途別分離</div>
+    <div class="ticketBox"><div class="ticketL">通常最重要</div><div class="ticketV">${esc(v.ticketGroups.normalBest)}</div></div>
+    <div class="ticketBox"><div class="ticketL">人気馬飛び最重要</div><div class="ticketV">${esc(v.ticketGroups.favoriteOutBest)}</div></div>
+    <div class="ticketBox"><div class="ticketL">大荒れ完成形</div><div class="ticketV">${esc(v.ticketGroups.bigCompletion)}</div></div>
+    <div class="ticketBox"><div class="ticketL">相手荒れワイド（1着中心馬を外す）</div><div class="ticketV">${v.opponentWide.join(' ／ ')||'なし'}</div></div>
+  </div>`;
+}
+
+render=function(v){
+  let html=__render535(v);
+  const anchor='<div class="card roles"><div class="title">🚨 市場過集中・三連複消滅監査</div>';
+  const idx=html.indexOf(anchor);
+  if(idx>=0)html=html.slice(0,idx)+bookCard(v)+allVerticalCard(v)+html.slice(idx);
+  else html=bookCard(v)+allVerticalCard(v)+html;
+  const detailsIdx=html.indexOf('<details class="card">');
+  if(detailsIdx>=0)html=html.slice(0,detailsIdx)+ticketSplitCard(v)+html.slice(detailsIdx);
+  else html+=ticketSplitCard(v);
+  return html;
+};
+
+chatText=function(){
+  const base=__chatText535();
+  const v=latest,b=v.bookFavorite;
+  return base.replace(/競馬メジアン V5\.35/g,'競馬メジアン V5.36')+`
+
+【単勝1番人気・書籍原型信頼度】
+対象：${b.horse||'判定不可'}番
+馬連上位2組：${b.pair1||'不足'} ${b.baseOdds??'-'}倍 / ${b.pair2||'不足'}
+タテ目：${b.verticalPair||'不足'} ${b.verticalOdds??'-'}倍
+タテ目倍率：${ratioFmt(b.ratio)}（${b.verticalSafe==null?'判定不可':b.verticalSafe?'4倍以上・信頼側':'4倍未満・危険'}）
+三連複初不在：${b.sanAbsenceRank??'-'}位 ${b.sanAbsenceCombo||'-'} ${b.sanAbsenceOdds??'-'}倍
+三連複40倍判定：${b.sanSafe==null?'判定不可':b.sanSafe?'40倍以上・信頼側':'40倍未満・危険'}
+三連複登場：上位5 ${b.sanTop5} / 上位10 ${b.sanTop10} / 上位20 ${b.sanTop20}
+総合：${b.overall}
+
+【全馬タテ目倍率・独自研究】
+${v.allHorseVertical.map(x=>`${x.h}番 ${x.ratio==null?x.status:Number(x.ratio).toFixed(2)+'倍'}［${x.pair1||'-'}／${x.pair2||'-'}→${x.verticalPair||'-'}］`).join('\n')}
+
+【用途別最重要】
+通常最重要：${v.ticketGroups.normalBest}
+人気馬飛び最重要：${v.ticketGroups.favoriteOutBest}
+大荒れ完成形：${v.ticketGroups.bigCompletion}
+相手荒れワイド：${v.opponentWide.join(' / ')||'なし'}`;
+};
+
+saveResearchCsv=function(){
+  if(!latest){alert('先に解析してください');return}
+  const v=latest,b=v.bookFavorite;
+  const row={
+    日時:new Date().toISOString(),レース:v.d.title,解析:'V5.36-book-favorite-all-vertical-opponent-wide',
+    レース型:v.type,P:v.p,P詳細コード:v.pDetailInfo.code,上位3合計:v.sum,大谷条件:v.otani,
+    差1_2:v.g12,差2_3:v.g23,差1_3:v.g13,最大壁位置:v.maxGap.after,最大壁差:v.maxGap.gap,
+    書籍対象馬:b.horse,書籍馬連上位1:b.pair1,書籍馬連上位2:b.pair2,書籍タテ目:b.verticalPair,
+    書籍基準馬連オッズ:b.baseOdds,書籍タテ目オッズ:b.verticalOdds,書籍タテ目倍率:b.ratio,
+    書籍馬連4倍判定:b.verticalSafe==null?'判定不可':b.verticalSafe?'信頼側':'危険',
+    三連複初不在順位:b.sanAbsenceRank,三連複初不在組:b.sanAbsenceCombo,三連複初不在オッズ:b.sanAbsenceOdds,
+    三連複40倍判定:b.sanSafe==null?'判定不可':b.sanSafe?'信頼側':'危険',
+    三連複上位5登場:b.sanTop5,三連複上位10登場:b.sanTop10,三連複上位20登場:b.sanTop20,書籍総合:b.overall,
+    全馬タテ目倍率:v.allHorseVertical.map(x=>x.h+':'+(x.ratio==null?x.status:Number(x.ratio).toFixed(4))).join('|'),
+    相手荒れワイド:v.opponentWide.join('|'),通常最重要:v.ticketGroups.normalBest,
+    人気馬飛び最重要:v.ticketGroups.favoriteOutBest,大荒れ完成形:v.ticketGroups.bigCompletion,
+    コンピ一着候補:v.first.join('|'),馬券内軸:v.axis.join('|'),市場軸:v.marketAxis.join('|'),市場相手:v.marketMain.join('|'),市場三着:v.marketThird.join('|'),
+    構造軸:v.structureAxis,大荒れ頭:v.ooareHead,ステルス馬:v.stealth.map(x=>x.h+':'+x.grade).join('|'),青白光:v.blueWhite.map(x=>x.h+':'+x.gates.join('+')).join('|'),
+    単勝:v.tickets.tan.join('|'),馬連:v.tickets.umaren.join('|'),ワイド:v.tickets.wide.join('|'),三連複:v.tickets.san.join('|')
+  };
+  const keys=Object.keys(row),csv='\ufeff'+keys.map(csvEsc).join(',')+'\n'+keys.map(k=>csvEsc(row[k])).join(',');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download='競馬メジアン_V5.36_研究_'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+};
+
+run=function(){
+  __run535();
+  if(latest){
+    document.title=latest.d.title+'｜競馬メジアン V5.36';
+  }
+};
+
+function updateV536Labels(){
+  const tag=document.querySelector('h1 .tag');if(tag)tag.textContent='V5.36';
+  const h1=document.querySelector('h1');if(h1)h1.innerHTML=h1.innerHTML.replace('危険な1番人気・書籍原型統合版','書籍信頼度＋全馬タテ目＋相手荒れワイド版');
+  const go=document.querySelector('button.go');if(go)go.textContent='V5.36解析';
+  const meta=document.querySelector('meta[name="app-build"]');if(meta)meta.setAttribute('content','V5.36-book-favorite-all-vertical-opponent-wide');
+  document.title=document.title.replace('V5.35','V5.36');
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',updateV536Labels);else updateV536Labels();
+})();
+
+</script>
 </body>
+</html>
