@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="V5.36.1-umaren-tanfav-axis-restored">
-<title>競馬メジアン V5.36.1 馬連順位復元版</title>
+<meta name="app-build" content="V5.36.2-umaren-research-csv">
+<title>競馬メジアン V5.36.2 馬連研究CSV追加版</title>
 <style>
 :root{
   --bg:#07101f;--card:#10224a;--card2:#020617;--line:#475569;
@@ -1122,11 +1122,71 @@ async function copyForChat(){
     alert('V5.31解析結果をコピーしました');
   }catch(e){alert(e.message||e)}
 }
+
+/* V5.36.2 研究CSV用：結果入力の任意取得 */
+function researchResultHorses(raw){
+  const text=zen(raw||'');
+  const sec=text.match(/\[RESULT\]([\s\S]*?)(?=\n\s*\[|$)/i);
+  if(!sec)return[];
+  const m=sec[1].match(/\d+\s*[-ー－]\s*\d+\s*[-ー－]\s*\d+/);
+  return m?m[0].match(/\d+/g).map(String):[];
+}
+
+/* V5.36.2 研究CSV用：単勝1人気軸の馬連列を復元 */
+function researchUmaAxisData(v){
+  const fav=String(v.tr?.[0]||'');
+  const rows=fav?sorted(v.d.uma).filter(p=>String(p.a)===fav||String(p.b)===fav):[];
+  const mates=[],odds=[];
+  rows.forEach(p=>{
+    const mate=String(p.a)===fav?String(p.b):String(p.a);
+    if(!mates.includes(mate)){
+      mates.push(mate);
+      odds.push(Number(p.od));
+    }
+  });
+
+  const ninthOk=odds.length>=10&&odds[8]>0;
+  const ninthRatio=ninthOk?odds[9]/odds[8]:null;
+
+  const compiRank=Object.fromEntries((v.cr||[]).map((h,i)=>[String(h),i+1]));
+  const umaRank=Object.fromEntries((v.ur||[]).map((h,i)=>[String(h),i+1]));
+  const rising=(v.cr||[])
+    .filter(h=>compiRank[String(h)]-Number(umaRank[String(h)]||999)>=3)
+    .map(h=>String(h)+':+'+(compiRank[String(h)]-umaRank[String(h)]));
+
+  const zone=(v.cr||[]).slice(4,8).map(String);
+  const result=researchResultHorses(document.getElementById('input')?.value||'');
+  const zoneHit=result.length?result.filter(h=>zone.includes(String(h))).length:'未入力';
+
+  return {
+    fav,mates,odds,
+    ninthAvailable:ninthOk,
+    ninthRatio,
+    ninthWall:ninthOk&&ninthRatio>=1.8,
+    ninthBefore:ninthOk?mates[8]:'',
+    ninthAfter:ninthOk?mates[9]:'',
+    zone,zoneHit,rising
+  };
+}
+
 function csvEsc(v){v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
 function saveResearchCsv(){
   if(!latest){alert('先に解析してください');return}
-  const v=latest,row={
-    日時:new Date().toISOString(),レース:v.d.title,解析:'V5.29-table-restored-wall-display',
+  const v=latest;
+  const umaResearch=researchUmaAxisData(v);
+  const row={
+    日時:new Date().toISOString(),
+    馬連軸馬:umaResearch.fav,
+    馬連軸相手順位列:umaResearch.mates.join('|'),
+    馬連軸相手オッズ列:umaResearch.odds.join('|'),
+    馬連9位壁有無:umaResearch.ninthAvailable?(umaResearch.ninthWall?'あり':'なし'):'判定不可',
+    馬連9位壁倍率:umaResearch.ninthRatio==null?'':umaResearch.ninthRatio.toFixed(2),
+    馬連9位壁前馬:umaResearch.ninthBefore,
+    馬連9位壁直後馬:umaResearch.ninthAfter,
+    コンピ5_8位馬:umaResearch.zone.join('|'),
+    コンピ5_8位結果内数:umaResearch.zoneHit,
+    馬連順位上昇馬:umaResearch.rising.join('|'),
+    レース:v.d.title,解析:'V5.29-table-restored-wall-display',
     レース型:v.type,P:v.p,P詳細コード:v.pDetailInfo.code,P詳細名:v.pDetailInfo.name,P詳細特徴:v.pDetailInfo.feature,上位3合計:v.sum,大谷条件:v.otani,
     差1_2:v.g12,差2_3:v.g23,差1_3:v.g13,差3_5:v.g35,差5_6:v.g56,差6_7:v.g67,上位4頭幅:v.top4Spread,
     最大壁位置:v.maxGap.after,最大壁差:v.maxGap.gap,最大壁前:v.maxGap.before,最大壁直後:v.maxGap.next,
@@ -1150,7 +1210,7 @@ function saveResearchCsv(){
 </script>
 
 <script>
-/* 競馬メジアン V5.36.1 追加パッチ
+/* 競馬メジアン V5.36.2 追加パッチ
    - 書籍原型の単勝1番人気信頼度を独立表示
    - 全馬タテ目倍率（独自研究）
    - 相手荒れワイド
@@ -1318,7 +1378,7 @@ render=function(v){
 chatText=function(){
   const base=__chatText535();
   const v=latest,b=v.bookFavorite;
-  return base.replace(/競馬メジアン V5\.35/g,'競馬メジアン V5.36.1')+`
+  return base.replace(/競馬メジアン V5\.35/g,'競馬メジアン V5.36.2')+`
 
 【単勝1番人気・書籍原型信頼度】
 対象：${b.horse||'判定不可'}番
@@ -1368,14 +1428,14 @@ saveResearchCsv=function(){
 run=function(){
   __run535();
   if(latest){
-    document.title=latest.d.title+'｜競馬メジアン V5.36.1';
+    document.title=latest.d.title+'｜競馬メジアン V5.36.2';
   }
 };
 
 function updateV536Labels(){
   const tag=document.querySelector('h1 .tag');if(tag)tag.textContent='V5.36';
   const h1=document.querySelector('h1');if(h1)h1.innerHTML=h1.innerHTML.replace('危険な1番人気・書籍原型統合版','書籍信頼度＋全馬タテ目＋相手荒れワイド版');
-  const go=document.querySelector('button.go');if(go)go.textContent='V5.36.1解析';
+  const go=document.querySelector('button.go');if(go)go.textContent='V5.36.2解析';
   const meta=document.querySelector('meta[name="app-build"]');if(meta)meta.setAttribute('content','V5.36-book-favorite-all-vertical-opponent-wide');
   document.title=document.title.replace('V5.35','V5.36');
 }
