@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="V5.37-result-research">
-<title>競馬メジアン V5.37 結果研究完成版</title>
+<meta name="app-build" content="V5.38-result-code-integrated">
+<title>競馬メジアン V5.38 結果コード統合完成版</title>
 <style>
 :root{
   --bg:#07101f;--card:#10224a;--card2:#020617;--line:#475569;
@@ -1541,662 +1541,178 @@ function init(){
 document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
 })();
 </script>
-  <script>
-/* =========================================================
-   V5.38 チャッピー結果コード一括入力パッチ
-   ・結果コードを1回貼る
-   ・結果入力欄を全部自動入力
-   ・「反映して保存」で端末保存まで実行
-========================================================= */
-(function () {
-  'use strict';
 
-  const PATCH_VERSION = 'V5.38-result-code-import';
+<!-- V5.38 integrated result importer start -->
+<script>
+(function(){
+'use strict';
 
-  function normalizeText(value) {
-    return String(value || '')
-      .replace(/[０-９]/g, function (c) {
-        return String.fromCharCode(c.charCodeAt(0) - 65248);
-      })
-      .replace(/[－ー―−]/g, '-')
-      .replace(/：/g, ':')
-      .replace(/\r/g, '')
-      .trim();
+const IMPORT_VER='V5.38-result-code-integrated';
+
+function norm538(s){
+  return String(s??'')
+    .replace(/^\uFEFF/,'')
+    .replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-65248))
+    .replace(/[－ー―−→＞]/g,'-')
+    .replace(/：/g,':')
+    .replace(/\r\n?/g,'\n')
+    .trim();
+}
+function set538(id,value){
+  const e=document.getElementById(id);
+  if(!e)return false;
+  e.value=value??'';
+  e.dispatchEvent(new Event('input',{bubbles:true}));
+  e.dispatchEvent(new Event('change',{bubbles:true}));
+  return true;
+}
+function parse538(raw){
+  const text=norm538(raw);
+  if(!text)throw new Error('結果コードが空です');
+
+  const out={
+    date:'',result:'',pop1:'',pop2:'',pop3:'',
+    sanpuku:'',santan:'',umaren:'',umatan:'',
+    wide:[],memo:''
+  };
+
+  const resultMatch =
+    text.match(/(?:^|\n)\s*\[RESULT\]\s*\n+\s*(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/i) ||
+    text.match(/(?:^|\n)\s*(\d+)\s*-\s*(\d+)\s*-\s*(\d+)\s*(?=\n|$)/) ||
+    text.match(/(?:RESULT|結果(?:1-2-3)?)\s*[: ]\s*(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/i);
+
+  if(!resultMatch)throw new Error('結果1-2-3を読み取れませんでした');
+  out.result=[resultMatch[1],resultMatch[2],resultMatch[3]].join('-');
+
+  const dateMatch =
+    text.match(/\[DATE\]\s*\n+\s*(20\d{2})[\/\-.年](\d{1,2})[\/\-.月](\d{1,2})/i) ||
+    text.match(/(?:DATE|日付)\s*[: ]\s*(20\d{2})[\/\-.年](\d{1,2})[\/\-.月](\d{1,2})/i);
+  if(dateMatch){
+    out.date=`${dateMatch[1]}-${String(dateMatch[2]).padStart(2,'0')}-${String(dateMatch[3]).padStart(2,'0')}`;
   }
 
-  function directText(element) {
-    if (!element) return '';
-
-    return Array.from(element.childNodes)
-      .filter(function (node) {
-        return node.nodeType === Node.TEXT_NODE;
-      })
-      .map(function (node) {
-        return node.textContent;
-      })
-      .join(' ')
-      .replace(/\s+/g, ' ')
-      .trim();
+  const popMatch =
+    text.match(/\[POPULARITY\]\s*\n+\s*(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/i) ||
+    text.match(/(?:POPULARITY|人気)\s*[: ]\s*(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/i);
+  if(popMatch){
+    out.pop1=popMatch[1];out.pop2=popMatch[2];out.pop3=popMatch[3];
   }
 
-  function parseResultCode(raw) {
-    const text = normalizeText(raw);
+  const lines=text.split('\n').map(x=>x.trim()).filter(Boolean);
+  let memoMode=false;
+  const memo=[];
+  for(const line0 of lines){
+    const line=norm538(line0);
+    const up=line.toUpperCase();
 
-    if (!text) {
-      throw new Error('チャッピー結果コードが空です');
+    if(/^\[(MEMO|メモ)\]$/.test(up)){memoMode=true;continue}
+    if(/^\[/.test(line)){memoMode=false;continue}
+    if(memoMode){memo.push(line);continue}
+
+    let m;
+    if((m=line.match(/^(?:SANPUKU|三連複)\s*[: ]\s*([\d,]+)$/i))) out.sanpuku=m[1].replace(/,/g,'');
+    else if((m=line.match(/^(?:SANRENTAN|三連単)\s*[: ]\s*([\d,]+)$/i))) out.santan=m[1].replace(/,/g,'');
+    else if((m=line.match(/^(?:UMAREN|馬連|馬複)\s*[: ]\s*([\d,]+)$/i))) out.umaren=m[1].replace(/,/g,'');
+    else if((m=line.match(/^(?:UMATAN|馬単)\s*[: ]\s*([\d,]+)$/i))) out.umatan=m[1].replace(/,/g,'');
+    else if((m=line.match(/^(?:WIDE|ワイド)\s+(\d+)\s*-\s*(\d+)\s+([\d,]+)$/i))){
+      const pair=[Number(m[1]),Number(m[2])].sort((a,b)=>a-b).join('-');
+      out.wide.push(`${pair}:${m[3].replace(/,/g,'')}`);
     }
-
-    const result = {
-      date: '',
-      finish: '',
-      popularity1: '',
-      popularity2: '',
-      popularity3: '',
-      sanpuku: '',
-      sanrentan: '',
-      umaren: '',
-      umatan: '',
-      wide: [],
-      memo: ''
-    };
-
-    let section = '';
-
-    text.split('\n').forEach(function (originalLine) {
-      const line = normalizeText(originalLine);
-
-      if (!line) return;
-
-      const header = line.toUpperCase();
-
-      if (/^\[(DATE|日付)\]$/.test(header)) {
-        section = 'DATE';
-        return;
-      }
-
-      if (/^\[(RESULT|結果)\]$/.test(header)) {
-        section = 'RESULT';
-        return;
-      }
-
-      if (/^\[(POPULARITY|人気)\]$/.test(header)) {
-        section = 'POPULARITY';
-        return;
-      }
-
-      if (/^\[(PAYBACK|払戻|払い戻し)\]$/.test(header)) {
-        section = 'PAYBACK';
-        return;
-      }
-
-      if (/^\[(MEMO|メモ)\]$/.test(header)) {
-        section = 'MEMO';
-        return;
-      }
-
-      if (section === 'DATE') {
-        const m = line.match(
-          /(20\d{2})[\/\-.年](\d{1,2})[\/\-.月](\d{1,2})/
-        );
-
-        if (m) {
-          result.date =
-            m[1] +
-            '/' +
-            String(m[2]).padStart(2, '0') +
-            '/' +
-            String(m[3]).padStart(2, '0');
-        }
-        return;
-      }
-
-      if (section === 'RESULT') {
-        const nums = line.match(/\d+/g);
-
-        if (nums && nums.length >= 3) {
-          result.finish = nums.slice(0, 3).join('-');
-        }
-        return;
-      }
-
-      if (section === 'POPULARITY') {
-        const nums = line.match(/\d+/g);
-
-        if (nums && nums.length >= 3) {
-          result.popularity1 = nums[0];
-          result.popularity2 = nums[1];
-          result.popularity3 = nums[2];
-        }
-        return;
-      }
-
-      if (section === 'PAYBACK') {
-        let m;
-
-        m = line.match(
-          /^(SANPUKU|三連複)\s*[: ]\s*([\d,]+)$/i
-        );
-        if (m) {
-          result.sanpuku = m[2].replace(/,/g, '');
-          return;
-        }
-
-        m = line.match(
-          /^(SANRENTAN|SANRENTAN|三連単)\s*[: ]\s*([\d,]+)$/i
-        );
-        if (m) {
-          result.sanrentan = m[2].replace(/,/g, '');
-          return;
-        }
-
-        m = line.match(
-          /^(UMAREN|馬連|馬複)\s*[: ]\s*([\d,]+)$/i
-        );
-        if (m) {
-          result.umaren = m[2].replace(/,/g, '');
-          return;
-        }
-
-        m = line.match(
-          /^(UMATAN|馬単)\s*[: ]\s*([\d,]+)$/i
-        );
-        if (m) {
-          result.umatan = m[2].replace(/,/g, '');
-          return;
-        }
-
-        m = line.match(
-          /^(WIDE|ワイド)\s+(\d+)\s*-\s*(\d+)\s+([\d,]+)/i
-        );
-        if (m) {
-          result.wide.push({
-            pair: [Number(m[2]), Number(m[3])]
-              .sort(function (a, b) {
-                return a - b;
-              })
-              .join('-'),
-            payoff: m[4].replace(/,/g, '')
-          });
-        }
-
-        return;
-      }
-
-      if (section === 'MEMO') {
-        result.memo += (result.memo ? '\n' : '') + line;
-      }
-    });
-
-    if (!result.finish) {
-      const resultMatch = text.match(
-        /(?:結果1?-?2?-?3?|RESULT)\s*[: ]\s*(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/i
-      );
-
-      if (resultMatch) {
-        result.finish =
-          resultMatch[1] +
-          '-' +
-          resultMatch[2] +
-          '-' +
-          resultMatch[3];
-      }
-    }
-
-    if (!result.finish) {
-      throw new Error('結果1-2-3を読み取れませんでした');
-    }
-
-    return result;
   }
+  out.memo=memo.join('\n');
+  return out;
+}
 
-  function findResultSection() {
-    const candidates = Array.from(
-      document.querySelectorAll('.card, section, article, div')
-    );
+function fill538(data){
+  let count=0;
+  if(data.date)count+=set538('rrDate',data.date)?1:0;
+  count+=set538('rrResult',data.result)?1:0;
+  if(data.pop1)count+=set538('rrPop1',data.pop1)?1:0;
+  if(data.pop2)count+=set538('rrPop2',data.pop2)?1:0;
+  if(data.pop3)count+=set538('rrPop3',data.pop3)?1:0;
+  if(data.sanpuku)count+=set538('rrSanpuku',data.sanpuku)?1:0;
+  if(data.santan)count+=set538('rrSantan',data.santan)?1:0;
+  if(data.umaren)count+=set538('rrUmaren',data.umaren)?1:0;
+  if(data.umatan)count+=set538('rrUmatan',data.umatan)?1:0;
+  if(data.wide.length)count+=set538('rrWide',data.wide.join('|'))?1:0;
+  if(data.memo)count+=set538('rrMemo',data.memo)?1:0;
+  return count;
+}
 
-    return (
-      candidates.find(function (element) {
-        const text = element.textContent || '';
-
-        return (
-          text.includes('結果入力・研究保存') &&
-          element.querySelector('input, textarea')
-        );
-      }) || null
-    );
-  }
-
-  function isVisibleField(element) {
-    if (!element) return false;
-    if (element.type === 'hidden') return false;
-    if (element.id === 'chappyResultCode') return false;
-
-    return true;
-  }
-
-  function setFieldValue(field, value) {
-    if (!field || value === undefined || value === null || value === '') {
-      return false;
-    }
-
-    field.value = value;
-
-    field.dispatchEvent(
-      new Event('input', {
-        bubbles: true
-      })
-    );
-
-    field.dispatchEvent(
-      new Event('change', {
-        bubbles: true
-      })
-    );
-
-    return true;
-  }
-
-  function findFieldByLabels(section, labels) {
-    const fields = Array.from(
-      section.querySelectorAll('input, textarea, select')
-    ).filter(isVisibleField);
-
-    for (const field of fields) {
-      let parent = field.parentElement;
-
-      for (let depth = 0; depth < 4 && parent; depth += 1) {
-        const text = normalizeText(parent.textContent);
-
-        if (
-          labels.some(function (label) {
-            return text.includes(label);
-          })
-        ) {
-          return field;
-        }
-
-        parent = parent.parentElement;
-      }
-    }
-
-    const allElements = Array.from(section.querySelectorAll('*'));
-
-    for (const element of allElements) {
-      const text = normalizeText(
-        directText(element) || element.textContent
-      );
-
-      if (
-        !labels.some(function (label) {
-          return text === label || text.startsWith(label);
-        })
-      ) {
-        continue;
-      }
-
-      const parent =
-        element.closest('.meta, .box, .resultBox, .resultField, div') ||
-        element.parentElement;
-
-      if (!parent) continue;
-
-      const field = parent.querySelector('input, textarea, select');
-
-      if (field && isVisibleField(field)) {
-        return field;
-      }
-    }
-
-    return null;
-  }
-
-  function getFallbackFields(section) {
-    return Array.from(
-      section.querySelectorAll('input, textarea, select')
-    ).filter(isVisibleField);
-  }
-
-  function fillResultFields(section, data) {
-    const fallback = getFallbackFields(section);
-
-    const fields = {
-      date:
-        findFieldByLabels(section, ['日付', '開催日']) ||
-        fallback[0],
-
-      finish:
-        findFieldByLabels(section, [
-          '結果1-2-3',
-          '結果 1-2-3',
-          'レース結果'
-        ]) || fallback[1],
-
-      popularity1:
-        findFieldByLabels(section, ['1着人気']) ||
-        fallback[2],
-
-      popularity2:
-        findFieldByLabels(section, ['2着人気']) ||
-        fallback[3],
-
-      popularity3:
-        findFieldByLabels(section, ['3着人気']) ||
-        fallback[4],
-
-      sanpuku:
-        findFieldByLabels(section, ['三連複払戻', '三連複払い戻し']) ||
-        fallback[5],
-
-      sanrentan:
-        findFieldByLabels(section, ['三連単払戻', '三連単払い戻し']) ||
-        fallback[6],
-
-      umaren:
-        findFieldByLabels(section, [
-          '馬連払戻',
-          '馬複払戻',
-          '馬連払い戻し'
-        ]) || fallback[7],
-
-      umatan:
-        findFieldByLabels(section, ['馬単払戻', '馬単払い戻し']) ||
-        fallback[8],
-
-      wide:
-        findFieldByLabels(section, [
-          '的中ワイド',
-          'ワイド払戻',
-          'ワイド払い戻し'
-        ]) || fallback[9],
-
-      memo:
-        findFieldByLabels(section, ['結果メモ', 'メモ']) ||
-        fallback[10]
-    };
-
-    const wideText = data.wide
-      .map(function (item) {
-        return item.pair + ':' + item.payoff;
-      })
-      .join('|');
-
-    let filled = 0;
-
-    filled += setFieldValue(fields.date, data.date) ? 1 : 0;
-    filled += setFieldValue(fields.finish, data.finish) ? 1 : 0;
-    filled += setFieldValue(fields.popularity1, data.popularity1) ? 1 : 0;
-    filled += setFieldValue(fields.popularity2, data.popularity2) ? 1 : 0;
-    filled += setFieldValue(fields.popularity3, data.popularity3) ? 1 : 0;
-    filled += setFieldValue(fields.sanpuku, data.sanpuku) ? 1 : 0;
-    filled += setFieldValue(fields.sanrentan, data.sanrentan) ? 1 : 0;
-    filled += setFieldValue(fields.umaren, data.umaren) ? 1 : 0;
-    filled += setFieldValue(fields.umatan, data.umatan) ? 1 : 0;
-    filled += setFieldValue(fields.wide, wideText) ? 1 : 0;
-    filled += setFieldValue(fields.memo, data.memo) ? 1 : 0;
-
-    return {
-      filled: filled,
-      fields: fields
-    };
-  }
-
-  function findSaveButton(section) {
-    const buttons = Array.from(
-      section.querySelectorAll('button')
-    );
-
-    return (
-      buttons.find(function (button) {
-        const text = normalizeText(button.textContent);
-
-        return (
-          text.includes('保存') &&
-          !text.includes('コード') &&
-          !text.includes('CSV')
-        );
-      }) || null
-    );
-  }
-
-  function createImporter(section) {
-    if (document.getElementById('chappyResultImporter')) return;
-
-    const importer = document.createElement('div');
-    importer.id = 'chappyResultImporter';
-
-    importer.style.cssText = [
-      'margin:12px 0',
-      'padding:12px',
-      'border:3px solid #22d3ee',
-      'border-radius:16px',
-      'background:linear-gradient(145deg,#002333,#064e3b,#020617)',
-      'box-shadow:0 0 18px rgba(34,211,238,.28)'
-    ].join(';');
-
-    importer.innerHTML = `
-      <div style="
-        color:#fde047;
-        font-size:20px;
-        font-weight:950;
-        margin-bottom:5px;
-      ">
-        🤖 チャッピー結果コード一括入力
-      </div>
-
-      <div style="
-        color:#cbd5e1;
-        font-size:12px;
-        line-height:1.55;
-        margin-bottom:8px;
-      ">
-        チャッピーが作った結果コードをそのまま貼り付けます。
-        結果・人気・払戻・ワイド・メモを一括入力します。
-      </div>
-
-      <textarea
-        id="chappyResultCode"
-        placeholder="[DATE]
+function importerHtml538(){
+  return `<div id="chappy538" class="chappy538">
+    <div class="title">🤖 チャッピー結果コード一括入力</div>
+    <div class="small">チャッピーのコードを1回貼り、「反映して保存」を押すだけです。</div>
+    <textarea id="chappyResultCode538" placeholder="[DATE]
 2026/08/03
 
 [RESULT]
-9-4-1
+8-9-4
 
 [POPULARITY]
-1-8-7
+2-1-3
 
 [PAYBACK]
-SANPUKU 9990
-SANRENTAN 28310
-UMAREN 3920
-UMATAN 4210
-WIDE 4-9 1550
-WIDE 1-9 400
-WIDE 1-4 8420
+SANPUKU 1960
+SANRENTAN 12140
+UMAREN 1240
+UMATAN 3070
+WIDE 8-9 430
+WIDE 4-8 480
+WIDE 4-9 510
 
 [MEMO]
-相手荒れワイド1-4が的中。"
-        style="
-          width:100%;
-          min-height:260px;
-          padding:11px;
-          border:2px solid #67e8f9;
-          border-radius:12px;
-          background:#f8fafc;
-          color:#111827;
-          font-family:monospace;
-          font-size:14px;
-          line-height:1.45;
-        "
-      ></textarea>
-
-      <div style="
-        display:grid;
-        grid-template-columns:1fr 1fr;
-        gap:7px;
-        margin-top:8px;
-      ">
-        <button
-          type="button"
-          id="chappyResultApply"
-          style="
-            margin:0;
-            padding:12px 6px;
-            border:0;
-            border-radius:11px;
-            background:#2563eb;
-            color:#fff;
-            font-size:14px;
-            font-weight:950;
-          "
-        >
-          コードを反映
-        </button>
-
-        <button
-          type="button"
-          id="chappyResultApplySave"
-          style="
-            margin:0;
-            padding:12px 6px;
-            border:0;
-            border-radius:11px;
-            background:#22c55e;
-            color:#052e16;
-            font-size:14px;
-            font-weight:950;
-          "
-        >
-          反映して保存
-        </button>
-      </div>
-
-      <div
-        id="chappyResultStatus"
-        style="
-          display:none;
-          margin-top:8px;
-          padding:8px;
-          border-radius:9px;
-          background:#020617;
-          color:#e2e8f0;
-          font-size:12px;
-          line-height:1.55;
-        "
-      ></div>
-    `;
-
-    section.insertBefore(importer, section.firstChild);
-
-    const textarea =
-      importer.querySelector('#chappyResultCode');
-
-    const applyButton =
-      importer.querySelector('#chappyResultApply');
-
-    const saveButton =
-      importer.querySelector('#chappyResultApplySave');
-
-    const status =
-      importer.querySelector('#chappyResultStatus');
-
-    function showStatus(message, error) {
-      status.style.display = 'block';
-      status.style.border =
-        error
-          ? '1px solid #fb7185'
-          : '1px solid #4ade80';
-
-      status.style.color =
-        error
-          ? '#fecdd3'
-          : '#bbf7d0';
-
-      status.textContent = message;
+結果研究メモ"></textarea>
+    <div class="rrbtn">
+      <button class="sample" type="button" id="apply538">コードを反映</button>
+      <button class="go" type="button" id="save538">反映して保存</button>
+    </div>
+    <div id="status538" class="rrs">結果コード待機中</div>
+  </div>`;
+}
+function show538(msg,error=false){
+  const e=document.getElementById('status538');
+  if(!e)return;
+  e.textContent=msg;
+  e.style.color=error?'#fecdd3':'#bbf7d0';
+  e.style.borderColor=error?'#fb7185':'#4ade80';
+}
+function apply538(autoSave){
+  try{
+    const raw=document.getElementById('chappyResultCode538')?.value||'';
+    const data=parse538(raw);
+    const count=fill538(data);
+    show538(`${count}項目を自動入力しました${autoSave?'。結果込み保存を実行します':''}`);
+    if(autoSave){
+      if(typeof window.saveResultResearch!=='function')throw new Error('結果保存機能が見つかりません');
+      window.saveResultResearch();
     }
-
-    function applyCode(autoSave) {
-      try {
-        const data = parseResultCode(textarea.value);
-        const result = fillResultFields(section, data);
-
-        if (result.filled < 3) {
-          throw new Error(
-            '結果入力欄を十分に特定できませんでした。現在の入力欄構造を確認してください'
-          );
-        }
-
-        showStatus(
-          result.filled +
-            '項目を自動入力しました' +
-            (autoSave ? '。保存処理を実行します' : ''),
-          false
-        );
-
-        section.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
-        });
-
-        if (autoSave) {
-          const existingSaveButton = findSaveButton(section);
-
-          if (!existingSaveButton) {
-            throw new Error(
-              '入力は完了しましたが、既存の保存ボタンを発見できませんでした'
-            );
-          }
-
-          window.setTimeout(function () {
-            existingSaveButton.click();
-          }, 250);
-        }
-      } catch (error) {
-        showStatus(
-          error && error.message
-            ? error.message
-            : String(error),
-          true
-        );
-      }
-    }
-
-    applyButton.addEventListener('click', function () {
-      applyCode(false);
-    });
-
-    saveButton.addEventListener('click', function () {
-      applyCode(true);
-    });
+  }catch(e){show538(e.message||String(e),true)}
+}
+function init538(){
+  const card=document.getElementById('rrCard');
+  if(!card){setTimeout(init538,250);return}
+  if(!document.getElementById('chappy538')){
+    card.insertAdjacentHTML('afterbegin',importerHtml538());
+    document.getElementById('apply538').addEventListener('click',()=>apply538(false));
+    document.getElementById('save538').addEventListener('click',()=>apply538(true));
   }
+  const style=document.createElement('style');
+  style.textContent=`
+    .chappy538{margin-bottom:10px;padding:10px;border:3px solid #22d3ee;border-radius:13px;background:linear-gradient(145deg,#002333,#064e3b,#020617)}
+    .chappy538 textarea{height:245px;margin-top:8px;border-color:#67e8f9}
+  `;
+  document.head.appendChild(style);
 
-  function startImporter() {
-    const section = findResultSection();
-
-    if (section) {
-      createImporter(section);
-
-      const meta =
-        document.querySelector('meta[name="app-build"]');
-
-      if (meta) {
-        meta.setAttribute('content', PATCH_VERSION);
-      }
-
-      return;
-    }
-
-    window.setTimeout(startImporter, 500);
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener(
-      'DOMContentLoaded',
-      startImporter
-    );
-  } else {
-    startImporter();
-  }
+  const tag=document.querySelector('h1 .tag');if(tag)tag.textContent='V5.38';
+  const go=document.querySelector('button.go');if(go&&/解析/.test(go.textContent))go.textContent='V5.38解析';
+  const meta=document.querySelector('meta[name="app-build"]');if(meta)meta.content=IMPORT_VER;
+  document.title='競馬メジアン V5.38 結果コード統合完成版';
+}
+document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init538):init538();
 })();
 </script>
+<!-- V5.38 integrated result importer end -->
+
 </body>
 </html>
