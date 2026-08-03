@@ -1713,6 +1713,286 @@ document.readyState==='loading'?document.addEventListener('DOMContentLoaded',ini
 })();
 </script>
 <!-- V5.38 integrated result importer end -->
+<!-- V5.39 result persistence + result-only fallback start -->
+<script>
+(function(){
+'use strict';
 
+const V539_KEY = 'keibaMedianLatestAnalysisV539';
+const V539_RESULT_KEY = 'keibaMedianResultResearchV537';
+
+function norm539(s){
+  return String(s ?? '')
+    .replace(/^\uFEFF/, '')
+    .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 65248))
+    .replace(/[－ー―−→＞]/g, '-')
+    .replace(/：/g, ':')
+    .replace(/\r\n?/g, '\n')
+    .trim();
+}
+function today539(){
+  const d = new Date();
+  return [
+    d.getFullYear(),
+    String(d.getMonth()+1).padStart(2,'0'),
+    String(d.getDate()).padStart(2,'0')
+  ].join('-');
+}
+function getEl539(id){ return document.getElementById(id); }
+function setEl539(id, value){
+  const e = getEl539(id);
+  if(!e) return false;
+  e.value = value ?? '';
+  e.dispatchEvent(new Event('input', {bubbles:true}));
+  e.dispatchEvent(new Event('change', {bubbles:true}));
+  return true;
+}
+function esc539(s){
+  return String(s ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+function csv539(v){
+  v = String(v ?? '');
+  return /[",\n]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v;
+}
+function uniq539(a){ return [...new Set((a||[]).filter(Boolean).map(String))]; }
+
+function getResultDb539(){
+  try{
+    const a = JSON.parse(localStorage.getItem(V539_RESULT_KEY) || '[]');
+    return Array.isArray(a) ? a : [];
+  }catch(e){ return []; }
+}
+function putResultDb539(a){
+  localStorage.setItem(V539_RESULT_KEY, JSON.stringify(a));
+}
+function show539(msg, error=false){
+  const e = getEl539('status538') || getEl539('rrStatus');
+  if(!e) return;
+  e.textContent = msg;
+  e.style.color = error ? '#fecdd3' : '#bbf7d0';
+  e.style.borderColor = error ? '#fb7185' : '#4ade80';
+}
+function syncLatest539(v){
+  if(!v) return false;
+  try{
+    window.latest = v;
+    latest = v;
+  }catch(e){
+    window.latest = v;
+  }
+  try{
+    localStorage.setItem(V539_KEY, JSON.stringify(v));
+  }catch(e){}
+  return true;
+}
+function restoreLatest539(){
+  if(window.latest) return window.latest;
+  try{
+    if(typeof latest !== 'undefined' && latest) return syncLatest539(latest) ? latest : latest;
+  }catch(e){}
+  try{
+    const raw = localStorage.getItem(V539_KEY);
+    if(!raw) return null;
+    const v = JSON.parse(raw);
+    syncLatest539(v);
+    return v;
+  }catch(e){
+    return null;
+  }
+}
+function raceFromCode539(raw){
+  const t = norm539(raw);
+  const m =
+    t.match(/\[RACE\]\s*\n+\s*(.+)/i) ||
+    t.match(/(?:RACE|レース)\s*[:：]\s*(.+)/i) ||
+    t.match(/【([^】]+R)】/);
+  return m ? String(m[1]).trim() : '';
+}
+function resultFromFields539(){
+  const result = norm539(getEl539('rrResult')?.value || '');
+  const m = result.match(/^(\d+)\s*-\s*(\d+)\s*-\s*(\d+)$/);
+  if(!m) throw new Error('結果を「4-11-8」の形で入力してください');
+  return [m[1],m[2],m[3]];
+}
+function ensureRaceField539(){
+  if(getEl539('rrRace')) return;
+  const grid = document.querySelector('#rrCard .rrg');
+  if(!grid) return;
+  const label = document.createElement('label');
+  label.className = 'rrf rrall';
+  label.innerHTML = '<span>レース名（解析なし保存用）</span><input id="rrRace" type="text" placeholder="金沢8R">';
+  grid.insertBefore(label, grid.firstChild);
+}
+function currentCodeRace539(){
+  const raw = getEl539('chappyResultCode538')?.value || '';
+  return raceFromCode539(raw);
+}
+function fillRaceField539(){
+  const v = restoreLatest539();
+  const race = v?.d?.title || currentCodeRace539();
+  if(race) setEl539('rrRace', race);
+}
+function minimalRow539(){
+  const hs = resultFromFields539();
+  const race = norm539(getEl539('rrRace')?.value || '') || currentCodeRace539();
+  if(!race) throw new Error('解析データがないため、結果コードに [RACE] を入れるか、レース名欄へ「金沢8R」のように入力してください');
+
+  return {
+    保存日時:new Date().toISOString(),
+    日付:getEl539('rrDate')?.value || today539(),
+    レース:race,
+    解析バージョン:'V5.39-result-only',
+    保存種別:'結果のみ（解析未接続）',
+    開催区分:'',
+    レース型:'',
+    P:'',
+    P詳細コード:'',
+    上位3合計:'',
+    大谷条件:'',
+    結果:hs.join('-'),
+    '1着馬':hs[0],
+    '2着馬':hs[1],
+    '3着馬':hs[2],
+    '1着人気':getEl539('rrPop1')?.value || '',
+    '2着人気':getEl539('rrPop2')?.value || '',
+    '3着人気':getEl539('rrPop3')?.value || '',
+    結果分類:'解析未接続',
+    結果コンピ順位:'',
+    結果コンピ群:'',
+    三連複払戻:getEl539('rrSanpuku')?.value || '',
+    三連単払戻:getEl539('rrSantan')?.value || '',
+    馬連払戻:getEl539('rrUmaren')?.value || '',
+    馬単払戻:getEl539('rrUmatan')?.value || '',
+    的中ワイド:getEl539('rrWide')?.value || '',
+    '1着サイン':'',
+    '2着サイン':'',
+    '3着サイン':'',
+    結果3頭サイン総数:'',
+    穴検出該当:'',
+    コンピ1着候補:'',
+    コンピ軸:'',
+    市場軸:'',
+    市場相手:'',
+    市場3着穴:'',
+    構造軸:'',
+    大荒れ頭:'',
+    まっちゃん穴単:'',
+    ステルス馬:'',
+    青白光:'',
+    壁前:'',
+    壁直後:'',
+    削除禁止:'',
+    通常最重要:'',
+    人気馬飛び最重要:'',
+    大荒れ完成形:'',
+    相手荒れワイド:'',
+    予想単勝:'',
+    予想馬連:'',
+    予想ワイド:'',
+    予想三連複:'',
+    結果メモ:getEl539('rrMemo')?.value || ''
+  };
+}
+function saveMinimal539(){
+  const r = minimalRow539();
+  const a = getResultDb539();
+  const i = a.findIndex(x => x.日付 === r.日付 && x.レース === r.レース);
+  if(i >= 0) a[i] = r;
+  else a.push(r);
+  putResultDb539(a);
+  show539(i >= 0 ? '解析なしの結果データを更新しました' : '解析なしでも結果を保存しました');
+  alert(i >= 0 ? '更新しました' : '結果のみで保存しました');
+}
+
+function installRunPersistence539(){
+  let oldRun = null;
+  try{ oldRun = window.run || run; }catch(e){ oldRun = window.run; }
+  if(typeof oldRun !== 'function' || oldRun.__v539Wrapped) return;
+
+  const wrapped = function(){
+    const ret = oldRun.apply(this, arguments);
+    setTimeout(() => {
+      try{
+        const v = (typeof latest !== 'undefined' && latest) ? latest : window.latest;
+        if(v){
+          syncLatest539(v);
+          fillRaceField539();
+          show539('解析データを保存しました。結果コードだけで後から保存できます');
+        }
+      }catch(e){}
+    }, 0);
+    return ret;
+  };
+  wrapped.__v539Wrapped = true;
+  window.run = wrapped;
+  try{ run = wrapped; }catch(e){}
+}
+function installSaveFallback539(){
+  const oldSave = window.saveResultResearch;
+  if(typeof oldSave !== 'function' || oldSave.__v539Wrapped) return;
+
+  const wrapped = function(){
+    const v = restoreLatest539();
+    if(v){
+      syncLatest539(v);
+      return oldSave.apply(this, arguments);
+    }
+    return saveMinimal539();
+  };
+  wrapped.__v539Wrapped = true;
+  window.saveResultResearch = wrapped;
+}
+function installApplyRace539(){
+  const btn = getEl539('apply538');
+  if(btn && !btn.dataset.v539){
+    btn.dataset.v539 = '1';
+    btn.addEventListener('click', () => setTimeout(fillRaceField539, 0));
+  }
+  const save = getEl539('save538');
+  if(save && !save.dataset.v539){
+    save.dataset.v539 = '1';
+    save.addEventListener('click', () => setTimeout(fillRaceField539, 0), true);
+  }
+}
+function updateLabels539(){
+  const tag = document.querySelector('h1 .tag');
+  if(tag) tag.textContent = 'V5.39';
+  const go = [...document.querySelectorAll('button')].find(b => /解析/.test(b.textContent || ''));
+  if(go) go.textContent = 'V5.39解析';
+  const meta = document.querySelector('meta[name="app-build"]');
+  if(meta) meta.content = 'V5.39-latest-persistence-result-only-fallback';
+  document.title = '競馬メジアン V5.39 結果保存修正版';
+}
+
+function init539(){
+  ensureRaceField539();
+  restoreLatest539();
+  fillRaceField539();
+  installRunPersistence539();
+  installSaveFallback539();
+  installApplyRace539();
+  updateLabels539();
+
+  const v = restoreLatest539();
+  show539(v
+    ? `前回の解析「${v?.d?.title || 'レース'}」を復元しました`
+    : '解析データなし。結果コードに [RACE] があれば結果だけでも保存できます'
+  );
+}
+
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(init539, 300);
+    setTimeout(init539, 1000);
+  });
+}else{
+  setTimeout(init539, 300);
+  setTimeout(init539, 1000);
+}
+})();
+</script>
+<!-- V5.39 result persistence + result-only fallback end -->
 </body>
 </html>
