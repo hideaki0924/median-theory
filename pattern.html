@@ -1534,28 +1534,49 @@ function mount(){
 }
 function status(msg=''){const a=db(),e=document.getElementById('rrStatus');if(!e)return;const l=a[a.length-1];e.innerHTML=`保存件数：<b>${a.length}件</b>${l?' ／ 直近：'+esc(l.日付)+' '+esc(l.レース)+' '+esc(l.結果):''}${msg?'<br>'+esc(msg):''}`}
 function row(){
- const v=(typeof latest!=='undefined'&&latest)?latest:window.latest;
- if(!v)throw Error('先にレースを解析してください');
- window.latest=v;
  const hs=horses(val('rrResult'));if(hs.length!==3)throw Error('結果を「9-4-1」の形で入力してください');
- const pops=[val('rrPop1'),val('rrPop2'),val('rrPop3')],sg=hs.map(h=>signs(v,h)),holes=[];
- sg.forEach((a,i)=>a.forEach(x=>{/大荒れ頭|穴単|ステルス|青白光|壁前|壁直後|市場3着穴|削除禁止|相手保護/.test(x)&&holes.push(`${i+1}着${hs[i]}:${x}`)}));
+ const date=val('rrDate')||today();
+ const pops=[val('rrPop1'),val('rrPop2'),val('rrPop3')];
+ const current=(typeof latest!=='undefined'&&latest)?latest:window.latest;
+
+ // 解析済みなら通常保存。解析していない場合は、同日・同結果の既存保存を更新する。
+ if(current){
+  const v=current;window.latest=v;
+  const sg=hs.map(h=>signs(v,h)),holes=[];
+  sg.forEach((a,i)=>a.forEach(x=>{/大荒れ頭|穴単|ステルス|青白光|壁前|壁直後|市場3着穴|削除禁止|相手保護/.test(x)&&holes.push(`${i+1}着${hs[i]}:${x}`)}));
+  return {
+   保存日時:new Date().toISOString(),日付:date,レース:v.d.title,解析バージョン:VER,開催区分:v.venue?.name||'',
+   レース型:v.type||'',P:v.p||'',P詳細コード:v.pDetailInfo?.code||'',上位3合計:v.sum??'',大谷条件:v.otani??'',
+   結果:hs.join('-'),'1着馬':hs[0],'2着馬':hs[1],'3着馬':hs[2],'1着人気':pops[0],'2着人気':pops[1],'3着人気':pops[2],
+   結果分類:cls(v,hs,pops),結果コンピ順位:hs.map(h=>rank(v.cr,h)).join('-'),結果コンピ群:hs.map(h=>group(v,h)).join('-'),
+   三連複払戻:val('rrSanpuku'),三連単払戻:val('rrSantan'),馬連払戻:val('rrUmaren'),馬単払戻:val('rrUmatan'),的中ワイド:val('rrWide'),
+   '1着サイン':sg[0].join('|'),'2着サイン':sg[1].join('|'),'3着サイン':sg[2].join('|'),結果3頭サイン総数:sg.flat().length,穴検出該当:uniq(holes).join('|'),
+   コンピ1着候補:(v.first||[]).join('|'),コンピ軸:(v.axis||[]).join('|'),市場軸:(v.marketAxis||[]).join('|'),市場相手:(v.marketMain||[]).join('|'),
+   市場3着穴:(v.marketThird||[]).join('|'),構造軸:v.structureAxis||'',大荒れ頭:v.ooareHead||'',まっちゃん穴単:(v.matchanHole||[]).join('|'),
+   ステルス馬:(v.stealth||[]).map(x=>x.h+':'+x.grade).join('|'),青白光:(v.blueWhite||[]).map(x=>x.h+':'+x.gates.join('+')).join('|'),
+   壁前:(v.wallFront||[]).join('|'),壁直後:(v.wallAfter||[]).join('|'),削除禁止:(v.auditHorses||[]).join('|'),
+   通常最重要:v.ticketGroups?.normalBest||v.tickets?.bestOne||'',人気馬飛び最重要:v.ticketGroups?.favoriteOutBest||'',
+   大荒れ完成形:v.ticketGroups?.bigCompletion||'',相手荒れワイド:(v.opponentWide||[]).join('|'),
+   予想単勝:(v.tickets?.tan||[]).join('|'),予想馬連:(v.tickets?.umaren||[]).join('|'),予想ワイド:(v.tickets?.wide||[]).join('|'),予想三連複:(v.tickets?.san||[]).join('|'),
+   結果メモ:val('rrMemo')
+  };
+ }
+
+ // 解析データが消えていても、すでに保存済みの同じレースは結果欄だけ更新できる。
+ const list=db();
+ const resultKey=hs.join('-');
+ const old=[...list].reverse().find(x=>String(x.日付||'')===String(date)&&String(x.結果||'')===resultKey)
+        ||[...list].reverse().find(x=>String(x.日付||'')===String(date));
+ if(!old)throw Error('解析データも既存保存もありません。先にレースを解析してください');
  return {
- 保存日時:new Date().toISOString(),日付:val('rrDate')||today(),レース:v.d.title,解析バージョン:VER,開催区分:v.venue?.name||'',
- レース型:v.type||'',P:v.p||'',P詳細コード:v.pDetailInfo?.code||'',上位3合計:v.sum??'',大谷条件:v.otani??'',
- 結果:hs.join('-'),'1着馬':hs[0],'2着馬':hs[1],'3着馬':hs[2],'1着人気':pops[0],'2着人気':pops[1],'3着人気':pops[2],
- 結果分類:cls(v,hs,pops),結果コンピ順位:hs.map(h=>rank(v.cr,h)).join('-'),結果コンピ群:hs.map(h=>group(v,h)).join('-'),
- 三連複払戻:val('rrSanpuku'),三連単払戻:val('rrSantan'),馬連払戻:val('rrUmaren'),馬単払戻:val('rrUmatan'),的中ワイド:val('rrWide'),
- '1着サイン':sg[0].join('|'),'2着サイン':sg[1].join('|'),'3着サイン':sg[2].join('|'),結果3頭サイン総数:sg.flat().length,穴検出該当:uniq(holes).join('|'),
- コンピ1着候補:(v.first||[]).join('|'),コンピ軸:(v.axis||[]).join('|'),市場軸:(v.marketAxis||[]).join('|'),市場相手:(v.marketMain||[]).join('|'),
- 市場3着穴:(v.marketThird||[]).join('|'),構造軸:v.structureAxis||'',大荒れ頭:v.ooareHead||'',まっちゃん穴単:(v.matchanHole||[]).join('|'),
- ステルス馬:(v.stealth||[]).map(x=>x.h+':'+x.grade).join('|'),青白光:(v.blueWhite||[]).map(x=>x.h+':'+x.gates.join('+')).join('|'),
- 壁前:(v.wallFront||[]).join('|'),壁直後:(v.wallAfter||[]).join('|'),削除禁止:(v.auditHorses||[]).join('|'),
- 通常最重要:v.ticketGroups?.normalBest||v.tickets?.bestOne||'',人気馬飛び最重要:v.ticketGroups?.favoriteOutBest||'',
- 大荒れ完成形:v.ticketGroups?.bigCompletion||'',相手荒れワイド:(v.opponentWide||[]).join('|'),
- 予想単勝:(v.tickets?.tan||[]).join('|'),予想馬連:(v.tickets?.umaren||[]).join('|'),予想ワイド:(v.tickets?.wide||[]).join('|'),予想三連複:(v.tickets?.san||[]).join('|'),
- 結果メモ:val('rrMemo')
- }}
+  ...old,
+  保存日時:new Date().toISOString(),日付:date,結果:resultKey,
+  '1着馬':hs[0],'2着馬':hs[1],'3着馬':hs[2],
+  '1着人気':pops[0],'2着人気':pops[1],'3着人気':pops[2],
+  三連複払戻:val('rrSanpuku'),三連単払戻:val('rrSantan'),馬連払戻:val('rrUmaren'),馬単払戻:val('rrUmatan'),的中ワイド:val('rrWide'),
+  結果メモ:val('rrMemo')
+ };
+}
 window.saveResultResearch=function(){
  try{
   const r=row(),a=db(),i=a.findIndex(x=>x.日付===r.日付&&x.レース===r.レース);
@@ -1568,14 +1589,14 @@ window.saveResultResearch=function(){
   alert(msg);
  }catch(e){status('保存失敗：'+(e.message||e));alert('保存できませんでした：'+(e.message||e))}
 };
-window.exportResultResearchCsv=function(){try{const a=db();if(!a.length)throw Error('保存データがありません');const k=uniq(a.flatMap(Object.keys)),t='\ufeff'+k.map(csv).join(',')+'\n'+a.map(r=>k.map(x=>csv(r[x])).join(',')).join('\n');const b=new Blob([t],{type:'text/csv;charset=utf-8'}),u=URL.createObjectURL(b),x=document.createElement('a');x.href=u;x.download=`競馬メジアン_V5.39.1_結果研究_${today()}_${a.length}件.csv`;x.click();setTimeout(()=>URL.revokeObjectURL(u),1000);status('全件CSVを出力しました')}catch(e){alert(e.message||e)}};
+window.exportResultResearchCsv=function(){try{const a=db();if(!a.length)throw Error('保存データがありません');const k=uniq(a.flatMap(Object.keys)),t='\ufeff'+k.map(csv).join(',')+'\n'+a.map(r=>k.map(x=>csv(r[x])).join(',')).join('\n');const b=new Blob([t],{type:'text/csv;charset=utf-8'}),u=URL.createObjectURL(b),x=document.createElement('a');x.href=u;x.download=`競馬メジアン_V5.39.2_結果研究_${today()}_${a.length}件.csv`;x.click();setTimeout(()=>URL.revokeObjectURL(u),1000);status('全件CSVを出力しました')}catch(e){alert(e.message||e)}};
 window.copyResultSummary=async function(){try{const r=row(),t=`【${r.レース} 結果研究】\n日付：${r.日付}\n結果：${r.結果}\n人気：${r['1着人気']}-${r['2着人気']}-${r['3着人気']}\n結果分類：${r.結果分類}\nP：${r.P}（${r.上位3合計}）\n結果コンピ順位：${r.結果コンピ順位}\n1着：${r['1着サイン']}\n2着：${r['2着サイン']}\n3着：${r['3着サイン']}\n穴検出：${r.穴検出該当||'なし'}\n的中ワイド：${r.的中ワイド||'未入力'}`;await navigator.clipboard.writeText(t);alert('コピーしました')}catch(e){alert(e.message||e)}};
 window.deleteLastResultResearch=function(){const a=db();if(!a.length)return alert('保存データがありません');if(confirm('直近1件を削除しますか？')){a.pop();put(a);status('直近1件を削除しました')}};
 window.clearResultResearch=function(){const a=db();if(!a.length)return alert('保存データがありません');if(confirm(a.length+'件をすべて削除しますか？')){localStorage.removeItem(KEY);status('全件削除しました')}};
 function init(){
  const st=document.createElement('style');st.textContent=`.rrCard{border:3px solid #34d399;background:linear-gradient(145deg,#022c22,#064e3b,#07101f)}.rrg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.rrf{background:#020617;border:1px solid #166534;border-radius:10px;padding:6px}.rrf span{display:block;font-size:10px;color:#86efac;font-weight:950}.rrf input,.rrf textarea{width:100%;min-height:36px;border:1px solid #475569;border-radius:7px;background:#f8fafc;color:#111;padding:6px;font-size:13px}.rrf textarea{min-height:64px}.rrall{grid-column:1/-1}.rrbtn{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}.rrbtn button{margin:0}.rrs{margin-top:8px;background:#020617;border:1px solid #166534;border-radius:9px;padding:7px;font-size:11px}.rrs b{color:#86efac}`;document.head.appendChild(st);mount();
  const old=[...document.querySelectorAll('button')].find(b=>/研究CSV/.test(b.textContent||''));if(old){old.textContent='全件結果CSV';old.onclick=window.exportResultResearchCsv}
- const tag=document.querySelector('h1 .tag');if(tag)tag.textContent='V5.39.1';
+ const tag=document.querySelector('h1 .tag');if(tag)tag.textContent='V5.39.2';
  const meta=document.querySelector('meta[name="app-build"]');if(meta)meta.content=VER;
 }
 document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
@@ -1756,7 +1777,7 @@ WIDE 4-9 510
   document.head.appendChild(style);
 
   const tag=document.querySelector('h1 .tag');
-  if(tag)tag.textContent='V5.39.1';
+  if(tag)tag.textContent='V5.39.2';
   const parseButton=[...document.querySelectorAll('button.go')].find(b=>/解析/.test(b.textContent||''));
   if(parseButton)parseButton.textContent='V5.39.1解析';
   const meta=document.querySelector('meta[name="app-build"]');
@@ -1799,7 +1820,7 @@ function wrapRun(){
 }
 function init(){wrapRun();restore();
  const meta=document.querySelector('meta[name="app-build"]');if(meta)meta.content='V5.39.1-result-save-fixed';
- const tag=document.querySelector('h1 .tag');if(tag)tag.textContent='V5.39.1';
+ const tag=document.querySelector('h1 .tag');if(tag)tag.textContent='V5.39.2';
  const go=[...document.querySelectorAll('button')].find(b=>/解析/.test(b.textContent||''));if(go)go.textContent='V5.39.1解析';
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
