@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="V5.38-result-code-integrated">
-<title>競馬メジアン V5.38 結果コード統合完成版</title>
+<meta name="app-build" content="V5.39.1-result-save-fixed">
+<title>競馬メジアン V5.39.1 結果保存完全修正版</title>
 <style>
 :root{
   --bg:#07101f;--card:#10224a;--card2:#020617;--line:#475569;
@@ -1447,14 +1447,41 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   <script>
   (function(){
 'use strict';
-const KEY='keibaMedianV537ResultResearch',VER='V5.37-result-research';
+const KEY='keibaMedianResultResearchUnifiedV5391',VER='V5.39.1-result-save-fixed';
+const LEGACY_KEYS=['keibaMedianV537ResultResearch','keibaMedianResultResearchV537'];
 const z=s=>String(s??'').replace(/[０-９]/g,x=>String.fromCharCode(x.charCodeAt(0)-65248)).replace(/[－ー―−]/g,'-').replace(/　/g,' ').trim();
 const val=id=>z(document.getElementById(id)?.value||'');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const csv=v=>{v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
 const uniq=a=>[...new Set((a||[]).filter(Boolean).map(String))];
-const db=()=>{try{const x=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(x)?x:[]}catch(e){return[]}};
-const put=a=>localStorage.setItem(KEY,JSON.stringify(a));
+const db=()=>{
+  try{
+    const current=JSON.parse(localStorage.getItem(KEY)||'[]');
+    if(Array.isArray(current)&&current.length)return current;
+    const merged=[];
+    for(const k of LEGACY_KEYS){
+      try{
+        const old=JSON.parse(localStorage.getItem(k)||'[]');
+        if(Array.isArray(old))for(const r of old){
+          const id=String(r?.日付||'')+'|'+String(r?.レース||'');
+          const i=merged.findIndex(x=>String(x?.日付||'')+'|'+String(x?.レース||'')===id);
+          if(i>=0)merged[i]=r;else merged.push(r);
+        }
+      }catch(_e){}
+    }
+    if(merged.length)localStorage.setItem(KEY,JSON.stringify(merged));
+    return merged;
+  }catch(e){return[]}
+};
+const put=a=>{
+  const json=JSON.stringify(a);
+  localStorage.setItem(KEY,json);
+  // 旧版の表示・CSVとも食い違わないよう同じ内容を同期
+  for(const k of LEGACY_KEYS){try{localStorage.setItem(k,json)}catch(_e){}}
+  const check=JSON.parse(localStorage.getItem(KEY)||'[]');
+  if(!Array.isArray(check)||check.length!==a.length)throw Error('端末保存の確認に失敗しました');
+  return check;
+};
 const today=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
 const rank=(a,h)=>{const i=(a||[]).map(String).indexOf(String(h));return i<0?'':i+1};
 const has=(a,h)=>(a||[]).map(String).includes(String(h));
@@ -1507,8 +1534,10 @@ function mount(){
 }
 function status(msg=''){const a=db(),e=document.getElementById('rrStatus');if(!e)return;const l=a[a.length-1];e.innerHTML=`保存件数：<b>${a.length}件</b>${l?' ／ 直近：'+esc(l.日付)+' '+esc(l.レース)+' '+esc(l.結果):''}${msg?'<br>'+esc(msg):''}`}
 function row(){
- if(!window.latest)throw Error('先にレースを解析してください');
- const v=window.latest,hs=horses(val('rrResult'));if(hs.length!==3)throw Error('結果を「9-4-1」の形で入力してください');
+ const v=(typeof latest!=='undefined'&&latest)?latest:window.latest;
+ if(!v)throw Error('先にレースを解析してください');
+ window.latest=v;
+ const hs=horses(val('rrResult'));if(hs.length!==3)throw Error('結果を「9-4-1」の形で入力してください');
  const pops=[val('rrPop1'),val('rrPop2'),val('rrPop3')],sg=hs.map(h=>signs(v,h)),holes=[];
  sg.forEach((a,i)=>a.forEach(x=>{/大荒れ頭|穴単|ステルス|青白光|壁前|壁直後|市場3着穴|削除禁止|相手保護/.test(x)&&holes.push(`${i+1}着${hs[i]}:${x}`)}));
  return {
@@ -1527,30 +1556,41 @@ function row(){
  予想単勝:(v.tickets?.tan||[]).join('|'),予想馬連:(v.tickets?.umaren||[]).join('|'),予想ワイド:(v.tickets?.wide||[]).join('|'),予想三連複:(v.tickets?.san||[]).join('|'),
  結果メモ:val('rrMemo')
  }}
-window.saveResultResearch=function(){try{const r=row(),a=db(),i=a.findIndex(x=>x.日付===r.日付&&x.レース===r.レース);i>=0?a[i]=r:a.push(r);put(a);status(i>=0?'同じレースを更新しました':'結果込みで保存しました');alert(i>=0?'更新しました':'保存しました')}catch(e){alert(e.message||e)}};
-window.exportResultResearchCsv=function(){try{const a=db();if(!a.length)throw Error('保存データがありません');const k=uniq(a.flatMap(Object.keys)),t='\ufeff'+k.map(csv).join(',')+'\n'+a.map(r=>k.map(x=>csv(r[x])).join(',')).join('\n');const b=new Blob([t],{type:'text/csv;charset=utf-8'}),u=URL.createObjectURL(b),x=document.createElement('a');x.href=u;x.download=`競馬メジアン_V5.37_結果研究_${today()}_${a.length}件.csv`;x.click();setTimeout(()=>URL.revokeObjectURL(u),1000);status('全件CSVを出力しました')}catch(e){alert(e.message||e)}};
+window.saveResultResearch=function(){
+ try{
+  const r=row(),a=db(),i=a.findIndex(x=>x.日付===r.日付&&x.レース===r.レース);
+  if(i>=0)a[i]=r;else a.push(r);
+  const saved=put(a);
+  const ok=saved.find(x=>x.日付===r.日付&&x.レース===r.レース&&x.結果===r.結果);
+  if(!ok)throw Error('保存後のデータ確認に失敗しました');
+  const msg=(i>=0?'同じレースを更新しました':'結果込みで新規保存しました')+'（現在 '+saved.length+'件）';
+  status(msg);
+  alert(msg);
+ }catch(e){status('保存失敗：'+(e.message||e));alert('保存できませんでした：'+(e.message||e))}
+};
+window.exportResultResearchCsv=function(){try{const a=db();if(!a.length)throw Error('保存データがありません');const k=uniq(a.flatMap(Object.keys)),t='\ufeff'+k.map(csv).join(',')+'\n'+a.map(r=>k.map(x=>csv(r[x])).join(',')).join('\n');const b=new Blob([t],{type:'text/csv;charset=utf-8'}),u=URL.createObjectURL(b),x=document.createElement('a');x.href=u;x.download=`競馬メジアン_V5.39.1_結果研究_${today()}_${a.length}件.csv`;x.click();setTimeout(()=>URL.revokeObjectURL(u),1000);status('全件CSVを出力しました')}catch(e){alert(e.message||e)}};
 window.copyResultSummary=async function(){try{const r=row(),t=`【${r.レース} 結果研究】\n日付：${r.日付}\n結果：${r.結果}\n人気：${r['1着人気']}-${r['2着人気']}-${r['3着人気']}\n結果分類：${r.結果分類}\nP：${r.P}（${r.上位3合計}）\n結果コンピ順位：${r.結果コンピ順位}\n1着：${r['1着サイン']}\n2着：${r['2着サイン']}\n3着：${r['3着サイン']}\n穴検出：${r.穴検出該当||'なし'}\n的中ワイド：${r.的中ワイド||'未入力'}`;await navigator.clipboard.writeText(t);alert('コピーしました')}catch(e){alert(e.message||e)}};
 window.deleteLastResultResearch=function(){const a=db();if(!a.length)return alert('保存データがありません');if(confirm('直近1件を削除しますか？')){a.pop();put(a);status('直近1件を削除しました')}};
 window.clearResultResearch=function(){const a=db();if(!a.length)return alert('保存データがありません');if(confirm(a.length+'件をすべて削除しますか？')){localStorage.removeItem(KEY);status('全件削除しました')}};
 function init(){
  const st=document.createElement('style');st.textContent=`.rrCard{border:3px solid #34d399;background:linear-gradient(145deg,#022c22,#064e3b,#07101f)}.rrg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.rrf{background:#020617;border:1px solid #166534;border-radius:10px;padding:6px}.rrf span{display:block;font-size:10px;color:#86efac;font-weight:950}.rrf input,.rrf textarea{width:100%;min-height:36px;border:1px solid #475569;border-radius:7px;background:#f8fafc;color:#111;padding:6px;font-size:13px}.rrf textarea{min-height:64px}.rrall{grid-column:1/-1}.rrbtn{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}.rrbtn button{margin:0}.rrs{margin-top:8px;background:#020617;border:1px solid #166534;border-radius:9px;padding:7px;font-size:11px}.rrs b{color:#86efac}`;document.head.appendChild(st);mount();
  const old=[...document.querySelectorAll('button')].find(b=>/研究CSV/.test(b.textContent||''));if(old){old.textContent='全件結果CSV';old.onclick=window.exportResultResearchCsv}
- const tag=document.querySelector('h1 .tag');if(tag)tag.textContent='V5.37';
+ const tag=document.querySelector('h1 .tag');if(tag)tag.textContent='V5.39.1';
  const meta=document.querySelector('meta[name="app-build"]');if(meta)meta.content=VER;
 }
 document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
 })();
 </script>
 
-<!-- V5.38 integrated result importer start -->
+<!-- V5.38.2 結果コード統合完成版 start -->
 <script>
 (function(){
 'use strict';
 
-const IMPORT_VER='V5.38-result-code-integrated';
+const IMPORT_VERSION='V5.39.1-result-save-fixed';
 
-function norm538(s){
-  return String(s??'')
+function normalizeV5382(value){
+  return String(value??'')
     .replace(/^\uFEFF/,'')
     .replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-65248))
     .replace(/[－ー―−→＞]/g,'-')
@@ -1558,19 +1598,19 @@ function norm538(s){
     .replace(/\r\n?/g,'\n')
     .trim();
 }
-function set538(id,value){
-  const e=document.getElementById(id);
-  if(!e)return false;
-  e.value=value??'';
-  e.dispatchEvent(new Event('input',{bubbles:true}));
-  e.dispatchEvent(new Event('change',{bubbles:true}));
+function setValueV5382(id,value){
+  const el=document.getElementById(id);
+  if(!el)return false;
+  el.value=value??'';
+  el.dispatchEvent(new Event('input',{bubbles:true}));
+  el.dispatchEvent(new Event('change',{bubbles:true}));
   return true;
 }
-function parse538(raw){
-  const text=norm538(raw);
+function parseResultCodeV5382(raw){
+  const text=normalizeV5382(raw);
   if(!text)throw new Error('結果コードが空です');
 
-  const out={
+  const data={
     date:'',result:'',pop1:'',pop2:'',pop3:'',
     sanpuku:'',santan:'',umaren:'',umatan:'',
     wide:[],memo:''
@@ -1579,75 +1619,106 @@ function parse538(raw){
   const resultMatch =
     text.match(/(?:^|\n)\s*\[RESULT\]\s*\n+\s*(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/i) ||
     text.match(/(?:^|\n)\s*(\d+)\s*-\s*(\d+)\s*-\s*(\d+)\s*(?=\n|$)/) ||
-    text.match(/(?:RESULT|結果(?:1-2-3)?)\s*[: ]\s*(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/i);
+    text.match(/(?:RESULT|結果(?:\s*1\s*-\s*2\s*-\s*3)?)\s*[: ]\s*(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/i);
 
   if(!resultMatch)throw new Error('結果1-2-3を読み取れませんでした');
-  out.result=[resultMatch[1],resultMatch[2],resultMatch[3]].join('-');
+  data.result=[resultMatch[1],resultMatch[2],resultMatch[3]].join('-');
 
   const dateMatch =
     text.match(/\[DATE\]\s*\n+\s*(20\d{2})[\/\-.年](\d{1,2})[\/\-.月](\d{1,2})/i) ||
     text.match(/(?:DATE|日付)\s*[: ]\s*(20\d{2})[\/\-.年](\d{1,2})[\/\-.月](\d{1,2})/i);
   if(dateMatch){
-    out.date=`${dateMatch[1]}-${String(dateMatch[2]).padStart(2,'0')}-${String(dateMatch[3]).padStart(2,'0')}`;
+    data.date=`${dateMatch[1]}-${String(dateMatch[2]).padStart(2,'0')}-${String(dateMatch[3]).padStart(2,'0')}`;
   }
 
   const popMatch =
     text.match(/\[POPULARITY\]\s*\n+\s*(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/i) ||
     text.match(/(?:POPULARITY|人気)\s*[: ]\s*(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/i);
   if(popMatch){
-    out.pop1=popMatch[1];out.pop2=popMatch[2];out.pop3=popMatch[3];
+    data.pop1=popMatch[1];
+    data.pop2=popMatch[2];
+    data.pop3=popMatch[3];
   }
 
-  const lines=text.split('\n').map(x=>x.trim()).filter(Boolean);
+  const lines=text.split('\n');
   let memoMode=false;
   const memo=[];
-  for(const line0 of lines){
-    const line=norm538(line0);
-    const up=line.toUpperCase();
+  for(const original of lines){
+    const line=normalizeV5382(original);
+    if(!line)continue;
+    const upper=line.toUpperCase();
 
-    if(/^\[(MEMO|メモ)\]$/.test(up)){memoMode=true;continue}
+    if(/^\[(MEMO|メモ)\]$/.test(upper)){memoMode=true;continue}
     if(/^\[/.test(line)){memoMode=false;continue}
     if(memoMode){memo.push(line);continue}
 
     let m;
-    if((m=line.match(/^(?:SANPUKU|三連複)\s*[: ]\s*([\d,]+)$/i))) out.sanpuku=m[1].replace(/,/g,'');
-    else if((m=line.match(/^(?:SANRENTAN|三連単)\s*[: ]\s*([\d,]+)$/i))) out.santan=m[1].replace(/,/g,'');
-    else if((m=line.match(/^(?:UMAREN|馬連|馬複)\s*[: ]\s*([\d,]+)$/i))) out.umaren=m[1].replace(/,/g,'');
-    else if((m=line.match(/^(?:UMATAN|馬単)\s*[: ]\s*([\d,]+)$/i))) out.umatan=m[1].replace(/,/g,'');
-    else if((m=line.match(/^(?:WIDE|ワイド)\s+(\d+)\s*-\s*(\d+)\s+([\d,]+)$/i))){
+    if((m=line.match(/^(?:SANPUKU|三連複)\s*[: ]\s*([\d,]+)$/i))){
+      data.sanpuku=m[1].replace(/,/g,'');
+    }else if((m=line.match(/^(?:SANRENTAN|三連単)\s*[: ]\s*([\d,]+)$/i))){
+      data.santan=m[1].replace(/,/g,'');
+    }else if((m=line.match(/^(?:UMAREN|馬連|馬複)\s*[: ]\s*([\d,]+)$/i))){
+      data.umaren=m[1].replace(/,/g,'');
+    }else if((m=line.match(/^(?:UMATAN|馬単)\s*[: ]\s*([\d,]+)$/i))){
+      data.umatan=m[1].replace(/,/g,'');
+    }else if((m=line.match(/^(?:WIDE|ワイド)\s+(\d+)\s*-\s*(\d+)\s+([\d,]+)$/i))){
       const pair=[Number(m[1]),Number(m[2])].sort((a,b)=>a-b).join('-');
-      out.wide.push(`${pair}:${m[3].replace(/,/g,'')}`);
+      data.wide.push(`${pair}:${m[3].replace(/,/g,'')}`);
     }
   }
-  out.memo=memo.join('\n');
-  return out;
+  data.memo=memo.join('\n');
+  return data;
 }
-
-function fill538(data){
+function applyDataV5382(data){
   let count=0;
-  if(data.date)count+=set538('rrDate',data.date)?1:0;
-  count+=set538('rrResult',data.result)?1:0;
-  if(data.pop1)count+=set538('rrPop1',data.pop1)?1:0;
-  if(data.pop2)count+=set538('rrPop2',data.pop2)?1:0;
-  if(data.pop3)count+=set538('rrPop3',data.pop3)?1:0;
-  if(data.sanpuku)count+=set538('rrSanpuku',data.sanpuku)?1:0;
-  if(data.santan)count+=set538('rrSantan',data.santan)?1:0;
-  if(data.umaren)count+=set538('rrUmaren',data.umaren)?1:0;
-  if(data.umatan)count+=set538('rrUmatan',data.umatan)?1:0;
-  if(data.wide.length)count+=set538('rrWide',data.wide.join('|'))?1:0;
-  if(data.memo)count+=set538('rrMemo',data.memo)?1:0;
+  if(data.date)count+=setValueV5382('rrDate',data.date)?1:0;
+  count+=setValueV5382('rrResult',data.result)?1:0;
+  if(data.pop1)count+=setValueV5382('rrPop1',data.pop1)?1:0;
+  if(data.pop2)count+=setValueV5382('rrPop2',data.pop2)?1:0;
+  if(data.pop3)count+=setValueV5382('rrPop3',data.pop3)?1:0;
+  if(data.sanpuku)count+=setValueV5382('rrSanpuku',data.sanpuku)?1:0;
+  if(data.santan)count+=setValueV5382('rrSantan',data.santan)?1:0;
+  if(data.umaren)count+=setValueV5382('rrUmaren',data.umaren)?1:0;
+  if(data.umatan)count+=setValueV5382('rrUmatan',data.umatan)?1:0;
+  if(data.wide.length)count+=setValueV5382('rrWide',data.wide.join('|'))?1:0;
+  if(data.memo)count+=setValueV5382('rrMemo',data.memo)?1:0;
   return count;
 }
+function showStatusV5382(message,error=false){
+  const el=document.getElementById('chappyStatusV5382');
+  if(!el)return;
+  el.textContent=message;
+  el.style.color=error?'#fecdd3':'#bbf7d0';
+  el.style.borderColor=error?'#fb7185':'#4ade80';
+}
+function runImportV5382(saveAfter){
+  try{
+    const raw=document.getElementById('chappyResultCodeV5382')?.value||'';
+    const data=parseResultCodeV5382(raw);
+    const count=applyDataV5382(data);
+    showStatusV5382(`${count}項目を自動入力しました${saveAfter?'。結果込み保存を実行します':''}`);
+    if(saveAfter){
+      if(typeof window.saveResultResearch!=='function'){
+        throw new Error('結果保存機能が見つかりません');
+      }
+      window.saveResultResearch();
+    }
+  }catch(error){
+    showStatusV5382(error?.message||String(error),true);
+  }
+}
+function buildImporterV5382(){
+  const card=document.getElementById('rrCard');
+  if(!card){setTimeout(buildImporterV5382,250);return}
+  if(document.getElementById('chappyImporterV5382'))return;
 
-function importerHtml538(){
-  return `<div id="chappy538" class="chappy538">
+  const box=document.createElement('div');
+  box.id='chappyImporterV5382';
+  box.className='chappyImporterV5382';
+  box.innerHTML=`
     <div class="title">🤖 チャッピー結果コード一括入力</div>
-    <div class="small">チャッピーのコードを1回貼り、「反映して保存」を押すだけです。</div>
-    <textarea id="chappyResultCode538" placeholder="[DATE]
-2026/08/03
-
-[RESULT]
-8-9-4
+    <div class="small">チャッピーが作ったコードを1回貼り、「反映して保存」を押すだけです。</div>
+    <textarea id="chappyResultCodeV5382" placeholder="8-9-4
 
 [POPULARITY]
 2-1-3
@@ -1664,335 +1735,76 @@ WIDE 4-9 510
 [MEMO]
 結果研究メモ"></textarea>
     <div class="rrbtn">
-      <button class="sample" type="button" id="apply538">コードを反映</button>
-      <button class="go" type="button" id="save538">反映して保存</button>
+      <button type="button" class="sample" id="chappyApplyV5382">コードを反映</button>
+      <button type="button" class="go" id="chappySaveV5382">反映して保存</button>
     </div>
-    <div id="status538" class="rrs">結果コード待機中</div>
-  </div>`;
-}
-function show538(msg,error=false){
-  const e=document.getElementById('status538');
-  if(!e)return;
-  e.textContent=msg;
-  e.style.color=error?'#fecdd3':'#bbf7d0';
-  e.style.borderColor=error?'#fb7185':'#4ade80';
-}
-function apply538(autoSave){
-  try{
-    const raw=document.getElementById('chappyResultCode538')?.value||'';
-    const data=parse538(raw);
-    const count=fill538(data);
-    show538(`${count}項目を自動入力しました${autoSave?'。結果込み保存を実行します':''}`);
-    if(autoSave){
-      if(typeof window.saveResultResearch!=='function')throw new Error('結果保存機能が見つかりません');
-      window.saveResultResearch();
-    }
-  }catch(e){show538(e.message||String(e),true)}
-}
-function init538(){
-  const card=document.getElementById('rrCard');
-  if(!card){setTimeout(init538,250);return}
-  if(!document.getElementById('chappy538')){
-    card.insertAdjacentHTML('afterbegin',importerHtml538());
-    document.getElementById('apply538').addEventListener('click',()=>apply538(false));
-    document.getElementById('save538').addEventListener('click',()=>apply538(true));
-  }
+    <div class="rrs" id="chappyStatusV5382">結果コード待機中</div>
+  `;
+  card.insertAdjacentElement('afterbegin',box);
+
+  document.getElementById('chappyApplyV5382').addEventListener('click',()=>runImportV5382(false));
+  document.getElementById('chappySaveV5382').addEventListener('click',()=>runImportV5382(true));
+
   const style=document.createElement('style');
   style.textContent=`
-    .chappy538{margin-bottom:10px;padding:10px;border:3px solid #22d3ee;border-radius:13px;background:linear-gradient(145deg,#002333,#064e3b,#020617)}
-    .chappy538 textarea{height:245px;margin-top:8px;border-color:#67e8f9}
+    .chappyImporterV5382{
+      margin-bottom:10px;padding:10px;border:3px solid #22d3ee;border-radius:13px;
+      background:linear-gradient(145deg,#002333,#064e3b,#020617);
+    }
+    .chappyImporterV5382 textarea{height:245px;margin-top:8px;border-color:#67e8f9}
   `;
   document.head.appendChild(style);
 
-  const tag=document.querySelector('h1 .tag');if(tag)tag.textContent='V5.38';
-  const go=document.querySelector('button.go');if(go&&/解析/.test(go.textContent))go.textContent='V5.38解析';
-  const meta=document.querySelector('meta[name="app-build"]');if(meta)meta.content=IMPORT_VER;
-  document.title='競馬メジアン V5.38 結果コード統合完成版';
+  const tag=document.querySelector('h1 .tag');
+  if(tag)tag.textContent='V5.39.1';
+  const parseButton=[...document.querySelectorAll('button.go')].find(b=>/解析/.test(b.textContent||''));
+  if(parseButton)parseButton.textContent='V5.39.1解析';
+  const meta=document.querySelector('meta[name="app-build"]');
+  if(meta)meta.setAttribute('content',IMPORT_VERSION);
+  document.title='競馬メジアン V5.39.1 結果保存完全修正版';
 }
-document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init538):init538();
+document.readyState==='loading'
+  ?document.addEventListener('DOMContentLoaded',buildImporterV5382)
+  :buildImporterV5382();
+
 })();
 </script>
-<!-- V5.38 integrated result importer end -->
-<!-- V5.39 result persistence + result-only fallback start -->
+<!-- V5.38.2 結果コード統合完成版 end -->
+
+
+<!-- V5.39.1 解析データ保持・保存統一パッチ -->
 <script>
 (function(){
 'use strict';
-
-const V539_KEY = 'keibaMedianLatestAnalysisV539';
-const V539_RESULT_KEY = 'keibaMedianResultResearchV537';
-
-function norm539(s){
-  return String(s ?? '')
-    .replace(/^\uFEFF/, '')
-    .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 65248))
-    .replace(/[－ー―−→＞]/g, '-')
-    .replace(/：/g, ':')
-    .replace(/\r\n?/g, '\n')
-    .trim();
+const ANALYSIS_KEY='keibaMedianLatestAnalysisV5391';
+function current(){
+  try{if(typeof latest!=='undefined'&&latest)return latest}catch(e){}
+  return window.latest||null;
 }
-function today539(){
-  const d = new Date();
-  return [
-    d.getFullYear(),
-    String(d.getMonth()+1).padStart(2,'0'),
-    String(d.getDate()).padStart(2,'0')
-  ].join('-');
+function sync(v){
+  if(!v)return;
+  window.latest=v;
+  try{localStorage.setItem(ANALYSIS_KEY,JSON.stringify(v))}catch(e){}
 }
-function getEl539(id){ return document.getElementById(id); }
-function setEl539(id, value){
-  const e = getEl539(id);
-  if(!e) return false;
-  e.value = value ?? '';
-  e.dispatchEvent(new Event('input', {bubbles:true}));
-  e.dispatchEvent(new Event('change', {bubbles:true}));
-  return true;
+function restore(){
+  const v=current();if(v){sync(v);return v}
+  try{const raw=localStorage.getItem(ANALYSIS_KEY);if(raw){const x=JSON.parse(raw);window.latest=x;return x}}catch(e){}
+  return null;
 }
-function esc539(s){
-  return String(s ?? '').replace(/[&<>"']/g, c => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[c]));
+function wrapRun(){
+  const old=window.run||((typeof run==='function')?run:null);
+  if(typeof old!=='function'||old.__v5391)return;
+  const w=function(){const ret=old.apply(this,arguments);setTimeout(()=>sync(current()),0);return ret};
+  w.__v5391=true;window.run=w;try{run=w}catch(e){}
 }
-function csv539(v){
-  v = String(v ?? '');
-  return /[",\n]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v;
+function init(){wrapRun();restore();
+ const meta=document.querySelector('meta[name="app-build"]');if(meta)meta.content='V5.39.1-result-save-fixed';
+ const tag=document.querySelector('h1 .tag');if(tag)tag.textContent='V5.39.1';
+ const go=[...document.querySelectorAll('button')].find(b=>/解析/.test(b.textContent||''));if(go)go.textContent='V5.39.1解析';
 }
-function uniq539(a){ return [...new Set((a||[]).filter(Boolean).map(String))]; }
-
-function getResultDb539(){
-  try{
-    const a = JSON.parse(localStorage.getItem(V539_RESULT_KEY) || '[]');
-    return Array.isArray(a) ? a : [];
-  }catch(e){ return []; }
-}
-function putResultDb539(a){
-  localStorage.setItem(V539_RESULT_KEY, JSON.stringify(a));
-}
-function show539(msg, error=false){
-  const e = getEl539('status538') || getEl539('rrStatus');
-  if(!e) return;
-  e.textContent = msg;
-  e.style.color = error ? '#fecdd3' : '#bbf7d0';
-  e.style.borderColor = error ? '#fb7185' : '#4ade80';
-}
-function syncLatest539(v){
-  if(!v) return false;
-  try{
-    window.latest = v;
-    latest = v;
-  }catch(e){
-    window.latest = v;
-  }
-  try{
-    localStorage.setItem(V539_KEY, JSON.stringify(v));
-  }catch(e){}
-  return true;
-}
-function restoreLatest539(){
-  if(window.latest) return window.latest;
-  try{
-    if(typeof latest !== 'undefined' && latest) return syncLatest539(latest) ? latest : latest;
-  }catch(e){}
-  try{
-    const raw = localStorage.getItem(V539_KEY);
-    if(!raw) return null;
-    const v = JSON.parse(raw);
-    syncLatest539(v);
-    return v;
-  }catch(e){
-    return null;
-  }
-}
-function raceFromCode539(raw){
-  const t = norm539(raw);
-  const m =
-    t.match(/\[RACE\]\s*\n+\s*(.+)/i) ||
-    t.match(/(?:RACE|レース)\s*[:：]\s*(.+)/i) ||
-    t.match(/【([^】]+R)】/);
-  return m ? String(m[1]).trim() : '';
-}
-function resultFromFields539(){
-  const result = norm539(getEl539('rrResult')?.value || '');
-  const m = result.match(/^(\d+)\s*-\s*(\d+)\s*-\s*(\d+)$/);
-  if(!m) throw new Error('結果を「4-11-8」の形で入力してください');
-  return [m[1],m[2],m[3]];
-}
-function ensureRaceField539(){
-  if(getEl539('rrRace')) return;
-  const grid = document.querySelector('#rrCard .rrg');
-  if(!grid) return;
-  const label = document.createElement('label');
-  label.className = 'rrf rrall';
-  label.innerHTML = '<span>レース名（解析なし保存用）</span><input id="rrRace" type="text" placeholder="金沢8R">';
-  grid.insertBefore(label, grid.firstChild);
-}
-function currentCodeRace539(){
-  const raw = getEl539('chappyResultCode538')?.value || '';
-  return raceFromCode539(raw);
-}
-function fillRaceField539(){
-  const v = restoreLatest539();
-  const race = v?.d?.title || currentCodeRace539();
-  if(race) setEl539('rrRace', race);
-}
-function minimalRow539(){
-  const hs = resultFromFields539();
-  const race = norm539(getEl539('rrRace')?.value || '') || currentCodeRace539();
-  if(!race) throw new Error('解析データがないため、結果コードに [RACE] を入れるか、レース名欄へ「金沢8R」のように入力してください');
-
-  return {
-    保存日時:new Date().toISOString(),
-    日付:getEl539('rrDate')?.value || today539(),
-    レース:race,
-    解析バージョン:'V5.39-result-only',
-    保存種別:'結果のみ（解析未接続）',
-    開催区分:'',
-    レース型:'',
-    P:'',
-    P詳細コード:'',
-    上位3合計:'',
-    大谷条件:'',
-    結果:hs.join('-'),
-    '1着馬':hs[0],
-    '2着馬':hs[1],
-    '3着馬':hs[2],
-    '1着人気':getEl539('rrPop1')?.value || '',
-    '2着人気':getEl539('rrPop2')?.value || '',
-    '3着人気':getEl539('rrPop3')?.value || '',
-    結果分類:'解析未接続',
-    結果コンピ順位:'',
-    結果コンピ群:'',
-    三連複払戻:getEl539('rrSanpuku')?.value || '',
-    三連単払戻:getEl539('rrSantan')?.value || '',
-    馬連払戻:getEl539('rrUmaren')?.value || '',
-    馬単払戻:getEl539('rrUmatan')?.value || '',
-    的中ワイド:getEl539('rrWide')?.value || '',
-    '1着サイン':'',
-    '2着サイン':'',
-    '3着サイン':'',
-    結果3頭サイン総数:'',
-    穴検出該当:'',
-    コンピ1着候補:'',
-    コンピ軸:'',
-    市場軸:'',
-    市場相手:'',
-    市場3着穴:'',
-    構造軸:'',
-    大荒れ頭:'',
-    まっちゃん穴単:'',
-    ステルス馬:'',
-    青白光:'',
-    壁前:'',
-    壁直後:'',
-    削除禁止:'',
-    通常最重要:'',
-    人気馬飛び最重要:'',
-    大荒れ完成形:'',
-    相手荒れワイド:'',
-    予想単勝:'',
-    予想馬連:'',
-    予想ワイド:'',
-    予想三連複:'',
-    結果メモ:getEl539('rrMemo')?.value || ''
-  };
-}
-function saveMinimal539(){
-  const r = minimalRow539();
-  const a = getResultDb539();
-  const i = a.findIndex(x => x.日付 === r.日付 && x.レース === r.レース);
-  if(i >= 0) a[i] = r;
-  else a.push(r);
-  putResultDb539(a);
-  show539(i >= 0 ? '解析なしの結果データを更新しました' : '解析なしでも結果を保存しました');
-  alert(i >= 0 ? '更新しました' : '結果のみで保存しました');
-}
-
-function installRunPersistence539(){
-  let oldRun = null;
-  try{ oldRun = window.run || run; }catch(e){ oldRun = window.run; }
-  if(typeof oldRun !== 'function' || oldRun.__v539Wrapped) return;
-
-  const wrapped = function(){
-    const ret = oldRun.apply(this, arguments);
-    setTimeout(() => {
-      try{
-        const v = (typeof latest !== 'undefined' && latest) ? latest : window.latest;
-        if(v){
-          syncLatest539(v);
-          fillRaceField539();
-          show539('解析データを保存しました。結果コードだけで後から保存できます');
-        }
-      }catch(e){}
-    }, 0);
-    return ret;
-  };
-  wrapped.__v539Wrapped = true;
-  window.run = wrapped;
-  try{ run = wrapped; }catch(e){}
-}
-function installSaveFallback539(){
-  const oldSave = window.saveResultResearch;
-  if(typeof oldSave !== 'function' || oldSave.__v539Wrapped) return;
-
-  const wrapped = function(){
-    const v = restoreLatest539();
-    if(v){
-      syncLatest539(v);
-      return oldSave.apply(this, arguments);
-    }
-    return saveMinimal539();
-  };
-  wrapped.__v539Wrapped = true;
-  window.saveResultResearch = wrapped;
-}
-function installApplyRace539(){
-  const btn = getEl539('apply538');
-  if(btn && !btn.dataset.v539){
-    btn.dataset.v539 = '1';
-    btn.addEventListener('click', () => setTimeout(fillRaceField539, 0));
-  }
-  const save = getEl539('save538');
-  if(save && !save.dataset.v539){
-    save.dataset.v539 = '1';
-    save.addEventListener('click', () => setTimeout(fillRaceField539, 0), true);
-  }
-}
-function updateLabels539(){
-  const tag = document.querySelector('h1 .tag');
-  if(tag) tag.textContent = 'V5.39';
-  const go = [...document.querySelectorAll('button')].find(b => /解析/.test(b.textContent || ''));
-  if(go) go.textContent = 'V5.39解析';
-  const meta = document.querySelector('meta[name="app-build"]');
-  if(meta) meta.content = 'V5.39-latest-persistence-result-only-fallback';
-  document.title = '競馬メジアン V5.39 結果保存修正版';
-}
-
-function init539(){
-  ensureRaceField539();
-  restoreLatest539();
-  fillRaceField539();
-  installRunPersistence539();
-  installSaveFallback539();
-  installApplyRace539();
-  updateLabels539();
-
-  const v = restoreLatest539();
-  show539(v
-    ? `前回の解析「${v?.d?.title || 'レース'}」を復元しました`
-    : '解析データなし。結果コードに [RACE] があれば結果だけでも保存できます'
-  );
-}
-
-if(document.readyState === 'loading'){
-  document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(init539, 300);
-    setTimeout(init539, 1000);
-  });
-}else{
-  setTimeout(init539, 300);
-  setTimeout(init539, 1000);
-}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
-<!-- V5.39 result persistence + result-only fallback end -->
+
 </body>
 </html>
