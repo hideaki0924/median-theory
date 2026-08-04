@@ -1,4 +1,5 @@
-
+今のHTMLを全部消して、下を最初から最後まで丸ごと貼って。
+V1.55です。全件削除ボタンあり・旧localStorage自動移行なし・IndexedDB保存・横ズレ防止・推奨馬両形式対応です。
 
 <!doctype html>
 <html lang="ja">
@@ -6,18 +7,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="compi-lab-v1.54-indexeddb-fixed">
-<title>競馬メジアン 中央コンピ研究所 V1.54</title>
+<meta name="app-build" content="compi-lab-v1.55-clean-indexeddb">
+<title>競馬メジアン 中央コンピ研究所 V1.55</title>
 <style>
 :root{--bg:#07101f;--card:#10224a;--card2:#0b1835;--line:#334155;--cyan:#67e8f9;--yellow:#fde047;--red:#fb7185;--green:#4ade80;--muted:#cbd5e1}
 *{box-sizing:border-box;min-width:0}
-html{width:100%;max-width:100%;margin:0;padding:0;overflow-x:hidden;background:var(--bg);color:#fff;-webkit-text-size-adjust:100%;text-size-adjust:100%}
-body{position:relative;width:100%;max-width:100%;margin:0;overflow-x:hidden;background:var(--bg);color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:8px 8px calc(28px + env(safe-area-inset-bottom));line-height:1.45}
+html,body{width:100%;max-width:100%;margin:0;overflow-x:hidden;background:var(--bg);color:#fff;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:8px 8px calc(28px + env(safe-area-inset-bottom));line-height:1.45}
 main{width:100%;max-width:760px;margin:0 auto}
 h1{margin:5px 2px 4px;font-size:21px;line-height:1.35;overflow-wrap:anywhere}
 .sub{margin:0 2px 10px;color:var(--muted);font-size:12px;overflow-wrap:anywhere}
 .card{width:100%;margin:9px 0;padding:12px;overflow:hidden;overflow-wrap:anywhere;background:var(--card);border:1px solid #2563eb;border-radius:15px;box-shadow:0 5px 18px rgba(0,0,0,.22)}
-.title{margin-bottom:8px;color:var(--cyan);font-size:16px;font-weight:900;overflow-wrap:anywhere}
+.title{margin-bottom:8px;color:var(--cyan);font-size:16px;font-weight:900}
 .small{color:var(--muted);font-size:11px;overflow-wrap:anywhere}
 textarea,input,button{font:inherit}
 textarea,input{display:block;width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;background:#071426;color:#fff}
@@ -36,21 +37,19 @@ button{border:0;border-radius:10px;padding:11px 9px;color:#fff;background:#1d4ed
 .kpi{padding:8px;text-align:center;background:var(--card2);border:1px solid var(--line);border-radius:10px;font-size:11px}
 .kpi b{display:block;color:var(--yellow);font-size:18px}
 .tableWrap{width:100%;max-height:420px;overflow:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
-.log{width:100%;min-width:620px;border-collapse:collapse;font-size:11px}
+.log{width:100%;min-width:700px;border-collapse:collapse;font-size:11px}
 .log th,.log td{padding:6px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
 .log th{position:sticky;top:0;z-index:2;color:var(--cyan);background:#172554}
 .codeSample{width:100%;padding:9px;white-space:pre-wrap;overflow-wrap:anywhere;color:#dbeafe;background:#020617;border:1px solid var(--line);border-radius:10px;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}
 .hidden{display:none}
-@media(max-width:390px){
-  .btns,.kpis{grid-template-columns:1fr}
-}
+@media(max-width:390px){.btns,.kpis{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <main>
-<h1>競馬メジアン 中央コンピ研究所 V1.54</h1>
+<h1>競馬メジアン 中央コンピ研究所 V1.55</h1>
 <div class="sub">
-純コンピ専用｜1R〜12Rを一括貼付｜IndexedDB大容量保存｜「5 48 推奨」と[RECOMMEND]の両形式に対応
+純コンピ専用｜1R〜12R一括貼付｜IndexedDB保存｜全件削除対応｜旧データ自動移行なし
 </div>
 <div id="msg" class="notice ok">
 データベースを準備しています。
@@ -128,6 +127,16 @@ accept=".json,application/json"
 onchange="importBackup(event)"
 >
 </div>
+<button
+class="red"
+style="width:100%;margin-top:9px"
+onclick="deleteAllRaces()"
+>
+保存データを全件削除
+</button>
+<div class="small" style="margin-top:7px">
+全件削除は2回確認してから実行します。HTMLを差し替えても、同じIndexedDB内のV1.54データを表示します。
+</div>
 </section>
 <section class="card">
 <div class="title">
@@ -172,8 +181,7 @@ onchange="importBackup(event)"
 [RESULT]
 7-9-3</div>
 <div class="small" style="margin-top:7px">
-推奨馬は行末の「推奨」でも、[RECOMMEND]の次行でも読めます。
-両方書く場合は同じ馬番にしてください。
+「2 84 推奨」と[RECOMMEND]の両形式に対応。両方書く場合は同じ馬番にしてください。
 </div>
 </section>
 </main>
@@ -182,13 +190,6 @@ onchange="importBackup(event)"
 const DB_NAME='compiLabV154IndexedDB';
 const DB_VERSION=1;
 const STORE='races';
-const OLD_LOCAL_STORES=[
-  'compiLabV153InlineRecommendFixed',
-  'compiLabV152BatchPasteViewportFixed',
-  'compiLabV151BatchPasteFixed',
-  'compiLabV150BatchPaste',
-  'compiLabV140PasteOnly'
-];
 const RESULT_HEADERS=[
   '結果入力済み',
   '結果',
@@ -1365,7 +1366,42 @@ async function deleteRace(id){
   await deleteRow(id);
   await renderAll();
   setMsg(
-    '削除しました。',
+    '1レース削除しました。',
+    true
+  );
+}
+async function deleteAllRaces(){
+  const rows=
+    await getAllRows();
+  if(!rows.length){
+    setMsg(
+      '削除する保存データがありません。',
+      false
+    );
+    return;
+  }
+  if(
+    !confirm(
+      `保存済み${rows.length}レースを全部削除します。よろしいですか？`
+    )
+  ){
+    return;
+  }
+  if(
+    !confirm(
+      'この操作は元に戻せません。本当に全件削除しますか？'
+    )
+  ){
+    return;
+  }
+  await clearStore();
+  await renderAll();
+  document.getElementById(
+    'preview'
+  ).textContent=
+    '未解析';
+  setMsg(
+    `${rows.length}レースを全件削除しました。`,
     true
   );
 }
@@ -1397,35 +1433,37 @@ function renderLog(rows){
   document.getElementById(
     'logBody'
   ).innerHTML=
-    sorted.map(
-      row=>`
-      <tr>
-      <td>${esc(row.日付)}</td>
-      <td>${esc(row.場)}</td>
-      <td>${esc(row.R)}</td>
-      <td>${esc(row.P)}</td>
-      <td style="color:var(--red);font-weight:900">
-      ${esc(row.推奨馬||'—')}
-      </td>
-      <td>${esc(row.結果||'未')}</td>
-      <td>
-      <button
-      onclick='loadAsCode(${JSON.stringify(row.id)})'
-      style="padding:5px 7px"
-      >
-      開く
-      </button>
-      <button
-      class="red"
-      onclick='deleteRace(${JSON.stringify(row.id)})'
-      style="padding:5px 7px"
-      >
-      削除
-      </button>
-      </td>
-      </tr>
-      `
-    ).join('');
+    sorted.length
+      ?sorted.map(
+        row=>`
+        <tr>
+        <td>${esc(row.日付)}</td>
+        <td>${esc(row.場)}</td>
+        <td>${esc(row.R)}</td>
+        <td>${esc(row.P)}</td>
+        <td style="color:var(--red);font-weight:900">
+        ${esc(row.推奨馬||'—')}
+        </td>
+        <td>${esc(row.結果||'未')}</td>
+        <td>
+        <button
+        onclick='loadAsCode(${JSON.stringify(row.id)})'
+        style="padding:5px 7px"
+        >
+        開く
+        </button>
+        <button
+        class="red"
+        onclick='deleteRace(${JSON.stringify(row.id)})'
+        style="padding:5px 7px"
+        >
+        削除
+        </button>
+        </td>
+        </tr>
+        `
+      ).join('')
+      :'<tr><td colspan="7">保存データなし</td></tr>';
 }
 function renderKpis(rows){
   const completed=
@@ -1505,7 +1543,7 @@ async function exportCSV(){
     ].join('\r\n');
   downloadBlob(
     text,
-    `競馬メジアン_中央コンピ研究所_V1.54_${new Date().toISOString().slice(0,10)}.csv`,
+    `競馬メジアン_中央コンピ研究所_V1.55_${new Date().toISOString().slice(0,10)}.csv`,
     'text/csv;charset=utf-8'
   );
   setMsg(
@@ -1642,19 +1680,21 @@ function importCSV(event){
 async function exportBackup(){
   const rows=
     await getAllRows();
-  downloadBlob(
+  const text=
     JSON.stringify(
       {
-        version:'1.54',
+        version:'1.55',
         savedAt:
           new Date().toISOString(),
         data:rows
       },
       null,
       2
-    ),
-    `コンピ研究所_V1.54_backup_${new Date().toISOString().slice(0,10)}.json`,
-    'application/json'
+    );
+  downloadBlob(
+    text,
+    `コンピ研究所_V1.55_backup_${new Date().toISOString().slice(0,10)}.json`,
+    'application/json;charset=utf-8'
   );
   setMsg(
     'バックアップを保存しました。',
@@ -1685,7 +1725,9 @@ function importBackup(event){
         );
       }
       await clearStore();
-      for(const row of data){
+      for(
+        const row of data
+      ){
         await putRow(row);
       }
       await renderAll();
@@ -1700,7 +1742,10 @@ function importBackup(event){
       );
     }
   };
-  reader.readAsText(file);
+  reader.readAsText(
+    file,
+    'utf-8'
+  );
   event.target.value='';
 }
 function downloadBlob(
@@ -1761,38 +1806,6 @@ async function copyFormat(){
     );
   }
 }
-async function migrateLocalStorage(){
-  if(
-    (
-      await getAllRows()
-    ).length
-  ){
-    return 0;
-  }
-  for(
-    const storeName of
-    OLD_LOCAL_STORES
-  ){
-    try{
-      const data=
-        JSON.parse(
-          localStorage.getItem(
-            storeName
-          )||'[]'
-        );
-      if(
-        Array.isArray(data)&&
-        data.length
-      ){
-        for(const row of data){
-          await putRow(row);
-        }
-        return data.length;
-      }
-    }catch(error){}
-  }
-  return 0;
-}
 function installViewportLock(){
   const lock=()=>{
     if(window.scrollX!==0){
@@ -1829,14 +1842,10 @@ function installViewportLock(){
 (async()=>{
   try{
     await openDB();
-    const migrated=
-      await migrateLocalStorage();
     await renderAll();
     installViewportLock();
     setMsg(
-      migrated
-        ?`データベース準備完了。旧版から${migrated}件移行しました。`
-        :'データベース準備完了。',
+      'データベース準備完了。必要なら「保存データを全件削除」を押してください。',
       true
     );
   }catch(error){
