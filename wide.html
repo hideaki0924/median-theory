@@ -1,5 +1,5 @@
-これを今のHTMLと丸ごと入れ替えて。
-機能は変えず、iPhone Safariで横にブレないよう固定した版です。
+前のHTMLは全部消して、下を丸ごと貼って。
+今回は 5 48 推奨 と [RECOMMEND] 5 の両方に対応し、JavaScriptの構文チェックも通してある。
 
 <!doctype html>
 <html lang="ja">
@@ -7,447 +7,168 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="compi-lab-v1.52-batch-paste-viewport-fixed">
-<title>競馬メジアン 中央コンピ研究所 V1.52</title>
+<meta name="app-build" content="compi-lab-v1.53-inline-recommend-fixed">
+<title>競馬メジアン 中央コンピ研究所 V1.53</title>
 <style>
-:root{
-  --bg:#07101f;
-  --card:#10224a;
-  --card2:#0b1835;
-  --line:#334155;
-  --cyan:#67e8f9;
-  --yellow:#fde047;
-  --red:#fb7185;
-  --green:#4ade80;
-  --muted:#cbd5e1;
-}
-*{
-  box-sizing:border-box;
-  min-width:0;
-}
-html{
-  width:100%;
-  max-width:100%;
-  margin:0;
-  padding:0;
-  overflow-x:hidden;
-  background:var(--bg);
-  color:#fff;
-  -webkit-text-size-adjust:100%;
-  text-size-adjust:100%;
-}
-body{
-  position:relative;
-  width:100%;
-  max-width:100%;
-  min-width:0;
-  margin:0;
-  overflow-x:hidden;
-  background:var(--bg);
-  color:#fff;
-  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
-  padding:8px 8px calc(28px + env(safe-area-inset-bottom));
-  line-height:1.45;
-}
-main{
-  display:block;
-  width:100%;
-  max-width:760px;
-  min-width:0;
-  margin:0 auto;
-  overflow:visible;
-}
-h1{
-  max-width:100%;
-  margin:5px 2px 4px;
-  font-size:21px;
-  line-height:1.35;
-  overflow-wrap:anywhere;
-  word-break:break-word;
-}
-.sub{
-  max-width:100%;
-  margin:0 2px 10px;
-  color:var(--muted);
-  font-size:12px;
-  overflow-wrap:anywhere;
-  word-break:break-word;
-}
-.card{
-  display:block;
-  width:100%;
-  max-width:100%;
-  min-width:0;
-  margin:9px 0;
-  padding:12px;
-  overflow:hidden;
-  overflow-wrap:anywhere;
-  word-break:break-word;
-  background:var(--card);
-  border:1px solid #2563eb;
-  border-radius:15px;
-  box-shadow:0 5px 18px rgba(0,0,0,.22);
-}
-.title{
-  max-width:100%;
-  margin-bottom:8px;
-  color:var(--cyan);
-  font-size:16px;
-  font-weight:900;
-  overflow-wrap:anywhere;
-  word-break:break-word;
-}
-.small{
-  max-width:100%;
-  color:var(--muted);
-  font-size:11px;
-  overflow-wrap:anywhere;
-  word-break:break-word;
-}
-textarea,
-input,
-button{
-  font:inherit;
-}
-textarea,
-input{
-  display:block;
-  width:100%;
-  max-width:100%;
-  min-width:0;
-  border:1px solid var(--line);
-  border-radius:10px;
-  padding:10px;
-  background:#071426;
-  color:#fff;
-}
-textarea{
-  min-height:265px;
-  max-width:100%;
-  resize:vertical;
-  overflow-x:hidden;
-  overflow-y:auto;
-  white-space:pre-wrap;
-  overflow-wrap:anywhere;
-  word-break:break-word;
-  line-height:1.55;
-  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
-  font-size:16px;
-  -webkit-overflow-scrolling:touch;
-}
-input{
-  font-size:16px;
-}
-button{
-  min-width:0;
-  max-width:100%;
-  border:0;
-  border-radius:10px;
-  padding:11px 9px;
-  overflow:hidden;
-  color:#fff;
-  background:#1d4ed8;
-  font-weight:900;
-  text-overflow:ellipsis;
-  white-space:normal;
-  overflow-wrap:anywhere;
-  word-break:break-word;
-  cursor:pointer;
-  -webkit-tap-highlight-color:transparent;
-}
-.btns{
-  display:grid;
-  width:100%;
-  max-width:100%;
-  min-width:0;
-  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-  gap:7px;
-}
-.green{
-  background:#15803d;
-}
-.yellow{
-  background:#ca8a04;
-}
-.red{
-  background:#be123c;
-}
-.gray{
-  background:#475569;
-}
-.notice{
-  display:block;
-  width:100%;
-  max-width:100%;
-  min-width:0;
-  margin-bottom:8px;
-  padding:9px;
-  overflow:hidden;
-  white-space:pre-wrap;
-  overflow-wrap:anywhere;
-  word-break:break-word;
-  color:#fecaca;
-  background:#3f0b18;
-  border:1px solid var(--red);
-  border-radius:10px;
-  font-size:12px;
-}
-.notice.ok{
-  color:#bbf7d0;
-  background:#052e16;
-  border-color:#15803d;
-}
-.summary{
-  display:block;
-  width:100%;
-  max-width:100%;
-  min-width:0;
-  min-height:70px;
-  max-height:600px;
-  padding:10px;
-  overflow-x:hidden;
-  overflow-y:auto;
-  white-space:pre-wrap;
-  overflow-wrap:anywhere;
-  word-break:break-word;
-  background:#061124;
-  border:1px solid #0891b2;
-  border-radius:12px;
-  font-size:13px;
-  -webkit-overflow-scrolling:touch;
-}
-.kpis{
-  display:grid;
-  width:100%;
-  max-width:100%;
-  min-width:0;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:6px;
-}
-.kpi{
-  min-width:0;
-  padding:8px;
-  overflow:hidden;
-  overflow-wrap:anywhere;
-  word-break:break-word;
-  text-align:center;
-  background:var(--card2);
-  border:1px solid var(--line);
-  border-radius:10px;
-  font-size:11px;
-}
-.kpi b{
-  display:block;
-  color:var(--yellow);
-  font-size:18px;
-}
-.tableWrap{
-  display:block;
-  width:100%;
-  max-width:100%;
-  min-width:0;
-  max-height:420px;
-  overflow-x:auto;
-  overflow-y:auto;
-  overscroll-behavior-x:contain;
-  -webkit-overflow-scrolling:touch;
-}
-.log{
-  width:100%;
-  min-width:620px;
-  border-collapse:collapse;
-  font-size:11px;
-}
-.log th,
-.log td{
-  padding:6px;
-  border-bottom:1px solid var(--line);
-  text-align:center;
-  white-space:nowrap;
-}
-.log th{
-  position:sticky;
-  top:0;
-  z-index:2;
-  color:var(--cyan);
-  background:#172554;
-}
-.codeSample{
-  display:block;
-  width:100%;
-  max-width:100%;
-  min-width:0;
-  padding:9px;
-  overflow-x:hidden;
-  white-space:pre-wrap;
-  overflow-wrap:anywhere;
-  word-break:break-word;
-  color:#dbeafe;
-  background:#020617;
-  border:1px solid var(--line);
-  border-radius:10px;
-  font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;
-}
-.hidden{
-  display:none;
-}
+:root{--bg:#07101f;--card:#10224a;--card2:#0b1835;--line:#334155;--cyan:#67e8f9;--yellow:#fde047;--red:#fb7185;--green:#4ade80;--muted:#cbd5e1}
+*{box-sizing:border-box;min-width:0}
+html{width:100%;max-width:100%;margin:0;padding:0;overflow-x:hidden;background:var(--bg);color:#fff;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{position:relative;width:100%;max-width:100%;min-width:0;margin:0;overflow-x:hidden;background:var(--bg);color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:8px 8px calc(28px + env(safe-area-inset-bottom));line-height:1.45}
+main{display:block;width:100%;max-width:760px;min-width:0;margin:0 auto;overflow:visible}
+h1{max-width:100%;margin:5px 2px 4px;font-size:21px;line-height:1.35;overflow-wrap:anywhere;word-break:break-word}
+.sub{max-width:100%;margin:0 2px 10px;color:var(--muted);font-size:12px;overflow-wrap:anywhere;word-break:break-word}
+.card{display:block;width:100%;max-width:100%;min-width:0;margin:9px 0;padding:12px;overflow:hidden;overflow-wrap:anywhere;word-break:break-word;background:var(--card);border:1px solid #2563eb;border-radius:15px;box-shadow:0 5px 18px rgba(0,0,0,.22)}
+.title{max-width:100%;margin-bottom:8px;color:var(--cyan);font-size:16px;font-weight:900;overflow-wrap:anywhere;word-break:break-word}
+.small{max-width:100%;color:var(--muted);font-size:11px;overflow-wrap:anywhere;word-break:break-word}
+textarea,input,button{font:inherit}
+textarea,input{display:block;width:100%;max-width:100%;min-width:0;border:1px solid var(--line);border-radius:10px;padding:10px;background:#071426;color:#fff}
+textarea{min-height:265px;max-width:100%;resize:vertical;overflow-x:hidden;overflow-y:auto;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;line-height:1.55;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:16px;-webkit-overflow-scrolling:touch}
+input{font-size:16px}
+button{min-width:0;max-width:100%;border:0;border-radius:10px;padding:11px 9px;overflow:hidden;color:#fff;background:#1d4ed8;font-weight:900;text-overflow:ellipsis;white-space:normal;overflow-wrap:anywhere;word-break:break-word;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.btns{display:grid;width:100%;max-width:100%;min-width:0;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:7px}
+.green{background:#15803d}
+.yellow{background:#ca8a04}
+.red{background:#be123c}
+.gray{background:#475569}
+.notice{display:block;width:100%;max-width:100%;min-width:0;margin-bottom:8px;padding:9px;overflow:hidden;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;color:#fecaca;background:#3f0b18;border:1px solid var(--red);border-radius:10px;font-size:12px}
+.notice.ok{color:#bbf7d0;background:#052e16;border-color:#15803d}
+.summary{display:block;width:100%;max-width:100%;min-width:0;min-height:70px;max-height:600px;padding:10px;overflow-x:hidden;overflow-y:auto;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;background:#061124;border:1px solid #0891b2;border-radius:12px;font-size:13px;-webkit-overflow-scrolling:touch}
+.kpis{display:grid;width:100%;max-width:100%;min-width:0;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.kpi{min-width:0;padding:8px;overflow:hidden;overflow-wrap:anywhere;word-break:break-word;text-align:center;background:var(--card2);border:1px solid var(--line);border-radius:10px;font-size:11px}
+.kpi b{display:block;color:var(--yellow);font-size:18px}
+.tableWrap{display:block;width:100%;max-width:100%;min-width:0;max-height:420px;overflow-x:auto;overflow-y:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+.log{width:100%;min-width:620px;border-collapse:collapse;font-size:11px}
+.log th,.log td{padding:6px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+.log th{position:sticky;top:0;z-index:2;color:var(--cyan);background:#172554}
+.codeSample{display:block;width:100%;max-width:100%;min-width:0;padding:9px;overflow-x:hidden;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;color:#dbeafe;background:#020617;border:1px solid var(--line);border-radius:10px;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}
+.hidden{display:none}
 @media(max-width:560px){
-  body{
-    padding-left:7px;
-    padding-right:7px;
-  }
-  .card{
-    padding:11px;
-  }
-  h1{
-    font-size:20px;
-  }
+  body{padding-left:7px;padding-right:7px}
+  .card{padding:11px}
+  h1{font-size:20px}
 }
 @media(max-width:390px){
-  .btns{
-    grid-template-columns:1fr;
-  }
-  .kpis{
-    grid-template-columns:1fr;
-  }
+  .btns{grid-template-columns:1fr}
+  .kpis{grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
 <main>
-<h1>競馬メジアン 中央コンピ研究所 V1.52</h1>
+<h1>競馬メジアン 中央コンピ研究所 V1.53</h1>
 <div class="sub">
-純コンピ専用｜全レース一括コードを1回貼るだけ｜赤文字推奨馬は各レース最大1頭
+純コンピ専用｜1R〜12Rを一括貼付｜「5 48 推奨」と[RECOMMEND]の両形式に対応
 </div>
 <div id="msg" class="notice ok">
 全レース一括コードを貼り付けて「解析・保存」を押してください。
 </div>
 <section class="card">
-  <div class="title">
-    ① チャッピーの全レース一括コードを貼る
-  </div>
-  <textarea
-    id="pasteBox"
-    spellcheck="false"
-    placeholder="ここに1R〜12Rの一括コードを貼り付け"
-  ></textarea>
-  <div class="btns" style="margin-top:8px">
-    <button
-      class="yellow"
-      onclick="parseAndPreview()"
-    >
-      解析・確認
-    </button>
-    <button
-      class="green"
-      onclick="parseAndSave()"
-    >
-      解析・保存
-    </button>
-  </div>
-  <div class="btns" style="margin-top:7px">
-    <button
-      class="gray"
-      onclick="clearPasteBox()"
-    >
-      貼付欄を空にする
-    </button>
-    <button
-      class="gray"
-      onclick="copyFormat()"
-    >
-      コード形式をコピー
-    </button>
-  </div>
+<div class="title">
+① チャッピーの全レース一括コードを貼る
+</div>
+<textarea
+id="pasteBox"
+spellcheck="false"
+placeholder="ここに1R〜12Rの一括コードを貼り付け"
+></textarea>
+<div class="btns" style="margin-top:8px">
+<button class="yellow" onclick="parseAndPreview()">
+解析・確認
+</button>
+<button class="green" onclick="parseAndSave()">
+解析・保存
+</button>
+</div>
+<div class="btns" style="margin-top:7px">
+<button class="gray" onclick="clearPasteBox()">
+貼付欄を空にする
+</button>
+<button class="gray" onclick="copyFormat()">
+コード形式をコピー
+</button>
+</div>
 </section>
 <section class="card">
-  <div class="title">
-    ② 解析結果
-  </div>
-  <div id="preview" class="summary">
-    未解析
-  </div>
+<div class="title">
+② 解析結果
+</div>
+<div id="preview" class="summary">
+未解析
+</div>
 </section>
 <section class="card">
-  <div class="title">
-    ③ 蓄積データ
-  </div>
-  <div id="kpis" class="kpis"></div>
-  <div class="btns" style="margin-top:8px">
-    <button
-      class="green"
-      onclick="exportCSV()"
-    >
-      CSVを書き出す
-    </button>
-    <button
-      class="gray"
-      onclick="document.getElementById('csvFile').click()"
-    >
-      CSVを読み込む
-    </button>
-    <input
-      id="csvFile"
-      class="hidden"
-      type="file"
-      accept=".csv,text/csv"
-      onchange="importCSV(event)"
-    >
-    <button
-      class="yellow"
-      onclick="exportBackup()"
-    >
-      バックアップ保存
-    </button>
-    <button
-      class="gray"
-      onclick="document.getElementById('backupFile').click()"
-    >
-      バックアップ復元
-    </button>
-    <input
-      id="backupFile"
-      class="hidden"
-      type="file"
-      accept=".json,application/json"
-      onchange="importBackup(event)"
-    >
-  </div>
+<div class="title">
+③ 蓄積データ
+</div>
+<div id="kpis" class="kpis"></div>
+<div class="btns" style="margin-top:8px">
+<button class="green" onclick="exportCSV()">
+CSVを書き出す
+</button>
+<button
+class="gray"
+onclick="document.getElementById('csvFile').click()"
+>
+CSVを読み込む
+</button>
+<input
+id="csvFile"
+class="hidden"
+type="file"
+accept=".csv,text/csv"
+onchange="importCSV(event)"
+>
+<button class="yellow" onclick="exportBackup()">
+バックアップ保存
+</button>
+<button
+class="gray"
+onclick="document.getElementById('backupFile').click()"
+>
+バックアップ復元
+</button>
+<input
+id="backupFile"
+class="hidden"
+type="file"
+accept=".json,application/json"
+onchange="importBackup(event)"
+>
+</div>
 </section>
 <section class="card">
-  <div class="title">
-    保存レース
-  </div>
-  <div class="tableWrap">
-    <table class="log">
-      <thead>
-        <tr>
-          <th>日付</th>
-          <th>場</th>
-          <th>R</th>
-          <th>P</th>
-          <th>推奨</th>
-          <th>結果</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody id="logBody"></tbody>
-    </table>
-  </div>
+<div class="title">
+保存レース
+</div>
+<div class="tableWrap">
+<table class="log">
+<thead>
+<tr>
+<th>日付</th>
+<th>場</th>
+<th>R</th>
+<th>P</th>
+<th>推奨</th>
+<th>結果</th>
+<th>操作</th>
+</tr>
+</thead>
+<tbody id="logBody"></tbody>
+</table>
+</div>
 </section>
 <section class="card">
-  <div class="title">
-    貼り付けコード形式
-  </div>
-  <div class="codeSample">【2026-08-08 新潟1R】
+<div class="title">
+貼り付けコード形式
+</div>
+<div class="codeSample">【2026-08-08 新潟1R】
 [COMPI]
-2 84
+2 84 推奨
 4 78
 6 71
-[RECOMMEND]
-2
 [RESULT]
 2-4-6
+または
 【2026-08-08 新潟2R】
 [COMPI]
 7 81
@@ -457,16 +178,16 @@ button{
 7
 [RESULT]
 7-9-3</div>
-  <div class="small" style="margin-top:7px">
-    1R〜12Rまで同じ形で続けて、全部まとめて1回貼ります。
-    結果がない場合は[RESULT]を省略できます。
-    赤文字推奨馬がない場合は「なし」です。
-  </div>
+<div class="small" style="margin-top:7px">
+推奨馬は「2 84 推奨」でも、[RECOMMEND]の次行に馬番を書いても読めます。
+両方書く場合は同じ馬番にしてください。
+</div>
 </section>
 </main>
 <script>
 'use strict';
-const STORE = 'compiLabV152BatchPasteViewportFixed';
+const STORE =
+  'compiLabV153InlineRecommendFixed';
 const RESULT_HEADERS = [
   '結果入力済み',
   '結果',
@@ -560,45 +281,37 @@ function installViewportLock(){
   };
   window.addEventListener(
     'load',
-    () => {
+    () =>
       requestAnimationFrame(
         () => window.scrollTo(0,0)
-      );
-    }
+      )
   );
   window.addEventListener(
     'pageshow',
-    () => {
+    () =>
       requestAnimationFrame(
         () => window.scrollTo(0,0)
-      );
-    }
+      )
   );
   window.addEventListener(
     'orientationchange',
-    () => {
+    () =>
       setTimeout(
         () => window.scrollTo(0,0),
         150
-      );
-    }
+      )
   );
   window.addEventListener(
     'resize',
-    () => {
+    () =>
       requestAnimationFrame(
         moveToLeft
-      );
-    }
+      )
   );
   window.addEventListener(
     'scroll',
     moveToLeft,
     {passive:true}
-  );
-  document.addEventListener(
-    'DOMContentLoaded',
-    () => window.scrollTo(0,0)
   );
 }
 function loadDB(){
@@ -618,6 +331,7 @@ function migrateOldData(){
     return;
   }
   const oldStores = [
+    'compiLabV152BatchPasteViewportFixed',
     'compiLabV151BatchPasteFixed',
     'compiLabV150BatchPaste',
     'compiLabV140PasteOnly'
@@ -662,15 +376,14 @@ function setMsg(text,ok=false){
   message.textContent = text;
   message.className =
     'notice' + (ok ? ' ok' : '');
-  window.scrollTo(
-    0,
-    window.scrollY
-  );
 }
 function clearPasteBox(){
-  document.getElementById('pasteBox').value = '';
-  document.getElementById('preview').textContent =
-    '未解析';
+  document.getElementById(
+    'pasteBox'
+  ).value = '';
+  document.getElementById(
+    'preview'
+  ).textContent = '未解析';
   setMsg(
     '貼付欄を空にしました。',
     true
@@ -761,9 +474,10 @@ function readSections(text){
     RESULT:[]
   };
   let current = '';
-  const lines =
-    String(text || '').split('\n');
-  for(const rawLine of lines){
+  for(
+    const rawLine of
+    String(text || '').split('\n')
+  ){
     const line =
       rawLine.trim();
     const upper =
@@ -845,6 +559,7 @@ function parseSingleRace(raw){
     );
   }
   const horses = [];
+  const inlineRecommendations = [];
   for(
     const originalLine of
     sections.COMPI.split('\n')
@@ -855,7 +570,7 @@ function parseSingleRace(raw){
       continue;
     }
     const match = line.match(
-      /^(\d+)\s+(\d+(?:\.\d+)?)$/
+      /^(\d+)\s+(\d+(?:\.\d+)?)(?:\s+(.*))?$/
     );
     if(!match){
       continue;
@@ -864,6 +579,8 @@ function parseSingleRace(raw){
       Number(match[1]);
     const index =
       Number(match[2]);
+    const tail =
+      String(match[3] || '').trim();
     if(
       Number.isInteger(no) &&
       no > 0 &&
@@ -874,6 +591,14 @@ function parseSingleRace(raw){
         no,
         idx:index
       });
+      if(
+        /(推奨|推薦|★|◎|赤)/
+        .test(tail)
+      ){
+        inlineRecommendations.push(
+          String(no)
+        );
+      }
     }
   }
   if(horses.length < 3){
@@ -898,34 +623,61 @@ function parseSingleRace(raw){
       b.idx - a.idx ||
       a.no - b.no
   );
-  let recommend = '';
+  const uniqueInline =
+    [...new Set(
+      inlineRecommendations
+    )];
+  if(uniqueInline.length > 1){
+    throw new Error(
+      `${meta.place}${meta.race}R：行末の推奨馬が複数あります。1頭だけにしてください。`
+    );
+  }
+  let sectionRecommend = '';
   if(
     sections.RECOMMEND &&
     !/^(なし|無|none|-+)$/i.test(
       sections.RECOMMEND.trim()
     )
   ){
-    const recommendNumbers =
+    const numbers =
       sections.RECOMMEND.match(/\d+/g) || [];
-    if(recommendNumbers.length !== 1){
+    if(numbers.length !== 1){
       throw new Error(
-        `${meta.place}${meta.race}R：推奨馬は赤文字の1頭だけにしてください。`
+        `${meta.place}${meta.race}R：[RECOMMEND]は1頭だけにしてください。`
       );
     }
-    recommend = String(
-      Number(recommendNumbers[0])
+    sectionRecommend =
+      String(
+        Number(numbers[0])
+      );
+  }
+  const inlineRecommend =
+    uniqueInline[0] || '';
+  if(
+    sectionRecommend &&
+    inlineRecommend &&
+    sectionRecommend !==
+    inlineRecommend
+  ){
+    throw new Error(
+      `${meta.place}${meta.race}R：行末の推奨馬と[RECOMMEND]の馬番が一致しません。`
     );
-    if(
-      !horses.some(
-        horse =>
-          String(horse.no) ===
-          recommend
-      )
-    ){
-      throw new Error(
-        `${meta.place}${meta.race}R：推奨馬が[COMPI]内にありません。`
-      );
-    }
+  }
+  const recommend =
+    sectionRecommend ||
+    inlineRecommend ||
+    '';
+  if(
+    recommend &&
+    !horses.some(
+      horse =>
+        String(horse.no) ===
+        recommend
+    )
+  ){
+    throw new Error(
+      `${meta.place}${meta.race}R：推奨馬が[COMPI]内にありません。`
+    );
   }
   let result = [];
   if(
@@ -947,17 +699,17 @@ function parseSingleRace(raw){
         `${meta.place}${meta.race}R：[RESULT]は「1着-2着-3着」の3頭を重複なく入力してください。`
       );
     }
-    if(
-      result.some(
+    const missing =
+      result.filter(
         number =>
           !horses.some(
             horse =>
               horse.no === number
           )
-      )
-    ){
+      );
+    if(missing.length){
       throw new Error(
-        `${meta.place}${meta.race}R：[RESULT]に[COMPI]にない馬番があります。`
+        `${meta.place}${meta.race}R：[RESULT]の${missing.join('・')}番が[COMPI]にありません。`
       );
     }
   }
@@ -1378,10 +1130,6 @@ function parseAndPreview(){
       `${rows.length}レースを一括解析できました。内容を確認してください。`,
       true
     );
-    window.scrollTo(
-      0,
-      window.scrollY
-    );
     return rows;
   }catch(error){
     document.getElementById(
@@ -1391,10 +1139,6 @@ function parseAndPreview(){
     setMsg(
       error.message,
       false
-    );
-    window.scrollTo(
-      0,
-      window.scrollY
     );
     return null;
   }
@@ -1419,39 +1163,46 @@ function preserveOldResult(
   return newRow;
 }
 function parseAndSave(){
-  const rows =
-    parseAndPreview();
-  if(!rows){
-    return;
-  }
-  let added = 0;
-  let updated = 0;
-  for(let row of rows){
-    const index =
-      db.findIndex(
-        savedRow =>
-          keyOf(savedRow) ===
-          keyOf(row)
-      );
-    if(index >= 0){
-      row =
-        preserveOldResult(
-          db[index],
-          row
-        );
-      db[index] = row;
-      updated++;
-    }else{
-      db.push(row);
-      added++;
+  try{
+    const rows =
+      parseAndPreview();
+    if(!rows){
+      return;
     }
+    let added = 0;
+    let updated = 0;
+    for(let row of rows){
+      const index =
+        db.findIndex(
+          savedRow =>
+            keyOf(savedRow) ===
+            keyOf(row)
+        );
+      if(index >= 0){
+        row =
+          preserveOldResult(
+            db[index],
+            row
+          );
+        db[index] = row;
+        updated++;
+      }else{
+        db.push(row);
+        added++;
+      }
+    }
+    persist();
+    renderAll();
+    setMsg(
+      `${rows.length}レースを一括保存しました（新規${added}・更新${updated}）。`,
+      true
+    );
+  }catch(error){
+    setMsg(
+      `保存失敗：${error.message || error}`,
+      false
+    );
   }
-  persist();
-  renderAll();
-  setMsg(
-    `${rows.length}レースを一括保存しました（新規${added}・更新${updated}）。`,
-    true
-  );
 }
 function loadAsCode(index){
   const row =
@@ -1471,14 +1222,15 @@ function loadAsCode(index){
     position < numbers.length;
     position++
   ){
+    const suffix =
+      String(numbers[position]) ===
+      String(row.推奨馬)
+        ? ' 推奨'
+        : '';
     code +=
-      `${numbers[position]} ${indexes[position]}
+      `${numbers[position]} ${indexes[position]}${suffix}
 `;
   }
-  code +=
-    `[RECOMMEND]
-${row.推奨馬 || 'なし'}
-`;
   if(row.結果){
     code +=
       `[RESULT]
@@ -1541,41 +1293,31 @@ function renderLog(){
         const index =
           db.indexOf(row);
         return `
-          <tr>
-            <td>
-              ${esc(row.日付)}
-            </td>
-            <td>
-              ${esc(row.場)}
-            </td>
-            <td>
-              ${esc(row.R)}
-            </td>
-            <td>
-              ${esc(row.P)}
-            </td>
-            <td style="color:var(--red);font-weight:900">
-              ${esc(row.推奨馬 || '—')}
-            </td>
-            <td>
-              ${esc(row.結果 || '未')}
-            </td>
-            <td>
-              <button
-                onclick="loadAsCode(${index})"
-                style="padding:5px 7px"
-              >
-                開く
-              </button>
-              <button
-                class="red"
-                onclick="deleteRace(${index})"
-                style="padding:5px 7px"
-              >
-                削除
-              </button>
-            </td>
-          </tr>
+        <tr>
+        <td>${esc(row.日付)}</td>
+        <td>${esc(row.場)}</td>
+        <td>${esc(row.R)}</td>
+        <td>${esc(row.P)}</td>
+        <td style="color:var(--red);font-weight:900">
+        ${esc(row.推奨馬 || '—')}
+        </td>
+        <td>${esc(row.結果 || '未')}</td>
+        <td>
+        <button
+        onclick="loadAsCode(${index})"
+        style="padding:5px 7px"
+        >
+        開く
+        </button>
+        <button
+        class="red"
+        onclick="deleteRace(${index})"
+        style="padding:5px 7px"
+        >
+        削除
+        </button>
+        </td>
+        </tr>
         `;
       }
     ).join('');
@@ -1606,18 +1348,18 @@ function renderKpis(){
   document.getElementById(
     'kpis'
   ).innerHTML = `
-    <div class="kpi">
-      <b>${db.length}</b>
-      総レース
-    </div>
-    <div class="kpi">
-      <b>${completed.length}</b>
-      結果入力
-    </div>
-    <div class="kpi">
-      <b>${hitRate}%</b>
-      推奨馬3着内
-    </div>
+  <div class="kpi">
+  <b>${db.length}</b>
+  総レース
+  </div>
+  <div class="kpi">
+  <b>${completed.length}</b>
+  結果入力
+  </div>
+  <div class="kpi">
+  <b>${hitRate}%</b>
+  推奨馬3着内
+  </div>
   `;
 }
 function csvCell(value){
@@ -1646,7 +1388,7 @@ function exportCSV(){
     ].join('\r\n');
   downloadBlob(
     text,
-    `競馬メジアン_中央コンピ研究所_V1.52_${new Date().toISOString().slice(0,10)}.csv`,
+    `競馬メジアン_中央コンピ研究所_V1.53_${new Date().toISOString().slice(0,10)}.csv`,
     'text/csv;charset=utf-8'
   );
   setMsg(
@@ -1790,20 +1532,18 @@ function importCSV(event){
   event.target.value = '';
 }
 function exportBackup(){
-  const backup =
+  downloadBlob(
     JSON.stringify(
       {
-        version:'1.52',
+        version:'1.53',
         savedAt:
           new Date().toISOString(),
         data:db
       },
       null,
       2
-    );
-  downloadBlob(
-    backup,
-    `コンピ研究所_V1.52_backup_${new Date().toISOString().slice(0,10)}.json`,
+    ),
+    `コンピ研究所_V1.53_backup_${new Date().toISOString().slice(0,10)}.json`,
     'application/json'
   );
   setMsg(
@@ -1879,11 +1619,9 @@ function downloadBlob(
 async function copyFormat(){
   const sample = `【2026-08-08 新潟1R】
 [COMPI]
-2 84
+2 84 推奨
 4 78
 6 71
-[RECOMMEND]
-2
 [RESULT]
 2-4-6
 【2026-08-08 新潟2R】
