@@ -1,55 +1,233 @@
+前のコードは全部消して、これに丸ごと差し替えて。
+予想型・頭候補・相手候補は全部削除済み。純粋な検証専用版。JavaScriptの構文チェックも通してある。
+
 <!doctype html>
 <html lang="ja">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="compi-lab-v1.11-bulk-indexeddb">
-<title>競馬メジアン 中央コンピ研究所 V1.11</title>
+<meta name="app-build" content="compi-lab-v1.20-pure-validation">
+<title>競馬メジアン 中央コンピ研究所 V1.20</title>
 <style>
-:root{--bg:#07101f;--card:#10224a;--line:#334155;--cyan:#67e8f9;--yellow:#fde047;--red:#fb7185;--green:#4ade80;--muted:#cbd5e1}
-*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:#fff;overflow-x:hidden}
-body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:8px 8px calc(28px + env(safe-area-inset-bottom));font-size:15px;line-height:1.5}
-main{max-width:980px;margin:auto}h1{font-size:22px;line-height:1.3;margin:4px 0 10px}
-.tag{display:inline-block;border-radius:999px;padding:3px 9px;background:#be123c;font-size:.68em}
-.card{overflow:hidden;overflow-wrap:anywhere;background:var(--card);border:1px solid #3b82f6;border-radius:15px;padding:11px;margin:9px 0}
-.title{font-size:19px;font-weight:950;color:var(--yellow);margin-bottom:8px}
-.note,.status{margin-top:7px;padding:8px;background:#020617;border:1px solid #475569;border-radius:10px;font-size:12px}
-textarea,input,select{width:100%;border-radius:11px;border:2px solid #3b82f6;padding:9px;background:#f8fafc;color:#111;font-size:14px}
-textarea{height:420px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;line-height:1.4}
-button{border:0;border-radius:11px;padding:10px 12px;margin:7px 4px 2px 0;font-size:14px;font-weight:950;cursor:pointer}
-.go{background:#22c55e;color:#052e16}.blue{background:#3b82f6;color:#fff}.gray{background:#64748b;color:#fff}
-.purple{background:#8b5cf6;color:#fff}.orange{background:#f59e0b;color:#1f1300}.red{background:#e11d48;color:#fff}.cyanBtn{background:#0891b2;color:#ecfeff}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
-.box{background:#020617;border:1px solid #475569;border-radius:11px;padding:8px}.boxL{font-size:10px;color:#93c5fd;font-weight:900}.boxV{font-size:17px;font-weight:950;margin-top:3px}
-.badge{display:inline-block;margin:2px;padding:3px 7px;border-radius:999px;background:#1e293b;font-size:11px;font-weight:900}
-.good{color:#86efac;font-weight:950}.warn{color:#fda4af;font-weight:950}.cyan{color:var(--cyan);font-weight:950}
-.tableWrap{overflow:auto;background:#061326;border-radius:11px}
-table{width:100%;border-collapse:collapse;min-width:1350px;font-size:12px}
-th,td{padding:7px 6px;border-bottom:1px solid #334155;text-align:left;white-space:nowrap}
-th{position:sticky;top:0;background:#0f1f45;color:#bfdbfe;z-index:1}
-.kpi{border:3px solid #14b8a6;background:linear-gradient(145deg,#032f2f,#134e4a,#07101f)}
-.db{border:3px solid #c084fc;background:linear-gradient(145deg,#1f1235,#4c1d95,#07101f)}
-.raceCard{border:2px solid #22d3ee;background:linear-gradient(145deg,#082f49,#0f172a)}
+:root{
+  --bg:#07101f;
+  --card:#10224a;
+  --cyan:#67e8f9;
+  --yellow:#fde047;
+  --muted:#cbd5e1
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;
+  background:var(--bg);
+  color:#fff;
+  overflow-x:hidden
+}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+  padding:8px 8px calc(28px + env(safe-area-inset-bottom));
+  font-size:15px;
+  line-height:1.5
+}
+main{
+  max-width:980px;
+  margin:auto
+}
+h1{
+  font-size:22px;
+  line-height:1.3;
+  margin:4px 0 10px
+}
+.tag{
+  display:inline-block;
+  border-radius:999px;
+  padding:3px 9px;
+  background:#be123c;
+  font-size:.68em
+}
+.card{
+  overflow:hidden;
+  overflow-wrap:anywhere;
+  background:var(--card);
+  border:1px solid #3b82f6;
+  border-radius:15px;
+  padding:11px;
+  margin:9px 0
+}
+.title{
+  font-size:19px;
+  font-weight:950;
+  color:var(--yellow);
+  margin-bottom:8px
+}
+.note,.status{
+  margin-top:7px;
+  padding:8px;
+  background:#020617;
+  border:1px solid #475569;
+  border-radius:10px;
+  font-size:12px
+}
+textarea,input,select{
+  width:100%;
+  border-radius:11px;
+  border:2px solid #3b82f6;
+  padding:9px;
+  background:#f8fafc;
+  color:#111;
+  font-size:14px
+}
+textarea{
+  height:420px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  line-height:1.4
+}
+button{
+  border:0;
+  border-radius:11px;
+  padding:10px 12px;
+  margin:7px 4px 2px 0;
+  font-size:14px;
+  font-weight:950;
+  cursor:pointer
+}
+.go{
+  background:#22c55e;
+  color:#052e16
+}
+.blue{
+  background:#3b82f6;
+  color:#fff
+}
+.gray{
+  background:#64748b;
+  color:#fff
+}
+.purple{
+  background:#8b5cf6;
+  color:#fff
+}
+.orange{
+  background:#f59e0b;
+  color:#1f1300
+}
+.red{
+  background:#e11d48;
+  color:#fff
+}
+.cyanBtn{
+  background:#0891b2;
+  color:#ecfeff
+}
+.grid3{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:7px
+}
+.grid4{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:7px
+}
+.box{
+  background:#020617;
+  border:1px solid #475569;
+  border-radius:11px;
+  padding:8px
+}
+.boxL{
+  font-size:10px;
+  color:#93c5fd;
+  font-weight:900
+}
+.boxV{
+  font-size:17px;
+  font-weight:950;
+  margin-top:3px
+}
+.badge{
+  display:inline-block;
+  margin:2px;
+  padding:3px 7px;
+  border-radius:999px;
+  background:#1e293b;
+  font-size:11px;
+  font-weight:900
+}
+.good{
+  color:#86efac;
+  font-weight:950
+}
+.warn{
+  color:#fda4af;
+  font-weight:950
+}
+.cyan{
+  color:var(--cyan);
+  font-weight:950
+}
+.tableWrap{
+  overflow:auto;
+  background:#061326;
+  border-radius:11px
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:1500px;
+  font-size:12px
+}
+th,td{
+  padding:7px 6px;
+  border-bottom:1px solid #334155;
+  text-align:left;
+  white-space:nowrap
+}
+th{
+  position:sticky;
+  top:0;
+  background:#0f1f45;
+  color:#bfdbfe;
+  z-index:1
+}
+.kpi{
+  border:3px solid #14b8a6;
+  background:linear-gradient(145deg,#032f2f,#134e4a,#07101f)
+}
+.db{
+  border:3px solid #c084fc;
+  background:linear-gradient(145deg,#1f1235,#4c1d95,#07101f)
+}
+.raceCard{
+  border:2px solid #22d3ee;
+  background:linear-gradient(145deg,#082f49,#0f172a)
+}
 @media(max-width:650px){
-  .grid3,.grid4{grid-template-columns:1fr}
-  textarea{height:390px}
-  button{width:calc(50% - 6px)}
+  .grid3,.grid4{
+    grid-template-columns:1fr
+  }
+  textarea{
+    height:390px
+  }
+  button{
+    width:calc(50% - 6px)
+  }
 }
 </style>
 </head>
-
 <body>
 <main>
-
 <h1>
-競馬メジアン <span class="tag">V1.11</span><br>
-中央コンピ研究所・開催一括版
+競馬メジアン
+<span class="tag">V1.20</span>
+<br>
+中央コンピ研究所・純検証版
 </h1>
-
 <div class="card">
-<div class="title">📥 1R〜12R コンピ一括入力</div>
-
+<div class="title">
+📥 1R〜12R コンピ一括入力
+</div>
 <textarea id="input" placeholder="【2026-08-08 新潟1R】
 [COMPI]
 8 79
@@ -58,70 +236,106 @@ th{position:sticky;top:0;background:#0f1f45;color:#bfdbfe;z-index:1}
 7 56
 3 55
 4 53
-
+12 49
 【2026-08-08 新潟2R】
 [COMPI]
 6 84
 8 71
 9 68
 7 55 推奨
-
 ※RESULTは後日でも可
 [RESULT]
 4-11-8"></textarea>
-
-<button class="go" onclick="analyzeAll()">一括解析</button>
-<button class="blue" onclick="sample()">12Rサンプル</button>
-<button class="gray" onclick="clearInput()">リセット</button>
-<button class="purple" onclick="copyAllSummary()">全解析結果コピー</button>
-<button class="orange" onclick="saveAllCurrent()">解析分を一括保存</button>
-
-<div id="status" class="status">入力待機中</div>
-
+<button class="go" onclick="analyzeAll()">
+一括解析
+</button>
+<button class="blue" onclick="sample()">
+12Rサンプル
+</button>
+<button class="gray" onclick="clearInput()">
+リセット
+</button>
+<button class="purple" onclick="copyAllSummary()">
+全解析結果コピー
+</button>
+<button class="orange" onclick="saveAllCurrent()">
+解析分を一括保存
+</button>
+<div id="status" class="status">
+入力待機中
+</div>
 <div class="note">
-<b>入力ルール：</b>
-各レースを「【日付 場名○R】」で区切ります。
-<b>[COMPI]</b>は必須、<b>[RESULT]</b>は任意です。
-結果なしで事前保存し、後日同じ日付・場・Rで結果を再入力すると上書きできます。
+<b>純検証版：</b>
+予想型・頭候補・相手候補などの未検証ロジックは入れていません。
+事実データと結果検証だけを保存します。
 </div>
 </div>
-
 <div id="analysis"></div>
-
 <div class="card db">
-<div class="title">🗄️ コンピ研究データベース</div>
-
-<div class="grid4">
-<div class="box"><div class="boxL">保存件数</div><div id="count" class="boxV">0</div></div>
-<div class="box"><div class="boxL">結果入力済み</div><div id="resultCount" class="boxV">0</div></div>
-<div class="box"><div class="boxL">推奨馬3着内</div><div id="recRate" class="boxV">-</div></div>
-<div class="box"><div class="boxL">壁直後3着内</div><div id="wallAfterRate" class="boxV">-</div></div>
+<div class="title">
+🗄️ コンピ研究データベース
 </div>
-
-<button class="go" onclick="saveAllCurrent()">現在の解析を一括保存</button>
-<button class="cyanBtn" onclick="exportCSV()">全件CSV</button>
-<button class="cyanBtn" onclick="exportJSON()">バックアップJSON</button>
-
+<div class="grid4">
+<div class="box">
+<div class="boxL">保存件数</div>
+<div id="count" class="boxV">0</div>
+</div>
+<div class="box">
+<div class="boxL">結果入力済み</div>
+<div id="resultCount" class="boxV">0</div>
+</div>
+<div class="box">
+<div class="boxL">推奨馬3着内</div>
+<div id="recRate" class="boxV">-</div>
+</div>
+<div class="box">
+<div class="boxL">壁直後3着内</div>
+<div id="wallAfterRate" class="boxV">-</div>
+</div>
+</div>
+<button class="go" onclick="saveAllCurrent()">
+現在の解析を一括保存
+</button>
+<button class="cyanBtn" onclick="exportCSV()">
+全件CSV
+</button>
+<button class="cyanBtn" onclick="exportJSON()">
+バックアップJSON
+</button>
 <label style="display:inline-block">
-<input id="importFile" type="file" accept=".json" style="display:none" onchange="importFileChanged(event)">
-<button class="orange" type="button" onclick="document.getElementById('importFile').click()">JSON読込</button>
+<input
+id="importFile"
+type="file"
+accept=".json"
+style="display:none"
+onchange="importFileChanged(event)"
+>
+<button
+class="orange"
+type="button"
+onclick="document.getElementById('importFile').click()"
+>
+JSON読込
+</button>
 </label>
-
-<button class="red" onclick="deleteAll()">全件削除</button>
-
+<button class="red" onclick="deleteAll()">
+全件削除
+</button>
 <div class="note">
-保存先は <b>IndexedDB</b>。
-同じ日付・場・Rは同一IDとして上書きします。
-端末変更や履歴削除に備え、定期的にJSONを保存してください。
+同じ日付・場・Rは上書き保存。
+結果なしで事前保存し、後日RESULTを付けて再保存できます。
 </div>
 </div>
-
 <div class="card">
-<div class="title">🔎 一覧・検索</div>
-
-<div class="grid4">
-<input id="qPlace" placeholder="場名（新潟など）" oninput="refreshTable()">
-
+<div class="title">
+🔎 一覧・検索
+</div>
+<div class="grid3">
+<input
+id="qPlace"
+placeholder="場名（新潟など）"
+oninput="refreshTable()"
+>
 <select id="qP" onchange="refreshTable()">
 <option value="">Pすべて</option>
 <option>P1</option>
@@ -131,16 +345,6 @@ th{position:sticky;top:0;background:#0f1f45;color:#bfdbfe;z-index:1}
 <option>P5</option>
 <option>P6</option>
 </select>
-
-<select id="qType" onchange="refreshTable()">
-<option value="">型すべて</option>
-<option>一強型</option>
-<option>二強型</option>
-<option>上位核型</option>
-<option>上位混戦型</option>
-<option>大穴警戒型</option>
-</select>
-
 <select id="qFlag" onchange="refreshTable()">
 <option value="">条件すべて</option>
 <option value="hasResult">結果入力済み</option>
@@ -151,225 +355,263 @@ th{position:sticky;top:0;background:#0f1f45;color:#bfdbfe;z-index:1}
 <option value="aComplete">上位5頭決着</option>
 <option value="bIn">B群侵入</option>
 <option value="cIn">C群侵入</option>
+<option value="dIn">D群侵入</option>
 </select>
 </div>
-
-<div id="table" class="tableWrap" style="margin-top:8px"></div>
+<div
+id="table"
+class="tableWrap"
+style="margin-top:8px"
+></div>
 </div>
-
 </main>
-
 <script>
 'use strict';
-
-const DB_NAME='keibaCompiLabV111';
+const DB_NAME='keibaCompiLabV120Pure';
 const STORE='races';
-
 let db=null;
 let currents=[];
-
 const zen=s=>String(s||'')
 .replace(/[０-９]/g,x=>String.fromCharCode(x.charCodeAt(0)-65248))
 .replace(/[－ー―−→＞]/g,'-')
 .replace(/．/g,'.')
 .replace(/　/g,' ');
-
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({
-  '&':'&amp;',
-  '<':'&lt;',
-  '>':'&gt;',
-  '"':'&quot;',
-  "'":'&#39;'
-}[c]));
-
+const esc=s=>String(s??'').replace(
+  /[&<>"']/g,
+  c=>({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  }[c])
+);
 const csvEsc=v=>{
   v=String(v??'');
   return /[",\n]/.test(v)
     ?'"'+v.replace(/"/g,'""')+'"'
     :v;
 };
-
 function openDB(){
   return new Promise((resolve,reject)=>{
-    const r=indexedDB.open(DB_NAME,1);
-
-    r.onupgradeneeded=e=>{
-      const d=e.target.result;
-      const s=d.createObjectStore(STORE,{keyPath:'id'});
-
-      s.createIndex('date','date');
-      s.createIndex('place','place');
-      s.createIndex('pClass','pClass');
-      s.createIndex('raceType','raceType');
+    const request=indexedDB.open(DB_NAME,1);
+    request.onupgradeneeded=event=>{
+      const database=event.target.result;
+      const objectStore=database.createObjectStore(
+        STORE,
+        {keyPath:'id'}
+      );
+      objectStore.createIndex('date','date');
+      objectStore.createIndex('place','place');
+      objectStore.createIndex('pClass','pClass');
     };
-
-    r.onsuccess=()=>{
-      db=r.result;
+    request.onsuccess=()=>{
+      db=request.result;
       resolve(db);
     };
-
-    r.onerror=()=>reject(r.error);
+    request.onerror=()=>reject(request.error);
   });
 }
-
 function store(mode='readonly'){
-  return db.transaction(STORE,mode).objectStore(STORE);
+  return db
+  .transaction(STORE,mode)
+  .objectStore(STORE);
 }
-
 function getAll(){
-  return new Promise((res,rej)=>{
-    const r=store().getAll();
-    r.onsuccess=()=>res(r.result||[]);
-    r.onerror=()=>rej(r.error);
+  return new Promise((resolve,reject)=>{
+    const request=store().getAll();
+    request.onsuccess=()=>resolve(
+      request.result||[]
+    );
+    request.onerror=()=>reject(
+      request.error
+    );
   });
 }
-
-function putRow(x){
-  return new Promise((res,rej)=>{
-    const r=store('readwrite').put(x);
-    r.onsuccess=()=>res();
-    r.onerror=()=>rej(r.error);
+function putRow(row){
+  return new Promise((resolve,reject)=>{
+    const request=store('readwrite').put(row);
+    request.onsuccess=()=>resolve();
+    request.onerror=()=>reject(
+      request.error
+    );
   });
 }
-
 function delRow(id){
-  return new Promise((res,rej)=>{
-    const r=store('readwrite').delete(id);
-    r.onsuccess=()=>res();
-    r.onerror=()=>rej(r.error);
+  return new Promise((resolve,reject)=>{
+    const request=store('readwrite').delete(id);
+    request.onsuccess=()=>resolve();
+    request.onerror=()=>reject(
+      request.error
+    );
   });
 }
-
 function clearDB(){
-  return new Promise((res,rej)=>{
-    const r=store('readwrite').clear();
-    r.onsuccess=()=>res();
-    r.onerror=()=>rej(r.error);
+  return new Promise((resolve,reject)=>{
+    const request=store('readwrite').clear();
+    request.onsuccess=()=>resolve();
+    request.onerror=()=>reject(
+      request.error
+    );
   });
 }
-
 function parseTitle(title){
-  const t=zen(title);
-
-  const date=(t.match(/20\d{2}[-\/.]\d{1,2}[-\/.]\d{1,2}/)||[])[0]||'';
-
-  const place=(t.match(
-    /札幌|函館|福島|新潟|東京|中山|中京|京都|阪神|小倉/
-  )||[])[0]||'';
-
-  const raceNo=Number((t.match(/(\d+)\s*R/i)||[])[1]||0);
-
+  const text=zen(title);
+  const date=(
+    text.match(
+      /20\d{2}[-\/.]\d{1,2}[-\/.]\d{1,2}/
+    )||[]
+  )[0]||'';
+  const place=(
+    text.match(
+      /札幌|函館|福島|新潟|東京|中山|中京|京都|阪神|小倉/
+    )||[]
+  )[0]||'';
+  const raceNo=Number(
+    (
+      text.match(
+        /(\d+)\s*R/i
+      )||[]
+    )[1]||0
+  );
   return {
-    date:date?date.replace(/[\/.]/g,'-'):'',
+    date:date
+      ?date.replace(/[\/.]/g,'-')
+      :'',
     place,
     raceNo
   };
 }
-
 function splitRaceBlocks(raw){
-  const text=zen(raw).replace(/\r/g,'').trim();
-
+  const text=zen(raw)
+  .replace(/\r/g,'')
+  .trim();
   if(!text){
-    throw new Error('入力が空です');
+    throw new Error(
+      '入力が空です'
+    );
   }
-
-  const matches=[...text.matchAll(/【([^】]+)】/g)];
-
+  const matches=[
+    ...text.matchAll(
+      /【([^】]+)】/g
+    )
+  ];
   if(!matches.length){
-    throw new Error('【新潟1R】のような見出しがありません');
+    throw new Error(
+      '【新潟1R】のような見出しがありません'
+    );
   }
-
   const blocks=[];
-
-  for(let i=0;i<matches.length;i++){
+  for(
+    let i=0;
+    i<matches.length;
+    i++
+  ){
     const start=matches[i].index;
     const end=i+1<matches.length
       ?matches[i+1].index
       :text.length;
-
-    blocks.push(text.slice(start,end).trim());
+    blocks.push(
+      text.slice(start,end).trim()
+    );
   }
-
   return blocks;
 }
-
 function parseRaceBlock(block){
-  const title=(block.match(/【([^】]+)】/)||[])[1]||'';
+  const title=(
+    block.match(
+      /【([^】]+)】/
+    )||[]
+  )[1]||'';
   const meta=parseTitle(title);
-
-  if(!meta.place||!meta.raceNo){
-    throw new Error(`見出しを判定できません：${title}`);
+  if(
+    !meta.place ||
+    !meta.raceNo
+  ){
+    throw new Error(
+      `見出しを判定できません：${title}`
+    );
   }
-
-  let sec='';
+  let section='';
   let compi=[];
   let result=[];
-
-  for(const original of block.split('\n')){
+  for(
+    const original of block.split('\n')
+  ){
     const line=original.trim();
-
     if(!line){
       continue;
     }
-
-    const up=line.toUpperCase();
-
-    if(up.startsWith('[')){
-      if(up.includes('COMPI')){
-        sec='C';
-      }else if(up.includes('RESULT')||up.includes('結果')){
-        sec='R';
+    const upper=line.toUpperCase();
+    if(upper.startsWith('[')){
+      if(
+        upper.includes('COMPI')
+      ){
+        section='COMPI';
+      }else if(
+        upper.includes('RESULT') ||
+        upper.includes('結果')
+      ){
+        section='RESULT';
       }else{
-        sec='';
+        section='';
       }
       continue;
     }
-
-    if(sec==='C'){
-      const n=line.match(/^(\d+)\s+(\d+(?:\.\d+)?)/);
-
-      if(n){
+    if(section==='COMPI'){
+      const match=line.match(
+        /^(\d+)\s+(\d+(?:\.\d+)?)/
+      );
+      if(match){
         compi.push({
-          horse:String(Number(n[1])),
-          point:Number(n[2]),
-          recommended:/(推奨|推薦|★|◎|赤)/.test(line)
+          horse:String(
+            Number(match[1])
+          ),
+          point:Number(match[2]),
+          recommended:
+            /(推奨|推薦|★|◎|赤)/
+            .test(line)
         });
       }
-    }
-
-    if(sec==='R'){
-      const m=line.match(/(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/);
-
-      if(m){
-        result=[m[1],m[2],m[3]];
+    }else if(section==='RESULT'){
+      const match=line.match(
+        /(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/
+      );
+      if(match){
+        result=[
+          match[1],
+          match[2],
+          match[3]
+        ];
       }
     }
   }
-
   const seen=new Set();
-
-  compi=compi.filter(x=>{
-    if(seen.has(x.horse)){
+  compi=compi.filter(row=>{
+    if(seen.has(row.horse)){
       return false;
     }
-
-    seen.add(x.horse);
+    seen.add(row.horse);
     return true;
   });
-
-  compi.sort((a,b)=>
-    b.point-a.point||
-    Number(a.horse)-Number(b.horse)
+  compi.sort(
+    (a,b)=>
+      b.point-a.point ||
+      Number(a.horse)-Number(b.horse)
   );
-
   if(compi.length<3){
-    throw new Error(`${title}：COMPIを3頭以上入力してください`);
+    throw new Error(
+      `${title}：COMPIを3頭以上入力してください`
+    );
   }
-
-  if(result.length&&new Set(result).size!==3){
-    throw new Error(`${title}：RESULTの馬番が重複しています`);
+  if(
+    result.length &&
+    new Set(result).size!==3
+  ){
+    throw new Error(
+      `${title}：RESULTの馬番が重複しています`
+    );
   }
-
   return {
     title,
     ...meta,
@@ -377,692 +619,841 @@ function parseRaceBlock(block){
     result
   };
 }
-
 function parseMultiple(raw){
   const rows=[];
   const errors=[];
-
-  for(const block of splitRaceBlocks(raw)){
+  for(
+    const block of splitRaceBlocks(raw)
+  ){
     try{
-      rows.push(parseRaceBlock(block));
-    }catch(e){
-      errors.push(e.message||String(e));
+      rows.push(
+        parseRaceBlock(block)
+      );
+    }catch(error){
+      errors.push(
+        error.message||
+        String(error)
+      );
     }
   }
-
   if(!rows.length){
     throw new Error(
       errors.join(' / ')||
       '解析できるレースがありません'
     );
   }
-
-  return {rows,errors};
-}
-
-function pClass(sum){
-  if(sum<=205)return 'P1';
-  if(sum<=209)return 'P2';
-  if(sum<=213)return 'P3';
-  if(sum<=216)return 'P4';
-  if(sum<=219)return 'P5';
-  return 'P6';
-}
-
-function medianItems(a){
-  if(!a.length)return [];
-
-  return a.length%2
-    ?[a[Math.floor(a.length/2)]]
-    :[a[a.length/2-1],a[a.length/2]];
-}
-
-function groupOf(r){
-  if(r<=5)return 'A';
-  if(r<=10)return 'B';
-  if(r<=15)return 'C';
-  return 'D';
-}
-
-function classifyRace(c,top3Sum,d12,d23,d13,maxWall){
-  const p=pClass(top3Sum);
-
-  if(c[0].point>=88&&d12>=10){
-    return {
-      raceType:'一強型',
-      detailType:'一強・相手入替型'
-    };
-  }
-
-  if(d23>=10&&d12<=8){
-    return {
-      raceType:'二強型',
-      detailType:'二強・壁直後侵入型'
-    };
-  }
-
-  if(p==='P1'||(c[0].point<=79&&d13<=12)){
-    return {
-      raceType:'大穴警戒型',
-      detailType:'上位密集・順位入替型'
-    };
-  }
-
-  if(maxWall.afterRank<=4&&maxWall.gap>=8){
-    return {
-      raceType:'上位核型',
-      detailType:'上位核＋壁直後侵入型'
-    };
-  }
-
   return {
-    raceType:'上位混戦型',
-    detailType:'上位横並び型'
+    rows,
+    errors
   };
 }
-
-function analyzeData(d){
-  const c=d.compi;
-  const n=c.length;
-
-  const pt=i=>c[i]?.point??null;
-
-  const gap=(a,b)=>
-    pt(a)!=null&&pt(b)!=null
-      ?pt(a)-pt(b)
+function pClass(sum){
+  if(sum<=205){
+    return 'P1';
+  }
+  if(sum<=209){
+    return 'P2';
+  }
+  if(sum<=213){
+    return 'P3';
+  }
+  if(sum<=216){
+    return 'P4';
+  }
+  if(sum<=219){
+    return 'P5';
+  }
+  return 'P6';
+}
+function medianItems(rows){
+  if(!rows.length){
+    return [];
+  }
+  return rows.length%2
+    ?[
+      rows[
+        Math.floor(
+          rows.length/2
+        )
+      ]
+    ]
+    :[
+      rows[rows.length/2-1],
+      rows[rows.length/2]
+    ];
+}
+function groupOf(rank){
+  if(rank<=5){
+    return 'A';
+  }
+  if(rank<=10){
+    return 'B';
+  }
+  if(rank<=15){
+    return 'C';
+  }
+  return 'D';
+}
+function analyzeData(data){
+  const compi=data.compi;
+  const headCount=compi.length;
+  const pointAt=index=>
+    compi[index]?.point??null;
+  const pointGap=(before,after)=>
+    pointAt(before)!=null &&
+    pointAt(after)!=null
+      ?pointAt(before)-pointAt(after)
       :null;
-
   const gaps=[];
-
-  for(let i=0;i<n-1;i++){
+  for(
+    let index=0;
+    index<headCount-1;
+    index++
+  ){
     gaps.push({
-      afterRank:i+1,
-      gap:c[i].point-c[i+1].point,
-      before:c[i].horse,
-      after:c[i+1].horse
+      afterRank:index+1,
+      gap:
+        compi[index].point-
+        compi[index+1].point,
+      before:
+        compi[index].horse,
+      after:
+        compi[index+1].horse
     });
   }
-
-  const walls=[...gaps].sort((a,b)=>
-    b.gap-a.gap||
-    a.afterRank-b.afterRank
+  const walls=[
+    ...gaps
+  ].sort(
+    (a,b)=>
+      b.gap-a.gap ||
+      a.afterRank-b.afterRank
   );
-
   const maxWall=walls[0];
-  const second=walls[1]||{};
-
-  const wallInside=c.slice(0,maxWall.afterRank);
-  const wallMedian=medianItems(wallInside);
-
-  const wallFront2=c.slice(
-    Math.max(0,maxWall.afterRank-2),
-    maxWall.afterRank
-  ).map(x=>x.horse);
-
-  const rankMap=Object.fromEntries(
-    c.map((x,i)=>[x.horse,i+1])
-  );
-
-  const pointMap=Object.fromEntries(
-    c.map(x=>[x.horse,x.point])
-  );
-
-  const hasResult=d.result.length===3;
-
-  const resultRanks=hasResult
-    ?d.result.map(h=>rankMap[h]||null)
-    :[];
-
-  const resultPoints=hasResult
-    ?d.result.map(h=>pointMap[h]??null)
-    :[];
-
-  const resultGroups=hasResult
-    ?resultRanks.map(r=>r?groupOf(r):'圏外')
-    :[];
-
-  const recs=c.filter(x=>x.recommended);
-
-  const recFinishes=recs.map(x=>{
-    if(!hasResult)return null;
-
-    const i=d.result.indexOf(x.horse);
-
-    return i>=0
-      ?i+1
-      :null;
-  });
-
-  const top3Sum=c.slice(0,3).reduce(
-    (s,x)=>s+x.point,
-    0
-  );
-
-  const d12=gap(0,1);
-  const d23=gap(1,2);
-  const d13=gap(0,2);
-
-  const type=classifyRace(
-    c,
-    top3Sum,
-    d12,
-    d23,
-    d13,
-    maxWall
-  );
-
-  const low46to49=c.filter(x=>
-    x.point>=46&&x.point<=49
-  );
-
-  const primaryHead=c.slice(
-    0,
-    Math.min(3,n)
-  ).map(x=>x.horse);
-
-  const placeCore=c.slice(
-    0,
-    Math.min(5,n)
-  ).map(x=>x.horse);
-
-  const intrusion=[
-    maxWall.after,
-    ...c.slice(
-      maxWall.afterRank,
-      Math.min(maxWall.afterRank+3,n)
-    ).map(x=>x.horse)
-  ].filter((x,i,a)=>
-    x&&a.indexOf(x)===i
-  );
-
+  const secondWall=
+    walls[1]||{};
+  const wallInside=
+    compi.slice(
+      0,
+      maxWall.afterRank
+    );
+  const wallMedian=
+    medianItems(
+      wallInside
+    );
+  const wallFront2=
+    compi.slice(
+      Math.max(
+        0,
+        maxWall.afterRank-2
+      ),
+      maxWall.afterRank
+    ).map(
+      row=>row.horse
+    );
+  const rankMap=
+    Object.fromEntries(
+      compi.map(
+        (row,index)=>[
+          row.horse,
+          index+1
+        ]
+      )
+    );
+  const pointMap=
+    Object.fromEntries(
+      compi.map(
+        row=>[
+          row.horse,
+          row.point
+        ]
+      )
+    );
+  const hasResult=
+    data.result.length===3;
+  const resultRanks=
+    hasResult
+      ?data.result.map(
+        horse=>
+          rankMap[horse]||null
+      )
+      :[];
+  const resultPoints=
+    hasResult
+      ?data.result.map(
+        horse=>
+          pointMap[horse]??null
+      )
+      :[];
+  const resultGroups=
+    hasResult
+      ?resultRanks.map(
+        rank=>
+          rank
+            ?groupOf(rank)
+            :'圏外'
+      )
+      :[];
+  const recommendedRows=
+    compi.filter(
+      row=>row.recommended
+    );
+  const recommendedFinishes=
+    recommendedRows.map(row=>{
+      if(!hasResult){
+        return null;
+      }
+      const index=
+        data.result.indexOf(
+          row.horse
+        );
+      return index>=0
+        ?index+1
+        :null;
+    });
+  const top3Sum=
+    compi
+    .slice(0,3)
+    .reduce(
+      (sum,row)=>
+        sum+row.point,
+      0
+    );
+  const low46to49=
+    compi.filter(
+      row=>
+        row.point>=46 &&
+        row.point<=49
+    );
   return {
     id:[
-      d.date||'nodate',
-      d.place,
-      d.raceNo
+      data.date||'nodate',
+      data.place,
+      data.raceNo
     ].join('_'),
-
-    createdAt:new Date().toISOString(),
-    updatedAt:new Date().toISOString(),
-
-    date:d.date,
-    place:d.place,
-    raceNo:d.raceNo,
-    title:d.title,
-    headCount:n,
+    createdAt:
+      new Date().toISOString(),
+    updatedAt:
+      new Date().toISOString(),
+    date:data.date,
+    place:data.place,
+    raceNo:data.raceNo,
+    title:data.title,
+    headCount,
     hasResult,
-
-    compiOrder:c.map(x=>x.horse),
-    compiPoints:c.map(x=>x.point),
-
-    recommendedHorses:recs.map(x=>x.horse),
-    recommendedRanks:recs.map(x=>rankMap[x.horse]),
-    recommendedPoints:recs.map(x=>x.point),
-    recommendedFinishes:recFinishes,
-
-    compi1Horse:c[0]?.horse||'',
-    compi1Point:c[0]?.point??'',
-
-    compi2Horse:c[1]?.horse||'',
-    compi2Point:c[1]?.point??'',
-
-    compi3Horse:c[2]?.horse||'',
-    compi3Point:c[2]?.point??'',
-
-    pClass:pClass(top3Sum),
+    compiOrder:
+      compi.map(
+        row=>row.horse
+      ),
+    compiPoints:
+      compi.map(
+        row=>row.point
+      ),
+    recommendedHorses:
+      recommendedRows.map(
+        row=>row.horse
+      ),
+    recommendedRanks:
+      recommendedRows.map(
+        row=>rankMap[row.horse]
+      ),
+    recommendedPoints:
+      recommendedRows.map(
+        row=>row.point
+      ),
+    recommendedFinishes,
+    compi1Horse:
+      compi[0]?.horse||'',
+    compi1Point:
+      compi[0]?.point??'',
+    compi2Horse:
+      compi[1]?.horse||'',
+    compi2Point:
+      compi[1]?.point??'',
+    compi3Horse:
+      compi[2]?.horse||'',
+    compi3Point:
+      compi[2]?.point??'',
+    pClass:
+      pClass(top3Sum),
     top3Sum,
-
-    diff12:d12,
-    diff23:d23,
-    diff13:d13,
-
-    diff35:n>=5?gap(2,4):null,
-    diff56:n>=6?gap(4,5):null,
-    diff67:n>=7?gap(5,6):null,
-
-    top5Sum:c.slice(0,5).reduce(
-      (s,x)=>s+x.point,
-      0
-    ),
-
-    top5Width:n>=5
-      ?c[0].point-c[4].point
-      :null,
-
-    raceType:type.raceType,
-    detailType:type.detailType,
-
-    primaryHead,
-    placeCore,
-    intrusionCandidates:intrusion,
-
-    low46to49Horses:low46to49.map(x=>x.horse),
-    low46to49Points:low46to49.map(x=>x.point),
-
-    maxWallRank:maxWall.afterRank,
-    maxWallGap:maxWall.gap,
-
-    wallBeforeHorse:maxWall.before,
-    wallAfterHorse:maxWall.after,
-
+    diff12:
+      pointGap(0,1),
+    diff23:
+      pointGap(1,2),
+    diff13:
+      pointGap(0,2),
+    diff35:
+      headCount>=5
+        ?pointGap(2,4)
+        :null,
+    diff56:
+      headCount>=6
+        ?pointGap(4,5)
+        :null,
+    diff67:
+      headCount>=7
+        ?pointGap(5,6)
+        :null,
+    top5Sum:
+      compi
+      .slice(0,5)
+      .reduce(
+        (sum,row)=>
+          sum+row.point,
+        0
+      ),
+    top5Width:
+      headCount>=5
+        ?compi[0].point-
+         compi[4].point
+        :null,
+    maxWallRank:
+      maxWall.afterRank,
+    maxWallGap:
+      maxWall.gap,
+    wallBeforeHorse:
+      maxWall.before,
+    wallAfterHorse:
+      maxWall.after,
     wallFront2,
-    wallInsideCount:wallInside.length,
-
-    wallMedianHorses:wallMedian.map(x=>x.horse),
-    wallMedianRanks:wallMedian.map(x=>rankMap[x.horse]),
-    wallMedianPoints:wallMedian.map(x=>x.point),
-
-    secondWallRank:second.afterRank??null,
-    secondWallGap:second.gap??null,
-
-    result:d.result,
+    wallInsideCount:
+      wallInside.length,
+    wallMedianHorses:
+      wallMedian.map(
+        row=>row.horse
+      ),
+    wallMedianRanks:
+      wallMedian.map(
+        row=>rankMap[row.horse]
+      ),
+    wallMedianPoints:
+      wallMedian.map(
+        row=>row.point
+      ),
+    secondWallRank:
+      secondWall.afterRank??null,
+    secondWallGap:
+      secondWall.gap??null,
+    low46to49Horses:
+      low46to49.map(
+        row=>row.horse
+      ),
+    low46to49Points:
+      low46to49.map(
+        row=>row.point
+      ),
+    result:data.result,
     resultRanks,
     resultPoints,
     resultGroups,
-
-    recHit:hasResult
-      ?recFinishes.some(x=>x&&x<=3)
-      :null,
-
-    wallFrontWin:hasResult
-      ?wallFront2.includes(d.result[0])
-      :null,
-
-    wallAfterHit:hasResult
-      ?d.result.includes(maxWall.after)
-      :null,
-
-    wallMedianHit:hasResult
-      ?wallMedian.some(x=>d.result.includes(x.horse))
-      :null,
-
-    top4:hasResult
-      ?resultRanks.every(r=>r&&r<=4)
-      :null,
-
-    aComplete:hasResult
-      ?resultRanks.every(r=>r&&r<=5)
-      :null,
-
-    bIn:hasResult
-      ?resultGroups.includes('B')
-      :null,
-
-    cIn:hasResult
-      ?resultGroups.includes('C')
-      :null,
-
-    dIn:hasResult
-      ?resultGroups.includes('D')
-      :null
+    recHit:
+      hasResult
+        ?recommendedFinishes.some(
+          finish=>
+            finish &&
+            finish<=3
+        )
+        :null,
+    wallFrontWin:
+      hasResult
+        ?wallFront2.includes(
+          data.result[0]
+        )
+        :null,
+    wallAfterHit:
+      hasResult
+        ?data.result.includes(
+          maxWall.after
+        )
+        :null,
+    wallMedianHit:
+      hasResult
+        ?wallMedian.some(
+          row=>
+            data.result.includes(
+              row.horse
+            )
+        )
+        :null,
+    top4:
+      hasResult
+        ?resultRanks.every(
+          rank=>
+            rank &&
+            rank<=4
+        )
+        :null,
+    aComplete:
+      hasResult
+        ?resultRanks.every(
+          rank=>
+            rank &&
+            rank<=5
+        )
+        :null,
+    bIn:
+      hasResult
+        ?resultGroups.includes('B')
+        :null,
+    cIn:
+      hasResult
+        ?resultGroups.includes('C')
+        :null,
+    dIn:
+      hasResult
+        ?resultGroups.includes('D')
+        :null
   };
 }
-
-function list(a){
-  return a&&a.length
-    ?a.join('・')
+function list(rows){
+  return rows&&rows.length
+    ?rows.join('・')
     :'なし';
 }
-
-function renderOne(v){
-  const rec=v.recommendedHorses.map((h,i)=>
-    `${h}番（${v.recommendedRanks[i]}位・${v.recommendedPoints[i]}P${v.hasResult?'・'+(v.recommendedFinishes[i]||'着外'):''}）`
-  );
-
-  const resultText=v.hasResult
-    ?`${v.result.join('-')} ／ 順位 ${v.resultRanks.map(x=>x??'圏外').join('-')} ／ 指数 ${v.resultPoints.map(x=>x??'-').join('-')}P`
-    :'未入力（事前解析）';
-
+function renderOne(row){
+  const recommendedText=
+    row.recommendedHorses.map(
+      (horse,index)=>
+        `${horse}番（${row.recommendedRanks[index]}位・${row.recommendedPoints[index]}P${row.hasResult?'・'+(row.recommendedFinishes[index]||'着外'):''}）`
+    );
+  const resultText=
+    row.hasResult
+      ?`${row.result.join('-')} ／ 順位 ${row.resultRanks.map(value=>value??'圏外').join('-')} ／ 指数 ${row.resultPoints.map(value=>value??'-').join('-')}P`
+      :'未入力（事前解析）';
   return `
   <div class="card raceCard">
-
-    <div class="title">
-      🏇 ${esc(v.title||`${v.place}${v.raceNo}R`)}
-    </div>
-
-    <div class="grid4">
-
-      <div class="box">
-        <div class="boxL">P判定</div>
-        <div class="boxV">${v.pClass}（${v.top3Sum}）</div>
-      </div>
-
-      <div class="box">
-        <div class="boxL">レース型</div>
-        <div class="boxV">${v.raceType}</div>
-      </div>
-
-      <div class="box">
-        <div class="boxL">最大壁</div>
-        <div class="boxV">${v.maxWallRank}位後 ${v.maxWallGap}P</div>
-      </div>
-
-      <div class="box">
-        <div class="boxL">結果</div>
-        <div class="boxV">
-          ${v.hasResult?esc(v.result.join('-')):'未入力'}
-        </div>
-      </div>
-
-    </div>
-
-    <div class="note">
-      <b>詳細型：</b>${v.detailType}<br>
-
-      <b>差：</b>
-      1-2=${v.diff12}P ／
-      2-3=${v.diff23}P ／
-      1-3=${v.diff13}P ／
-      3-5=${v.diff35??'-'}P ／
-      5-6=${v.diff56??'-'}P ／
-      6-7=${v.diff67??'-'}P
-      <br>
-
-      <b>頭候補：</b>${list(v.primaryHead)} ／
-      <b>上位5頭：</b>${list(v.placeCore)} ／
-      <b>壁直後監査：</b>${list(v.intrusionCandidates)}
-      <br>
-
-      <b>46〜49P監査：</b>
-      ${
-        v.low46to49Horses.length
-          ?v.low46to49Horses.map((h,i)=>
-            `${h}番${v.low46to49Points[i]}P`
-          ).join('・')
-          :'なし'
-      }
-      <br>
-
-      <b>推奨馬：</b>${rec.join(' ／ ')||'なし'}<br>
-      <b>結果：</b>${resultText}
-    </div>
-
-    <div class="grid4">
-
-      <div class="box">
-        <div class="boxL">壁前2頭</div>
-        <div class="boxV">${list(v.wallFront2)}番</div>
-      </div>
-
-      <div class="box">
-        <div class="boxL">壁直後</div>
-        <div class="boxV">${v.wallAfterHorse}番</div>
-      </div>
-
-      <div class="box">
-        <div class="boxL">壁内メジアン</div>
-        <div class="boxV">${list(v.wallMedianHorses)}番</div>
-      </div>
-
-      <div class="box">
-        <div class="boxL">第2壁</div>
-        <div class="boxV">
-          ${v.secondWallRank??'-'}位後 ${v.secondWallGap??'-'}P
-        </div>
-      </div>
-
-    </div>
-
-    <div>
-      ${v.hasResult&&v.wallFrontWin?'<span class="badge good">壁前2頭から1着</span>':''}
-      ${v.hasResult&&v.wallAfterHit?'<span class="badge good">壁直後3着内</span>':''}
-      ${v.hasResult&&v.wallMedianHit?'<span class="badge good">壁メジアン3着内</span>':''}
-      ${v.hasResult&&v.top4?'<span class="badge cyan">上位4頭決着</span>':''}
-      ${v.hasResult&&v.aComplete?'<span class="badge cyan">上位5頭決着</span>':''}
-      ${v.hasResult&&v.bIn?'<span class="badge">B群侵入</span>':''}
-      ${v.hasResult&&v.cIn?'<span class="badge warn">C群侵入</span>':''}
-    </div>
-
+  <div class="title">
+  🏇 ${esc(
+    row.title||
+    `${row.place}${row.raceNo}R`
+  )}
+  </div>
+  <div class="grid4">
+  <div class="box">
+  <div class="boxL">P判定</div>
+  <div class="boxV">
+  ${row.pClass}（${row.top3Sum}）
+  </div>
+  </div>
+  <div class="box">
+  <div class="boxL">最大壁</div>
+  <div class="boxV">
+  ${row.maxWallRank}位後 ${row.maxWallGap}P
+  </div>
+  </div>
+  <div class="box">
+  <div class="boxL">第2壁</div>
+  <div class="boxV">
+  ${row.secondWallRank??'-'}位後 ${row.secondWallGap??'-'}P
+  </div>
+  </div>
+  <div class="box">
+  <div class="boxL">結果</div>
+  <div class="boxV">
+  ${row.hasResult
+    ?esc(row.result.join('-'))
+    :'未入力'}
+  </div>
+  </div>
+  </div>
+  <div class="note">
+  <b>差：</b>
+  1-2=${row.diff12}P ／
+  2-3=${row.diff23}P ／
+  1-3=${row.diff13}P ／
+  3-5=${row.diff35??'-'}P ／
+  5-6=${row.diff56??'-'}P ／
+  6-7=${row.diff67??'-'}P
+  <br>
+  <b>壁前2頭：</b>
+  ${list(row.wallFront2)}
+  ／
+  <b>壁直後：</b>
+  ${row.wallAfterHorse}
+  ／
+  <b>壁内メジアン：</b>
+  ${list(row.wallMedianHorses)}
+  <br>
+  <b>46〜49P：</b>
+  ${
+    row.low46to49Horses.length
+      ?row.low46to49Horses
+        .map(
+          (horse,index)=>
+            `${horse}番${row.low46to49Points[index]}P`
+        )
+        .join('・')
+      :'なし'
+  }
+  <br>
+  <b>推奨馬：</b>
+  ${recommendedText.join(' ／ ')||'なし'}
+  <br>
+  <b>結果：</b>
+  ${resultText}
+  </div>
+  <div>
+  ${
+    row.hasResult &&
+    row.wallFrontWin
+      ?'<span class="badge good">壁前2頭から1着</span>'
+      :''
+  }
+  ${
+    row.hasResult &&
+    row.wallAfterHit
+      ?'<span class="badge good">壁直後3着内</span>'
+      :''
+  }
+  ${
+    row.hasResult &&
+    row.wallMedianHit
+      ?'<span class="badge good">壁メジアン3着内</span>'
+      :''
+  }
+  ${
+    row.hasResult &&
+    row.top4
+      ?'<span class="badge cyan">上位4頭決着</span>'
+      :''
+  }
+  ${
+    row.hasResult &&
+    row.aComplete
+      ?'<span class="badge cyan">上位5頭決着</span>'
+      :''
+  }
+  ${
+    row.hasResult &&
+    row.bIn
+      ?'<span class="badge">B群侵入</span>'
+      :''
+  }
+  ${
+    row.hasResult &&
+    row.cIn
+      ?'<span class="badge warn">C群侵入</span>'
+      :''
+  }
+  ${
+    row.hasResult &&
+    row.dIn
+      ?'<span class="badge warn">D群侵入</span>'
+      :''
+  }
+  </div>
   </div>
   `;
 }
-
 function renderAll(){
-  const el=document.getElementById('analysis');
-
+  const element=
+    document.getElementById(
+      'analysis'
+    );
   if(!currents.length){
-    el.innerHTML='';
+    element.innerHTML='';
     return;
   }
-
-  el.innerHTML=`
+  element.innerHTML=`
   <div class="card kpi">
-
-    <div class="title">📊 一括解析結果</div>
-
-    <div class="grid3">
-
-      <div class="box">
-        <div class="boxL">解析レース数</div>
-        <div class="boxV">${currents.length}</div>
-      </div>
-
-      <div class="box">
-        <div class="boxL">結果入力済み</div>
-        <div class="boxV">${currents.filter(x=>x.hasResult).length}</div>
-      </div>
-
-      <div class="box">
-        <div class="boxL">事前解析</div>
-        <div class="boxV">${currents.filter(x=>!x.hasResult).length}</div>
-      </div>
-
-    </div>
+  <div class="title">
+  📊 一括解析結果
   </div>
-  `+currents.map(renderOne).join('');
+  <div class="grid3">
+  <div class="box">
+  <div class="boxL">解析レース数</div>
+  <div class="boxV">
+  ${currents.length}
+  </div>
+  </div>
+  <div class="box">
+  <div class="boxL">結果入力済み</div>
+  <div class="boxV">
+  ${
+    currents.filter(
+      row=>row.hasResult
+    ).length
+  }
+  </div>
+  </div>
+  <div class="box">
+  <div class="boxL">事前解析</div>
+  <div class="boxV">
+  ${
+    currents.filter(
+      row=>!row.hasResult
+    ).length
+  }
+  </div>
+  </div>
+  </div>
+  </div>
+  `+
+  currents
+  .map(renderOne)
+  .join('');
 }
-
 function analyzeAll(){
   try{
-    const parsed=parseMultiple(
-      document.getElementById('input').value
-    );
-
-    currents=parsed.rows.map(analyzeData);
-
+    const parsed=
+      parseMultiple(
+        document
+        .getElementById('input')
+        .value
+      );
+    currents=
+      parsed.rows.map(
+        analyzeData
+      );
     renderAll();
-
-    const warning=parsed.errors.length
-      ?` ／ 読み飛ばし${parsed.errors.length}件：${parsed.errors.join(' | ')}`
-      :'';
-
-    document.getElementById('status').innerHTML=
+    const warning=
+      parsed.errors.length
+        ?` ／ 読み飛ばし${parsed.errors.length}件：${parsed.errors.join(' | ')}`
+        :'';
+    document
+    .getElementById('status')
+    .innerHTML=
       `<span class="good">${currents.length}レースを一括解析しました</span>${esc(warning)}`;
-
-  }catch(e){
+  }catch(error){
     currents=[];
     renderAll();
-
-    document.getElementById('status').innerHTML=
-      `<span class="warn">${esc(e.message||e)}</span>`;
+    document
+    .getElementById('status')
+    .innerHTML=
+      `<span class="warn">${esc(error.message||error)}</span>`;
   }
 }
-
 async function saveAllCurrent(){
   if(!currents.length){
-    alert('先に一括解析してください');
+    alert(
+      '先に一括解析してください'
+    );
     return;
   }
-
-  for(const v of currents){
-    await putRow(v);
+  for(const row of currents){
+    await putRow(row);
   }
-
-  document.getElementById('status').innerHTML=
+  document
+  .getElementById('status')
+  .innerHTML=
     `<span class="good">${currents.length}レースを一括保存しました</span>`;
-
   await refreshAll();
 }
-
 async function deleteOne(id){
-  if(confirm('このレースを削除しますか？')){
+  if(
+    confirm(
+      'このレースを削除しますか？'
+    )
+  ){
     await delRow(id);
     await refreshAll();
   }
 }
-
 async function deleteAll(){
-  if(confirm('全件削除します。JSONバックアップ済みですか？')){
+  if(
+    confirm(
+      '全件削除します。JSONバックアップ済みですか？'
+    )
+  ){
     await clearDB();
-
     currents=[];
     renderAll();
-
     await refreshAll();
   }
 }
-
 function clearInput(){
-  document.getElementById('input').value='';
-
+  document
+  .getElementById('input')
+  .value='';
   currents=[];
   renderAll();
-
-  document.getElementById('status').textContent=
+  document
+  .getElementById('status')
+  .textContent=
     '入力待機中';
 }
-
 function sample(){
   const blocks=[];
-
-  for(let r=1;r<=12;r++){
-    const a=90-r;
-    const b=74-(r%4);
-    const c=68-(r%5);
-    const d=58-(r%3);
-    const e=54-(r%2);
-    const f=49;
-
+  for(
+    let raceNo=1;
+    raceNo<=12;
+    raceNo++
+  ){
+    const horses=[];
+    for(
+      let index=0;
+      index<12;
+      index++
+    ){
+      const horse=
+        (
+          (
+            raceNo+
+            index*2
+          )%12
+        )+1;
+      const point=
+        Math.max(
+          40,
+          90-
+          raceNo-
+          index*4+
+          (
+            index===1
+              ?2
+              :0
+          )
+        );
+      horses.push(
+        `${horse} ${point}${raceNo===5&&index===0?' 推奨':''}`
+      );
+    }
     blocks.push(
-`【2026-08-08 新潟${r}R】
+`【2026-08-08 新潟${raceNo}R】
 [COMPI]
-${(r%12)+1} ${a}${r===5?' 推奨':''}
-${((r+2)%12)+1} ${b}
-${((r+4)%12)+1} ${c}
-${((r+6)%12)+1} ${d}
-${((r+8)%12)+1} ${e}
-${((r+10)%12)+1} ${f}`
+${horses.join('\n')}`
     );
   }
-
-  document.getElementById('input').value=
+  document
+  .getElementById('input')
+  .value=
     blocks.join('\n\n');
-
   analyzeAll();
 }
-
-function summaryText(v){
-  return `【${v.title||v.place+v.raceNo+'R'} コンピ研究】
-P：${v.pClass}（${v.top3Sum}）
-型：${v.raceType}／${v.detailType}
-差：1-2=${v.diff12} 2-3=${v.diff23} 1-3=${v.diff13} 3-5=${v.diff35??'-'} 5-6=${v.diff56??'-'} 6-7=${v.diff67??'-'}
-最大壁：${v.maxWallRank}位後${v.maxWallGap}P
-壁前2頭：${v.wallFront2.join('・')}
-壁直後：${v.wallAfterHorse}
-壁内メジアン：${v.wallMedianHorses.join('・')}
-推奨馬：${v.recommendedHorses.join('・')||'なし'}
-頭候補：${v.primaryHead.join('・')}
-上位5頭：${v.placeCore.join('・')}
-46〜49P：${v.low46to49Horses.join('・')||'なし'}
-結果：${v.hasResult?v.result.join('-'):'未入力'}`;
+function summaryText(row){
+  return `【${row.title||row.place+row.raceNo+'R'} コンピ研究】
+P：${row.pClass}（${row.top3Sum}）
+差：1-2=${row.diff12} 2-3=${row.diff23} 1-3=${row.diff13} 3-5=${row.diff35??'-'} 5-6=${row.diff56??'-'} 6-7=${row.diff67??'-'}
+最大壁：${row.maxWallRank}位後${row.maxWallGap}P
+第2壁：${row.secondWallRank??'-'}位後${row.secondWallGap??'-'}P
+壁前2頭：${row.wallFront2.join('・')}
+壁直後：${row.wallAfterHorse}
+壁内メジアン：${row.wallMedianHorses.join('・')}
+46〜49P：${row.low46to49Horses.join('・')||'なし'}
+推奨馬：${row.recommendedHorses.join('・')||'なし'}
+結果：${row.hasResult?row.result.join('-'):'未入力'}`;
 }
-
 async function copyAllSummary(){
   if(!currents.length){
-    alert('先に一括解析してください');
+    alert(
+      '先に一括解析してください'
+    );
     return;
   }
-
-  const text=currents.map(summaryText).join('\n\n');
-
+  const text=
+    currents
+    .map(summaryText)
+    .join('\n\n');
   try{
-    await navigator.clipboard.writeText(text);
-    alert('全解析結果をコピーしました');
-  }catch(e){
-    prompt('コピーしてください',text);
+    await navigator
+    .clipboard
+    .writeText(text);
+    alert(
+      '全解析結果をコピーしました'
+    );
+  }catch(error){
+    prompt(
+      'コピーしてください',
+      text
+    );
   }
 }
-
 async function refreshAll(){
   await refreshStats();
   await refreshTable();
 }
-
 async function refreshStats(){
-  const all=await getAll();
-
-  document.getElementById('count').textContent=
+  const all=
+    await getAll();
+  document
+  .getElementById('count')
+  .textContent=
     all.length;
-
-  const withResult=all.filter(x=>x.hasResult);
-
-  document.getElementById('resultCount').textContent=
+  const withResult=
+    all.filter(
+      row=>row.hasResult
+    );
+  document
+  .getElementById('resultCount')
+  .textContent=
     withResult.length;
-
-  const recRows=withResult.filter(
-    x=>x.recommendedHorses?.length
-  );
-
-  const recHits=recRows.filter(
-    x=>x.recHit
-  ).length;
-
-  document.getElementById('recRate').textContent=
-    recRows.length
-      ?`${(recHits/recRows.length*100).toFixed(1)}% (${recHits}/${recRows.length})`
+  const recommendedRows=
+    withResult.filter(
+      row=>
+        row.recommendedHorses?.length
+    );
+  const recommendedHits=
+    recommendedRows.filter(
+      row=>row.recHit
+    ).length;
+  document
+  .getElementById('recRate')
+  .textContent=
+    recommendedRows.length
+      ?`${(recommendedHits/recommendedRows.length*100).toFixed(1)}% (${recommendedHits}/${recommendedRows.length})`
       :'-';
-
-  const wallHits=withResult.filter(
-    x=>x.wallAfterHit
-  ).length;
-
-  document.getElementById('wallAfterRate').textContent=
+  const wallHits=
+    withResult.filter(
+      row=>row.wallAfterHit
+    ).length;
+  document
+  .getElementById('wallAfterRate')
+  .textContent=
     withResult.length
       ?`${(wallHits/withResult.length*100).toFixed(1)}% (${wallHits}/${withResult.length})`
       :'-';
 }
-
 async function refreshTable(){
   if(!db){
     return;
   }
-
-  let rows=await getAll();
-
-  const place=document.getElementById('qPlace').value.trim();
-  const p=document.getElementById('qP').value;
-  const type=document.getElementById('qType').value;
-  const flag=document.getElementById('qFlag').value;
-
+  let rows=
+    await getAll();
+  const place=
+    document
+    .getElementById('qPlace')
+    .value
+    .trim();
+  const p=
+    document
+    .getElementById('qP')
+    .value;
+  const flag=
+    document
+    .getElementById('qFlag')
+    .value;
   if(place){
-    rows=rows.filter(x=>
-      (x.place||'').includes(place)||
-      (x.title||'').includes(place)
+    rows=rows.filter(
+      row=>
+        (row.place||'').includes(place) ||
+        (row.title||'').includes(place)
     );
   }
-
   if(p){
-    rows=rows.filter(x=>x.pClass===p);
-  }
-
-  if(type){
-    rows=rows.filter(x=>x.raceType===type);
-  }
-
-  if(flag){
-    rows=rows.filter(x=>
-      flag==='hasResult'
-        ?x.hasResult===true
-        :x[flag]===true
+    rows=rows.filter(
+      row=>row.pClass===p
     );
   }
-
-  rows.sort((x,y)=>
-    (y.date||'').localeCompare(x.date||'')||
-    Number(y.raceNo)-Number(x.raceNo)
+  if(flag){
+    rows=rows.filter(
+      row=>
+        flag==='hasResult'
+          ?row.hasResult===true
+          :row[flag]===true
+    );
+  }
+  rows.sort(
+    (a,b)=>
+      (b.date||'')
+      .localeCompare(
+        a.date||''
+      ) ||
+      Number(b.raceNo)-
+      Number(a.raceNo)
   );
-
-  document.getElementById('table').innerHTML=
+  document
+  .getElementById('table')
+  .innerHTML=
     rows.length
       ?`
       <table>
@@ -1073,7 +1464,6 @@ async function refreshTable(){
       <th>R</th>
       <th>結果有無</th>
       <th>P</th>
-      <th>型</th>
       <th>推奨馬</th>
       <th>結果</th>
       <th>結果順位</th>
@@ -1084,6 +1474,7 @@ async function refreshTable(){
       <th>5-6</th>
       <th>6-7</th>
       <th>最大壁</th>
+      <th>第2壁</th>
       <th>壁前2</th>
       <th>壁直後</th>
       <th>壁メジアン</th>
@@ -1092,34 +1483,84 @@ async function refreshTable(){
       <th>操作</th>
       </tr>
       </thead>
-
       <tbody>
       ${
-        rows.map(x=>`
+        rows.map(row=>`
         <tr>
-        <td>${esc(x.date)}</td>
-        <td>${esc(x.place)}</td>
-        <td>${x.raceNo}</td>
-        <td>${x.hasResult?'済':'未'}</td>
-        <td>${x.pClass}(${x.top3Sum})</td>
-        <td>${esc(x.raceType)}</td>
-        <td>${esc((x.recommendedHorses||[]).join('|')||'-')}</td>
-        <td>${esc((x.result||[]).join('-')||'-')}</td>
-        <td>${esc((x.resultRanks||[]).map(z=>z??'圏外').join('-')||'-')}</td>
-        <td>${x.diff12}</td>
-        <td>${x.diff23}</td>
-        <td>${x.diff13}</td>
-        <td>${x.diff35??'-'}</td>
-        <td>${x.diff56??'-'}</td>
-        <td>${x.diff67??'-'}</td>
-        <td>${x.maxWallRank}位後${x.maxWallGap}P</td>
-        <td>${esc((x.wallFront2||[]).join('|'))}</td>
-        <td>${esc(x.wallAfterHorse)}</td>
-        <td>${esc((x.wallMedianHorses||[]).join('|'))}</td>
-        <td>${esc((x.low46to49Horses||[]).join('|')||'-')}</td>
-        <td>${esc((x.resultGroups||[]).join('-')||'-')}</td>
+        <td>${esc(row.date)}</td>
+        <td>${esc(row.place)}</td>
+        <td>${row.raceNo}</td>
         <td>
-        <button class="red" onclick='deleteOne(${JSON.stringify(x.id)})'>
+        ${row.hasResult?'済':'未'}
+        </td>
+        <td>
+        ${row.pClass}(${row.top3Sum})
+        </td>
+        <td>
+        ${esc(
+          (row.recommendedHorses||[])
+          .join('|')||'-'
+        )}
+        </td>
+        <td>
+        ${esc(
+          (row.result||[])
+          .join('-')||'-'
+        )}
+        </td>
+        <td>
+        ${esc(
+          (row.resultRanks||[])
+          .map(
+            value=>value??'圏外'
+          )
+          .join('-')||'-'
+        )}
+        </td>
+        <td>${row.diff12}</td>
+        <td>${row.diff23}</td>
+        <td>${row.diff13}</td>
+        <td>${row.diff35??'-'}</td>
+        <td>${row.diff56??'-'}</td>
+        <td>${row.diff67??'-'}</td>
+        <td>
+        ${row.maxWallRank}位後${row.maxWallGap}P
+        </td>
+        <td>
+        ${row.secondWallRank??'-'}位後${row.secondWallGap??'-'}P
+        </td>
+        <td>
+        ${esc(
+          (row.wallFront2||[])
+          .join('|')
+        )}
+        </td>
+        <td>
+        ${esc(row.wallAfterHorse)}
+        </td>
+        <td>
+        ${esc(
+          (row.wallMedianHorses||[])
+          .join('|')
+        )}
+        </td>
+        <td>
+        ${esc(
+          (row.low46to49Horses||[])
+          .join('|')||'-'
+        )}
+        </td>
+        <td>
+        ${esc(
+          (row.resultGroups||[])
+          .join('-')||'-'
+        )}
+        </td>
+        <td>
+        <button
+        class="red"
+        onclick='deleteOne(${JSON.stringify(row.id)})'
+        >
         削除
         </button>
         </td>
@@ -1131,192 +1572,288 @@ async function refreshTable(){
       `
       :'<div class="note">保存データなし</div>';
 }
-
 async function exportCSV(){
-  const all=await getAll();
-
+  const all=
+    await getAll();
   if(!all.length){
-    alert('保存データがありません');
+    alert(
+      '保存データがありません'
+    );
     return;
   }
-
-  const rows=all.map(x=>({
-    日付:x.date,
-    場:x.place,
-    R:x.raceNo,
-    結果入力済み:x.hasResult?'1':'0',
-    頭数:x.headCount,
-
-    全馬コンピ順位列:x.compiOrder.join('|'),
-    全馬指数列:x.compiPoints.join('|'),
-
-    推奨馬:x.recommendedHorses.join('|'),
-    推奨馬順位:x.recommendedRanks.join('|'),
-    推奨馬指数:x.recommendedPoints.join('|'),
-    推奨馬着順:x.recommendedFinishes.map(z=>z||'着外').join('|'),
-
-    コンピ1位馬:x.compi1Horse,
-    コンピ1位指数:x.compi1Point,
-
-    コンピ2位馬:x.compi2Horse,
-    コンピ2位指数:x.compi2Point,
-
-    コンピ3位馬:x.compi3Horse,
-    コンピ3位指数:x.compi3Point,
-
-    P:x.pClass,
-    上位3合計:x.top3Sum,
-
-    レース型:x.raceType,
-    詳細型:x.detailType,
-
-    頭候補:x.primaryHead.join('|'),
-    上位5頭:x.placeCore.join('|'),
-    壁直後監査:x.intrusionCandidates.join('|'),
-
-    差1_2:x.diff12,
-    差2_3:x.diff23,
-    差1_3:x.diff13,
-    差3_5:x.diff35,
-    差5_6:x.diff56,
-    差6_7:x.diff67,
-
-    上位5合計:x.top5Sum,
-    上位5幅:x.top5Width,
-
-    最大壁位置:x.maxWallRank,
-    最大壁差:x.maxWallGap,
-    壁前馬:x.wallBeforeHorse,
-    壁前2頭:x.wallFront2.join('|'),
-    壁直後:x.wallAfterHorse,
-    壁内頭数:x.wallInsideCount,
-
-    壁内メジアン馬:x.wallMedianHorses.join('|'),
-    壁内メジアン順位:x.wallMedianRanks.join('|'),
-    壁内メジアン指数:x.wallMedianPoints.join('|'),
-
-    第2壁位置:x.secondWallRank,
-    第2壁差:x.secondWallGap,
-
-    '46_49馬':x.low46to49Horses.join('|'),
-    '46_49指数':x.low46to49Points.join('|'),
-
-    結果:x.result.join('-'),
-    結果1着馬:x.result[0]||'',
-    結果2着馬:x.result[1]||'',
-    結果3着馬:x.result[2]||'',
-
-    結果コンピ順位:x.resultRanks.map(z=>z??'圏外').join('|'),
-    結果コンピ指数:x.resultPoints.map(z=>z??'').join('|'),
-    結果群:x.resultGroups.join('|'),
-
-    推奨馬3着内:x.recHit===null?'':(x.recHit?'1':'0'),
-    壁前勝利:x.wallFrontWin===null?'':(x.wallFrontWin?'1':'0'),
-    壁直後3着内:x.wallAfterHit===null?'':(x.wallAfterHit?'1':'0'),
-    壁メジアン3着内:x.wallMedianHit===null?'':(x.wallMedianHit?'1':'0'),
-    上位4頭決着:x.top4===null?'':(x.top4?'1':'0'),
-    A群完結:x.aComplete===null?'':(x.aComplete?'1':'0'),
-    B侵入:x.bIn===null?'':(x.bIn?'1':'0'),
-    C侵入:x.cIn===null?'':(x.cIn?'1':'0'),
-    D侵入:x.dIn===null?'':(x.dIn?'1':'0')
-  }));
-
-  const keys=Object.keys(rows[0]);
-
+  const rows=
+    all.map(row=>({
+      日付:
+        row.date,
+      場:
+        row.place,
+      R:
+        row.raceNo,
+      結果入力済み:
+        row.hasResult?'1':'0',
+      頭数:
+        row.headCount,
+      全馬コンピ順位列:
+        row.compiOrder.join('|'),
+      全馬指数列:
+        row.compiPoints.join('|'),
+      推奨馬:
+        row.recommendedHorses.join('|'),
+      推奨馬順位:
+        row.recommendedRanks.join('|'),
+      推奨馬指数:
+        row.recommendedPoints.join('|'),
+      推奨馬着順:
+        row.recommendedFinishes
+        .map(
+          value=>value||'着外'
+        )
+        .join('|'),
+      コンピ1位馬:
+        row.compi1Horse,
+      コンピ1位指数:
+        row.compi1Point,
+      コンピ2位馬:
+        row.compi2Horse,
+      コンピ2位指数:
+        row.compi2Point,
+      コンピ3位馬:
+        row.compi3Horse,
+      コンピ3位指数:
+        row.compi3Point,
+      P:
+        row.pClass,
+      上位3合計:
+        row.top3Sum,
+      差1_2:
+        row.diff12,
+      差2_3:
+        row.diff23,
+      差1_3:
+        row.diff13,
+      差3_5:
+        row.diff35,
+      差5_6:
+        row.diff56,
+      差6_7:
+        row.diff67,
+      上位5合計:
+        row.top5Sum,
+      上位5幅:
+        row.top5Width,
+      最大壁位置:
+        row.maxWallRank,
+      最大壁差:
+        row.maxWallGap,
+      壁前馬:
+        row.wallBeforeHorse,
+      壁前2頭:
+        row.wallFront2.join('|'),
+      壁直後:
+        row.wallAfterHorse,
+      壁内頭数:
+        row.wallInsideCount,
+      壁内メジアン馬:
+        row.wallMedianHorses.join('|'),
+      壁内メジアン順位:
+        row.wallMedianRanks.join('|'),
+      壁内メジアン指数:
+        row.wallMedianPoints.join('|'),
+      第2壁位置:
+        row.secondWallRank,
+      第2壁差:
+        row.secondWallGap,
+      '46_49馬':
+        row.low46to49Horses.join('|'),
+      '46_49指数':
+        row.low46to49Points.join('|'),
+      結果:
+        row.result.join('-'),
+      結果1着馬:
+        row.result[0]||'',
+      結果2着馬:
+        row.result[1]||'',
+      結果3着馬:
+        row.result[2]||'',
+      結果コンピ順位:
+        row.resultRanks
+        .map(
+          value=>value??'圏外'
+        )
+        .join('|'),
+      結果コンピ指数:
+        row.resultPoints
+        .map(
+          value=>value??''
+        )
+        .join('|'),
+      結果群:
+        row.resultGroups.join('|'),
+      推奨馬3着内:
+        row.recHit===null
+          ?''
+          :row.recHit?'1':'0',
+      壁前勝利:
+        row.wallFrontWin===null
+          ?''
+          :row.wallFrontWin?'1':'0',
+      壁直後3着内:
+        row.wallAfterHit===null
+          ?''
+          :row.wallAfterHit?'1':'0',
+      壁メジアン3着内:
+        row.wallMedianHit===null
+          ?''
+          :row.wallMedianHit?'1':'0',
+      上位4頭決着:
+        row.top4===null
+          ?''
+          :row.top4?'1':'0',
+      A群完結:
+        row.aComplete===null
+          ?''
+          :row.aComplete?'1':'0',
+      B侵入:
+        row.bIn===null
+          ?''
+          :row.bIn?'1':'0',
+      C侵入:
+        row.cIn===null
+          ?''
+          :row.cIn?'1':'0',
+      D侵入:
+        row.dIn===null
+          ?''
+          :row.dIn?'1':'0'
+    }));
+  const keys=
+    Object.keys(rows[0]);
   const csv=
     '\ufeff'+
     keys.map(csvEsc).join(',')+
     '\n'+
-    rows.map(r=>
-      keys.map(k=>csvEsc(r[k])).join(',')
+    rows.map(
+      row=>
+        keys.map(
+          key=>csvEsc(row[key])
+        ).join(',')
     ).join('\n');
-
   downloadBlob(
     csv,
-    '競馬メジアン_中央コンピ研究所_V1.11_'+new Date().toISOString().slice(0,10)+'.csv',
+    '競馬メジアン_中央コンピ研究所_V1.20_'+
+    new Date()
+    .toISOString()
+    .slice(0,10)+
+    '.csv',
     'text/csv;charset=utf-8'
   );
 }
-
 async function exportJSON(){
-  const all=await getAll();
-
+  const all=
+    await getAll();
   downloadBlob(
-    JSON.stringify({
-      app:'競馬メジアン中央コンピ研究所',
-      version:'1.11',
-      exportedAt:new Date().toISOString(),
-      races:all
-    },null,2),
-
-    '競馬メジアン_中央コンピ研究所_V1.11_バックアップ_'+new Date().toISOString().slice(0,10)+'.json',
-
+    JSON.stringify(
+      {
+        app:
+          '競馬メジアン中央コンピ研究所',
+        version:
+          '1.20',
+        mode:
+          'pure-validation',
+        exportedAt:
+          new Date().toISOString(),
+        races:
+          all
+      },
+      null,
+      2
+    ),
+    '競馬メジアン_中央コンピ研究所_V1.20_バックアップ_'+
+    new Date()
+    .toISOString()
+    .slice(0,10)+
+    '.json',
     'application/json'
   );
 }
-
-function downloadBlob(content,name,type){
-  const blob=new Blob([content],{type});
-  const a=document.createElement('a');
-
-  a.href=URL.createObjectURL(blob);
-  a.download=name;
-  a.click();
-
-  setTimeout(()=>{
-    URL.revokeObjectURL(a.href);
-  },1000);
+function downloadBlob(
+  content,
+  name,
+  type
+){
+  const blob=
+    new Blob(
+      [content],
+      {type}
+    );
+  const link=
+    document.createElement('a');
+  link.href=
+    URL.createObjectURL(blob);
+  link.download=
+    name;
+  link.click();
+  setTimeout(
+    ()=>{
+      URL.revokeObjectURL(
+        link.href
+      );
+    },
+    1000
+  );
 }
-
-async function importFileChanged(e){
-  const file=e.target.files?.[0];
-
+async function importFileChanged(event){
+  const file=
+    event.target.files?.[0];
   if(!file){
     return;
   }
-
   try{
-    const obj=JSON.parse(await file.text());
-
-    const rows=Array.isArray(obj)
-      ?obj
-      :obj.races;
-
+    const object=
+      JSON.parse(
+        await file.text()
+      );
+    const rows=
+      Array.isArray(object)
+        ?object
+        :object.races;
     if(!Array.isArray(rows)){
-      throw new Error('JSON形式が違います');
+      throw new Error(
+        'JSON形式が違います'
+      );
     }
-
     for(const row of rows){
       await putRow(row);
     }
-
-    alert(`${rows.length}件を読み込みました`);
-
+    alert(
+      `${rows.length}件を読み込みました`
+    );
     await refreshAll();
-
-  }catch(err){
-    alert('読込エラー：'+(err.message||err));
+  }catch(error){
+    alert(
+      '読込エラー：'+
+      (error.message||error)
+    );
   }
-
-  e.target.value='';
+  event.target.value='';
 }
-
 (async()=>{
   try{
     await openDB();
     await refreshAll();
-
-    document.getElementById('status').innerHTML=
+    document
+    .getElementById('status')
+    .innerHTML=
       '<span class="good">データベース準備完了</span>';
-
-  }catch(e){
-    document.getElementById('status').innerHTML=
+  }catch(error){
+    document
+    .getElementById('status')
+    .innerHTML=
       '<span class="warn">IndexedDB開始エラー：'+
-      esc(e.message||e)+
+      esc(error.message||error)+
       '</span>';
   }
 })();
 </script>
-
 </body>
 </html>
