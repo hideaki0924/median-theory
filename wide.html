@@ -4,1853 +4,1622 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="compi-lab-v1.20-pure-validation">
-<title>競馬メジアン 中央コンピ研究所 V1.20</title>
+<meta name="app-build" content="compi-lab-v1.40-paste-only">
+<title>競馬メジアン 中央コンピ研究所 V1.40</title>
+
 <style>
 :root{
   --bg:#07101f;
   --card:#10224a;
+  --card2:#0b1835;
+  --line:#334155;
   --cyan:#67e8f9;
   --yellow:#fde047;
+  --red:#fb7185;
+  --green:#4ade80;
   --muted:#cbd5e1
 }
+
 *{box-sizing:border-box}
+
 html,body{
   margin:0;
   background:var(--bg);
   color:#fff;
   overflow-x:hidden
 }
+
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
   padding:8px 8px calc(28px + env(safe-area-inset-bottom));
-  font-size:15px;
-  line-height:1.5
+  line-height:1.45
 }
+
 main{
-  max-width:980px;
+  max-width:760px;
   margin:auto
 }
+
 h1{
-  font-size:22px;
-  line-height:1.3;
-  margin:4px 0 10px
+  font-size:21px;
+  line-height:1.35;
+  margin:5px 2px 4px
 }
-.tag{
-  display:inline-block;
-  border-radius:999px;
-  padding:3px 9px;
-  background:#be123c;
-  font-size:.68em
+
+.sub{
+  font-size:12px;
+  color:var(--muted);
+  margin:0 2px 10px
 }
+
 .card{
-  overflow:hidden;
-  overflow-wrap:anywhere;
   background:var(--card);
-  border:1px solid #3b82f6;
+  border:1px solid #2563eb;
   border-radius:15px;
-  padding:11px;
-  margin:9px 0
+  padding:12px;
+  margin:9px 0;
+  box-shadow:0 5px 18px rgba(0,0,0,.22)
 }
+
 .title{
-  font-size:19px;
-  font-weight:950;
-  color:var(--yellow);
+  font-weight:900;
+  color:var(--cyan);
+  font-size:16px;
   margin-bottom:8px
 }
-.note,.status{
-  margin-top:7px;
-  padding:8px;
-  background:#020617;
-  border:1px solid #475569;
-  border-radius:10px;
-  font-size:12px
+
+.small{
+  font-size:11px;
+  color:var(--muted)
 }
-textarea,input,select{
+
+textarea,input,button{
+  font:inherit
+}
+
+textarea,input{
   width:100%;
-  border-radius:11px;
-  border:2px solid #3b82f6;
-  padding:9px;
-  background:#f8fafc;
-  color:#111;
-  font-size:14px
+  border:1px solid var(--line);
+  background:#071426;
+  color:#fff;
+  border-radius:10px;
+  padding:10px
 }
+
 textarea{
-  height:420px;
+  min-height:265px;
+  resize:vertical;
+  line-height:1.55;
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
-  line-height:1.4
+  font-size:13px
 }
+
 button{
   border:0;
-  border-radius:11px;
-  padding:10px 12px;
-  margin:7px 4px 2px 0;
-  font-size:14px;
-  font-weight:950;
-  cursor:pointer
-}
-.go{
-  background:#22c55e;
-  color:#052e16
-}
-.blue{
-  background:#3b82f6;
+  border-radius:10px;
+  padding:11px 9px;
+  font-weight:900;
+  background:#1d4ed8;
   color:#fff
 }
-.gray{
-  background:#64748b;
-  color:#fff
+
+.btns{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px
 }
-.purple{
-  background:#8b5cf6;
-  color:#fff
+
+.green{background:#15803d}
+.yellow{background:#ca8a04}
+.red{background:#be123c}
+.gray{background:#475569}
+
+.notice{
+  font-size:12px;
+  color:#fecaca;
+  background:#3f0b18;
+  border:1px solid var(--red);
+  padding:9px;
+  border-radius:10px;
+  margin-bottom:8px
 }
-.orange{
-  background:#f59e0b;
-  color:#1f1300
+
+.notice.ok{
+  color:#bbf7d0;
+  background:#052e16;
+  border-color:#15803d
 }
-.red{
-  background:#e11d48;
-  color:#fff
+
+.summary{
+  white-space:pre-wrap;
+  background:#061124;
+  border:1px solid #0891b2;
+  border-radius:12px;
+  padding:10px;
+  font-size:13px;
+  min-height:70px
 }
-.cyanBtn{
-  background:#0891b2;
-  color:#ecfeff
-}
-.grid3{
+
+.kpis{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:7px
+  gap:6px
 }
-.grid4{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:7px
+
+.kpi{
+  background:var(--card2);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:8px;
+  text-align:center;
+  font-size:11px
 }
-.box{
-  background:#020617;
-  border:1px solid #475569;
-  border-radius:11px;
-  padding:8px
+
+.kpi b{
+  display:block;
+  color:var(--yellow);
+  font-size:18px
 }
-.boxL{
-  font-size:10px;
-  color:#93c5fd;
-  font-weight:900
-}
-.boxV{
-  font-size:17px;
-  font-weight:950;
-  margin-top:3px
-}
-.badge{
-  display:inline-block;
-  margin:2px;
-  padding:3px 7px;
-  border-radius:999px;
-  background:#1e293b;
-  font-size:11px;
-  font-weight:900
-}
-.good{
-  color:#86efac;
-  font-weight:950
-}
-.warn{
-  color:#fda4af;
-  font-weight:950
-}
-.cyan{
-  color:var(--cyan);
-  font-weight:950
-}
+
 .tableWrap{
   overflow:auto;
-  background:#061326;
-  border-radius:11px
+  max-height:420px
 }
-table{
+
+.log{
   width:100%;
   border-collapse:collapse;
-  min-width:1500px;
-  font-size:12px
+  font-size:11px;
+  min-width:620px
 }
-th,td{
-  padding:7px 6px;
-  border-bottom:1px solid #334155;
-  text-align:left;
-  white-space:nowrap
+
+.log th,.log td{
+  border-bottom:1px solid var(--line);
+  padding:6px;
+  text-align:center
 }
-th{
+
+.log th{
   position:sticky;
   top:0;
-  background:#0f1f45;
-  color:#bfdbfe;
-  z-index:1
+  background:#172554;
+  color:var(--cyan)
 }
-.kpi{
-  border:3px solid #14b8a6;
-  background:linear-gradient(145deg,#032f2f,#134e4a,#07101f)
+
+.codeSample{
+  white-space:pre-wrap;
+  background:#020617;
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:9px;
+  font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;
+  color:#dbeafe
 }
-.db{
-  border:3px solid #c084fc;
-  background:linear-gradient(145deg,#1f1235,#4c1d95,#07101f)
-}
-.raceCard{
-  border:2px solid #22d3ee;
-  background:linear-gradient(145deg,#082f49,#0f172a)
-}
-@media(max-width:650px){
-  .grid3,.grid4{
-    grid-template-columns:1fr
-  }
-  textarea{
-    height:390px
-  }
-  button{
-    width:calc(50% - 6px)
-  }
+
+.hidden{
+  display:none
 }
 </style>
 </head>
+
 <body>
 <main>
-<h1>
-競馬メジアン
-<span class="tag">V1.20</span>
-<br>
-中央コンピ研究所・純検証版
-</h1>
-<div class="card">
-<div class="title">
-📥 1R〜12R コンピ一括入力
+
+<h1>競馬メジアン 中央コンピ研究所 V1.40</h1>
+
+<div class="sub">
+純コンピ専用｜チャッピーのコードを貼って保存するだけ｜赤文字推奨馬は最大1頭
 </div>
-<textarea id="input" placeholder="【2026-08-08 新潟1R】
+
+<div id="msg" class="notice ok">
+コードを貼り付けて「解析・保存」を押してください。
+</div>
+
+<section class="card">
+  <div class="title">① チャッピーのコードを貼る</div>
+
+  <textarea
+    id="pasteBox"
+    spellcheck="false"
+    placeholder="ここにコードを貼り付け"
+  ></textarea>
+
+  <div class="btns" style="margin-top:8px">
+    <button class="yellow" onclick="parseAndPreview()">
+      解析・確認
+    </button>
+
+    <button class="green" onclick="parseAndSave()">
+      解析・保存
+    </button>
+  </div>
+
+  <div class="btns" style="margin-top:7px">
+    <button
+      class="gray"
+      onclick="pasteBox.value='';preview.textContent='未解析'"
+    >
+      貼付欄を空にする
+    </button>
+
+    <button class="gray" onclick="copyFormat()">
+      コード形式をコピー
+    </button>
+  </div>
+</section>
+
+<section class="card">
+  <div class="title">② 解析結果</div>
+  <div id="preview" class="summary">未解析</div>
+</section>
+
+<section class="card">
+  <div class="title">③ 蓄積データ</div>
+
+  <div id="kpis" class="kpis"></div>
+
+  <div class="btns" style="margin-top:8px">
+    <button class="green" onclick="exportCSV()">
+      CSVを書き出す
+    </button>
+
+    <button
+      class="gray"
+      onclick="document.getElementById('csvFile').click()"
+    >
+      CSVを読み込む
+    </button>
+
+    <input
+      id="csvFile"
+      class="hidden"
+      type="file"
+      accept=".csv,text/csv"
+      onchange="importCSV(event)"
+    >
+
+    <button class="yellow" onclick="exportBackup()">
+      バックアップ保存
+    </button>
+
+    <button
+      class="gray"
+      onclick="document.getElementById('backupFile').click()"
+    >
+      バックアップ復元
+    </button>
+
+    <input
+      id="backupFile"
+      class="hidden"
+      type="file"
+      accept=".json,application/json"
+      onchange="importBackup(event)"
+    >
+  </div>
+</section>
+
+<section class="card">
+  <div class="title">保存レース</div>
+
+  <div class="tableWrap">
+    <table class="log">
+      <thead>
+        <tr>
+          <th>日付</th>
+          <th>場</th>
+          <th>R</th>
+          <th>P</th>
+          <th>推奨</th>
+          <th>結果</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+
+      <tbody id="logBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
+  <div class="title">貼り付けコード形式</div>
+
+  <div class="codeSample">【2026-08-08 新潟1R】
 [COMPI]
-8 79
-1 73
-6 68 推奨
-7 56
-3 55
-4 53
-12 49
-【2026-08-08 新潟2R】
-[COMPI]
-6 84
-8 71
-9 68
-7 55 推奨
-※RESULTは後日でも可
+2 84
+4 78
+6 71
+8 64
+10 60
+12 55
+1 51
+3 48
+5 46
+7 42
+[RECOMMEND]
+2
 [RESULT]
-4-11-8"></textarea>
-<button class="go" onclick="analyzeAll()">
-一括解析
-</button>
-<button class="blue" onclick="sample()">
-12Rサンプル
-</button>
-<button class="gray" onclick="clearInput()">
-リセット
-</button>
-<button class="purple" onclick="copyAllSummary()">
-全解析結果コピー
-</button>
-<button class="orange" onclick="saveAllCurrent()">
-解析分を一括保存
-</button>
-<div id="status" class="status">
-入力待機中
-</div>
-<div class="note">
-<b>純検証版：</b>
-予想型・頭候補・相手候補などの未検証ロジックは入れていません。
-事実データと結果検証だけを保存します。
-</div>
-</div>
-<div id="analysis"></div>
-<div class="card db">
-<div class="title">
-🗄️ コンピ研究データベース
-</div>
-<div class="grid4">
-<div class="box">
-<div class="boxL">保存件数</div>
-<div id="count" class="boxV">0</div>
-</div>
-<div class="box">
-<div class="boxL">結果入力済み</div>
-<div id="resultCount" class="boxV">0</div>
-</div>
-<div class="box">
-<div class="boxL">推奨馬3着内</div>
-<div id="recRate" class="boxV">-</div>
-</div>
-<div class="box">
-<div class="boxL">壁直後3着内</div>
-<div id="wallAfterRate" class="boxV">-</div>
-</div>
-</div>
-<button class="go" onclick="saveAllCurrent()">
-現在の解析を一括保存
-</button>
-<button class="cyanBtn" onclick="exportCSV()">
-全件CSV
-</button>
-<button class="cyanBtn" onclick="exportJSON()">
-バックアップJSON
-</button>
-<label style="display:inline-block">
-<input
-id="importFile"
-type="file"
-accept=".json"
-style="display:none"
-onchange="importFileChanged(event)"
->
-<button
-class="orange"
-type="button"
-onclick="document.getElementById('importFile').click()"
->
-JSON読込
-</button>
-</label>
-<button class="red" onclick="deleteAll()">
-全件削除
-</button>
-<div class="note">
-同じ日付・場・Rは上書き保存。
-結果なしで事前保存し、後日RESULTを付けて再保存できます。
-</div>
-</div>
-<div class="card">
-<div class="title">
-🔎 一覧・検索
-</div>
-<div class="grid3">
-<input
-id="qPlace"
-placeholder="場名（新潟など）"
-oninput="refreshTable()"
->
-<select id="qP" onchange="refreshTable()">
-<option value="">Pすべて</option>
-<option>P1</option>
-<option>P2</option>
-<option>P3</option>
-<option>P4</option>
-<option>P5</option>
-<option>P6</option>
-</select>
-<select id="qFlag" onchange="refreshTable()">
-<option value="">条件すべて</option>
-<option value="hasResult">結果入力済み</option>
-<option value="recHit">推奨馬3着内</option>
-<option value="wallAfterHit">壁直後3着内</option>
-<option value="wallMedianHit">壁メジアン3着内</option>
-<option value="top4">上位4頭決着</option>
-<option value="aComplete">上位5頭決着</option>
-<option value="bIn">B群侵入</option>
-<option value="cIn">C群侵入</option>
-<option value="dIn">D群侵入</option>
-</select>
-</div>
-<div
-id="table"
-class="tableWrap"
-style="margin-top:8px"
-></div>
-</div>
+2-4-6</div>
+
+  <div class="small" style="margin-top:7px">
+    [RESULT]は結果が出た後だけ。赤文字推奨馬がない場合は「なし」。
+    指数順でなくても自動で並べ替えます。
+  </div>
+</section>
+
 </main>
+
 <script>
 'use strict';
-const DB_NAME='keibaCompiLabV120Pure';
-const STORE='races';
-let db=null;
-let currents=[];
-const zen=s=>String(s||'')
-.replace(/[０-９]/g,x=>String.fromCharCode(x.charCodeAt(0)-65248))
-.replace(/[－ー―−→＞]/g,'-')
-.replace(/．/g,'.')
-.replace(/　/g,' ');
-const esc=s=>String(s??'').replace(
-  /[&<>"']/g,
-  c=>({
-    '&':'&amp;',
-    '<':'&lt;',
-    '>':'&gt;',
-    '"':'&quot;',
-    "'":'&#39;'
-  }[c])
-);
-const csvEsc=v=>{
-  v=String(v??'');
-  return /[",\n]/.test(v)
-    ?'"'+v.replace(/"/g,'""')+'"'
-    :v;
-};
-function openDB(){
-  return new Promise((resolve,reject)=>{
-    const request=indexedDB.open(DB_NAME,1);
-    request.onupgradeneeded=event=>{
-      const database=event.target.result;
-      const objectStore=database.createObjectStore(
-        STORE,
-        {keyPath:'id'}
-      );
-      objectStore.createIndex('date','date');
-      objectStore.createIndex('place','place');
-      objectStore.createIndex('pClass','pClass');
-    };
-    request.onsuccess=()=>{
-      db=request.result;
-      resolve(db);
-    };
-    request.onerror=()=>reject(request.error);
-  });
-}
-function store(mode='readonly'){
-  return db
-  .transaction(STORE,mode)
-  .objectStore(STORE);
-}
-function getAll(){
-  return new Promise((resolve,reject)=>{
-    const request=store().getAll();
-    request.onsuccess=()=>resolve(
-      request.result||[]
+
+const STORE = 'compiLabV140PasteOnly';
+
+const HEADERS = [
+  '日付',
+  '場',
+  'R',
+  '結果入力済み',
+  '頭数',
+  '全馬コンピ順位列',
+  '全馬指数列',
+  '推奨馬',
+  '推奨馬順位',
+  '推奨馬指数',
+  '推奨馬着順',
+  'コンピ1位馬',
+  'コンピ1位指数',
+  'コンピ2位馬',
+  'コンピ2位指数',
+  'コンピ3位馬',
+  'コンピ3位指数',
+  'P',
+  '上位3合計',
+  '差1_2',
+  '差2_3',
+  '差1_3',
+  '差3_5',
+  '差5_6',
+  '差6_7',
+  '上位5合計',
+  '上位5幅',
+  '最大壁位置',
+  '最大壁差',
+  '壁前馬',
+  '壁前2頭',
+  '壁直後',
+  '壁内頭数',
+  '壁内メジアン馬',
+  '壁内メジアン順位',
+  '壁内メジアン指数',
+  '第2壁位置',
+  '第2壁差',
+  '46_49馬',
+  '46_49指数',
+  '結果',
+  '結果1着馬',
+  '結果2着馬',
+  '結果3着馬',
+  '結果コンピ順位',
+  '結果コンピ指数',
+  '結果群',
+  '推奨馬3着内',
+  '壁前勝利',
+  '壁直後3着内',
+  '壁メジアン3着内',
+  '上位4頭決着',
+  'A群完結',
+  'B侵入',
+  'C侵入',
+  'D侵入'
+];
+
+let db = loadDB();
+
+function loadDB(){
+  try{
+    const data = JSON.parse(
+      localStorage.getItem(STORE) || '[]'
     );
-    request.onerror=()=>reject(
-      request.error
-    );
-  });
+
+    return Array.isArray(data) ? data : [];
+  }catch(error){
+    return [];
+  }
 }
-function putRow(row){
-  return new Promise((resolve,reject)=>{
-    const request=store('readwrite').put(row);
-    request.onsuccess=()=>resolve();
-    request.onerror=()=>reject(
-      request.error
-    );
-  });
-}
-function delRow(id){
-  return new Promise((resolve,reject)=>{
-    const request=store('readwrite').delete(id);
-    request.onsuccess=()=>resolve();
-    request.onerror=()=>reject(
-      request.error
-    );
-  });
-}
-function clearDB(){
-  return new Promise((resolve,reject)=>{
-    const request=store('readwrite').clear();
-    request.onsuccess=()=>resolve();
-    request.onerror=()=>reject(
-      request.error
-    );
-  });
-}
-function parseTitle(title){
-  const text=zen(title);
-  const date=(
-    text.match(
-      /20\d{2}[-\/.]\d{1,2}[-\/.]\d{1,2}/
-    )||[]
-  )[0]||'';
-  const place=(
-    text.match(
-      /札幌|函館|福島|新潟|東京|中山|中京|京都|阪神|小倉/
-    )||[]
-  )[0]||'';
-  const raceNo=Number(
-    (
-      text.match(
-        /(\d+)\s*R/i
-      )||[]
-    )[1]||0
+
+function persist(){
+  localStorage.setItem(
+    STORE,
+    JSON.stringify(db)
   );
+}
+
+function esc(value){
+  return String(value ?? '').replace(
+    /[&<>"']/g,
+    character => ({
+      '&':'&amp;',
+      '<':'&lt;',
+      '>':'&gt;',
+      '"':'&quot;',
+      "'":'&#39;'
+    }[character])
+  );
+}
+
+function setMsg(text,ok=false){
+  msg.textContent = text;
+  msg.className = 'notice' + (ok ? ' ok' : '');
+}
+
+function norm(value){
+  return String(value || '')
+    .replace(/\r/g,'')
+    .replace(/[：]/g,':')
+    .replace(/[－―ー–—]/g,'-')
+    .replace(/[　]/g,' ')
+    .trim();
+}
+
+function pClass(sum){
+  if(sum >= 220) return 'P6';
+  if(sum >= 216) return 'P5';
+  if(sum >= 212) return 'P4';
+  if(sum >= 208) return 'P3';
+  if(sum >= 204) return 'P2';
+  return 'P1';
+}
+
+function keyOf(row){
+  return `${row.日付}_${row.場}_${row.R}`;
+}
+
+function group(rank){
+  if(rank <= 5) return 'A';
+  if(rank <= 10) return 'B';
+  if(rank <= 15) return 'C';
+  return 'D';
+}
+
+function parseHeader(text){
+  const match = text.match(
+    /【\s*(?:(\d{4})[-\/.年](\d{1,2})[-\/.月](\d{1,2})日?\s*)?([^】\d\s]+)\s*(\d{1,2})R\s*】/i
+  );
+
+  if(!match){
+    throw Error(
+      '見出しを「【2026-08-08 新潟1R】」の形にしてください。'
+    );
+  }
+
+  const date = match[1]
+    ? `${match[1]}-${String(match[2]).padStart(2,'0')}-${String(match[3]).padStart(2,'0')}`
+    : '';
+
+  if(!date){
+    throw Error(
+      '見出しに日付を入れてください。'
+    );
+  }
+
   return {
-    date:date
-      ?date.replace(/[\/.]/g,'-')
-      :'',
-    place,
-    raceNo
+    date,
+    place:match[4].trim(),
+    race:String(Number(match[5]))
   };
 }
-function splitRaceBlocks(raw){
-  const text=zen(raw)
-  .replace(/\r/g,'')
-  .trim();
-  if(!text){
-    throw new Error(
-      '入力が空です'
-    );
-  }
-  const matches=[
-    ...text.matchAll(
-      /【([^】]+)】/g
-    )
-  ];
-  if(!matches.length){
-    throw new Error(
-      '【新潟1R】のような見出しがありません'
-    );
-  }
-  const blocks=[];
-  for(
-    let i=0;
-    i<matches.length;
-    i++
-  ){
-    const start=matches[i].index;
-    const end=i+1<matches.length
-      ?matches[i+1].index
-      :text.length;
-    blocks.push(
-      text.slice(start,end).trim()
-    );
-  }
-  return blocks;
+
+function section(text,name){
+  const regularExpression = new RegExp(
+    `\$begin:math:display$\$\{name\}\\$end:math:display$([\\s\\S]*?)(?=\\n\$begin:math:display$\[A\-Z\_\]\+\\$end:math:display$|$)`,
+    'i'
+  );
+
+  const match = text.match(regularExpression);
+
+  return match
+    ? match[1].trim()
+    : '';
 }
-function parseRaceBlock(block){
-  const title=(
-    block.match(
-      /【([^】]+)】/
-    )||[]
-  )[1]||'';
-  const meta=parseTitle(title);
-  if(
-    !meta.place ||
-    !meta.raceNo
-  ){
-    throw new Error(
-      `見出しを判定できません：${title}`
-    );
+
+function parseCode(raw){
+  const text = norm(raw);
+
+  if(!text){
+    throw Error('コードが空です。');
   }
-  let section='';
-  let compi=[];
-  let result=[];
-  for(
-    const original of block.split('\n')
-  ){
-    const line=original.trim();
+
+  const meta = parseHeader(text);
+
+  const compiSection = section(
+    text,
+    'COMPI'
+  );
+
+  if(!compiSection){
+    throw Error('[COMPI] がありません。');
+  }
+
+  const horses = [];
+
+  for(const originalLine of compiSection.split('\n')){
+    const line = originalLine.trim();
+
     if(!line){
       continue;
     }
-    const upper=line.toUpperCase();
-    if(upper.startsWith('[')){
-      if(
-        upper.includes('COMPI')
-      ){
-        section='COMPI';
-      }else if(
-        upper.includes('RESULT') ||
-        upper.includes('結果')
-      ){
-        section='RESULT';
-      }else{
-        section='';
-      }
+
+    const numbers = line.match(
+      /\d+(?:\.\d+)?/g
+    );
+
+    if(!numbers || numbers.length < 2){
       continue;
     }
-    if(section==='COMPI'){
-      const match=line.match(
-        /^(\d+)\s+(\d+(?:\.\d+)?)/
-      );
-      if(match){
-        compi.push({
-          horse:String(
-            Number(match[1])
-          ),
-          point:Number(match[2]),
-          recommended:
-            /(推奨|推薦|★|◎|赤)/
-            .test(line)
-        });
-      }
-    }else if(section==='RESULT'){
-      const match=line.match(
-        /(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/
-      );
-      if(match){
-        result=[
-          match[1],
-          match[2],
-          match[3]
-        ];
-      }
+
+    const no = Number(numbers[0]);
+    const index = Number(numbers[1]);
+
+    if(no > 0 && index > 0){
+      horses.push({
+        no,
+        idx:index
+      });
     }
   }
-  const seen=new Set();
-  compi=compi.filter(row=>{
-    if(seen.has(row.horse)){
-      return false;
-    }
-    seen.add(row.horse);
-    return true;
-  });
-  compi.sort(
-    (a,b)=>
-      b.point-a.point ||
-      Number(a.horse)-Number(b.horse)
+
+  if(horses.length < 3){
+    throw Error(
+      '[COMPI] は最低3頭必要です。'
+    );
+  }
+
+  const horseNumbers = horses.map(
+    horse => horse.no
   );
-  if(compi.length<3){
-    throw new Error(
-      `${title}：COMPIを3頭以上入力してください`
-    );
-  }
+
   if(
-    result.length &&
-    new Set(result).size!==3
+    new Set(horseNumbers).size !==
+    horses.length
   ){
-    throw new Error(
-      `${title}：RESULTの馬番が重複しています`
+    throw Error(
+      '[COMPI] に同じ馬番が重複しています。'
     );
   }
-  return {
-    title,
-    ...meta,
-    compi,
-    result
-  };
-}
-function parseMultiple(raw){
-  const rows=[];
-  const errors=[];
-  for(
-    const block of splitRaceBlocks(raw)
+
+  horses.sort(
+    (a,b) => b.idx - a.idx || a.no - b.no
+  );
+
+  const recommendSection = section(
+    text,
+    'RECOMMEND'
+  );
+
+  let recommend = '';
+
+  if(
+    recommendSection &&
+    !/^(なし|無|none|-+)$/i.test(
+      recommendSection.trim()
+    )
   ){
-    try{
-      rows.push(
-        parseRaceBlock(block)
+    const recommendNumbers =
+      recommendSection.match(/\d+/g) || [];
+
+    if(recommendNumbers.length !== 1){
+      throw Error(
+        '推奨馬は赤文字の1頭だけにしてください。'
       );
-    }catch(error){
-      errors.push(
-        error.message||
-        String(error)
+    }
+
+    recommend = String(
+      Number(recommendNumbers[0])
+    );
+
+    if(
+      !horses.some(
+        horse => String(horse.no) === recommend
+      )
+    ){
+      throw Error(
+        '推奨馬が[COMPI]内にありません。'
       );
     }
   }
-  if(!rows.length){
-    throw new Error(
-      errors.join(' / ')||
-      '解析できるレースがありません'
-    );
+
+  const resultSection = section(
+    text,
+    'RESULT'
+  );
+
+  let result = [];
+
+  if(
+    resultSection &&
+    !/^(なし|未入力|-+)$/i.test(
+      resultSection.trim()
+    )
+  ){
+    result = (
+      resultSection.match(/\d+/g) || []
+    )
+      .slice(0,3)
+      .map(Number);
+
+    if(
+      result.length !== 3 ||
+      new Set(result).size !== 3
+    ){
+      throw Error(
+        '[RESULT] は「1着-2着-3着」の3頭を重複なく入力してください。'
+      );
+    }
+
+    if(
+      result.some(
+        number =>
+          !horses.some(
+            horse => horse.no === number
+          )
+      )
+    ){
+      throw Error(
+        '[RESULT] に[COMPI]にない馬番があります。'
+      );
+    }
   }
-  return {
-    rows,
-    errors
-  };
+
+  return buildRow(
+    meta,
+    horses,
+    recommend,
+    result
+  );
 }
-function pClass(sum){
-  if(sum<=205){
-    return 'P1';
-  }
-  if(sum<=209){
-    return 'P2';
-  }
-  if(sum<=213){
-    return 'P3';
-  }
-  if(sum<=216){
-    return 'P4';
-  }
-  if(sum<=219){
-    return 'P5';
-  }
-  return 'P6';
-}
-function medianItems(rows){
-  if(!rows.length){
-    return [];
-  }
-  return rows.length%2
-    ?[
-      rows[
-        Math.floor(
-          rows.length/2
-        )
-      ]
-    ]
-    :[
-      rows[rows.length/2-1],
-      rows[rows.length/2]
-    ];
-}
-function groupOf(rank){
-  if(rank<=5){
-    return 'A';
-  }
-  if(rank<=10){
-    return 'B';
-  }
-  if(rank<=15){
-    return 'C';
-  }
-  return 'D';
-}
-function analyzeData(data){
-  const compi=data.compi;
-  const headCount=compi.length;
-  const pointAt=index=>
-    compi[index]?.point??null;
-  const pointGap=(before,after)=>
-    pointAt(before)!=null &&
-    pointAt(after)!=null
-      ?pointAt(before)-pointAt(after)
-      :null;
-  const gaps=[];
+
+function buildRow(
+  meta,
+  horses,
+  recommend,
+  result
+){
+  const value = index =>
+    horses[index]?.idx ?? '';
+
+  const difference = (first,second) =>
+    horses[first] && horses[second]
+      ? horses[first].idx - horses[second].idx
+      : '';
+
+  const gaps = [];
+
   for(
-    let index=0;
-    index<headCount-1;
+    let index = 0;
+    index < horses.length - 1;
     index++
   ){
     gaps.push({
-      afterRank:index+1,
-      gap:
-        compi[index].point-
-        compi[index+1].point,
-      before:
-        compi[index].horse,
-      after:
-        compi[index+1].horse
+      pos:index + 1,
+      diff:
+        horses[index].idx -
+        horses[index + 1].idx
     });
   }
-  const walls=[
-    ...gaps
-  ].sort(
-    (a,b)=>
-      b.gap-a.gap ||
-      a.afterRank-b.afterRank
+
+  gaps.sort(
+    (a,b) =>
+      b.diff - a.diff ||
+      a.pos - b.pos
   );
-  const maxWall=walls[0];
-  const secondWall=
-    walls[1]||{};
-  const wallInside=
-    compi.slice(
-      0,
-      maxWall.afterRank
-    );
-  const wallMedian=
-    medianItems(
-      wallInside
-    );
-  const wallFront2=
-    compi.slice(
-      Math.max(
-        0,
-        maxWall.afterRank-2
-      ),
-      maxWall.afterRank
-    ).map(
-      row=>row.horse
-    );
-  const rankMap=
-    Object.fromEntries(
-      compi.map(
-        (row,index)=>[
-          row.horse,
-          index+1
-        ]
-      )
-    );
-  const pointMap=
-    Object.fromEntries(
-      compi.map(
-        row=>[
-          row.horse,
-          row.point
-        ]
-      )
-    );
-  const hasResult=
-    data.result.length===3;
-  const resultRanks=
-    hasResult
-      ?data.result.map(
-        horse=>
-          rankMap[horse]||null
-      )
-      :[];
-  const resultPoints=
-    hasResult
-      ?data.result.map(
-        horse=>
-          pointMap[horse]??null
-      )
-      :[];
-  const resultGroups=
-    hasResult
-      ?resultRanks.map(
-        rank=>
-          rank
-            ?groupOf(rank)
-            :'圏外'
-      )
-      :[];
-  const recommendedRows=
-    compi.filter(
-      row=>row.recommended
-    );
-  const recommendedFinishes=
-    recommendedRows.map(row=>{
-      if(!hasResult){
-        return null;
-      }
-      const index=
-        data.result.indexOf(
-          row.horse
-        );
-      return index>=0
-        ?index+1
-        :null;
-    });
-  const top3Sum=
-    compi
+
+  const wall = gaps[0] || {
+    pos:'',
+    diff:''
+  };
+
+  const secondWall = gaps[1] || {
+    pos:'',
+    diff:''
+  };
+
+  const inside = wall.pos
+    ? horses.slice(0,wall.pos)
+    : [];
+
+  const medianRank = inside.length
+    ? Math.floor(
+        (inside.length - 1) / 2
+      ) + 1
+    : '';
+
+  const medianHorse = medianRank
+    ? horses[medianRank - 1]
+    : null;
+
+  const lowHorses = horses.filter(
+    horse =>
+      horse.idx >= 46 &&
+      horse.idx <= 49
+  );
+
+  const topThreeSum = horses
     .slice(0,3)
     .reduce(
-      (sum,row)=>
-        sum+row.point,
+      (sum,horse) => sum + horse.idx,
       0
     );
-  const low46to49=
-    compi.filter(
-      row=>
-        row.point>=46 &&
-        row.point<=49
-    );
-  return {
-    id:[
-      data.date||'nodate',
-      data.place,
-      data.raceNo
-    ].join('_'),
-    createdAt:
-      new Date().toISOString(),
-    updatedAt:
-      new Date().toISOString(),
-    date:data.date,
-    place:data.place,
-    raceNo:data.raceNo,
-    title:data.title,
-    headCount,
-    hasResult,
-    compiOrder:
-      compi.map(
-        row=>row.horse
+
+  const recommendHorse = recommend
+    ? horses.find(
+        horse =>
+          String(horse.no) === recommend
+      )
+    : null;
+
+  const row = Object.fromEntries(
+    HEADERS.map(
+      header => [header,'']
+    )
+  );
+
+  Object.assign(row,{
+    '日付':meta.date,
+    '場':meta.place,
+    'R':meta.race,
+    '結果入力済み':
+      result.length ? '1' : '0',
+    '頭数':String(horses.length),
+
+    '全馬コンピ順位列':
+      horses
+        .map(horse => horse.no)
+        .join('|'),
+
+    '全馬指数列':
+      horses
+        .map(horse => horse.idx)
+        .join('|'),
+
+    '推奨馬':recommend,
+
+    '推奨馬順位':
+      recommendHorse
+        ? String(
+            horses.indexOf(
+              recommendHorse
+            ) + 1
+          )
+        : '',
+
+    '推奨馬指数':
+      recommendHorse
+        ? String(recommendHorse.idx)
+        : '',
+
+    'コンピ1位馬':
+      String(horses[0]?.no ?? ''),
+
+    'コンピ1位指数':
+      String(value(0)),
+
+    'コンピ2位馬':
+      String(horses[1]?.no ?? ''),
+
+    'コンピ2位指数':
+      String(value(1)),
+
+    'コンピ3位馬':
+      String(horses[2]?.no ?? ''),
+
+    'コンピ3位指数':
+      String(value(2)),
+
+    'P':pClass(topThreeSum),
+
+    '上位3合計':
+      String(topThreeSum),
+
+    '差1_2':
+      String(difference(0,1)),
+
+    '差2_3':
+      String(difference(1,2)),
+
+    '差1_3':
+      String(difference(0,2)),
+
+    '差3_5':
+      String(difference(2,4)),
+
+    '差5_6':
+      String(difference(4,5)),
+
+    '差6_7':
+      String(difference(5,6)),
+
+    '上位5合計':
+      String(
+        horses
+          .slice(0,5)
+          .reduce(
+            (sum,horse) =>
+              sum + horse.idx,
+            0
+          )
       ),
-    compiPoints:
-      compi.map(
-        row=>row.point
-      ),
-    recommendedHorses:
-      recommendedRows.map(
-        row=>row.horse
-      ),
-    recommendedRanks:
-      recommendedRows.map(
-        row=>rankMap[row.horse]
-      ),
-    recommendedPoints:
-      recommendedRows.map(
-        row=>row.point
-      ),
-    recommendedFinishes,
-    compi1Horse:
-      compi[0]?.horse||'',
-    compi1Point:
-      compi[0]?.point??'',
-    compi2Horse:
-      compi[1]?.horse||'',
-    compi2Point:
-      compi[1]?.point??'',
-    compi3Horse:
-      compi[2]?.horse||'',
-    compi3Point:
-      compi[2]?.point??'',
-    pClass:
-      pClass(top3Sum),
-    top3Sum,
-    diff12:
-      pointGap(0,1),
-    diff23:
-      pointGap(1,2),
-    diff13:
-      pointGap(0,2),
-    diff35:
-      headCount>=5
-        ?pointGap(2,4)
-        :null,
-    diff56:
-      headCount>=6
-        ?pointGap(4,5)
-        :null,
-    diff67:
-      headCount>=7
-        ?pointGap(5,6)
-        :null,
-    top5Sum:
-      compi
-      .slice(0,5)
-      .reduce(
-        (sum,row)=>
-          sum+row.point,
-        0
-      ),
-    top5Width:
-      headCount>=5
-        ?compi[0].point-
-         compi[4].point
-        :null,
-    maxWallRank:
-      maxWall.afterRank,
-    maxWallGap:
-      maxWall.gap,
-    wallBeforeHorse:
-      maxWall.before,
-    wallAfterHorse:
-      maxWall.after,
-    wallFront2,
-    wallInsideCount:
-      wallInside.length,
-    wallMedianHorses:
-      wallMedian.map(
-        row=>row.horse
-      ),
-    wallMedianRanks:
-      wallMedian.map(
-        row=>rankMap[row.horse]
-      ),
-    wallMedianPoints:
-      wallMedian.map(
-        row=>row.point
-      ),
-    secondWallRank:
-      secondWall.afterRank??null,
-    secondWallGap:
-      secondWall.gap??null,
-    low46to49Horses:
-      low46to49.map(
-        row=>row.horse
-      ),
-    low46to49Points:
-      low46to49.map(
-        row=>row.point
-      ),
-    result:data.result,
-    resultRanks,
-    resultPoints,
-    resultGroups,
-    recHit:
-      hasResult
-        ?recommendedFinishes.some(
-          finish=>
-            finish &&
-            finish<=3
-        )
-        :null,
-    wallFrontWin:
-      hasResult
-        ?wallFront2.includes(
-          data.result[0]
-        )
-        :null,
-    wallAfterHit:
-      hasResult
-        ?data.result.includes(
-          maxWall.after
-        )
-        :null,
-    wallMedianHit:
-      hasResult
-        ?wallMedian.some(
-          row=>
-            data.result.includes(
-              row.horse
+
+    '上位5幅':
+      horses[4]
+        ? String(
+            horses[0].idx -
+            horses[4].idx
+          )
+        : '',
+
+    '最大壁位置':
+      String(wall.pos),
+
+    '最大壁差':
+      String(wall.diff),
+
+    '壁前馬':
+      wall.pos
+        ? String(
+            horses[wall.pos - 1].no
+          )
+        : '',
+
+    '壁前2頭':
+      wall.pos
+        ? horses
+            .slice(
+              Math.max(0,wall.pos - 2),
+              wall.pos
             )
-        )
-        :null,
-    top4:
-      hasResult
-        ?resultRanks.every(
-          rank=>
-            rank &&
-            rank<=4
-        )
-        :null,
-    aComplete:
-      hasResult
-        ?resultRanks.every(
-          rank=>
-            rank &&
-            rank<=5
-        )
-        :null,
-    bIn:
-      hasResult
-        ?resultGroups.includes('B')
-        :null,
-    cIn:
-      hasResult
-        ?resultGroups.includes('C')
-        :null,
-    dIn:
-      hasResult
-        ?resultGroups.includes('D')
-        :null
-  };
-}
-function list(rows){
-  return rows&&rows.length
-    ?rows.join('・')
-    :'なし';
-}
-function renderOne(row){
-  const recommendedText=
-    row.recommendedHorses.map(
-      (horse,index)=>
-        `${horse}番（${row.recommendedRanks[index]}位・${row.recommendedPoints[index]}P${row.hasResult?'・'+(row.recommendedFinishes[index]||'着外'):''}）`
+            .map(horse => horse.no)
+            .join('|')
+        : '',
+
+    '壁直後':
+      wall.pos && horses[wall.pos]
+        ? String(
+            horses[wall.pos].no
+          )
+        : '',
+
+    '壁内頭数':
+      String(inside.length),
+
+    '壁内メジアン馬':
+      medianHorse
+        ? String(medianHorse.no)
+        : '',
+
+    '壁内メジアン順位':
+      medianRank
+        ? String(medianRank)
+        : '',
+
+    '壁内メジアン指数':
+      medianHorse
+        ? String(medianHorse.idx)
+        : '',
+
+    '第2壁位置':
+      String(secondWall.pos),
+
+    '第2壁差':
+      String(secondWall.diff),
+
+    '46_49馬':
+      lowHorses
+        .map(horse => horse.no)
+        .join('|'),
+
+    '46_49指数':
+      lowHorses
+        .map(horse => horse.idx)
+        .join('|')
+  });
+
+  if(result.length){
+    applyResultToRow(
+      row,
+      result,
+      horses
     );
-  const resultText=
-    row.hasResult
-      ?`${row.result.join('-')} ／ 順位 ${row.resultRanks.map(value=>value??'圏外').join('-')} ／ 指数 ${row.resultPoints.map(value=>value??'-').join('-')}P`
-      :'未入力（事前解析）';
-  return `
-  <div class="card raceCard">
-  <div class="title">
-  🏇 ${esc(
-    row.title||
-    `${row.place}${row.raceNo}R`
-  )}
-  </div>
-  <div class="grid4">
-  <div class="box">
-  <div class="boxL">P判定</div>
-  <div class="boxV">
-  ${row.pClass}（${row.top3Sum}）
-  </div>
-  </div>
-  <div class="box">
-  <div class="boxL">最大壁</div>
-  <div class="boxV">
-  ${row.maxWallRank}位後 ${row.maxWallGap}P
-  </div>
-  </div>
-  <div class="box">
-  <div class="boxL">第2壁</div>
-  <div class="boxV">
-  ${row.secondWallRank??'-'}位後 ${row.secondWallGap??'-'}P
-  </div>
-  </div>
-  <div class="box">
-  <div class="boxL">結果</div>
-  <div class="boxV">
-  ${row.hasResult
-    ?esc(row.result.join('-'))
-    :'未入力'}
-  </div>
-  </div>
-  </div>
-  <div class="note">
-  <b>差：</b>
-  1-2=${row.diff12}P ／
-  2-3=${row.diff23}P ／
-  1-3=${row.diff13}P ／
-  3-5=${row.diff35??'-'}P ／
-  5-6=${row.diff56??'-'}P ／
-  6-7=${row.diff67??'-'}P
-  <br>
-  <b>壁前2頭：</b>
-  ${list(row.wallFront2)}
-  ／
-  <b>壁直後：</b>
-  ${row.wallAfterHorse}
-  ／
-  <b>壁内メジアン：</b>
-  ${list(row.wallMedianHorses)}
-  <br>
-  <b>46〜49P：</b>
-  ${
-    row.low46to49Horses.length
-      ?row.low46to49Horses
-        .map(
-          (horse,index)=>
-            `${horse}番${row.low46to49Points[index]}P`
-        )
-        .join('・')
-      :'なし'
   }
-  <br>
-  <b>推奨馬：</b>
-  ${recommendedText.join(' ／ ')||'なし'}
-  <br>
-  <b>結果：</b>
-  ${resultText}
-  </div>
-  <div>
-  ${
-    row.hasResult &&
-    row.wallFrontWin
-      ?'<span class="badge good">壁前2頭から1着</span>'
-      :''
-  }
-  ${
-    row.hasResult &&
-    row.wallAfterHit
-      ?'<span class="badge good">壁直後3着内</span>'
-      :''
-  }
-  ${
-    row.hasResult &&
-    row.wallMedianHit
-      ?'<span class="badge good">壁メジアン3着内</span>'
-      :''
-  }
-  ${
-    row.hasResult &&
-    row.top4
-      ?'<span class="badge cyan">上位4頭決着</span>'
-      :''
-  }
-  ${
-    row.hasResult &&
-    row.aComplete
-      ?'<span class="badge cyan">上位5頭決着</span>'
-      :''
-  }
-  ${
-    row.hasResult &&
-    row.bIn
-      ?'<span class="badge">B群侵入</span>'
-      :''
-  }
-  ${
-    row.hasResult &&
-    row.cIn
-      ?'<span class="badge warn">C群侵入</span>'
-      :''
-  }
-  ${
-    row.hasResult &&
-    row.dIn
-      ?'<span class="badge warn">D群侵入</span>'
-      :''
-  }
-  </div>
-  </div>
-  `;
+
+  return row;
 }
-function renderAll(){
-  const element=
-    document.getElementById(
-      'analysis'
-    );
-  if(!currents.length){
-    element.innerHTML='';
-    return;
-  }
-  element.innerHTML=`
-  <div class="card kpi">
-  <div class="title">
-  📊 一括解析結果
-  </div>
-  <div class="grid3">
-  <div class="box">
-  <div class="boxL">解析レース数</div>
-  <div class="boxV">
-  ${currents.length}
-  </div>
-  </div>
-  <div class="box">
-  <div class="boxL">結果入力済み</div>
-  <div class="boxV">
-  ${
-    currents.filter(
-      row=>row.hasResult
-    ).length
-  }
-  </div>
-  </div>
-  <div class="box">
-  <div class="boxL">事前解析</div>
-  <div class="boxV">
-  ${
-    currents.filter(
-      row=>!row.hasResult
-    ).length
-  }
-  </div>
-  </div>
-  </div>
-  </div>
-  `+
-  currents
-  .map(renderOne)
-  .join('');
+
+function applyResultToRow(
+  row,
+  result,
+  horses
+){
+  const ranks = result.map(
+    number =>
+      horses.findIndex(
+        horse => horse.no === number
+      ) + 1
+  );
+
+  const indexes = result.map(
+    number =>
+      horses.find(
+        horse => horse.no === number
+      )?.idx ?? ''
+  );
+
+  const groups = ranks.map(group);
+
+  Object.assign(row,{
+    '結果入力済み':'1',
+
+    '結果':
+      result.join('-'),
+
+    '結果1着馬':
+      String(result[0]),
+
+    '結果2着馬':
+      String(result[1]),
+
+    '結果3着馬':
+      String(result[2]),
+
+    '結果コンピ順位':
+      ranks.join('|'),
+
+    '結果コンピ指数':
+      indexes.join('|'),
+
+    '結果群':
+      groups.join('|'),
+
+    '推奨馬着順':
+      row.推奨馬
+        ? result.includes(
+            Number(row.推奨馬)
+          )
+          ? String(
+              result.indexOf(
+                Number(row.推奨馬)
+              ) + 1
+            )
+          : '着外'
+        : '',
+
+    '推奨馬3着内':
+      row.推奨馬
+        ? result.includes(
+            Number(row.推奨馬)
+          )
+          ? '1'
+          : '0'
+        : '',
+
+    '壁前勝利':
+      String(result[0]) ===
+      row.壁前馬
+        ? '1'
+        : '0',
+
+    '壁直後3着内':
+      row.壁直後 &&
+      result.includes(
+        Number(row.壁直後)
+      )
+        ? '1'
+        : '0',
+
+    '壁メジアン3着内':
+      row.壁内メジアン馬 &&
+      result.includes(
+        Number(row.壁内メジアン馬)
+      )
+        ? '1'
+        : '0',
+
+    '上位4頭決着':
+      ranks.every(
+        rank => rank <= 4
+      )
+        ? '1'
+        : '0',
+
+    'A群完結':
+      ranks.every(
+        rank => rank <= 5
+      )
+        ? '1'
+        : '0',
+
+    'B侵入':
+      groups.includes('B')
+        ? '1'
+        : '0',
+
+    'C侵入':
+      groups.includes('C')
+        ? '1'
+        : '0',
+
+    'D侵入':
+      groups.includes('D')
+        ? '1'
+        : '0'
+  });
 }
-function analyzeAll(){
+
+function summaryOf(row){
+  return `【${row.日付} ${row.場}${row.R}R コンピ研究】
+P：${row.P}（${row.上位3合計}）
+差：1-2=${row.差1_2}  2-3=${row.差2_3}  1-3=${row.差1_3}  3-5=${row.差3_5}  5-6=${row.差5_6}  6-7=${row.差6_7}
+最大壁：${row.最大壁位置}位後 ${row.最大壁差}P
+壁前2頭：${row.壁前2頭 || 'なし'}
+壁直後：${row.壁直後 || 'なし'}
+壁内メジアン：${row.壁内メジアン馬 || 'なし'}
+推奨馬（赤文字）：${row.推奨馬 || 'なし'}
+上位5頭：${row.全馬コンピ順位列.split('|').slice(0,5).join('・')}
+46〜49P：${row['46_49馬'] || 'なし'}
+結果：${row.結果 || '未入力'}`;
+}
+
+function parseAndPreview(){
   try{
-    const parsed=
-      parseMultiple(
-        document
-        .getElementById('input')
-        .value
-      );
-    currents=
-      parsed.rows.map(
-        analyzeData
-      );
-    renderAll();
-    const warning=
-      parsed.errors.length
-        ?` ／ 読み飛ばし${parsed.errors.length}件：${parsed.errors.join(' | ')}`
-        :'';
-    document
-    .getElementById('status')
-    .innerHTML=
-      `<span class="good">${currents.length}レースを一括解析しました</span>${esc(warning)}`;
+    const row = parseCode(
+      pasteBox.value
+    );
+
+    preview.textContent =
+      summaryOf(row);
+
+    setMsg(
+      '解析できました。内容を確認してください。',
+      true
+    );
+
+    return row;
   }catch(error){
-    currents=[];
-    renderAll();
-    document
-    .getElementById('status')
-    .innerHTML=
-      `<span class="warn">${esc(error.message||error)}</span>`;
+    preview.textContent =
+      '解析失敗';
+
+    setMsg(
+      error.message,
+      false
+    );
+
+    return null;
   }
 }
-async function saveAllCurrent(){
-  if(!currents.length){
-    alert(
-      '先に一括解析してください'
-    );
+
+function parseAndSave(){
+  const row = parseAndPreview();
+
+  if(!row){
     return;
   }
-  for(const row of currents){
-    await putRow(row);
+
+  const index = db.findIndex(
+    savedRow =>
+      keyOf(savedRow) === keyOf(row)
+  );
+
+  if(index >= 0){
+    const oldRow = db[index];
+
+    if(
+      !row.結果 &&
+      oldRow.結果入力済み === '1'
+    ){
+      const resultHeaders = [
+        '結果入力済み',
+        '結果',
+        '結果1着馬',
+        '結果2着馬',
+        '結果3着馬',
+        '結果コンピ順位',
+        '結果コンピ指数',
+        '結果群',
+        '推奨馬着順',
+        '推奨馬3着内',
+        '壁前勝利',
+        '壁直後3着内',
+        '壁メジアン3着内',
+        '上位4頭決着',
+        'A群完結',
+        'B侵入',
+        'C侵入',
+        'D侵入'
+      ];
+
+      for(const header of resultHeaders){
+        row[header] =
+          oldRow[header] || '';
+      }
+    }
+
+    db[index] = row;
+
+    setMsg(
+      '同じレースを更新しました。',
+      true
+    );
+  }else{
+    db.push(row);
+
+    setMsg(
+      '新しいレースを保存しました。',
+      true
+    );
   }
-  document
-  .getElementById('status')
-  .innerHTML=
-    `<span class="good">${currents.length}レースを一括保存しました</span>`;
-  await refreshAll();
+
+  persist();
+  renderAll();
 }
-async function deleteOne(id){
+
+function loadAsCode(index){
+  const row = db[index];
+
+  const numbers =
+    row.全馬コンピ順位列.split('|');
+
+  const indexes =
+    row.全馬指数列.split('|');
+
+  let code =
+    `【${row.日付} ${row.場}${row.R}R】\n[COMPI]\n`;
+
+  for(
+    let position = 0;
+    position < numbers.length;
+    position++
+  ){
+    code +=
+      `${numbers[position]} ${indexes[position]}\n`;
+  }
+
+  code +=
+    `[RECOMMEND]\n${row.推奨馬 || 'なし'}\n`;
+
+  if(row.結果){
+    code +=
+      `[RESULT]\n${row.結果}\n`;
+  }
+
+  pasteBox.value =
+    code.trim();
+
+  preview.textContent =
+    summaryOf(row);
+
+  scrollTo({
+    top:0,
+    behavior:'smooth'
+  });
+}
+
+function deleteRace(index){
   if(
-    confirm(
+    !confirm(
       'このレースを削除しますか？'
     )
   ){
-    await delRow(id);
-    await refreshAll();
+    return;
   }
-}
-async function deleteAll(){
-  if(
-    confirm(
-      '全件削除します。JSONバックアップ済みですか？'
-    )
-  ){
-    await clearDB();
-    currents=[];
-    renderAll();
-    await refreshAll();
-  }
-}
-function clearInput(){
-  document
-  .getElementById('input')
-  .value='';
-  currents=[];
+
+  db.splice(index,1);
+
+  persist();
   renderAll();
-  document
-  .getElementById('status')
-  .textContent=
-    '入力待機中';
-}
-function sample(){
-  const blocks=[];
-  for(
-    let raceNo=1;
-    raceNo<=12;
-    raceNo++
-  ){
-    const horses=[];
-    for(
-      let index=0;
-      index<12;
-      index++
-    ){
-      const horse=
-        (
-          (
-            raceNo+
-            index*2
-          )%12
-        )+1;
-      const point=
-        Math.max(
-          40,
-          90-
-          raceNo-
-          index*4+
-          (
-            index===1
-              ?2
-              :0
-          )
-        );
-      horses.push(
-        `${horse} ${point}${raceNo===5&&index===0?' 推奨':''}`
-      );
-    }
-    blocks.push(
-`【2026-08-08 新潟${raceNo}R】
-[COMPI]
-${horses.join('\n')}`
-    );
-  }
-  document
-  .getElementById('input')
-  .value=
-    blocks.join('\n\n');
-  analyzeAll();
-}
-function summaryText(row){
-  return `【${row.title||row.place+row.raceNo+'R'} コンピ研究】
-P：${row.pClass}（${row.top3Sum}）
-差：1-2=${row.diff12} 2-3=${row.diff23} 1-3=${row.diff13} 3-5=${row.diff35??'-'} 5-6=${row.diff56??'-'} 6-7=${row.diff67??'-'}
-最大壁：${row.maxWallRank}位後${row.maxWallGap}P
-第2壁：${row.secondWallRank??'-'}位後${row.secondWallGap??'-'}P
-壁前2頭：${row.wallFront2.join('・')}
-壁直後：${row.wallAfterHorse}
-壁内メジアン：${row.wallMedianHorses.join('・')}
-46〜49P：${row.low46to49Horses.join('・')||'なし'}
-推奨馬：${row.recommendedHorses.join('・')||'なし'}
-結果：${row.hasResult?row.result.join('-'):'未入力'}`;
-}
-async function copyAllSummary(){
-  if(!currents.length){
-    alert(
-      '先に一括解析してください'
-    );
-    return;
-  }
-  const text=
-    currents
-    .map(summaryText)
-    .join('\n\n');
-  try{
-    await navigator
-    .clipboard
-    .writeText(text);
-    alert(
-      '全解析結果をコピーしました'
-    );
-  }catch(error){
-    prompt(
-      'コピーしてください',
-      text
-    );
-  }
-}
-async function refreshAll(){
-  await refreshStats();
-  await refreshTable();
-}
-async function refreshStats(){
-  const all=
-    await getAll();
-  document
-  .getElementById('count')
-  .textContent=
-    all.length;
-  const withResult=
-    all.filter(
-      row=>row.hasResult
-    );
-  document
-  .getElementById('resultCount')
-  .textContent=
-    withResult.length;
-  const recommendedRows=
-    withResult.filter(
-      row=>
-        row.recommendedHorses?.length
-    );
-  const recommendedHits=
-    recommendedRows.filter(
-      row=>row.recHit
-    ).length;
-  document
-  .getElementById('recRate')
-  .textContent=
-    recommendedRows.length
-      ?`${(recommendedHits/recommendedRows.length*100).toFixed(1)}% (${recommendedHits}/${recommendedRows.length})`
-      :'-';
-  const wallHits=
-    withResult.filter(
-      row=>row.wallAfterHit
-    ).length;
-  document
-  .getElementById('wallAfterRate')
-  .textContent=
-    withResult.length
-      ?`${(wallHits/withResult.length*100).toFixed(1)}% (${wallHits}/${withResult.length})`
-      :'-';
-}
-async function refreshTable(){
-  if(!db){
-    return;
-  }
-  let rows=
-    await getAll();
-  const place=
-    document
-    .getElementById('qPlace')
-    .value
-    .trim();
-  const p=
-    document
-    .getElementById('qP')
-    .value;
-  const flag=
-    document
-    .getElementById('qFlag')
-    .value;
-  if(place){
-    rows=rows.filter(
-      row=>
-        (row.place||'').includes(place) ||
-        (row.title||'').includes(place)
-    );
-  }
-  if(p){
-    rows=rows.filter(
-      row=>row.pClass===p
-    );
-  }
-  if(flag){
-    rows=rows.filter(
-      row=>
-        flag==='hasResult'
-          ?row.hasResult===true
-          :row[flag]===true
-    );
-  }
-  rows.sort(
-    (a,b)=>
-      (b.date||'')
-      .localeCompare(
-        a.date||''
-      ) ||
-      Number(b.raceNo)-
-      Number(a.raceNo)
+
+  setMsg(
+    '削除しました。',
+    true
   );
-  document
-  .getElementById('table')
-  .innerHTML=
-    rows.length
-      ?`
-      <table>
-      <thead>
-      <tr>
-      <th>日付</th>
-      <th>場</th>
-      <th>R</th>
-      <th>結果有無</th>
-      <th>P</th>
-      <th>推奨馬</th>
-      <th>結果</th>
-      <th>結果順位</th>
-      <th>1-2</th>
-      <th>2-3</th>
-      <th>1-3</th>
-      <th>3-5</th>
-      <th>5-6</th>
-      <th>6-7</th>
-      <th>最大壁</th>
-      <th>第2壁</th>
-      <th>壁前2</th>
-      <th>壁直後</th>
-      <th>壁メジアン</th>
-      <th>46〜49P</th>
-      <th>群</th>
-      <th>操作</th>
-      </tr>
-      </thead>
-      <tbody>
-      ${
-        rows.map(row=>`
-        <tr>
-        <td>${esc(row.date)}</td>
-        <td>${esc(row.place)}</td>
-        <td>${row.raceNo}</td>
-        <td>
-        ${row.hasResult?'済':'未'}
-        </td>
-        <td>
-        ${row.pClass}(${row.top3Sum})
-        </td>
-        <td>
-        ${esc(
-          (row.recommendedHorses||[])
-          .join('|')||'-'
-        )}
-        </td>
-        <td>
-        ${esc(
-          (row.result||[])
-          .join('-')||'-'
-        )}
-        </td>
-        <td>
-        ${esc(
-          (row.resultRanks||[])
-          .map(
-            value=>value??'圏外'
-          )
-          .join('-')||'-'
-        )}
-        </td>
-        <td>${row.diff12}</td>
-        <td>${row.diff23}</td>
-        <td>${row.diff13}</td>
-        <td>${row.diff35??'-'}</td>
-        <td>${row.diff56??'-'}</td>
-        <td>${row.diff67??'-'}</td>
-        <td>
-        ${row.maxWallRank}位後${row.maxWallGap}P
-        </td>
-        <td>
-        ${row.secondWallRank??'-'}位後${row.secondWallGap??'-'}P
-        </td>
-        <td>
-        ${esc(
-          (row.wallFront2||[])
-          .join('|')
-        )}
-        </td>
-        <td>
-        ${esc(row.wallAfterHorse)}
-        </td>
-        <td>
-        ${esc(
-          (row.wallMedianHorses||[])
-          .join('|')
-        )}
-        </td>
-        <td>
-        ${esc(
-          (row.low46to49Horses||[])
-          .join('|')||'-'
-        )}
-        </td>
-        <td>
-        ${esc(
-          (row.resultGroups||[])
-          .join('-')||'-'
-        )}
-        </td>
-        <td>
-        <button
-        class="red"
-        onclick='deleteOne(${JSON.stringify(row.id)})'
-        >
-        削除
-        </button>
-        </td>
-        </tr>
-        `).join('')
-      }
-      </tbody>
-      </table>
-      `
-      :'<div class="note">保存データなし</div>';
 }
-async function exportCSV(){
-  const all=
-    await getAll();
-  if(!all.length){
-    alert(
-      '保存データがありません'
+
+function renderAll(){
+  renderLog();
+  renderKpis();
+}
+
+function renderLog(){
+  const sorted = [...db].sort(
+    (a,b) =>
+      (
+        b.日付 +
+        b.場 +
+        String(b.R).padStart(2,'0')
+      ).localeCompare(
+        a.日付 +
+        a.場 +
+        String(a.R).padStart(2,'0')
+      )
+  );
+
+  logBody.innerHTML = sorted.map(
+    row => {
+      const index = db.indexOf(row);
+
+      return `
+        <tr>
+          <td>${esc(row.日付)}</td>
+          <td>${esc(row.場)}</td>
+          <td>${esc(row.R)}</td>
+          <td>${esc(row.P)}</td>
+
+          <td style="color:var(--red);font-weight:900">
+            ${esc(row.推奨馬 || '—')}
+          </td>
+
+          <td>${esc(row.結果 || '未')}</td>
+
+          <td>
+            <button
+              onclick="loadAsCode(${index})"
+              style="padding:5px 7px"
+            >
+              開く
+            </button>
+
+            <button
+              class="red"
+              onclick="deleteRace(${index})"
+              style="padding:5px 7px"
+            >
+              削除
+            </button>
+          </td>
+        </tr>
+      `;
+    }
+  ).join('');
+}
+
+function renderKpis(){
+  const completed = db.filter(
+    row =>
+      row.結果入力済み === '1'
+  );
+
+  const recommended = completed.filter(
+    row => row.推奨馬
+  );
+
+  const recommendedHit =
+    recommended.filter(
+      row =>
+        row.推奨馬3着内 === '1'
     );
-    return;
-  }
-  const rows=
-    all.map(row=>({
-      日付:
-        row.date,
-      場:
-        row.place,
-      R:
-        row.raceNo,
-      結果入力済み:
-        row.hasResult?'1':'0',
-      頭数:
-        row.headCount,
-      全馬コンピ順位列:
-        row.compiOrder.join('|'),
-      全馬指数列:
-        row.compiPoints.join('|'),
-      推奨馬:
-        row.recommendedHorses.join('|'),
-      推奨馬順位:
-        row.recommendedRanks.join('|'),
-      推奨馬指数:
-        row.recommendedPoints.join('|'),
-      推奨馬着順:
-        row.recommendedFinishes
-        .map(
-          value=>value||'着外'
-        )
-        .join('|'),
-      コンピ1位馬:
-        row.compi1Horse,
-      コンピ1位指数:
-        row.compi1Point,
-      コンピ2位馬:
-        row.compi2Horse,
-      コンピ2位指数:
-        row.compi2Point,
-      コンピ3位馬:
-        row.compi3Horse,
-      コンピ3位指数:
-        row.compi3Point,
-      P:
-        row.pClass,
-      上位3合計:
-        row.top3Sum,
-      差1_2:
-        row.diff12,
-      差2_3:
-        row.diff23,
-      差1_3:
-        row.diff13,
-      差3_5:
-        row.diff35,
-      差5_6:
-        row.diff56,
-      差6_7:
-        row.diff67,
-      上位5合計:
-        row.top5Sum,
-      上位5幅:
-        row.top5Width,
-      最大壁位置:
-        row.maxWallRank,
-      最大壁差:
-        row.maxWallGap,
-      壁前馬:
-        row.wallBeforeHorse,
-      壁前2頭:
-        row.wallFront2.join('|'),
-      壁直後:
-        row.wallAfterHorse,
-      壁内頭数:
-        row.wallInsideCount,
-      壁内メジアン馬:
-        row.wallMedianHorses.join('|'),
-      壁内メジアン順位:
-        row.wallMedianRanks.join('|'),
-      壁内メジアン指数:
-        row.wallMedianPoints.join('|'),
-      第2壁位置:
-        row.secondWallRank,
-      第2壁差:
-        row.secondWallGap,
-      '46_49馬':
-        row.low46to49Horses.join('|'),
-      '46_49指数':
-        row.low46to49Points.join('|'),
-      結果:
-        row.result.join('-'),
-      結果1着馬:
-        row.result[0]||'',
-      結果2着馬:
-        row.result[1]||'',
-      結果3着馬:
-        row.result[2]||'',
-      結果コンピ順位:
-        row.resultRanks
-        .map(
-          value=>value??'圏外'
-        )
-        .join('|'),
-      結果コンピ指数:
-        row.resultPoints
-        .map(
-          value=>value??''
-        )
-        .join('|'),
-      結果群:
-        row.resultGroups.join('|'),
-      推奨馬3着内:
-        row.recHit===null
-          ?''
-          :row.recHit?'1':'0',
-      壁前勝利:
-        row.wallFrontWin===null
-          ?''
-          :row.wallFrontWin?'1':'0',
-      壁直後3着内:
-        row.wallAfterHit===null
-          ?''
-          :row.wallAfterHit?'1':'0',
-      壁メジアン3着内:
-        row.wallMedianHit===null
-          ?''
-          :row.wallMedianHit?'1':'0',
-      上位4頭決着:
-        row.top4===null
-          ?''
-          :row.top4?'1':'0',
-      A群完結:
-        row.aComplete===null
-          ?''
-          :row.aComplete?'1':'0',
-      B侵入:
-        row.bIn===null
-          ?''
-          :row.bIn?'1':'0',
-      C侵入:
-        row.cIn===null
-          ?''
-          :row.cIn?'1':'0',
-      D侵入:
-        row.dIn===null
-          ?''
-          :row.dIn?'1':'0'
-    }));
-  const keys=
-    Object.keys(rows[0]);
-  const csv=
-    '\ufeff'+
-    keys.map(csvEsc).join(',')+
-    '\n'+
-    rows.map(
-      row=>
-        keys.map(
-          key=>csvEsc(row[key])
-        ).join(',')
-    ).join('\n');
+
+  const hitRate = recommended.length
+    ? Math.round(
+        recommendedHit.length /
+        recommended.length *
+        100
+      )
+    : 0;
+
+  kpis.innerHTML = `
+    <div class="kpi">
+      <b>${db.length}</b>
+      総レース
+    </div>
+
+    <div class="kpi">
+      <b>${completed.length}</b>
+      結果入力
+    </div>
+
+    <div class="kpi">
+      <b>${hitRate}%</b>
+      推奨馬3着内
+    </div>
+  `;
+}
+
+function csvCell(value){
+  value = String(value ?? '');
+
+  return /[",\n]/.test(value)
+    ? '"' +
+      value.replace(/"/g,'""') +
+      '"'
+    : value;
+}
+
+function exportCSV(){
+  const text =
+    '\ufeff' +
+    [
+      HEADERS.join(','),
+
+      ...db.map(
+        row =>
+          HEADERS.map(
+            header =>
+              csvCell(row[header])
+          ).join(',')
+      )
+    ].join('\r\n');
+
   downloadBlob(
-    csv,
-    '競馬メジアン_中央コンピ研究所_V1.20_'+
-    new Date()
-    .toISOString()
-    .slice(0,10)+
-    '.csv',
+    text,
+    `競馬メジアン_中央コンピ研究所_V1.40_${new Date().toISOString().slice(0,10)}.csv`,
     'text/csv;charset=utf-8'
   );
-}
-async function exportJSON(){
-  const all=
-    await getAll();
-  downloadBlob(
-    JSON.stringify(
-      {
-        app:
-          '競馬メジアン中央コンピ研究所',
-        version:
-          '1.20',
-        mode:
-          'pure-validation',
-        exportedAt:
-          new Date().toISOString(),
-        races:
-          all
-      },
-      null,
-      2
-    ),
-    '競馬メジアン_中央コンピ研究所_V1.20_バックアップ_'+
-    new Date()
-    .toISOString()
-    .slice(0,10)+
-    '.json',
-    'application/json'
+
+  setMsg(
+    'CSVを書き出しました。',
+    true
   );
 }
-function downloadBlob(
-  content,
-  name,
-  type
-){
-  const blob=
-    new Blob(
-      [content],
-      {type}
-    );
-  const link=
-    document.createElement('a');
-  link.href=
-    URL.createObjectURL(blob);
-  link.download=
-    name;
-  link.click();
-  setTimeout(
-    ()=>{
-      URL.revokeObjectURL(
-        link.href
+
+function parseCSV(text){
+  const output = [];
+
+  let row = [];
+  let cell = '';
+  let quoted = false;
+
+  for(
+    let index = 0;
+    index < text.length;
+    index++
+  ){
+    const character = text[index];
+    const nextCharacter =
+      text[index + 1];
+
+    if(quoted){
+      if(
+        character === '"' &&
+        nextCharacter === '"'
+      ){
+        cell += '"';
+        index++;
+      }else if(character === '"'){
+        quoted = false;
+      }else{
+        cell += character;
+      }
+    }else if(character === '"'){
+      quoted = true;
+    }else if(character === ','){
+      row.push(cell);
+      cell = '';
+    }else if(character === '\n'){
+      row.push(
+        cell.replace(/\r$/,'')
       );
-    },
-    1000
-  );
+
+      output.push(row);
+
+      row = [];
+      cell = '';
+    }else{
+      cell += character;
+    }
+  }
+
+  if(cell || row.length){
+    row.push(cell);
+    output.push(row);
+  }
+
+  return output;
 }
-async function importFileChanged(event){
-  const file=
-    event.target.files?.[0];
+
+function importCSV(event){
+  const file = event.target.files[0];
+
   if(!file){
     return;
   }
-  try{
-    const object=
-      JSON.parse(
-        await file.text()
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    try{
+      const table = parseCSV(
+        String(reader.result).replace(
+          /^\ufeff/,
+          ''
+        )
       );
-    const rows=
-      Array.isArray(object)
-        ?object
-        :object.races;
-    if(!Array.isArray(rows)){
-      throw new Error(
-        'JSON形式が違います'
+
+      const headers =
+        table.shift();
+
+      const imported = table
+        .filter(
+          values =>
+            values.some(Boolean)
+        )
+        .map(
+          values =>
+            Object.fromEntries(
+              HEADERS.map(
+                header => [
+                  header,
+                  values[
+                    headers.indexOf(header)
+                  ] ?? ''
+                ]
+              )
+            )
+        );
+
+      for(const row of imported){
+        const index = db.findIndex(
+          savedRow =>
+            keyOf(savedRow) ===
+            keyOf(row)
+        );
+
+        if(index >= 0){
+          db[index] = row;
+        }else{
+          db.push(row);
+        }
+      }
+
+      persist();
+      renderAll();
+
+      setMsg(
+        `${imported.length}レースを読み込みました。`,
+        true
+      );
+    }catch(error){
+      setMsg(
+        'CSVを読み込めませんでした。',
+        false
       );
     }
-    for(const row of rows){
-      await putRow(row);
-    }
-    alert(
-      `${rows.length}件を読み込みました`
-    );
-    await refreshAll();
-  }catch(error){
-    alert(
-      '読込エラー：'+
-      (error.message||error)
-    );
-  }
-  event.target.value='';
+  };
+
+  reader.readAsText(
+    file,
+    'utf-8'
+  );
+
+  event.target.value = '';
 }
-(async()=>{
-  try{
-    await openDB();
-    await refreshAll();
-    document
-    .getElementById('status')
-    .innerHTML=
-      '<span class="good">データベース準備完了</span>';
-  }catch(error){
-    document
-    .getElementById('status')
-    .innerHTML=
-      '<span class="warn">IndexedDB開始エラー：'+
-      esc(error.message||error)+
-      '</span>';
+
+function exportBackup(){
+  const backup = JSON.stringify(
+    {
+      version:'1.40',
+      savedAt:
+        new Date().toISOString(),
+      data:db
+    },
+    null,
+    2
+  );
+
+  downloadBlob(
+    backup,
+    `コンピ研究所_V1.40_backup_${new Date().toISOString().slice(0,10)}.json`,
+    'application/json'
+  );
+
+  setMsg(
+    'バックアップを保存しました。',
+    true
+  );
+}
+
+function importBackup(event){
+  const file = event.target.files[0];
+
+  if(!file){
+    return;
   }
-})();
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    try{
+      const parsed =
+        JSON.parse(reader.result);
+
+      const data =
+        Array.isArray(parsed)
+          ? parsed
+          : parsed.data;
+
+      if(!Array.isArray(data)){
+        throw Error();
+      }
+
+      db = data;
+
+      persist();
+      renderAll();
+
+      setMsg(
+        `${db.length}レースを復元しました。`,
+        true
+      );
+    }catch(error){
+      setMsg(
+        'バックアップを復元できませんでした。',
+        false
+      );
+    }
+  };
+
+  reader.readAsText(file);
+
+  event.target.value = '';
+}
+
+function downloadBlob(
+  text,
+  fileName,
+  type
+){
+  const blob = new Blob(
+    [text],
+    {type}
+  );
+
+  const link =
+    document.createElement('a');
+
+  link.href =
+    URL.createObjectURL(blob);
+
+  link.download =
+    fileName;
+
+  link.click();
+
+  setTimeout(
+    () =>
+      URL.revokeObjectURL(
+        link.href
+      ),
+    1000
+  );
+}
+
+async function copyFormat(){
+  const sample =
+`【2026-08-08 新潟1R】
+[COMPI]
+2 84
+4 78
+6 71
+[RECOMMEND]
+2
+[RESULT]
+2-4-6`;
+
+  try{
+    await navigator.clipboard.writeText(
+      sample
+    );
+
+    setMsg(
+      'コード形式をコピーしました。',
+      true
+    );
+  }catch(error){
+    setMsg(
+      'コピーできませんでした。下の見本を使ってください。',
+      false
+    );
+  }
+}
+
+renderAll();
 </script>
 </body>
 </html>
