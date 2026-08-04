@@ -1,3 +1,4 @@
+了解。今のHTMLを全部消して、下を丸ごと貼ってください。
 
 <!doctype html>
 <html lang="ja">
@@ -5,182 +6,29 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="compi-lab-v1.50-batch-paste">
-<title>競馬メジアン 中央コンピ研究所 V1.50</title>
+<meta name="app-build" content="compi-lab-v1.51-batch-paste-fixed">
+<title>競馬メジアン 中央コンピ研究所 V1.51</title>
 <style>
-:root{
-  --bg:#07101f;
-  --card:#10224a;
-  --card2:#0b1835;
-  --line:#334155;
-  --cyan:#67e8f9;
-  --yellow:#fde047;
-  --red:#fb7185;
-  --green:#4ade80;
-  --muted:#cbd5e1
-}
-*{box-sizing:border-box}
-html,body{
-  margin:0;
-  background:var(--bg);
-  color:#fff;
-  overflow-x:hidden
-}
-body{
-  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
-  padding:8px 8px calc(28px + env(safe-area-inset-bottom));
-  line-height:1.45
-}
-main{
-  max-width:760px;
-  margin:auto
-}
-h1{
-  font-size:21px;
-  line-height:1.35;
-  margin:5px 2px 4px
-}
-.sub{
-  font-size:12px;
-  color:var(--muted);
-  margin:0 2px 10px
-}
-.card{
-  background:var(--card);
-  border:1px solid #2563eb;
-  border-radius:15px;
-  padding:12px;
-  margin:9px 0;
-  box-shadow:0 5px 18px rgba(0,0,0,.22)
-}
-.title{
-  font-weight:900;
-  color:var(--cyan);
-  font-size:16px;
-  margin-bottom:8px
-}
-.small{
-  font-size:11px;
-  color:var(--muted)
-}
-textarea,input,button{
-  font:inherit
-}
-textarea,input{
-  width:100%;
-  border:1px solid var(--line);
-  background:#071426;
-  color:#fff;
-  border-radius:10px;
-  padding:10px
-}
-textarea{
-  min-height:300px;
-  resize:vertical;
-  line-height:1.55;
-  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
-  font-size:13px
-}
-button{
-  border:0;
-  border-radius:10px;
-  padding:11px 9px;
-  font-weight:900;
-  background:#1d4ed8;
-  color:#fff
-}
-.btns{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:7px
-}
-.green{background:#15803d}
-.yellow{background:#ca8a04}
-.red{background:#be123c}
-.gray{background:#475569}
-.notice{
-  font-size:12px;
-  color:#fecaca;
-  background:#3f0b18;
-  border:1px solid var(--red);
-  padding:9px;
-  border-radius:10px;
-  margin-bottom:8px;
-  white-space:pre-wrap
-}
-.notice.ok{
-  color:#bbf7d0;
-  background:#052e16;
-  border-color:#15803d
-}
-.summary{
-  white-space:pre-wrap;
-  background:#061124;
-  border:1px solid #0891b2;
-  border-radius:12px;
-  padding:10px;
-  font-size:13px;
-  min-height:70px;
-  max-height:600px;
-  overflow:auto
-}
-.kpis{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:6px
-}
-.kpi{
-  background:var(--card2);
-  border:1px solid var(--line);
-  border-radius:10px;
-  padding:8px;
-  text-align:center;
-  font-size:11px
-}
-.kpi b{
-  display:block;
-  color:var(--yellow);
-  font-size:18px
-}
-.tableWrap{
-  overflow:auto;
-  max-height:450px
-}
-.log{
-  width:100%;
-  border-collapse:collapse;
-  font-size:11px;
-  min-width:620px
-}
-.log th,.log td{
-  border-bottom:1px solid var(--line);
-  padding:6px;
-  text-align:center
-}
-.log th{
-  position:sticky;
-  top:0;
-  background:#172554;
-  color:var(--cyan)
-}
-.codeSample{
-  white-space:pre-wrap;
-  background:#020617;
-  border:1px solid var(--line);
-  border-radius:10px;
-  padding:9px;
-  font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;
-  color:#dbeafe
-}
-.hidden{display:none}
+:root{--bg:#07101f;--card:#10224a;--card2:#0b1835;--line:#334155;--cyan:#67e8f9;--yellow:#fde047;--red:#fb7185;--green:#4ade80;--muted:#cbd5e1}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:#fff;overflow-x:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:8px 8px calc(28px + env(safe-area-inset-bottom));line-height:1.45}
+main{max-width:760px;margin:auto}h1{font-size:21px;line-height:1.35;margin:5px 2px 4px}.sub{font-size:12px;color:var(--muted);margin:0 2px 10px}
+.card{background:var(--card);border:1px solid #2563eb;border-radius:15px;padding:12px;margin:9px 0;box-shadow:0 5px 18px rgba(0,0,0,.22)}
+.title{font-weight:900;color:var(--cyan);font-size:16px;margin-bottom:8px}.small{font-size:11px;color:var(--muted)}
+textarea,input,button{font:inherit}textarea,input{width:100%;border:1px solid var(--line);background:#071426;color:#fff;border-radius:10px;padding:10px}
+textarea{min-height:265px;resize:vertical;line-height:1.55;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px}
+button{border:0;border-radius:10px;padding:11px 9px;font-weight:900;background:#1d4ed8;color:#fff}.btns{display:grid;grid-template-columns:1fr 1fr;gap:7px}.green{background:#15803d}.yellow{background:#ca8a04}.red{background:#be123c}.gray{background:#475569}
+.notice{font-size:12px;color:#fecaca;background:#3f0b18;border:1px solid var(--red);padding:9px;border-radius:10px;margin-bottom:8px;white-space:pre-wrap}.notice.ok{color:#bbf7d0;background:#052e16;border-color:#15803d}
+.summary{white-space:pre-wrap;background:#061124;border:1px solid #0891b2;border-radius:12px;padding:10px;font-size:13px;min-height:70px;max-height:600px;overflow:auto}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.kpi{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center;font-size:11px}.kpi b{display:block;color:var(--yellow);font-size:18px}
+.tableWrap{overflow:auto;max-height:420px}.log{width:100%;border-collapse:collapse;font-size:11px;min-width:620px}.log th,.log td{border-bottom:1px solid var(--line);padding:6px;text-align:center}.log th{position:sticky;top:0;background:#172554;color:var(--cyan)}
+.codeSample{white-space:pre-wrap;background:#020617;border:1px solid var(--line);border-radius:10px;padding:9px;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;color:#dbeafe}.hidden{display:none}
 </style>
 </head>
 <body>
 <main>
-<h1>競馬メジアン 中央コンピ研究所 V1.50</h1>
-<div class="sub">
-純コンピ専用｜全レース一括コードを1回貼るだけ｜赤文字推奨馬は各レース最大1頭
-</div>
+<h1>競馬メジアン 中央コンピ研究所 V1.51</h1>
+<div class="sub">純コンピ専用｜全レース一括コードを1回貼るだけ｜赤文字推奨馬は各レース最大1頭</div>
 <div id="msg" class="notice ok">
 全レース一括コードを貼り付けて「解析・保存」を押してください。
 </div>
@@ -192,33 +40,23 @@ button{
     placeholder="ここに1R〜12Rの一括コードを貼り付け"
   ></textarea>
   <div class="btns" style="margin-top:8px">
-    <button class="yellow" onclick="parseAndPreview()">
-      一括解析・確認
-    </button>
-    <button class="green" onclick="parseAndSave()">
-      一括解析・保存
-    </button>
+    <button class="yellow" onclick="parseAndPreview()">解析・確認</button>
+    <button class="green" onclick="parseAndSave()">解析・保存</button>
   </div>
   <div class="btns" style="margin-top:7px">
-    <button class="gray" onclick="clearPasteBox()">
-      貼付欄を空にする
-    </button>
-    <button class="gray" onclick="copyFormat()">
-      一括形式をコピー
-    </button>
+    <button class="gray" onclick="clearPasteBox()">貼付欄を空にする</button>
+    <button class="gray" onclick="copyFormat()">コード形式をコピー</button>
   </div>
 </section>
 <section class="card">
-  <div class="title">② 一括解析結果</div>
+  <div class="title">② 解析結果</div>
   <div id="preview" class="summary">未解析</div>
 </section>
 <section class="card">
   <div class="title">③ 蓄積データ</div>
   <div id="kpis" class="kpis"></div>
   <div class="btns" style="margin-top:8px">
-    <button class="green" onclick="exportCSV()">
-      CSVを書き出す
-    </button>
+    <button class="green" onclick="exportCSV()">CSVを書き出す</button>
     <button
       class="gray"
       onclick="document.getElementById('csvFile').click()"
@@ -232,9 +70,7 @@ button{
       accept=".csv,text/csv"
       onchange="importCSV(event)"
     >
-    <button class="yellow" onclick="exportBackup()">
-      バックアップ保存
-    </button>
+    <button class="yellow" onclick="exportBackup()">バックアップ保存</button>
     <button
       class="gray"
       onclick="document.getElementById('backupFile').click()"
@@ -270,7 +106,7 @@ button{
   </div>
 </section>
 <section class="card">
-  <div class="title">一括貼り付けコード形式</div>
+  <div class="title">貼り付けコード形式</div>
   <div class="codeSample">【2026-08-08 新潟1R】
 [COMPI]
 2 84
@@ -290,15 +126,15 @@ button{
 [RESULT]
 7-9-3</div>
   <div class="small" style="margin-top:7px">
-    1R〜12Rまで同じ形で続け、全部まとめて1回貼ります。
-    結果がない場合は[RESULT]自体を省略できます。
+    1R〜12Rまで同じ形で続けて、全部まとめて1回貼ります。
+    結果がない場合は[RESULT]を省略できます。
     赤文字推奨馬がない場合は「なし」です。
   </div>
 </section>
 </main>
 <script>
 'use strict';
-const STORE = 'compiLabV150BatchPaste';
+const STORE = 'compiLabV151BatchPasteFixed';
 const RESULT_HEADERS = [
   '結果入力済み',
   '結果',
@@ -378,6 +214,8 @@ const HEADERS = [
   'D侵入'
 ];
 let db = loadDB();
+migrateOldData();
+renderAll();
 function loadDB(){
   try{
     const saved = JSON.parse(
@@ -386,6 +224,27 @@ function loadDB(){
     return Array.isArray(saved) ? saved : [];
   }catch(error){
     return [];
+  }
+}
+function migrateOldData(){
+  if(db.length){
+    return;
+  }
+  const oldStores = [
+    'compiLabV150BatchPaste',
+    'compiLabV140PasteOnly'
+  ];
+  for(const oldStore of oldStores){
+    try{
+      const oldData = JSON.parse(
+        localStorage.getItem(oldStore) || '[]'
+      );
+      if(Array.isArray(oldData) && oldData.length){
+        db = oldData;
+        persist();
+        return;
+      }
+    }catch(error){}
   }
 }
 function persist(){
@@ -407,9 +266,9 @@ function esc(value){
   );
 }
 function setMsg(text,ok=false){
-  const element = document.getElementById('msg');
-  element.textContent = text;
-  element.className = 'notice' + (ok ? ' ok' : '');
+  const message = document.getElementById('msg');
+  message.textContent = text;
+  message.className = 'notice' + (ok ? ' ok' : '');
 }
 function clearPasteBox(){
   document.getElementById('pasteBox').value = '';
@@ -457,16 +316,10 @@ function parseHeader(text){
     date:
       `${match[1]}-${String(match[2]).padStart(2,'0')}-${String(match[3]).padStart(2,'0')}`,
     place:match[4].trim(),
-    race:String(Number(match[5]))
+    race:String(
+      Number(match[5])
+    )
   };
-}
-function getSection(text,name){
-  const regularExpression = new RegExp(
-    `\$begin:math:display$\$\{name\}\\$end:math:display$([\\s\\S]*?)(?=\\n\$begin:math:display$\[A\-Z\_\]\+\\$end:math:display$|$)`,
-    'i'
-  );
-  const match = text.match(regularExpression);
-  return match ? match[1].trim() : '';
 }
 function splitRaceBlocks(raw){
   const text = normalizeText(raw);
@@ -493,6 +346,43 @@ function splitRaceBlocks(raw){
     }
   }
   return blocks;
+}
+function readSections(text){
+  const sections = {
+    COMPI:[],
+    RECOMMEND:[],
+    RESULT:[]
+  };
+  let current = '';
+  const lines = String(text || '').split('\n');
+  for(const rawLine of lines){
+    const line = rawLine.trim();
+    const upper = line.toUpperCase();
+    if(upper === '[COMPI]'){
+      current = 'COMPI';
+      continue;
+    }
+    if(upper === '[RECOMMEND]'){
+      current = 'RECOMMEND';
+      continue;
+    }
+    if(upper === '[RESULT]'){
+      current = 'RESULT';
+      continue;
+    }
+    if(/^\[[A-Z_]+\]$/i.test(line)){
+      current = '';
+      continue;
+    }
+    if(current){
+      sections[current].push(line);
+    }
+  }
+  return {
+    COMPI:sections.COMPI.join('\n').trim(),
+    RECOMMEND:sections.RECOMMEND.join('\n').trim(),
+    RESULT:sections.RESULT.join('\n').trim()
+  };
 }
 function parseBatch(raw){
   const blocks = splitRaceBlocks(raw);
@@ -525,29 +415,26 @@ function parseBatch(raw){
 function parseSingleRace(raw){
   const text = normalizeText(raw);
   const meta = parseHeader(text);
-  const compiSection = getSection(
-    text,
-    'COMPI'
-  );
-  if(!compiSection){
+  const sections = readSections(text);
+  if(!sections.COMPI){
     throw new Error(
       `${meta.place}${meta.race}R：[COMPI]がありません。`
     );
   }
   const horses = [];
-  for(const originalLine of compiSection.split('\n')){
+  for(const originalLine of sections.COMPI.split('\n')){
     const line = originalLine.trim();
     if(!line){
       continue;
     }
-    const numbers = line.match(
-      /\d+(?:\.\d+)?/g
+    const match = line.match(
+      /^(\d+)\s+(\d+(?:\.\d+)?)$/
     );
-    if(!numbers || numbers.length < 2){
+    if(!match){
       continue;
     }
-    const no = Number(numbers[0]);
-    const index = Number(numbers[1]);
+    const no = Number(match[1]);
+    const index = Number(match[2]);
     if(
       Number.isInteger(no) &&
       no > 0 &&
@@ -576,21 +463,19 @@ function parseSingleRace(raw){
     );
   }
   horses.sort(
-    (a,b) => b.idx - a.idx || a.no - b.no
-  );
-  const recommendSection = getSection(
-    text,
-    'RECOMMEND'
+    (a,b) =>
+      b.idx - a.idx ||
+      a.no - b.no
   );
   let recommend = '';
   if(
-    recommendSection &&
+    sections.RECOMMEND &&
     !/^(なし|無|none|-+)$/i.test(
-      recommendSection.trim()
+      sections.RECOMMEND.trim()
     )
   ){
     const recommendNumbers =
-      recommendSection.match(/\d+/g) || [];
+      sections.RECOMMEND.match(/\d+/g) || [];
     if(recommendNumbers.length !== 1){
       throw new Error(
         `${meta.place}${meta.race}R：推奨馬は赤文字の1頭だけにしてください。`
@@ -601,7 +486,8 @@ function parseSingleRace(raw){
     );
     if(
       !horses.some(
-        horse => String(horse.no) === recommend
+        horse =>
+          String(horse.no) === recommend
       )
     ){
       throw new Error(
@@ -609,19 +495,15 @@ function parseSingleRace(raw){
       );
     }
   }
-  const resultSection = getSection(
-    text,
-    'RESULT'
-  );
   let result = [];
   if(
-    resultSection &&
+    sections.RESULT &&
     !/^(なし|未入力|-+)$/i.test(
-      resultSection.trim()
+      sections.RESULT.trim()
     )
   ){
     result = (
-      resultSection.match(/\d+/g) || []
+      sections.RESULT.match(/\d+/g) || []
     )
       .slice(0,3)
       .map(Number);
@@ -630,7 +512,7 @@ function parseSingleRace(raw){
       new Set(result).size !== 3
     ){
       throw new Error(
-        `${meta.place}${meta.race}R：[RESULT]は「1着-2着-3着」の3頭を入力してください。`
+        `${meta.place}${meta.race}R：[RESULT]は「1着-2着-3着」の3頭を重複なく入力してください。`
       );
     }
     if(
@@ -727,13 +609,13 @@ function buildRow(meta,horses,recommend,result){
       result.length ? '1' : '0',
     '頭数':String(horses.length),
     '全馬コンピ順位列':
-      horses.map(
-        horse => horse.no
-      ).join('|'),
+      horses
+        .map(horse => horse.no)
+        .join('|'),
     '全馬指数列':
-      horses.map(
-        horse => horse.idx
-      ).join('|'),
+      horses
+        .map(horse => horse.idx)
+        .join('|'),
     '推奨馬':recommend,
     '推奨馬順位':
       recommendHorse
@@ -808,9 +690,7 @@ function buildRow(meta,horses,recommend,result){
               Math.max(0,wall.pos - 2),
               wall.pos
             )
-            .map(
-              horse => horse.no
-            )
+            .map(horse => horse.no)
             .join('|')
         : '',
     '壁直後':
@@ -839,15 +719,11 @@ function buildRow(meta,horses,recommend,result){
       String(secondWall.diff),
     '46_49馬':
       lowHorses
-        .map(
-          horse => horse.no
-        )
+        .map(horse => horse.no)
         .join('|'),
     '46_49指数':
       lowHorses
-        .map(
-          horse => horse.idx
-        )
+        .map(horse => horse.idx)
         .join('|')
   });
   if(result.length){
@@ -903,8 +779,7 @@ function applyResultToRow(row,result,horses){
           : '0'
         : '',
     '壁前勝利':
-      String(result[0]) ===
-      row.壁前馬
+      String(result[0]) === row.壁前馬
         ? '1'
         : '0',
     '壁直後3着内':
@@ -1035,20 +910,27 @@ function loadAsCode(index){
   const indexes =
     row.全馬指数列.split('|');
   let code =
-    `【${row.日付} ${row.場}${row.R}R】\n[COMPI]\n`;
+    `【${row.日付} ${row.場}${row.R}R】
+[COMPI]
+`;
   for(
     let position = 0;
     position < numbers.length;
     position++
   ){
     code +=
-      `${numbers[position]} ${indexes[position]}\n`;
+      `${numbers[position]} ${indexes[position]}
+`;
   }
   code +=
-    `[RECOMMEND]\n${row.推奨馬 || 'なし'}\n`;
+    `[RECOMMEND]
+${row.推奨馬 || 'なし'}
+`;
   if(row.結果){
     code +=
-      `[RESULT]\n${row.結果}\n`;
+      `[RESULT]
+${row.結果}
+`;
   }
   document.getElementById('pasteBox').value =
     code.trim();
@@ -1181,7 +1063,7 @@ function exportCSV(){
     ].join('\r\n');
   downloadBlob(
     text,
-    `競馬メジアン_中央コンピ研究所_V1.50_${new Date().toISOString().slice(0,10)}.csv`,
+    `競馬メジアン_中央コンピ研究所_V1.51_${new Date().toISOString().slice(0,10)}.csv`,
     'text/csv;charset=utf-8'
   );
   setMsg(
@@ -1200,7 +1082,8 @@ function parseCSV(text){
     index++
   ){
     const character = text[index];
-    const nextCharacter = text[index + 1];
+    const nextCharacter =
+      text[index + 1];
     if(quoted){
       if(
         character === '"' &&
@@ -1302,7 +1185,7 @@ function importCSV(event){
 function exportBackup(){
   const backup = JSON.stringify(
     {
-      version:'1.50',
+      version:'1.51',
       savedAt:
         new Date().toISOString(),
       data:db
@@ -1312,7 +1195,7 @@ function exportBackup(){
   );
   downloadBlob(
     backup,
-    `コンピ研究所_V1.50_backup_${new Date().toISOString().slice(0,10)}.json`,
+    `コンピ研究所_V1.51_backup_${new Date().toISOString().slice(0,10)}.json`,
     'application/json'
   );
   setMsg(
@@ -1410,7 +1293,6 @@ async function copyFormat(){
     );
   }
 }
-renderAll();
 </script>
 </body>
 </html>
