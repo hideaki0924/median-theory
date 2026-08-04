@@ -1,62 +1,385 @@
-了解。今のHTMLを全部消して、下を丸ごと貼ってください。
+これを今のHTMLと丸ごと入れ替えて。
+機能は変えず、iPhone Safariで横にブレないよう固定した版です。
 
 <!doctype html>
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="compi-lab-v1.51-batch-paste-fixed">
-<title>競馬メジアン 中央コンピ研究所 V1.51</title>
+<meta name="app-build" content="compi-lab-v1.52-batch-paste-viewport-fixed">
+<title>競馬メジアン 中央コンピ研究所 V1.52</title>
 <style>
-:root{--bg:#07101f;--card:#10224a;--card2:#0b1835;--line:#334155;--cyan:#67e8f9;--yellow:#fde047;--red:#fb7185;--green:#4ade80;--muted:#cbd5e1}
-*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:#fff;overflow-x:hidden}
-body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:8px 8px calc(28px + env(safe-area-inset-bottom));line-height:1.45}
-main{max-width:760px;margin:auto}h1{font-size:21px;line-height:1.35;margin:5px 2px 4px}.sub{font-size:12px;color:var(--muted);margin:0 2px 10px}
-.card{background:var(--card);border:1px solid #2563eb;border-radius:15px;padding:12px;margin:9px 0;box-shadow:0 5px 18px rgba(0,0,0,.22)}
-.title{font-weight:900;color:var(--cyan);font-size:16px;margin-bottom:8px}.small{font-size:11px;color:var(--muted)}
-textarea,input,button{font:inherit}textarea,input{width:100%;border:1px solid var(--line);background:#071426;color:#fff;border-radius:10px;padding:10px}
-textarea{min-height:265px;resize:vertical;line-height:1.55;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px}
-button{border:0;border-radius:10px;padding:11px 9px;font-weight:900;background:#1d4ed8;color:#fff}.btns{display:grid;grid-template-columns:1fr 1fr;gap:7px}.green{background:#15803d}.yellow{background:#ca8a04}.red{background:#be123c}.gray{background:#475569}
-.notice{font-size:12px;color:#fecaca;background:#3f0b18;border:1px solid var(--red);padding:9px;border-radius:10px;margin-bottom:8px;white-space:pre-wrap}.notice.ok{color:#bbf7d0;background:#052e16;border-color:#15803d}
-.summary{white-space:pre-wrap;background:#061124;border:1px solid #0891b2;border-radius:12px;padding:10px;font-size:13px;min-height:70px;max-height:600px;overflow:auto}
-.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.kpi{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center;font-size:11px}.kpi b{display:block;color:var(--yellow);font-size:18px}
-.tableWrap{overflow:auto;max-height:420px}.log{width:100%;border-collapse:collapse;font-size:11px;min-width:620px}.log th,.log td{border-bottom:1px solid var(--line);padding:6px;text-align:center}.log th{position:sticky;top:0;background:#172554;color:var(--cyan)}
-.codeSample{white-space:pre-wrap;background:#020617;border:1px solid var(--line);border-radius:10px;padding:9px;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;color:#dbeafe}.hidden{display:none}
+:root{
+  --bg:#07101f;
+  --card:#10224a;
+  --card2:#0b1835;
+  --line:#334155;
+  --cyan:#67e8f9;
+  --yellow:#fde047;
+  --red:#fb7185;
+  --green:#4ade80;
+  --muted:#cbd5e1;
+}
+*{
+  box-sizing:border-box;
+  min-width:0;
+}
+html{
+  width:100%;
+  max-width:100%;
+  margin:0;
+  padding:0;
+  overflow-x:hidden;
+  background:var(--bg);
+  color:#fff;
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+}
+body{
+  position:relative;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  margin:0;
+  overflow-x:hidden;
+  background:var(--bg);
+  color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+  padding:8px 8px calc(28px + env(safe-area-inset-bottom));
+  line-height:1.45;
+}
+main{
+  display:block;
+  width:100%;
+  max-width:760px;
+  min-width:0;
+  margin:0 auto;
+  overflow:visible;
+}
+h1{
+  max-width:100%;
+  margin:5px 2px 4px;
+  font-size:21px;
+  line-height:1.35;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+.sub{
+  max-width:100%;
+  margin:0 2px 10px;
+  color:var(--muted);
+  font-size:12px;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+.card{
+  display:block;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  margin:9px 0;
+  padding:12px;
+  overflow:hidden;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+  background:var(--card);
+  border:1px solid #2563eb;
+  border-radius:15px;
+  box-shadow:0 5px 18px rgba(0,0,0,.22);
+}
+.title{
+  max-width:100%;
+  margin-bottom:8px;
+  color:var(--cyan);
+  font-size:16px;
+  font-weight:900;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+.small{
+  max-width:100%;
+  color:var(--muted);
+  font-size:11px;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+textarea,
+input,
+button{
+  font:inherit;
+}
+textarea,
+input{
+  display:block;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:10px;
+  background:#071426;
+  color:#fff;
+}
+textarea{
+  min-height:265px;
+  max-width:100%;
+  resize:vertical;
+  overflow-x:hidden;
+  overflow-y:auto;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+  line-height:1.55;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:16px;
+  -webkit-overflow-scrolling:touch;
+}
+input{
+  font-size:16px;
+}
+button{
+  min-width:0;
+  max-width:100%;
+  border:0;
+  border-radius:10px;
+  padding:11px 9px;
+  overflow:hidden;
+  color:#fff;
+  background:#1d4ed8;
+  font-weight:900;
+  text-overflow:ellipsis;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.btns{
+  display:grid;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:7px;
+}
+.green{
+  background:#15803d;
+}
+.yellow{
+  background:#ca8a04;
+}
+.red{
+  background:#be123c;
+}
+.gray{
+  background:#475569;
+}
+.notice{
+  display:block;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  margin-bottom:8px;
+  padding:9px;
+  overflow:hidden;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+  color:#fecaca;
+  background:#3f0b18;
+  border:1px solid var(--red);
+  border-radius:10px;
+  font-size:12px;
+}
+.notice.ok{
+  color:#bbf7d0;
+  background:#052e16;
+  border-color:#15803d;
+}
+.summary{
+  display:block;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  min-height:70px;
+  max-height:600px;
+  padding:10px;
+  overflow-x:hidden;
+  overflow-y:auto;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+  background:#061124;
+  border:1px solid #0891b2;
+  border-radius:12px;
+  font-size:13px;
+  -webkit-overflow-scrolling:touch;
+}
+.kpis{
+  display:grid;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:6px;
+}
+.kpi{
+  min-width:0;
+  padding:8px;
+  overflow:hidden;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+  text-align:center;
+  background:var(--card2);
+  border:1px solid var(--line);
+  border-radius:10px;
+  font-size:11px;
+}
+.kpi b{
+  display:block;
+  color:var(--yellow);
+  font-size:18px;
+}
+.tableWrap{
+  display:block;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  max-height:420px;
+  overflow-x:auto;
+  overflow-y:auto;
+  overscroll-behavior-x:contain;
+  -webkit-overflow-scrolling:touch;
+}
+.log{
+  width:100%;
+  min-width:620px;
+  border-collapse:collapse;
+  font-size:11px;
+}
+.log th,
+.log td{
+  padding:6px;
+  border-bottom:1px solid var(--line);
+  text-align:center;
+  white-space:nowrap;
+}
+.log th{
+  position:sticky;
+  top:0;
+  z-index:2;
+  color:var(--cyan);
+  background:#172554;
+}
+.codeSample{
+  display:block;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  padding:9px;
+  overflow-x:hidden;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+  color:#dbeafe;
+  background:#020617;
+  border:1px solid var(--line);
+  border-radius:10px;
+  font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+.hidden{
+  display:none;
+}
+@media(max-width:560px){
+  body{
+    padding-left:7px;
+    padding-right:7px;
+  }
+  .card{
+    padding:11px;
+  }
+  h1{
+    font-size:20px;
+  }
+}
+@media(max-width:390px){
+  .btns{
+    grid-template-columns:1fr;
+  }
+  .kpis{
+    grid-template-columns:1fr;
+  }
+}
 </style>
 </head>
 <body>
 <main>
-<h1>競馬メジアン 中央コンピ研究所 V1.51</h1>
-<div class="sub">純コンピ専用｜全レース一括コードを1回貼るだけ｜赤文字推奨馬は各レース最大1頭</div>
+<h1>競馬メジアン 中央コンピ研究所 V1.52</h1>
+<div class="sub">
+純コンピ専用｜全レース一括コードを1回貼るだけ｜赤文字推奨馬は各レース最大1頭
+</div>
 <div id="msg" class="notice ok">
 全レース一括コードを貼り付けて「解析・保存」を押してください。
 </div>
 <section class="card">
-  <div class="title">① チャッピーの全レース一括コードを貼る</div>
+  <div class="title">
+    ① チャッピーの全レース一括コードを貼る
+  </div>
   <textarea
     id="pasteBox"
     spellcheck="false"
     placeholder="ここに1R〜12Rの一括コードを貼り付け"
   ></textarea>
   <div class="btns" style="margin-top:8px">
-    <button class="yellow" onclick="parseAndPreview()">解析・確認</button>
-    <button class="green" onclick="parseAndSave()">解析・保存</button>
+    <button
+      class="yellow"
+      onclick="parseAndPreview()"
+    >
+      解析・確認
+    </button>
+    <button
+      class="green"
+      onclick="parseAndSave()"
+    >
+      解析・保存
+    </button>
   </div>
   <div class="btns" style="margin-top:7px">
-    <button class="gray" onclick="clearPasteBox()">貼付欄を空にする</button>
-    <button class="gray" onclick="copyFormat()">コード形式をコピー</button>
+    <button
+      class="gray"
+      onclick="clearPasteBox()"
+    >
+      貼付欄を空にする
+    </button>
+    <button
+      class="gray"
+      onclick="copyFormat()"
+    >
+      コード形式をコピー
+    </button>
   </div>
 </section>
 <section class="card">
-  <div class="title">② 解析結果</div>
-  <div id="preview" class="summary">未解析</div>
+  <div class="title">
+    ② 解析結果
+  </div>
+  <div id="preview" class="summary">
+    未解析
+  </div>
 </section>
 <section class="card">
-  <div class="title">③ 蓄積データ</div>
+  <div class="title">
+    ③ 蓄積データ
+  </div>
   <div id="kpis" class="kpis"></div>
   <div class="btns" style="margin-top:8px">
-    <button class="green" onclick="exportCSV()">CSVを書き出す</button>
+    <button
+      class="green"
+      onclick="exportCSV()"
+    >
+      CSVを書き出す
+    </button>
     <button
       class="gray"
       onclick="document.getElementById('csvFile').click()"
@@ -70,7 +393,12 @@ button{border:0;border-radius:10px;padding:11px 9px;font-weight:900;background:#
       accept=".csv,text/csv"
       onchange="importCSV(event)"
     >
-    <button class="yellow" onclick="exportBackup()">バックアップ保存</button>
+    <button
+      class="yellow"
+      onclick="exportBackup()"
+    >
+      バックアップ保存
+    </button>
     <button
       class="gray"
       onclick="document.getElementById('backupFile').click()"
@@ -87,7 +415,9 @@ button{border:0;border-radius:10px;padding:11px 9px;font-weight:900;background:#
   </div>
 </section>
 <section class="card">
-  <div class="title">保存レース</div>
+  <div class="title">
+    保存レース
+  </div>
   <div class="tableWrap">
     <table class="log">
       <thead>
@@ -106,7 +436,9 @@ button{border:0;border-radius:10px;padding:11px 9px;font-weight:900;background:#
   </div>
 </section>
 <section class="card">
-  <div class="title">貼り付けコード形式</div>
+  <div class="title">
+    貼り付けコード形式
+  </div>
   <div class="codeSample">【2026-08-08 新潟1R】
 [COMPI]
 2 84
@@ -134,7 +466,7 @@ button{border:0;border-radius:10px;padding:11px 9px;font-weight:900;background:#
 </main>
 <script>
 'use strict';
-const STORE = 'compiLabV151BatchPasteFixed';
+const STORE = 'compiLabV152BatchPasteViewportFixed';
 const RESULT_HEADERS = [
   '結果入力済み',
   '結果',
@@ -216,12 +548,67 @@ const HEADERS = [
 let db = loadDB();
 migrateOldData();
 renderAll();
+installViewportLock();
+function installViewportLock(){
+  const moveToLeft = () => {
+    if(window.scrollX !== 0){
+      window.scrollTo(
+        0,
+        window.scrollY
+      );
+    }
+  };
+  window.addEventListener(
+    'load',
+    () => {
+      requestAnimationFrame(
+        () => window.scrollTo(0,0)
+      );
+    }
+  );
+  window.addEventListener(
+    'pageshow',
+    () => {
+      requestAnimationFrame(
+        () => window.scrollTo(0,0)
+      );
+    }
+  );
+  window.addEventListener(
+    'orientationchange',
+    () => {
+      setTimeout(
+        () => window.scrollTo(0,0),
+        150
+      );
+    }
+  );
+  window.addEventListener(
+    'resize',
+    () => {
+      requestAnimationFrame(
+        moveToLeft
+      );
+    }
+  );
+  window.addEventListener(
+    'scroll',
+    moveToLeft,
+    {passive:true}
+  );
+  document.addEventListener(
+    'DOMContentLoaded',
+    () => window.scrollTo(0,0)
+  );
+}
 function loadDB(){
   try{
     const saved = JSON.parse(
       localStorage.getItem(STORE) || '[]'
     );
-    return Array.isArray(saved) ? saved : [];
+    return Array.isArray(saved)
+      ? saved
+      : [];
   }catch(error){
     return [];
   }
@@ -231,6 +618,7 @@ function migrateOldData(){
     return;
   }
   const oldStores = [
+    'compiLabV151BatchPasteFixed',
     'compiLabV150BatchPaste',
     'compiLabV140PasteOnly'
   ];
@@ -239,7 +627,10 @@ function migrateOldData(){
       const oldData = JSON.parse(
         localStorage.getItem(oldStore) || '[]'
       );
-      if(Array.isArray(oldData) && oldData.length){
+      if(
+        Array.isArray(oldData) &&
+        oldData.length
+      ){
         db = oldData;
         persist();
         return;
@@ -266,13 +657,20 @@ function esc(value){
   );
 }
 function setMsg(text,ok=false){
-  const message = document.getElementById('msg');
+  const message =
+    document.getElementById('msg');
   message.textContent = text;
-  message.className = 'notice' + (ok ? ' ok' : '');
+  message.className =
+    'notice' + (ok ? ' ok' : '');
+  window.scrollTo(
+    0,
+    window.scrollY
+  );
 }
 function clearPasteBox(){
   document.getElementById('pasteBox').value = '';
-  document.getElementById('preview').textContent = '未解析';
+  document.getElementById('preview').textContent =
+    '未解析';
   setMsg(
     '貼付欄を空にしました。',
     true
@@ -315,14 +713,17 @@ function parseHeader(text){
   return {
     date:
       `${match[1]}-${String(match[2]).padStart(2,'0')}-${String(match[3]).padStart(2,'0')}`,
-    place:match[4].trim(),
-    race:String(
-      Number(match[5])
-    )
+    place:
+      match[4].trim(),
+    race:
+      String(
+        Number(match[5])
+      )
   };
 }
 function splitRaceBlocks(raw){
-  const text = normalizeText(raw);
+  const text =
+    normalizeText(raw);
   const matches = [
     ...text.matchAll(
       /【\s*\d{4}[-\/.年]\d{1,2}[-\/.月]\d{1,2}日?\s+[^】\n]+?\d{1,2}R\s*】/gi
@@ -334,13 +735,19 @@ function splitRaceBlocks(raw){
     );
   }
   const blocks = [];
-  for(let index = 0; index < matches.length; index++){
-    const start = matches[index].index;
+  for(
+    let index = 0;
+    index < matches.length;
+    index++
+  ){
+    const start =
+      matches[index].index;
     const end =
       index + 1 < matches.length
         ? matches[index + 1].index
         : text.length;
-    const block = text.slice(start,end).trim();
+    const block =
+      text.slice(start,end).trim();
     if(block){
       blocks.push(block);
     }
@@ -354,10 +761,13 @@ function readSections(text){
     RESULT:[]
   };
   let current = '';
-  const lines = String(text || '').split('\n');
+  const lines =
+    String(text || '').split('\n');
   for(const rawLine of lines){
-    const line = rawLine.trim();
-    const upper = line.toUpperCase();
+    const line =
+      rawLine.trim();
+    const upper =
+      line.toUpperCase();
     if(upper === '[COMPI]'){
       current = 'COMPI';
       continue;
@@ -379,33 +789,43 @@ function readSections(text){
     }
   }
   return {
-    COMPI:sections.COMPI.join('\n').trim(),
-    RECOMMEND:sections.RECOMMEND.join('\n').trim(),
-    RESULT:sections.RESULT.join('\n').trim()
+    COMPI:
+      sections.COMPI.join('\n').trim(),
+    RECOMMEND:
+      sections.RECOMMEND.join('\n').trim(),
+    RESULT:
+      sections.RESULT.join('\n').trim()
   };
 }
 function parseBatch(raw){
-  const blocks = splitRaceBlocks(raw);
+  const blocks =
+    splitRaceBlocks(raw);
   const rows = [];
   const errors = [];
-  blocks.forEach((block,index) => {
-    try{
-      rows.push(
-        parseSingleRace(block)
-      );
-    }catch(error){
-      errors.push(
-        `${index + 1}件目：${error.message}`
-      );
+  blocks.forEach(
+    (block,index) => {
+      try{
+        rows.push(
+          parseSingleRace(block)
+        );
+      }catch(error){
+        errors.push(
+          `${index + 1}件目：${error.message}`
+        );
+      }
     }
-  });
+  );
   if(errors.length){
     throw new Error(
       errors.join('\n')
     );
   }
-  const keys = rows.map(keyOf);
-  if(new Set(keys).size !== keys.length){
+  const keys =
+    rows.map(keyOf);
+  if(
+    new Set(keys).size !==
+    keys.length
+  ){
     throw new Error(
       '同じ日付・場・Rが一括コード内で重複しています。'
     );
@@ -413,17 +833,24 @@ function parseBatch(raw){
   return rows;
 }
 function parseSingleRace(raw){
-  const text = normalizeText(raw);
-  const meta = parseHeader(text);
-  const sections = readSections(text);
+  const text =
+    normalizeText(raw);
+  const meta =
+    parseHeader(text);
+  const sections =
+    readSections(text);
   if(!sections.COMPI){
     throw new Error(
       `${meta.place}${meta.race}R：[COMPI]がありません。`
     );
   }
   const horses = [];
-  for(const originalLine of sections.COMPI.split('\n')){
-    const line = originalLine.trim();
+  for(
+    const originalLine of
+    sections.COMPI.split('\n')
+  ){
+    const line =
+      originalLine.trim();
     if(!line){
       continue;
     }
@@ -433,8 +860,10 @@ function parseSingleRace(raw){
     if(!match){
       continue;
     }
-    const no = Number(match[1]);
-    const index = Number(match[2]);
+    const no =
+      Number(match[1]);
+    const index =
+      Number(match[2]);
     if(
       Number.isInteger(no) &&
       no > 0 &&
@@ -452,11 +881,13 @@ function parseSingleRace(raw){
       `${meta.place}${meta.race}R：[COMPI]は最低3頭必要です。`
     );
   }
-  const horseNumbers = horses.map(
-    horse => horse.no
-  );
+  const horseNumbers =
+    horses.map(
+      horse => horse.no
+    );
   if(
-    new Set(horseNumbers).size !== horses.length
+    new Set(horseNumbers).size !==
+    horses.length
   ){
     throw new Error(
       `${meta.place}${meta.race}R：[COMPI]に同じ馬番が重複しています。`
@@ -487,7 +918,8 @@ function parseSingleRace(raw){
     if(
       !horses.some(
         horse =>
-          String(horse.no) === recommend
+          String(horse.no) ===
+          recommend
       )
     ){
       throw new Error(
@@ -519,7 +951,8 @@ function parseSingleRace(raw){
       result.some(
         number =>
           !horses.some(
-            horse => horse.no === number
+            horse =>
+              horse.no === number
           )
       )
     ){
@@ -535,12 +968,22 @@ function parseSingleRace(raw){
     result
   );
 }
-function buildRow(meta,horses,recommend,result){
+function buildRow(
+  meta,
+  horses,
+  recommend,
+  result
+){
   const valueAt = index =>
     horses[index]?.idx ?? '';
-  const difference = (first,second) =>
-    horses[first] && horses[second]
-      ? horses[first].idx - horses[second].idx
+  const difference = (
+    first,
+    second
+  ) =>
+    horses[first] &&
+    horses[second]
+      ? horses[first].idx -
+        horses[second].idx
       : '';
   const gaps = [];
   for(
@@ -560,172 +1003,230 @@ function buildRow(meta,horses,recommend,result){
       b.diff - a.diff ||
       a.pos - b.pos
   );
-  const wall = gaps[0] || {
-    pos:'',
-    diff:''
-  };
-  const secondWall = gaps[1] || {
-    pos:'',
-    diff:''
-  };
-  const inside = wall.pos
-    ? horses.slice(0,wall.pos)
-    : [];
-  const medianRank = inside.length
-    ? Math.floor(
-        (inside.length - 1) / 2
-      ) + 1
-    : '';
-  const medianHorse = medianRank
-    ? horses[medianRank - 1]
-    : null;
-  const lowHorses = horses.filter(
-    horse =>
-      horse.idx >= 46 &&
-      horse.idx <= 49
-  );
-  const topThreeSum = horses
-    .slice(0,3)
-    .reduce(
-      (sum,horse) => sum + horse.idx,
-      0
+  const wall =
+    gaps[0] || {
+      pos:'',
+      diff:''
+    };
+  const secondWall =
+    gaps[1] || {
+      pos:'',
+      diff:''
+    };
+  const inside =
+    wall.pos
+      ? horses.slice(0,wall.pos)
+      : [];
+  const medianRank =
+    inside.length
+      ? Math.floor(
+          (inside.length - 1) / 2
+        ) + 1
+      : '';
+  const medianHorse =
+    medianRank
+      ? horses[medianRank - 1]
+      : null;
+  const lowHorses =
+    horses.filter(
+      horse =>
+        horse.idx >= 46 &&
+        horse.idx <= 49
     );
-  const recommendHorse = recommend
-    ? horses.find(
-        horse =>
-          String(horse.no) === recommend
+  const topThreeSum =
+    horses
+      .slice(0,3)
+      .reduce(
+        (sum,horse) =>
+          sum + horse.idx,
+        0
+      );
+  const recommendHorse =
+    recommend
+      ? horses.find(
+          horse =>
+            String(horse.no) ===
+            recommend
+        )
+      : null;
+  const row =
+    Object.fromEntries(
+      HEADERS.map(
+        header => [header,'']
       )
-    : null;
-  const row = Object.fromEntries(
-    HEADERS.map(
-      header => [header,'']
-    )
-  );
-  Object.assign(row,{
-    '日付':meta.date,
-    '場':meta.place,
-    'R':meta.race,
-    '結果入力済み':
-      result.length ? '1' : '0',
-    '頭数':String(horses.length),
-    '全馬コンピ順位列':
-      horses
-        .map(horse => horse.no)
-        .join('|'),
-    '全馬指数列':
-      horses
-        .map(horse => horse.idx)
-        .join('|'),
-    '推奨馬':recommend,
-    '推奨馬順位':
-      recommendHorse
-        ? String(
-            horses.indexOf(
-              recommendHorse
-            ) + 1
-          )
-        : '',
-    '推奨馬指数':
-      recommendHorse
-        ? String(recommendHorse.idx)
-        : '',
-    'コンピ1位馬':
-      String(horses[0]?.no ?? ''),
-    'コンピ1位指数':
-      String(valueAt(0)),
-    'コンピ2位馬':
-      String(horses[1]?.no ?? ''),
-    'コンピ2位指数':
-      String(valueAt(1)),
-    'コンピ3位馬':
-      String(horses[2]?.no ?? ''),
-    'コンピ3位指数':
-      String(valueAt(2)),
-    'P':pClass(topThreeSum),
-    '上位3合計':
-      String(topThreeSum),
-    '差1_2':
-      String(difference(0,1)),
-    '差2_3':
-      String(difference(1,2)),
-    '差1_3':
-      String(difference(0,2)),
-    '差3_5':
-      String(difference(2,4)),
-    '差5_6':
-      String(difference(4,5)),
-    '差6_7':
-      String(difference(5,6)),
-    '上位5合計':
-      String(
+    );
+  Object.assign(
+    row,
+    {
+      '日付':
+        meta.date,
+      '場':
+        meta.place,
+      'R':
+        meta.race,
+      '結果入力済み':
+        result.length ? '1' : '0',
+      '頭数':
+        String(horses.length),
+      '全馬コンピ順位列':
         horses
-          .slice(0,5)
-          .reduce(
-            (sum,horse) =>
-              sum + horse.idx,
-            0
-          )
-      ),
-    '上位5幅':
-      horses[4]
-        ? String(
-            horses[0].idx -
-            horses[4].idx
-          )
-        : '',
-    '最大壁位置':
-      String(wall.pos),
-    '最大壁差':
-      String(wall.diff),
-    '壁前馬':
-      wall.pos
-        ? String(
-            horses[wall.pos - 1].no
-          )
-        : '',
-    '壁前2頭':
-      wall.pos
-        ? horses
-            .slice(
-              Math.max(0,wall.pos - 2),
-              wall.pos
+          .map(horse => horse.no)
+          .join('|'),
+      '全馬指数列':
+        horses
+          .map(horse => horse.idx)
+          .join('|'),
+      '推奨馬':
+        recommend,
+      '推奨馬順位':
+        recommendHorse
+          ? String(
+              horses.indexOf(
+                recommendHorse
+              ) + 1
             )
-            .map(horse => horse.no)
-            .join('|')
-        : '',
-    '壁直後':
-      wall.pos && horses[wall.pos]
-        ? String(
-            horses[wall.pos].no
+          : '',
+      '推奨馬指数':
+        recommendHorse
+          ? String(
+              recommendHorse.idx
+            )
+          : '',
+      'コンピ1位馬':
+        String(
+          horses[0]?.no ?? ''
+        ),
+      'コンピ1位指数':
+        String(
+          valueAt(0)
+        ),
+      'コンピ2位馬':
+        String(
+          horses[1]?.no ?? ''
+        ),
+      'コンピ2位指数':
+        String(
+          valueAt(1)
+        ),
+      'コンピ3位馬':
+        String(
+          horses[2]?.no ?? ''
+        ),
+      'コンピ3位指数':
+        String(
+          valueAt(2)
+        ),
+      'P':
+        pClass(topThreeSum),
+      '上位3合計':
+        String(topThreeSum),
+      '差1_2':
+        String(
+          difference(0,1)
+        ),
+      '差2_3':
+        String(
+          difference(1,2)
+        ),
+      '差1_3':
+        String(
+          difference(0,2)
+        ),
+      '差3_5':
+        String(
+          difference(2,4)
+        ),
+      '差5_6':
+        String(
+          difference(4,5)
+        ),
+      '差6_7':
+        String(
+          difference(5,6)
+        ),
+      '上位5合計':
+        String(
+          horses
+            .slice(0,5)
+            .reduce(
+              (sum,horse) =>
+                sum + horse.idx,
+              0
+            )
+        ),
+      '上位5幅':
+        horses[4]
+          ? String(
+              horses[0].idx -
+              horses[4].idx
+            )
+          : '',
+      '最大壁位置':
+        String(wall.pos),
+      '最大壁差':
+        String(wall.diff),
+      '壁前馬':
+        wall.pos
+          ? String(
+              horses[
+                wall.pos - 1
+              ].no
+            )
+          : '',
+      '壁前2頭':
+        wall.pos
+          ? horses
+              .slice(
+                Math.max(
+                  0,
+                  wall.pos - 2
+                ),
+                wall.pos
+              )
+              .map(
+                horse => horse.no
+              )
+              .join('|')
+          : '',
+      '壁直後':
+        wall.pos &&
+        horses[wall.pos]
+          ? String(
+              horses[wall.pos].no
+            )
+          : '',
+      '壁内頭数':
+        String(inside.length),
+      '壁内メジアン馬':
+        medianHorse
+          ? String(medianHorse.no)
+          : '',
+      '壁内メジアン順位':
+        medianRank
+          ? String(medianRank)
+          : '',
+      '壁内メジアン指数':
+        medianHorse
+          ? String(medianHorse.idx)
+          : '',
+      '第2壁位置':
+        String(secondWall.pos),
+      '第2壁差':
+        String(secondWall.diff),
+      '46_49馬':
+        lowHorses
+          .map(
+            horse => horse.no
           )
-        : '',
-    '壁内頭数':
-      String(inside.length),
-    '壁内メジアン馬':
-      medianHorse
-        ? String(medianHorse.no)
-        : '',
-    '壁内メジアン順位':
-      medianRank
-        ? String(medianRank)
-        : '',
-    '壁内メジアン指数':
-      medianHorse
-        ? String(medianHorse.idx)
-        : '',
-    '第2壁位置':
-      String(secondWall.pos),
-    '第2壁差':
-      String(secondWall.diff),
-    '46_49馬':
-      lowHorses
-        .map(horse => horse.no)
-        .join('|'),
-    '46_49指数':
-      lowHorses
-        .map(horse => horse.idx)
-        .join('|')
-  });
+          .join('|'),
+      '46_49指数':
+        lowHorses
+          .map(
+            horse => horse.idx
+          )
+          .join('|')
+    }
+  );
   if(result.length){
     applyResultToRow(
       row,
@@ -735,92 +1236,114 @@ function buildRow(meta,horses,recommend,result){
   }
   return row;
 }
-function applyResultToRow(row,result,horses){
-  const ranks = result.map(
-    number =>
-      horses.findIndex(
-        horse => horse.no === number
-      ) + 1
-  );
-  const indexes = result.map(
-    number =>
-      horses.find(
-        horse => horse.no === number
-      )?.idx ?? ''
-  );
-  const groups = ranks.map(groupOf);
-  Object.assign(row,{
-    '結果入力済み':'1',
-    '結果':result.join('-'),
-    '結果1着馬':String(result[0]),
-    '結果2着馬':String(result[1]),
-    '結果3着馬':String(result[2]),
-    '結果コンピ順位':ranks.join('|'),
-    '結果コンピ指数':indexes.join('|'),
-    '結果群':groups.join('|'),
-    '推奨馬着順':
-      row.推奨馬
-        ? result.includes(
-            Number(row.推奨馬)
-          )
-          ? String(
-              result.indexOf(
-                Number(row.推奨馬)
-              ) + 1
+function applyResultToRow(
+  row,
+  result,
+  horses
+){
+  const ranks =
+    result.map(
+      number =>
+        horses.findIndex(
+          horse =>
+            horse.no === number
+        ) + 1
+    );
+  const indexes =
+    result.map(
+      number =>
+        horses.find(
+          horse =>
+            horse.no === number
+        )?.idx ?? ''
+    );
+  const groups =
+    ranks.map(groupOf);
+  Object.assign(
+    row,
+    {
+      '結果入力済み':'1',
+      '結果':
+        result.join('-'),
+      '結果1着馬':
+        String(result[0]),
+      '結果2着馬':
+        String(result[1]),
+      '結果3着馬':
+        String(result[2]),
+      '結果コンピ順位':
+        ranks.join('|'),
+      '結果コンピ指数':
+        indexes.join('|'),
+      '結果群':
+        groups.join('|'),
+      '推奨馬着順':
+        row.推奨馬
+          ? result.includes(
+              Number(row.推奨馬)
             )
-          : '着外'
-        : '',
-    '推奨馬3着内':
-      row.推奨馬
-        ? result.includes(
-            Number(row.推奨馬)
+            ? String(
+                result.indexOf(
+                  Number(row.推奨馬)
+                ) + 1
+              )
+            : '着外'
+          : '',
+      '推奨馬3着内':
+        row.推奨馬
+          ? result.includes(
+              Number(row.推奨馬)
+            )
+            ? '1'
+            : '0'
+          : '',
+      '壁前勝利':
+        String(result[0]) ===
+        row.壁前馬
+          ? '1'
+          : '0',
+      '壁直後3着内':
+        row.壁直後 &&
+        result.includes(
+          Number(row.壁直後)
+        )
+          ? '1'
+          : '0',
+      '壁メジアン3着内':
+        row.壁内メジアン馬 &&
+        result.includes(
+          Number(
+            row.壁内メジアン馬
           )
+        )
+          ? '1'
+          : '0',
+      '上位4頭決着':
+        ranks.every(
+          rank => rank <= 4
+        )
+          ? '1'
+          : '0',
+      'A群完結':
+        ranks.every(
+          rank => rank <= 5
+        )
+          ? '1'
+          : '0',
+      'B侵入':
+        groups.includes('B')
+          ? '1'
+          : '0',
+      'C侵入':
+        groups.includes('C')
+          ? '1'
+          : '0',
+      'D侵入':
+        groups.includes('D')
           ? '1'
           : '0'
-        : '',
-    '壁前勝利':
-      String(result[0]) === row.壁前馬
-        ? '1'
-        : '0',
-    '壁直後3着内':
-      row.壁直後 &&
-      result.includes(
-        Number(row.壁直後)
-      )
-        ? '1'
-        : '0',
-    '壁メジアン3着内':
-      row.壁内メジアン馬 &&
-      result.includes(
-        Number(row.壁内メジアン馬)
-      )
-        ? '1'
-        : '0',
-    '上位4頭決着':
-      ranks.every(
-        rank => rank <= 4
-      )
-        ? '1'
-        : '0',
-    'A群完結':
-      ranks.every(
-        rank => rank <= 5
-      )
-        ? '1'
-        : '0',
-    'B侵入':
-      groups.includes('B')
-        ? '1'
-        : '0',
-    'C侵入':
-      groups.includes('C')
-        ? '1'
-        : '0',
-    'D侵入':
-      groups.includes('D')
-        ? '1'
-        : '0'
-  });
+    }
+  );
 }
 function summaryOf(row){
   return `【${row.日付} ${row.場}${row.R}R コンピ研究】
@@ -837,58 +1360,85 @@ P：${row.P}（${row.上位3合計}）
 }
 function parseAndPreview(){
   try{
-    const rows = parseBatch(
-      document.getElementById('pasteBox').value
-    );
-    document.getElementById('preview').textContent =
+    const rows =
+      parseBatch(
+        document.getElementById(
+          'pasteBox'
+        ).value
+      );
+    document.getElementById(
+      'preview'
+    ).textContent =
       rows
         .map(summaryOf)
-        .join('\n\n────────────\n\n');
+        .join(
+          '\n\n────────────\n\n'
+        );
     setMsg(
       `${rows.length}レースを一括解析できました。内容を確認してください。`,
       true
     );
+    window.scrollTo(
+      0,
+      window.scrollY
+    );
     return rows;
   }catch(error){
-    document.getElementById('preview').textContent =
+    document.getElementById(
+      'preview'
+    ).textContent =
       '解析失敗';
     setMsg(
       error.message,
       false
     );
+    window.scrollTo(
+      0,
+      window.scrollY
+    );
     return null;
   }
 }
-function preserveOldResult(oldRow,newRow){
+function preserveOldResult(
+  oldRow,
+  newRow
+){
   if(
     newRow.結果 ||
     oldRow.結果入力済み !== '1'
   ){
     return newRow;
   }
-  for(const header of RESULT_HEADERS){
+  for(
+    const header of
+    RESULT_HEADERS
+  ){
     newRow[header] =
       oldRow[header] || '';
   }
   return newRow;
 }
 function parseAndSave(){
-  const rows = parseAndPreview();
+  const rows =
+    parseAndPreview();
   if(!rows){
     return;
   }
   let added = 0;
   let updated = 0;
   for(let row of rows){
-    const index = db.findIndex(
-      savedRow =>
-        keyOf(savedRow) === keyOf(row)
-    );
-    if(index >= 0){
-      row = preserveOldResult(
-        db[index],
-        row
+    const index =
+      db.findIndex(
+        savedRow =>
+          keyOf(savedRow) ===
+          keyOf(row)
       );
+    if(index >= 0){
+      row =
+        preserveOldResult(
+          db[index],
+          row
+        );
       db[index] = row;
       updated++;
     }else{
@@ -904,11 +1454,14 @@ function parseAndSave(){
   );
 }
 function loadAsCode(index){
-  const row = db[index];
+  const row =
+    db[index];
   const numbers =
-    row.全馬コンピ順位列.split('|');
+    row.全馬コンピ順位列
+      .split('|');
   const indexes =
-    row.全馬指数列.split('|');
+    row.全馬指数列
+      .split('|');
   let code =
     `【${row.日付} ${row.場}${row.R}R】
 [COMPI]
@@ -932,12 +1485,17 @@ ${row.推奨馬 || 'なし'}
 ${row.結果}
 `;
   }
-  document.getElementById('pasteBox').value =
+  document.getElementById(
+    'pasteBox'
+  ).value =
     code.trim();
-  document.getElementById('preview').textContent =
+  document.getElementById(
+    'preview'
+  ).textContent =
     summaryOf(row);
   window.scrollTo({
     top:0,
+    left:0,
     behavior:'smooth'
   });
 }
@@ -962,70 +1520,92 @@ function renderAll(){
   renderKpis();
 }
 function renderLog(){
-  const sorted = [...db].sort(
-    (a,b) =>
-      (
-        b.日付 +
-        b.場 +
-        String(b.R).padStart(2,'0')
-      ).localeCompare(
-        a.日付 +
-        a.場 +
-        String(a.R).padStart(2,'0')
-      )
-  );
-  document.getElementById('logBody').innerHTML =
-    sorted.map(row => {
-      const index = db.indexOf(row);
-      return `
-        <tr>
-          <td>${esc(row.日付)}</td>
-          <td>${esc(row.場)}</td>
-          <td>${esc(row.R)}</td>
-          <td>${esc(row.P)}</td>
-          <td style="color:var(--red);font-weight:900">
-            ${esc(row.推奨馬 || '—')}
-          </td>
-          <td>${esc(row.結果 || '未')}</td>
-          <td>
-            <button
-              onclick="loadAsCode(${index})"
-              style="padding:5px 7px"
-            >
-              開く
-            </button>
-            <button
-              class="red"
-              onclick="deleteRace(${index})"
-              style="padding:5px 7px"
-            >
-              削除
-            </button>
-          </td>
-        </tr>
-      `;
-    }).join('');
+  const sorted =
+    [...db].sort(
+      (a,b) =>
+        (
+          b.日付 +
+          b.場 +
+          String(b.R).padStart(2,'0')
+        ).localeCompare(
+          a.日付 +
+          a.場 +
+          String(a.R).padStart(2,'0')
+        )
+    );
+  document.getElementById(
+    'logBody'
+  ).innerHTML =
+    sorted.map(
+      row => {
+        const index =
+          db.indexOf(row);
+        return `
+          <tr>
+            <td>
+              ${esc(row.日付)}
+            </td>
+            <td>
+              ${esc(row.場)}
+            </td>
+            <td>
+              ${esc(row.R)}
+            </td>
+            <td>
+              ${esc(row.P)}
+            </td>
+            <td style="color:var(--red);font-weight:900">
+              ${esc(row.推奨馬 || '—')}
+            </td>
+            <td>
+              ${esc(row.結果 || '未')}
+            </td>
+            <td>
+              <button
+                onclick="loadAsCode(${index})"
+                style="padding:5px 7px"
+              >
+                開く
+              </button>
+              <button
+                class="red"
+                onclick="deleteRace(${index})"
+                style="padding:5px 7px"
+              >
+                削除
+              </button>
+            </td>
+          </tr>
+        `;
+      }
+    ).join('');
 }
 function renderKpis(){
-  const completed = db.filter(
-    row =>
-      row.結果入力済み === '1'
-  );
-  const recommended = completed.filter(
-    row => row.推奨馬
-  );
-  const recommendedHit = recommended.filter(
-    row =>
-      row.推奨馬3着内 === '1'
-  );
-  const hitRate = recommended.length
-    ? Math.round(
-        recommendedHit.length /
-        recommended.length *
-        100
-      )
-    : 0;
-  document.getElementById('kpis').innerHTML = `
+  const completed =
+    db.filter(
+      row =>
+        row.結果入力済み === '1'
+    );
+  const recommended =
+    completed.filter(
+      row => row.推奨馬
+    );
+  const recommendedHit =
+    recommended.filter(
+      row =>
+        row.推奨馬3着内 === '1'
+    );
+  const hitRate =
+    recommended.length
+      ? Math.round(
+          recommendedHit.length /
+          recommended.length *
+          100
+        )
+      : 0;
+  document.getElementById(
+    'kpis'
+  ).innerHTML = `
     <div class="kpi">
       <b>${db.length}</b>
       総レース
@@ -1041,7 +1621,8 @@ function renderKpis(){
   `;
 }
 function csvCell(value){
-  value = String(value ?? '');
+  value =
+    String(value ?? '');
   return /[",\n]/.test(value)
     ? '"' +
       value.replace(/"/g,'""') +
@@ -1057,13 +1638,15 @@ function exportCSV(){
         row =>
           HEADERS.map(
             header =>
-              csvCell(row[header])
+              csvCell(
+                row[header]
+              )
           ).join(',')
       )
     ].join('\r\n');
   downloadBlob(
     text,
-    `競馬メジアン_中央コンピ研究所_V1.51_${new Date().toISOString().slice(0,10)}.csv`,
+    `競馬メジアン_中央コンピ研究所_V1.52_${new Date().toISOString().slice(0,10)}.csv`,
     'text/csv;charset=utf-8'
   );
   setMsg(
@@ -1081,7 +1664,8 @@ function parseCSV(text){
     index < text.length;
     index++
   ){
-    const character = text[index];
+    const character =
+      text[index];
     const nextCharacter =
       text[index + 1];
     if(quoted){
@@ -1091,17 +1675,25 @@ function parseCSV(text){
       ){
         cell += '"';
         index++;
-      }else if(character === '"'){
+      }else if(
+        character === '"'
+      ){
         quoted = false;
       }else{
         cell += character;
       }
-    }else if(character === '"'){
+    }else if(
+      character === '"'
+    ){
       quoted = true;
-    }else if(character === ','){
+    }else if(
+      character === ','
+    ){
       row.push(cell);
       cell = '';
-    }else if(character === '\n'){
+    }else if(
+      character === '\n'
+    ){
       row.push(
         cell.replace(/\r$/,'')
       );
@@ -1112,51 +1704,66 @@ function parseCSV(text){
       cell += character;
     }
   }
-  if(cell || row.length){
+  if(
+    cell ||
+    row.length
+  ){
     row.push(cell);
     output.push(row);
   }
   return output;
 }
 function importCSV(event){
-  const file = event.target.files[0];
+  const file =
+    event.target.files[0];
   if(!file){
     return;
   }
-  const reader = new FileReader();
+  const reader =
+    new FileReader();
   reader.onload = () => {
     try{
-      const table = parseCSV(
-        String(reader.result).replace(
-          /^\ufeff/,
-          ''
-        )
-      );
+      const table =
+        parseCSV(
+          String(
+            reader.result
+          ).replace(
+            /^\ufeff/,
+            ''
+          )
+        );
       const importedHeaders =
         table.shift();
-      const imported = table
-        .filter(
-          values =>
-            values.some(Boolean)
-        )
-        .map(
-          values =>
-            Object.fromEntries(
-              HEADERS.map(
-                header => [
-                  header,
-                  values[
-                    importedHeaders.indexOf(header)
-                  ] ?? ''
-                ]
+      const imported =
+        table
+          .filter(
+            values =>
+              values.some(Boolean)
+          )
+          .map(
+            values =>
+              Object.fromEntries(
+                HEADERS.map(
+                  header => [
+                    header,
+                    values[
+                      importedHeaders.indexOf(
+                        header
+                      )
+                    ] ?? ''
+                  ]
+                )
               )
-            )
-        );
-      for(const row of imported){
-        const index = db.findIndex(
-          savedRow =>
-            keyOf(savedRow) === keyOf(row)
-        );
+          );
+      for(
+        const row of imported
+      ){
+        const index =
+          db.findIndex(
+            savedRow =>
+              keyOf(savedRow) ===
+              keyOf(row)
+          );
         if(index >= 0){
           db[index] = row;
         }else{
@@ -1183,19 +1790,20 @@ function importCSV(event){
   event.target.value = '';
 }
 function exportBackup(){
-  const backup = JSON.stringify(
-    {
-      version:'1.51',
-      savedAt:
-        new Date().toISOString(),
-      data:db
-    },
-    null,
-    2
-  );
+  const backup =
+    JSON.stringify(
+      {
+        version:'1.52',
+        savedAt:
+          new Date().toISOString(),
+        data:db
+      },
+      null,
+      2
+    );
   downloadBlob(
     backup,
-    `コンピ研究所_V1.51_backup_${new Date().toISOString().slice(0,10)}.json`,
+    `コンピ研究所_V1.52_backup_${new Date().toISOString().slice(0,10)}.json`,
     'application/json'
   );
   setMsg(
@@ -1204,15 +1812,19 @@ function exportBackup(){
   );
 }
 function importBackup(event){
-  const file = event.target.files[0];
+  const file =
+    event.target.files[0];
   if(!file){
     return;
   }
-  const reader = new FileReader();
+  const reader =
+    new FileReader();
   reader.onload = () => {
     try{
       const parsed =
-        JSON.parse(reader.result);
+        JSON.parse(
+          reader.result
+        );
       const data =
         Array.isArray(parsed)
           ? parsed
@@ -1239,11 +1851,16 @@ function importBackup(event){
   reader.readAsText(file);
   event.target.value = '';
 }
-function downloadBlob(text,fileName,type){
-  const blob = new Blob(
-    [text],
-    {type}
-  );
+function downloadBlob(
+  text,
+  fileName,
+  type
+){
+  const blob =
+    new Blob(
+      [text],
+      {type}
+    );
   const link =
     document.createElement('a');
   link.href =
