@@ -1,12 +1,14 @@
+まっちゃん、これが全レース一括貼り付け・一括保存対応の完成版。
+今のHTMLを全部消して、下を丸ごと貼り替えてください。
+
 <!doctype html>
 <html lang="ja">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="compi-lab-v1.40-paste-only">
-<title>競馬メジアン 中央コンピ研究所 V1.40</title>
-
+<meta name="app-build" content="compi-lab-v1.50-batch-paste">
+<title>競馬メジアン 中央コンピ研究所 V1.50</title>
 <style>
 :root{
   --bg:#07101f;
@@ -19,39 +21,32 @@
   --green:#4ade80;
   --muted:#cbd5e1
 }
-
 *{box-sizing:border-box}
-
 html,body{
   margin:0;
   background:var(--bg);
   color:#fff;
   overflow-x:hidden
 }
-
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
   padding:8px 8px calc(28px + env(safe-area-inset-bottom));
   line-height:1.45
 }
-
 main{
   max-width:760px;
   margin:auto
 }
-
 h1{
   font-size:21px;
   line-height:1.35;
   margin:5px 2px 4px
 }
-
 .sub{
   font-size:12px;
   color:var(--muted);
   margin:0 2px 10px
 }
-
 .card{
   background:var(--card);
   border:1px solid #2563eb;
@@ -60,23 +55,19 @@ h1{
   margin:9px 0;
   box-shadow:0 5px 18px rgba(0,0,0,.22)
 }
-
 .title{
   font-weight:900;
   color:var(--cyan);
   font-size:16px;
   margin-bottom:8px
 }
-
 .small{
   font-size:11px;
   color:var(--muted)
 }
-
 textarea,input,button{
   font:inherit
 }
-
 textarea,input{
   width:100%;
   border:1px solid var(--line);
@@ -85,15 +76,13 @@ textarea,input{
   border-radius:10px;
   padding:10px
 }
-
 textarea{
-  min-height:265px;
+  min-height:300px;
   resize:vertical;
   line-height:1.55;
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
   font-size:13px
 }
-
 button{
   border:0;
   border-radius:10px;
@@ -102,18 +91,15 @@ button{
   background:#1d4ed8;
   color:#fff
 }
-
 .btns{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:7px
 }
-
 .green{background:#15803d}
 .yellow{background:#ca8a04}
 .red{background:#be123c}
 .gray{background:#475569}
-
 .notice{
   font-size:12px;
   color:#fecaca;
@@ -121,15 +107,14 @@ button{
   border:1px solid var(--red);
   padding:9px;
   border-radius:10px;
-  margin-bottom:8px
+  margin-bottom:8px;
+  white-space:pre-wrap
 }
-
 .notice.ok{
   color:#bbf7d0;
   background:#052e16;
   border-color:#15803d
 }
-
 .summary{
   white-space:pre-wrap;
   background:#061124;
@@ -137,15 +122,15 @@ button{
   border-radius:12px;
   padding:10px;
   font-size:13px;
-  min-height:70px
+  min-height:70px;
+  max-height:600px;
+  overflow:auto
 }
-
 .kpis{
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:6px
 }
-
 .kpi{
   background:var(--card2);
   border:1px solid var(--line);
@@ -154,38 +139,32 @@ button{
   text-align:center;
   font-size:11px
 }
-
 .kpi b{
   display:block;
   color:var(--yellow);
   font-size:18px
 }
-
 .tableWrap{
   overflow:auto;
-  max-height:420px
+  max-height:450px
 }
-
 .log{
   width:100%;
   border-collapse:collapse;
   font-size:11px;
   min-width:620px
 }
-
 .log th,.log td{
   border-bottom:1px solid var(--line);
   padding:6px;
   text-align:center
 }
-
 .log th{
   position:sticky;
   top:0;
   background:#172554;
   color:var(--cyan)
 }
-
 .codeSample{
   white-space:pre-wrap;
   background:#020617;
@@ -195,81 +174,59 @@ button{
   font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;
   color:#dbeafe
 }
-
-.hidden{
-  display:none
-}
+.hidden{display:none}
 </style>
 </head>
-
 <body>
 <main>
-
-<h1>競馬メジアン 中央コンピ研究所 V1.40</h1>
-
+<h1>競馬メジアン 中央コンピ研究所 V1.50</h1>
 <div class="sub">
-純コンピ専用｜チャッピーのコードを貼って保存するだけ｜赤文字推奨馬は最大1頭
+純コンピ専用｜全レース一括コードを1回貼るだけ｜赤文字推奨馬は各レース最大1頭
 </div>
-
 <div id="msg" class="notice ok">
-コードを貼り付けて「解析・保存」を押してください。
+全レース一括コードを貼り付けて「解析・保存」を押してください。
 </div>
-
 <section class="card">
-  <div class="title">① チャッピーのコードを貼る</div>
-
+  <div class="title">① チャッピーの全レース一括コードを貼る</div>
   <textarea
     id="pasteBox"
     spellcheck="false"
-    placeholder="ここにコードを貼り付け"
+    placeholder="ここに1R〜12Rの一括コードを貼り付け"
   ></textarea>
-
   <div class="btns" style="margin-top:8px">
     <button class="yellow" onclick="parseAndPreview()">
-      解析・確認
+      一括解析・確認
     </button>
-
     <button class="green" onclick="parseAndSave()">
-      解析・保存
+      一括解析・保存
     </button>
   </div>
-
   <div class="btns" style="margin-top:7px">
-    <button
-      class="gray"
-      onclick="pasteBox.value='';preview.textContent='未解析'"
-    >
+    <button class="gray" onclick="clearPasteBox()">
       貼付欄を空にする
     </button>
-
     <button class="gray" onclick="copyFormat()">
-      コード形式をコピー
+      一括形式をコピー
     </button>
   </div>
 </section>
-
 <section class="card">
-  <div class="title">② 解析結果</div>
+  <div class="title">② 一括解析結果</div>
   <div id="preview" class="summary">未解析</div>
 </section>
-
 <section class="card">
   <div class="title">③ 蓄積データ</div>
-
   <div id="kpis" class="kpis"></div>
-
   <div class="btns" style="margin-top:8px">
     <button class="green" onclick="exportCSV()">
       CSVを書き出す
     </button>
-
     <button
       class="gray"
       onclick="document.getElementById('csvFile').click()"
     >
       CSVを読み込む
     </button>
-
     <input
       id="csvFile"
       class="hidden"
@@ -277,18 +234,15 @@ button{
       accept=".csv,text/csv"
       onchange="importCSV(event)"
     >
-
     <button class="yellow" onclick="exportBackup()">
       バックアップ保存
     </button>
-
     <button
       class="gray"
       onclick="document.getElementById('backupFile').click()"
     >
       バックアップ復元
     </button>
-
     <input
       id="backupFile"
       class="hidden"
@@ -298,10 +252,8 @@ button{
     >
   </div>
 </section>
-
 <section class="card">
   <div class="title">保存レース</div>
-
   <div class="tableWrap">
     <table class="log">
       <thead>
@@ -315,45 +267,60 @@ button{
           <th>操作</th>
         </tr>
       </thead>
-
       <tbody id="logBody"></tbody>
     </table>
   </div>
 </section>
-
 <section class="card">
-  <div class="title">貼り付けコード形式</div>
-
+  <div class="title">一括貼り付けコード形式</div>
   <div class="codeSample">【2026-08-08 新潟1R】
 [COMPI]
 2 84
 4 78
 6 71
-8 64
-10 60
-12 55
-1 51
-3 48
-5 46
-7 42
 [RECOMMEND]
 2
 [RESULT]
-2-4-6</div>
-
+2-4-6
+【2026-08-08 新潟2R】
+[COMPI]
+7 81
+3 74
+9 68
+[RECOMMEND]
+7
+[RESULT]
+7-9-3</div>
   <div class="small" style="margin-top:7px">
-    [RESULT]は結果が出た後だけ。赤文字推奨馬がない場合は「なし」。
-    指数順でなくても自動で並べ替えます。
+    1R〜12Rまで同じ形で続け、全部まとめて1回貼ります。
+    結果がない場合は[RESULT]自体を省略できます。
+    赤文字推奨馬がない場合は「なし」です。
   </div>
 </section>
-
 </main>
-
 <script>
 'use strict';
-
-const STORE = 'compiLabV140PasteOnly';
-
+const STORE = 'compiLabV150BatchPaste';
+const RESULT_HEADERS = [
+  '結果入力済み',
+  '結果',
+  '結果1着馬',
+  '結果2着馬',
+  '結果3着馬',
+  '結果コンピ順位',
+  '結果コンピ指数',
+  '結果群',
+  '推奨馬着順',
+  '推奨馬3着内',
+  '壁前勝利',
+  '壁直後3着内',
+  '壁メジアン3着内',
+  '上位4頭決着',
+  'A群完結',
+  'B侵入',
+  'C侵入',
+  'D侵入'
+];
 const HEADERS = [
   '日付',
   '場',
@@ -412,28 +379,23 @@ const HEADERS = [
   'C侵入',
   'D侵入'
 ];
-
 let db = loadDB();
-
 function loadDB(){
   try{
-    const data = JSON.parse(
+    const saved = JSON.parse(
       localStorage.getItem(STORE) || '[]'
     );
-
-    return Array.isArray(data) ? data : [];
+    return Array.isArray(saved) ? saved : [];
   }catch(error){
     return [];
   }
 }
-
 function persist(){
   localStorage.setItem(
     STORE,
     JSON.stringify(db)
   );
 }
-
 function esc(value){
   return String(value ?? '').replace(
     /[&<>"']/g,
@@ -446,13 +408,20 @@ function esc(value){
     }[character])
   );
 }
-
 function setMsg(text,ok=false){
-  msg.textContent = text;
-  msg.className = 'notice' + (ok ? ' ok' : '');
+  const element = document.getElementById('msg');
+  element.textContent = text;
+  element.className = 'notice' + (ok ? ' ok' : '');
 }
-
-function norm(value){
+function clearPasteBox(){
+  document.getElementById('pasteBox').value = '';
+  document.getElementById('preview').textContent = '未解析';
+  setMsg(
+    '貼付欄を空にしました。',
+    true
+  );
+}
+function normalizeText(value){
   return String(value || '')
     .replace(/\r/g,'')
     .replace(/[：]/g,':')
@@ -460,7 +429,6 @@ function norm(value){
     .replace(/[　]/g,' ')
     .trim();
 }
-
 function pClass(sum){
   if(sum >= 220) return 'P6';
   if(sum >= 216) return 'P5';
@@ -469,135 +437,154 @@ function pClass(sum){
   if(sum >= 204) return 'P2';
   return 'P1';
 }
-
 function keyOf(row){
   return `${row.日付}_${row.場}_${row.R}`;
 }
-
-function group(rank){
+function groupOf(rank){
   if(rank <= 5) return 'A';
   if(rank <= 10) return 'B';
   if(rank <= 15) return 'C';
   return 'D';
 }
-
 function parseHeader(text){
   const match = text.match(
-    /【\s*(?:(\d{4})[-\/.年](\d{1,2})[-\/.月](\d{1,2})日?\s*)?([^】\d\s]+)\s*(\d{1,2})R\s*】/i
+    /【\s*(\d{4})[-\/.年](\d{1,2})[-\/.月](\d{1,2})日?\s+([^】\d\s]+)\s*(\d{1,2})R\s*】/i
   );
-
   if(!match){
-    throw Error(
+    throw new Error(
       '見出しを「【2026-08-08 新潟1R】」の形にしてください。'
     );
   }
-
-  const date = match[1]
-    ? `${match[1]}-${String(match[2]).padStart(2,'0')}-${String(match[3]).padStart(2,'0')}`
-    : '';
-
-  if(!date){
-    throw Error(
-      '見出しに日付を入れてください。'
-    );
-  }
-
   return {
-    date,
+    date:
+      `${match[1]}-${String(match[2]).padStart(2,'0')}-${String(match[3]).padStart(2,'0')}`,
     place:match[4].trim(),
     race:String(Number(match[5]))
   };
 }
-
-function section(text,name){
+function getSection(text,name){
   const regularExpression = new RegExp(
     `\$begin:math:display$\$\{name\}\\$end:math:display$([\\s\\S]*?)(?=\\n\$begin:math:display$\[A\-Z\_\]\+\\$end:math:display$|$)`,
     'i'
   );
-
   const match = text.match(regularExpression);
-
-  return match
-    ? match[1].trim()
-    : '';
+  return match ? match[1].trim() : '';
 }
-
-function parseCode(raw){
-  const text = norm(raw);
-
-  if(!text){
-    throw Error('コードが空です。');
+function splitRaceBlocks(raw){
+  const text = normalizeText(raw);
+  const matches = [
+    ...text.matchAll(
+      /【\s*\d{4}[-\/.年]\d{1,2}[-\/.月]\d{1,2}日?\s+[^】\n]+?\d{1,2}R\s*】/gi
+    )
+  ];
+  if(!matches.length){
+    throw new Error(
+      'レース見出しがありません。'
+    );
   }
-
+  const blocks = [];
+  for(let index = 0; index < matches.length; index++){
+    const start = matches[index].index;
+    const end =
+      index + 1 < matches.length
+        ? matches[index + 1].index
+        : text.length;
+    const block = text.slice(start,end).trim();
+    if(block){
+      blocks.push(block);
+    }
+  }
+  return blocks;
+}
+function parseBatch(raw){
+  const blocks = splitRaceBlocks(raw);
+  const rows = [];
+  const errors = [];
+  blocks.forEach((block,index) => {
+    try{
+      rows.push(
+        parseSingleRace(block)
+      );
+    }catch(error){
+      errors.push(
+        `${index + 1}件目：${error.message}`
+      );
+    }
+  });
+  if(errors.length){
+    throw new Error(
+      errors.join('\n')
+    );
+  }
+  const keys = rows.map(keyOf);
+  if(new Set(keys).size !== keys.length){
+    throw new Error(
+      '同じ日付・場・Rが一括コード内で重複しています。'
+    );
+  }
+  return rows;
+}
+function parseSingleRace(raw){
+  const text = normalizeText(raw);
   const meta = parseHeader(text);
-
-  const compiSection = section(
+  const compiSection = getSection(
     text,
     'COMPI'
   );
-
   if(!compiSection){
-    throw Error('[COMPI] がありません。');
+    throw new Error(
+      `${meta.place}${meta.race}R：[COMPI]がありません。`
+    );
   }
-
   const horses = [];
-
   for(const originalLine of compiSection.split('\n')){
     const line = originalLine.trim();
-
     if(!line){
       continue;
     }
-
     const numbers = line.match(
       /\d+(?:\.\d+)?/g
     );
-
     if(!numbers || numbers.length < 2){
       continue;
     }
-
     const no = Number(numbers[0]);
     const index = Number(numbers[1]);
-
-    if(no > 0 && index > 0){
+    if(
+      Number.isInteger(no) &&
+      no > 0 &&
+      Number.isFinite(index) &&
+      index > 0
+    ){
       horses.push({
         no,
         idx:index
       });
     }
   }
-
   if(horses.length < 3){
-    throw Error(
-      '[COMPI] は最低3頭必要です。'
+    throw new Error(
+      `${meta.place}${meta.race}R：[COMPI]は最低3頭必要です。`
     );
   }
-
   const horseNumbers = horses.map(
     horse => horse.no
   );
-
   if(
-    new Set(horseNumbers).size !==
-    horses.length
+    new Set(horseNumbers).size !== horses.length
   ){
-    throw Error(
-      '[COMPI] に同じ馬番が重複しています。'
+    throw new Error(
+      `${meta.place}${meta.race}R：[COMPI]に同じ馬番が重複しています。`
     );
   }
-
   horses.sort(
     (a,b) => b.idx - a.idx || a.no - b.no
   );
-
-  const recommendSection = section(
+  const recommendSection = getSection(
     text,
     'RECOMMEND'
   );
-
   let recommend = '';
-
   if(
     recommendSection &&
     !/^(なし|無|none|-+)$/i.test(
@@ -606,35 +593,29 @@ function parseCode(raw){
   ){
     const recommendNumbers =
       recommendSection.match(/\d+/g) || [];
-
     if(recommendNumbers.length !== 1){
-      throw Error(
-        '推奨馬は赤文字の1頭だけにしてください。'
+      throw new Error(
+        `${meta.place}${meta.race}R：推奨馬は赤文字の1頭だけにしてください。`
       );
     }
-
     recommend = String(
       Number(recommendNumbers[0])
     );
-
     if(
       !horses.some(
         horse => String(horse.no) === recommend
       )
     ){
-      throw Error(
-        '推奨馬が[COMPI]内にありません。'
+      throw new Error(
+        `${meta.place}${meta.race}R：推奨馬が[COMPI]内にありません。`
       );
     }
   }
-
-  const resultSection = section(
+  const resultSection = getSection(
     text,
     'RESULT'
   );
-
   let result = [];
-
   if(
     resultSection &&
     !/^(なし|未入力|-+)$/i.test(
@@ -646,16 +627,14 @@ function parseCode(raw){
     )
       .slice(0,3)
       .map(Number);
-
     if(
       result.length !== 3 ||
       new Set(result).size !== 3
     ){
-      throw Error(
-        '[RESULT] は「1着-2着-3着」の3頭を重複なく入力してください。'
+      throw new Error(
+        `${meta.place}${meta.race}R：[RESULT]は「1着-2着-3着」の3頭を入力してください。`
       );
     }
-
     if(
       result.some(
         number =>
@@ -664,12 +643,11 @@ function parseCode(raw){
           )
       )
     ){
-      throw Error(
-        '[RESULT] に[COMPI]にない馬番があります。'
+      throw new Error(
+        `${meta.place}${meta.race}R：[RESULT]に[COMPI]にない馬番があります。`
       );
     }
   }
-
   return buildRow(
     meta,
     horses,
@@ -677,23 +655,14 @@ function parseCode(raw){
     result
   );
 }
-
-function buildRow(
-  meta,
-  horses,
-  recommend,
-  result
-){
-  const value = index =>
+function buildRow(meta,horses,recommend,result){
+  const valueAt = index =>
     horses[index]?.idx ?? '';
-
   const difference = (first,second) =>
     horses[first] && horses[second]
       ? horses[first].idx - horses[second].idx
       : '';
-
   const gaps = [];
-
   for(
     let index = 0;
     index < horses.length - 1;
@@ -706,63 +675,52 @@ function buildRow(
         horses[index + 1].idx
     });
   }
-
   gaps.sort(
     (a,b) =>
       b.diff - a.diff ||
       a.pos - b.pos
   );
-
   const wall = gaps[0] || {
     pos:'',
     diff:''
   };
-
   const secondWall = gaps[1] || {
     pos:'',
     diff:''
   };
-
   const inside = wall.pos
     ? horses.slice(0,wall.pos)
     : [];
-
   const medianRank = inside.length
     ? Math.floor(
         (inside.length - 1) / 2
       ) + 1
     : '';
-
   const medianHorse = medianRank
     ? horses[medianRank - 1]
     : null;
-
   const lowHorses = horses.filter(
     horse =>
       horse.idx >= 46 &&
       horse.idx <= 49
   );
-
   const topThreeSum = horses
     .slice(0,3)
     .reduce(
       (sum,horse) => sum + horse.idx,
       0
     );
-
   const recommendHorse = recommend
     ? horses.find(
         horse =>
           String(horse.no) === recommend
       )
     : null;
-
   const row = Object.fromEntries(
     HEADERS.map(
       header => [header,'']
     )
   );
-
   Object.assign(row,{
     '日付':meta.date,
     '場':meta.place,
@@ -770,19 +728,15 @@ function buildRow(
     '結果入力済み':
       result.length ? '1' : '0',
     '頭数':String(horses.length),
-
     '全馬コンピ順位列':
-      horses
-        .map(horse => horse.no)
-        .join('|'),
-
+      horses.map(
+        horse => horse.no
+      ).join('|'),
     '全馬指数列':
-      horses
-        .map(horse => horse.idx)
-        .join('|'),
-
+      horses.map(
+        horse => horse.idx
+      ).join('|'),
     '推奨馬':recommend,
-
     '推奨馬順位':
       recommendHorse
         ? String(
@@ -791,53 +745,37 @@ function buildRow(
             ) + 1
           )
         : '',
-
     '推奨馬指数':
       recommendHorse
         ? String(recommendHorse.idx)
         : '',
-
     'コンピ1位馬':
       String(horses[0]?.no ?? ''),
-
     'コンピ1位指数':
-      String(value(0)),
-
+      String(valueAt(0)),
     'コンピ2位馬':
       String(horses[1]?.no ?? ''),
-
     'コンピ2位指数':
-      String(value(1)),
-
+      String(valueAt(1)),
     'コンピ3位馬':
       String(horses[2]?.no ?? ''),
-
     'コンピ3位指数':
-      String(value(2)),
-
+      String(valueAt(2)),
     'P':pClass(topThreeSum),
-
     '上位3合計':
       String(topThreeSum),
-
     '差1_2':
       String(difference(0,1)),
-
     '差2_3':
       String(difference(1,2)),
-
     '差1_3':
       String(difference(0,2)),
-
     '差3_5':
       String(difference(2,4)),
-
     '差5_6':
       String(difference(4,5)),
-
     '差6_7':
       String(difference(5,6)),
-
     '上位5合計':
       String(
         horses
@@ -848,7 +786,6 @@ function buildRow(
             0
           )
       ),
-
     '上位5幅':
       horses[4]
         ? String(
@@ -856,20 +793,16 @@ function buildRow(
             horses[4].idx
           )
         : '',
-
     '最大壁位置':
       String(wall.pos),
-
     '最大壁差':
       String(wall.diff),
-
     '壁前馬':
       wall.pos
         ? String(
             horses[wall.pos - 1].no
           )
         : '',
-
     '壁前2頭':
       wall.pos
         ? horses
@@ -877,52 +810,48 @@ function buildRow(
               Math.max(0,wall.pos - 2),
               wall.pos
             )
-            .map(horse => horse.no)
+            .map(
+              horse => horse.no
+            )
             .join('|')
         : '',
-
     '壁直後':
       wall.pos && horses[wall.pos]
         ? String(
             horses[wall.pos].no
           )
         : '',
-
     '壁内頭数':
       String(inside.length),
-
     '壁内メジアン馬':
       medianHorse
         ? String(medianHorse.no)
         : '',
-
     '壁内メジアン順位':
       medianRank
         ? String(medianRank)
         : '',
-
     '壁内メジアン指数':
       medianHorse
         ? String(medianHorse.idx)
         : '',
-
     '第2壁位置':
       String(secondWall.pos),
-
     '第2壁差':
       String(secondWall.diff),
-
     '46_49馬':
       lowHorses
-        .map(horse => horse.no)
+        .map(
+          horse => horse.no
+        )
         .join('|'),
-
     '46_49指数':
       lowHorses
-        .map(horse => horse.idx)
+        .map(
+          horse => horse.idx
+        )
         .join('|')
   });
-
   if(result.length){
     applyResultToRow(
       row,
@@ -930,55 +859,31 @@ function buildRow(
       horses
     );
   }
-
   return row;
 }
-
-function applyResultToRow(
-  row,
-  result,
-  horses
-){
+function applyResultToRow(row,result,horses){
   const ranks = result.map(
     number =>
       horses.findIndex(
         horse => horse.no === number
       ) + 1
   );
-
   const indexes = result.map(
     number =>
       horses.find(
         horse => horse.no === number
       )?.idx ?? ''
   );
-
-  const groups = ranks.map(group);
-
+  const groups = ranks.map(groupOf);
   Object.assign(row,{
     '結果入力済み':'1',
-
-    '結果':
-      result.join('-'),
-
-    '結果1着馬':
-      String(result[0]),
-
-    '結果2着馬':
-      String(result[1]),
-
-    '結果3着馬':
-      String(result[2]),
-
-    '結果コンピ順位':
-      ranks.join('|'),
-
-    '結果コンピ指数':
-      indexes.join('|'),
-
-    '結果群':
-      groups.join('|'),
-
+    '結果':result.join('-'),
+    '結果1着馬':String(result[0]),
+    '結果2着馬':String(result[1]),
+    '結果3着馬':String(result[2]),
+    '結果コンピ順位':ranks.join('|'),
+    '結果コンピ指数':indexes.join('|'),
+    '結果群':groups.join('|'),
     '推奨馬着順':
       row.推奨馬
         ? result.includes(
@@ -991,7 +896,6 @@ function applyResultToRow(
             )
           : '着外'
         : '',
-
     '推奨馬3着内':
       row.推奨馬
         ? result.includes(
@@ -1000,13 +904,11 @@ function applyResultToRow(
           ? '1'
           : '0'
         : '',
-
     '壁前勝利':
       String(result[0]) ===
       row.壁前馬
         ? '1'
         : '0',
-
     '壁直後3着内':
       row.壁直後 &&
       result.includes(
@@ -1014,7 +916,6 @@ function applyResultToRow(
       )
         ? '1'
         : '0',
-
     '壁メジアン3着内':
       row.壁内メジアン馬 &&
       result.includes(
@@ -1022,38 +923,32 @@ function applyResultToRow(
       )
         ? '1'
         : '0',
-
     '上位4頭決着':
       ranks.every(
         rank => rank <= 4
       )
         ? '1'
         : '0',
-
     'A群完結':
       ranks.every(
         rank => rank <= 5
       )
         ? '1'
         : '0',
-
     'B侵入':
       groups.includes('B')
         ? '1'
         : '0',
-
     'C侵入':
       groups.includes('C')
         ? '1'
         : '0',
-
     'D侵入':
       groups.includes('D')
         ? '1'
         : '0'
   });
 }
-
 function summaryOf(row){
   return `【${row.日付} ${row.場}${row.R}R コンピ研究】
 P：${row.P}（${row.上位3合計}）
@@ -1067,112 +962,82 @@ P：${row.P}（${row.上位3合計}）
 46〜49P：${row['46_49馬'] || 'なし'}
 結果：${row.結果 || '未入力'}`;
 }
-
 function parseAndPreview(){
   try{
-    const row = parseCode(
-      pasteBox.value
+    const rows = parseBatch(
+      document.getElementById('pasteBox').value
     );
-
-    preview.textContent =
-      summaryOf(row);
-
+    document.getElementById('preview').textContent =
+      rows
+        .map(summaryOf)
+        .join('\n\n────────────\n\n');
     setMsg(
-      '解析できました。内容を確認してください。',
+      `${rows.length}レースを一括解析できました。内容を確認してください。`,
       true
     );
-
-    return row;
+    return rows;
   }catch(error){
-    preview.textContent =
+    document.getElementById('preview').textContent =
       '解析失敗';
-
     setMsg(
       error.message,
       false
     );
-
     return null;
   }
 }
-
+function preserveOldResult(oldRow,newRow){
+  if(
+    newRow.結果 ||
+    oldRow.結果入力済み !== '1'
+  ){
+    return newRow;
+  }
+  for(const header of RESULT_HEADERS){
+    newRow[header] =
+      oldRow[header] || '';
+  }
+  return newRow;
+}
 function parseAndSave(){
-  const row = parseAndPreview();
-
-  if(!row){
+  const rows = parseAndPreview();
+  if(!rows){
     return;
   }
-
-  const index = db.findIndex(
-    savedRow =>
-      keyOf(savedRow) === keyOf(row)
-  );
-
-  if(index >= 0){
-    const oldRow = db[index];
-
-    if(
-      !row.結果 &&
-      oldRow.結果入力済み === '1'
-    ){
-      const resultHeaders = [
-        '結果入力済み',
-        '結果',
-        '結果1着馬',
-        '結果2着馬',
-        '結果3着馬',
-        '結果コンピ順位',
-        '結果コンピ指数',
-        '結果群',
-        '推奨馬着順',
-        '推奨馬3着内',
-        '壁前勝利',
-        '壁直後3着内',
-        '壁メジアン3着内',
-        '上位4頭決着',
-        'A群完結',
-        'B侵入',
-        'C侵入',
-        'D侵入'
-      ];
-
-      for(const header of resultHeaders){
-        row[header] =
-          oldRow[header] || '';
-      }
+  let added = 0;
+  let updated = 0;
+  for(let row of rows){
+    const index = db.findIndex(
+      savedRow =>
+        keyOf(savedRow) === keyOf(row)
+    );
+    if(index >= 0){
+      row = preserveOldResult(
+        db[index],
+        row
+      );
+      db[index] = row;
+      updated++;
+    }else{
+      db.push(row);
+      added++;
     }
-
-    db[index] = row;
-
-    setMsg(
-      '同じレースを更新しました。',
-      true
-    );
-  }else{
-    db.push(row);
-
-    setMsg(
-      '新しいレースを保存しました。',
-      true
-    );
   }
-
   persist();
   renderAll();
+  setMsg(
+    `${rows.length}レースを一括保存しました（新規${added}・更新${updated}）。`,
+    true
+  );
 }
-
 function loadAsCode(index){
   const row = db[index];
-
   const numbers =
     row.全馬コンピ順位列.split('|');
-
   const indexes =
     row.全馬指数列.split('|');
-
   let code =
     `【${row.日付} ${row.場}${row.R}R】\n[COMPI]\n`;
-
   for(
     let position = 0;
     position < numbers.length;
@@ -1181,27 +1046,21 @@ function loadAsCode(index){
     code +=
       `${numbers[position]} ${indexes[position]}\n`;
   }
-
   code +=
     `[RECOMMEND]\n${row.推奨馬 || 'なし'}\n`;
-
   if(row.結果){
     code +=
       `[RESULT]\n${row.結果}\n`;
   }
-
-  pasteBox.value =
+  document.getElementById('pasteBox').value =
     code.trim();
-
-  preview.textContent =
+  document.getElementById('preview').textContent =
     summaryOf(row);
-
-  scrollTo({
+  window.scrollTo({
     top:0,
     behavior:'smooth'
   });
 }
-
 function deleteRace(index){
   if(
     !confirm(
@@ -1210,23 +1069,18 @@ function deleteRace(index){
   ){
     return;
   }
-
   db.splice(index,1);
-
   persist();
   renderAll();
-
   setMsg(
     '削除しました。',
     true
   );
 }
-
 function renderAll(){
   renderLog();
   renderKpis();
 }
-
 function renderLog(){
   const sorted = [...db].sort(
     (a,b) =>
@@ -1240,24 +1094,19 @@ function renderLog(){
         String(a.R).padStart(2,'0')
       )
   );
-
-  logBody.innerHTML = sorted.map(
-    row => {
+  document.getElementById('logBody').innerHTML =
+    sorted.map(row => {
       const index = db.indexOf(row);
-
       return `
         <tr>
           <td>${esc(row.日付)}</td>
           <td>${esc(row.場)}</td>
           <td>${esc(row.R)}</td>
           <td>${esc(row.P)}</td>
-
           <td style="color:var(--red);font-weight:900">
             ${esc(row.推奨馬 || '—')}
           </td>
-
           <td>${esc(row.結果 || '未')}</td>
-
           <td>
             <button
               onclick="loadAsCode(${index})"
@@ -1265,7 +1114,6 @@ function renderLog(){
             >
               開く
             </button>
-
             <button
               class="red"
               onclick="deleteRace(${index})"
@@ -1276,26 +1124,20 @@ function renderLog(){
           </td>
         </tr>
       `;
-    }
-  ).join('');
+    }).join('');
 }
-
 function renderKpis(){
   const completed = db.filter(
     row =>
       row.結果入力済み === '1'
   );
-
   const recommended = completed.filter(
     row => row.推奨馬
   );
-
-  const recommendedHit =
-    recommended.filter(
-      row =>
-        row.推奨馬3着内 === '1'
-    );
-
+  const recommendedHit = recommended.filter(
+    row =>
+      row.推奨馬3着内 === '1'
+  );
   const hitRate = recommended.length
     ? Math.round(
         recommendedHit.length /
@@ -1303,41 +1145,34 @@ function renderKpis(){
         100
       )
     : 0;
-
-  kpis.innerHTML = `
+  document.getElementById('kpis').innerHTML = `
     <div class="kpi">
       <b>${db.length}</b>
       総レース
     </div>
-
     <div class="kpi">
       <b>${completed.length}</b>
       結果入力
     </div>
-
     <div class="kpi">
       <b>${hitRate}%</b>
       推奨馬3着内
     </div>
   `;
 }
-
 function csvCell(value){
   value = String(value ?? '');
-
   return /[",\n]/.test(value)
     ? '"' +
       value.replace(/"/g,'""') +
       '"'
     : value;
 }
-
 function exportCSV(){
   const text =
     '\ufeff' +
     [
       HEADERS.join(','),
-
       ...db.map(
         row =>
           HEADERS.map(
@@ -1346,35 +1181,28 @@ function exportCSV(){
           ).join(',')
       )
     ].join('\r\n');
-
   downloadBlob(
     text,
-    `競馬メジアン_中央コンピ研究所_V1.40_${new Date().toISOString().slice(0,10)}.csv`,
+    `競馬メジアン_中央コンピ研究所_V1.50_${new Date().toISOString().slice(0,10)}.csv`,
     'text/csv;charset=utf-8'
   );
-
   setMsg(
     'CSVを書き出しました。',
     true
   );
 }
-
 function parseCSV(text){
   const output = [];
-
   let row = [];
   let cell = '';
   let quoted = false;
-
   for(
     let index = 0;
     index < text.length;
     index++
   ){
     const character = text[index];
-    const nextCharacter =
-      text[index + 1];
-
+    const nextCharacter = text[index + 1];
     if(quoted){
       if(
         character === '"' &&
@@ -1396,33 +1224,25 @@ function parseCSV(text){
       row.push(
         cell.replace(/\r$/,'')
       );
-
       output.push(row);
-
       row = [];
       cell = '';
     }else{
       cell += character;
     }
   }
-
   if(cell || row.length){
     row.push(cell);
     output.push(row);
   }
-
   return output;
 }
-
 function importCSV(event){
   const file = event.target.files[0];
-
   if(!file){
     return;
   }
-
   const reader = new FileReader();
-
   reader.onload = () => {
     try{
       const table = parseCSV(
@@ -1431,10 +1251,8 @@ function importCSV(event){
           ''
         )
       );
-
-      const headers =
+      const importedHeaders =
         table.shift();
-
       const imported = table
         .filter(
           values =>
@@ -1447,30 +1265,25 @@ function importCSV(event){
                 header => [
                   header,
                   values[
-                    headers.indexOf(header)
+                    importedHeaders.indexOf(header)
                   ] ?? ''
                 ]
               )
             )
         );
-
       for(const row of imported){
         const index = db.findIndex(
           savedRow =>
-            keyOf(savedRow) ===
-            keyOf(row)
+            keyOf(savedRow) === keyOf(row)
         );
-
         if(index >= 0){
           db[index] = row;
         }else{
           db.push(row);
         }
       }
-
       persist();
       renderAll();
-
       setMsg(
         `${imported.length}レースを読み込みました。`,
         true
@@ -1482,19 +1295,16 @@ function importCSV(event){
       );
     }
   };
-
   reader.readAsText(
     file,
     'utf-8'
   );
-
   event.target.value = '';
 }
-
 function exportBackup(){
   const backup = JSON.stringify(
     {
-      version:'1.40',
+      version:'1.50',
       savedAt:
         new Date().toISOString(),
       data:db
@@ -1502,47 +1312,38 @@ function exportBackup(){
     null,
     2
   );
-
   downloadBlob(
     backup,
-    `コンピ研究所_V1.40_backup_${new Date().toISOString().slice(0,10)}.json`,
+    `コンピ研究所_V1.50_backup_${new Date().toISOString().slice(0,10)}.json`,
     'application/json'
   );
-
   setMsg(
     'バックアップを保存しました。',
     true
   );
 }
-
 function importBackup(event){
   const file = event.target.files[0];
-
   if(!file){
     return;
   }
-
   const reader = new FileReader();
-
   reader.onload = () => {
     try{
       const parsed =
         JSON.parse(reader.result);
-
       const data =
         Array.isArray(parsed)
           ? parsed
           : parsed.data;
-
       if(!Array.isArray(data)){
-        throw Error();
+        throw new Error(
+          '不正なバックアップです。'
+        );
       }
-
       db = data;
-
       persist();
       renderAll();
-
       setMsg(
         `${db.length}レースを復元しました。`,
         true
@@ -1554,33 +1355,21 @@ function importBackup(event){
       );
     }
   };
-
   reader.readAsText(file);
-
   event.target.value = '';
 }
-
-function downloadBlob(
-  text,
-  fileName,
-  type
-){
+function downloadBlob(text,fileName,type){
   const blob = new Blob(
     [text],
     {type}
   );
-
   const link =
     document.createElement('a');
-
   link.href =
     URL.createObjectURL(blob);
-
   link.download =
     fileName;
-
   link.click();
-
   setTimeout(
     () =>
       URL.revokeObjectURL(
@@ -1589,10 +1378,8 @@ function downloadBlob(
     1000
   );
 }
-
 async function copyFormat(){
-  const sample =
-`【2026-08-08 新潟1R】
+  const sample = `【2026-08-08 新潟1R】
 [COMPI]
 2 84
 4 78
@@ -1600,15 +1387,22 @@ async function copyFormat(){
 [RECOMMEND]
 2
 [RESULT]
-2-4-6`;
-
+2-4-6
+【2026-08-08 新潟2R】
+[COMPI]
+7 81
+3 74
+9 68
+[RECOMMEND]
+7
+[RESULT]
+7-9-3`;
   try{
     await navigator.clipboard.writeText(
       sample
     );
-
     setMsg(
-      'コード形式をコピーしました。',
+      '一括コード形式をコピーしました。',
       true
     );
   }catch(error){
@@ -1618,7 +1412,6 @@ async function copyFormat(){
     );
   }
 }
-
 renderAll();
 </script>
 </body>
