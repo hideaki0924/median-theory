@@ -1844,6 +1844,7 @@ const __buildV600=build;
 const __renderV600=render;
 const __chatV600=chatText;
 const __saveV600=saveResearchCsv;
+function ratioFmt600(x){return x==null?'判定不可':Number(x).toFixed(2)+'倍'}
 
 function rmap(arr){const o={};(arr||[]).forEach((h,i)=>o[String(h)]=i+1);return o}
 function nval(x){x=Number(x);return Number.isFinite(x)?x:null}
@@ -1986,7 +1987,7 @@ function favorite60Card(v){const b=v.bookFavorite;
     <div class="role"><div class="roleL">対象</div><div class="roleV">${b.horse?b.horse+'番':'判定不可'}</div></div>
     <div class="note"><b>① 馬連タテ目判定</b><br>上位2組：${b.pair1||'不足'}（${b.baseOdds??'-'}倍）／${b.pair2||'不足'}<br>
     タテ目：${b.verticalPair||'不足'}＝${b.verticalOdds??'-'}倍<br>
-    計算：${b.verticalOdds??'-'} ÷ ${b.baseOdds??'-'} ＝ <b>${ratioFmt(b.ratio)}</b><br>
+    計算：${b.verticalOdds??'-'} ÷ ${b.baseOdds??'-'} ＝ <b>${ratioFmt600(b.ratio)}</b><br>
     判定：${b.verticalSafe==null?'判定不可':b.verticalSafe?'<span class="good">4倍以上・信頼側</span>':'<span class="warn">4倍未満・危険</span>'}</div>
     <div class="note"><b>② 三連複・単勝1番人気なし最上位</b><br>
     初めて不在：${b.sanAbsenceRank==null?'入力なし':b.sanAbsenceRank+'位 '+(b.sanAbsenceCombo||'')+'＝'+(b.sanAbsenceOdds??'-')+'倍'}<br>
@@ -2088,5 +2089,3 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </script>
 </body>
 </html>
-競馬メジアン_大谷式統合研究所_V6.00.html
-HTML
