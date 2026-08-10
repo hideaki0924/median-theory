@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="median-v8.00-from-scratch-p-commander">
-<title>競馬メジアン V8.00 P型司令塔・予想専用</title>
+<meta name="app-build" content="median-v8.02-old-market-table-all-horse-vertical">
+<title>競馬メジアン V8.02 P型司令塔・旧五市場表＋全馬タテ目・予想専用</title>
 <style>
 :root{
   --bg:#07101f;--card:#0e1b34;--card2:#020617;--line:#334155;
@@ -49,13 +49,40 @@ button{border:0;border-radius:11px;padding:10px 11px;margin:7px 4px 2px 0;font-s
 .tableWrap{overflow-x:auto}.miniTable{width:100%;border-collapse:collapse;font-size:12px}.miniTable th,.miniTable td{border-bottom:1px solid #334155;padding:5px 4px;text-align:left}.miniTable th{color:#93c5fd;font-size:10px}
 .finalThree{text-align:center;font-size:clamp(42px,13vw,70px);font-weight:1000;color:#fff7a8;letter-spacing:.02em;line-height:1.15;margin:7px 0;text-shadow:0 0 14px rgba(250,204,21,.28)}
 .finalWhy{background:#020617;border:1px solid #a16207;border-radius:12px;padding:8px;margin:6px 0;font-size:13px}.ticket{background:#020617;border:1px solid #a16207;border-radius:12px;padding:9px;margin:6px 0}.ticketL{font-size:11px;color:#fde68a;font-weight:950}.ticketV{font-size:17px;font-weight:950;line-height:1.65;margin-top:2px}
+
+/* 五市場順位表：旧アプリの見た目・壁表示をそのまま復元 */
+.marketScroll{overflow-x:auto;background:#061326;border-radius:10px;padding:4px 1px;margin-top:7px}
+.row{display:flex;align-items:center;min-width:max-content;margin:2px 0}
+.label{width:43px;min-width:43px;font-size:11px;font-weight:950}
+.cell{width:28px;min-width:28px;text-align:center;font-size:16px;font-weight:950;line-height:1.04}
+.pt{display:block;font-size:8px;color:#d8b4fe;line-height:1.0}
+.sep{width:1px;min-width:1px;height:21px;margin:0 1px;border-radius:4px;background:#35517a}
+.sep.big{width:4px;min-width:4px;height:25px;background:#fb7185;box-shadow:0 0 7px #fb7185}
+.sep.mid{width:3px;min-width:3px;height:24px;background:#f59e0b;box-shadow:0 0 6px #f59e0b}
+.sep.small{width:2px;min-width:2px;height:22px;background:#22d3ee}
+.sep.marketWall{width:4px;min-width:4px;height:27px;border:1px solid #ecfeff}
+.sep.baseWall{width:4px;min-width:4px;height:27px;border:1px solid #fff7a8}
+.sep.doubleWall{width:6px;min-width:6px;height:29px;border:1px solid #fff;background:linear-gradient(#fff 0 18%,currentColor 18% 82%,#fff 82%)}
+.sep.marketWall.uma{background:#fb7185;box-shadow:0 0 10px #fb7185}.sep.marketWall.tan{background:#38bdf8;box-shadow:0 0 10px #38bdf8}.sep.marketWall.fuku{background:#fde047;box-shadow:0 0 10px #fde047}.sep.marketWall.wide{background:#a78bfa;box-shadow:0 0 10px #a78bfa}.sep.marketWall.san{background:#4ade80;box-shadow:0 0 10px #4ade80}
+.sep.baseWall.tan{background:#f472b6;box-shadow:0 0 10px #f472b6}.sep.baseWall.fuku{background:#fb923c;box-shadow:0 0 10px #fb923c}
+.wallLegend{display:flex;gap:4px;flex-wrap:wrap;margin:6px 1px 2px;font-size:9px;font-weight:900}.wallLegend span{display:inline-flex;align-items:center;gap:4px;border:1px solid #475569;background:#111c35;border-radius:999px;padding:3px 6px}.legendLine{display:inline-block;width:19px;height:4px;border-radius:999px}.legendLine.uma{background:#fb7185;box-shadow:0 0 8px #fb7185}.legendLine.tan{background:#38bdf8;box-shadow:0 0 8px #38bdf8}.legendLine.fuku{background:#fde047;box-shadow:0 0 8px #fde047}.legendLine.wide{background:#a78bfa;box-shadow:0 0 8px #a78bfa}.legendLine.san{background:#4ade80;box-shadow:0 0 8px #4ade80}.legendLine.f6{background:#fde047;box-shadow:0 0 8px #fde047}.legendLine.f15{background:#fb923c;box-shadow:0 0 8px #fb923c}.legendLine.t80{background:#f472b6;box-shadow:0 0 8px #f472b6}
+
+
+/* V8.02: V6系からそのまま移植した重要表＋全馬タテ目 */
+.oldMarketCard{border:3px solid var(--blue);background:linear-gradient(145deg,#061326,#10285b,#07101f)}
+.tateCard{border:3px solid #14b8a6;background:linear-gradient(145deg,#042f2e,#115e59,#07101f)}
+.tateNote{background:#020617;border:1px solid #0f766e;border-radius:11px;padding:8px;margin:6px 0;font-size:12px;color:#ccfbf1}
+.tateTable{width:100%;border-collapse:collapse;min-width:620px;font-size:12px}
+.tateTable th{color:#99f6e4;font-weight:950;padding:5px;border-bottom:2px solid #0f766e;white-space:nowrap}
+.tateTable td{padding:5px;border-top:1px solid #334155;text-align:center;white-space:nowrap}
+
 pre{white-space:pre-wrap;word-break:break-word;background:#020617;border-radius:11px;padding:9px;font-size:12px}
 @media(max-width:390px){.pHuge{font-size:68px}.detailHuge{font-size:24px}.modeHuge{font-size:26px}.rangeV{font-size:19px}.boxV{font-size:15px}}
 </style>
 </head>
 <body>
 <main>
-<h1>競馬メジアン <span class="tag">V8.00</span><br>P型司令塔・予想専用</h1>
+<h1>競馬メジアン <span class="tag">V8.02</span><br>P型司令塔・旧五市場表＋全馬タテ目</h1>
 
 <div class="card">
   <div class="title">レースデータ入力</div>
@@ -159,6 +186,17 @@ function rankUmaByFav(list,fav,fallback=[]){
   return uniq([fav,...mates,...fallback.filter(h=>h!==fav&&!mates.includes(h))]);
 }
 function venueMode(title=''){return /札幌|函館|福島|新潟|東京|中山|中京|京都|阪神|小倉/.test(title)?'JRA':'NAR'}
+function horsePairAnalysis(h,umaSorted){
+  h=String(h);
+  const withHorse=umaSorted.filter(x=>String(x.a)===h||String(x.b)===h);
+  if(withHorse.length<2)return {h,status:'馬連入力不足',ratio:null};
+  const p1=withHorse[0],p2=withHorse[1];
+  const m1=String(p1.a)===h?String(p1.b):String(p1.a);
+  const m2=String(p2.a)===h?String(p2.b):String(p2.a);
+  const cross=umaSorted.find(x=>pairKey(x.a,x.b)===pairKey(m1,m2));
+  if(!cross)return {h,status:'タテ目未入力',pair1:pairKey(p1.a,p1.b),pair2:pairKey(p2.a,p2.b),mate1:m1,mate2:m2,baseOdds:Number(p1.od),ratio:null};
+  return {h,status:'OK',pair1:pairKey(p1.a,p1.b),pair2:pairKey(p2.a,p2.b),mate1:m1,mate2:m2,verticalPair:pairKey(m1,m2),baseOdds:Number(p1.od),verticalOdds:Number(cross.od),ratio:Number(cross.od)/Number(p1.od)};
+}
 
 function typeAndRange(compi,p,otani,g13,firstMajor){
   const n=compi.length,top4=n>=4?compi[0].pt-compi[3].pt:99,top1=compi[0]?.pt||0,g56=n>=6?compi[4].pt-compi[5].pt:null;
@@ -211,12 +249,12 @@ function build(d){
   const wallFront=uniq([walls.f15?.before,walls.f10?.before,walls.f6?.before,walls.t10?.before,walls.t30?.before,walls.t80?.before,...walls.uma.map(x=>x.before),...walls.tan.map(x=>x.before),...walls.fuku.map(x=>x.before),...walls.wide.map(x=>x.before),...walls.san.map(x=>x.before)]);
   const wallAfter=uniq([walls.f15?.next,walls.f10?.next,walls.f6?.next,walls.t10?.next,walls.t30?.next,walls.t80?.next,...walls.uma.map(x=>x.next),...walls.tan.map(x=>x.next),...walls.fuku.map(x=>x.next),...walls.wide.map(x=>x.next),...walls.san.map(x=>x.next)]);
 
-  // 1番人気信用度＋タテ目
-  const umaSorted=sorted(d.uma),umaWithFav=fav?umaSorted.filter(x=>[x.a,x.b].includes(fav)):[];
-  const mate1=umaWithFav[0]?[umaWithFav[0].a,umaWithFav[0].b].find(h=>h!==fav):'';
-  const mate2=umaWithFav[1]?[umaWithFav[1].a,umaWithFav[1].b].find(h=>h!==fav):'';
-  const vertical=(mate1&&mate2)?umaSorted.find(x=>[x.a,x.b].includes(mate1)&&[x.a,x.b].includes(mate2)):null;
-  const baseUma=umaSorted[0]?.od??null,verticalOdds=vertical?.od??null,verticalRatio=(verticalOdds!=null&&baseUma)?verticalOdds/baseUma:null;
+  // 1番人気信用度＋全馬タテ目（V5.36/V6系の旧ロジックをそのまま移植）
+  const umaSorted=sorted(d.uma);
+  const allHorseVertical=cr.map(h=>horsePairAnalysis(h,umaSorted));
+  const favVertical=allHorseVertical.find(x=>x.h===String(fav))||{h:String(fav||''),status:'判定不可',ratio:null};
+  const mate1=favVertical.mate1||'',mate2=favVertical.mate2||'';
+  const baseUma=favVertical.baseOdds??null,verticalOdds=favVertical.verticalOdds??null,verticalRatio=favVertical.ratio??null;
   const sanSorted=sorted(d.san),contains=(x,h)=>[x.a,x.b,x.c].includes(h),absIdx=fav?sanSorted.findIndex(x=>!contains(x,fav)):-1;
   const absence=absIdx>=0?absIdx+1:(sanSorted.length?sanSorted.length+1:null),absenceRow=absIdx>=0?sanSorted[absIdx]:null,absenceOdds=absenceRow?.od??null;
   const favCompi=compi.find(x=>x.h===fav)?.pt??null,favCompiRank=rm.compi[fav]||99;
@@ -318,11 +356,46 @@ function build(d){
   const pairs=[];for(let i=0;i<final3.length;i++)for(let j=i+1;j<final3.length;j++)pairs.push(pairKey(final3[i],final3[j]));
   const tri=final3.length===3?triKey(...final3):'';
   return {d,compi,cr,sum,p,g12,g23,g13,maxGap,firstMajor,otani,meta,rm,tan,fuku,tr,fr,ur,wr,sr,tv,fv,walls,wallFront,wallAfter,
-    fav,favCompi,favCompiRank,marketFirstCount,mate1,mate2,baseUma,verticalOdds,verticalRatio,absence,absenceOdds,absenceRow,favLevel,favNote,favHeadOK,
+    fav,favCompi,favCompiRank,marketFirstCount,mate1,mate2,baseUma,verticalOdds,verticalRatio,allHorseVertical,absence,absenceOdds,absenceRow,favLevel,favNote,favHeadOK,
     medians,marketRise,midOverlap,f15Pair,bookMedian,holes,holeSingles,bigHead,win5Hole,blue,yoso,rankedFinal,final3,headMain,singleProtect,pairs,tri};
 }
 
+function compiRow(x){
+  let s='<div class="row"><div class="label">コンピ</div>';
+  x.compi.forEach((z,i)=>{
+    let c='sep';
+    if(i<x.compi.length-1){const g=z.pt-x.compi[i+1].pt;c+=g>=10?' big':g>=7?' mid':g>=4?' small':''}
+    s+=`<div class="cell">${z.h}<span class="pt">${z.pt}P</span></div>${i<x.compi.length-1?`<i class="${c}"></i>`:''}`;
+  });
+  return s+'</div>';
+}
+function marketRankRow(label,arr,ratioList=[],baseList=[],market='uma'){
+  if(!arr.length)return'';
+  const ratioPairs=new Set((ratioList||[]).map(w=>`${w.before}>${w.next}`));
+  const basePairs=new Set((baseList||[]).filter(Boolean).map(w=>`${w.before}>${w.next}`));
+  let s=`<div class="row"><div class="label">${label}</div>`;
+  arr.forEach((h,i)=>{
+    s+=`<div class="cell">${h}</div>`;
+    if(i<arr.length-1){
+      const pair=`${h}>${arr[i+1]}`,r=ratioPairs.has(pair),b=basePairs.has(pair);
+      const cls=r&&b?`doubleWall ${market}`:r?`marketWall ${market}`:b?`baseWall ${market}`:'';
+      s+=`<i class="sep ${cls}"></i>`;
+    }
+  });
+  return s+'</div>';
+}
 function wallsText(arr){return arr&&arr.length?arr.map(w=>`${w.before}→${w.next} ${w.ratio}倍`).join(' ／ '):'明確な比率壁なし'}
+function allVerticalCard(x){
+  const rows=x.allHorseVertical||[];
+  return `<div class="card tateCard"><div class="title">🧪 全馬タテ目倍率（独自研究）</div>
+    <div class="tateNote">各馬を仮想中心馬として、その馬を含む馬連上位2組の相手同士をタテ目にして計算。旧V5.36/V6系の表と計算方法をそのまま移植。</div>
+    <div class="marketScroll" style="margin-top:8px"><table class="tateTable">
+      <thead><tr><th>馬</th><th>上位1組</th><th>上位2組</th><th>タテ目</th><th>基準</th><th>タテ目オッズ</th><th>倍率</th></tr></thead>
+      <tbody>${rows.map(z=>`<tr><td style="font-weight:950">${z.h}</td><td>${z.pair1||'-'}</td><td>${z.pair2||'-'}</td><td>${z.verticalPair||'-'}</td><td>${z.baseOdds??'-'}</td><td>${z.verticalOdds??'-'}</td><td class="${z.ratio!=null&&z.ratio>=4?'good':z.ratio!=null?'warn':''}">${z.ratio==null?esc(z.status):Number(z.ratio).toFixed(2)}</td></tr>`).join('')}</tbody>
+    </table></div>
+  </div>`;
+}
+
 function render(x){
   const m=x.meta,modeClass=m.mode==='UPSET'?'mode-upset':m.mode==='SOLID'?'mode-solid':'mode-mid';
   const modeLabel=m.mode==='UPSET'?'🔥 荒れモード':m.mode==='SOLID'?'🛡️ 本線保全モード':'⚖️ 選別モード';
@@ -359,7 +432,20 @@ function render(x){
   </div>
 
   <div class="card sectionMarket">
-    <div class="title">② 重要市場・壁</div>
+    <div class="title">② 📊 コンピ＋五市場順位【旧版そのまま移植】</div>
+    <div class="sub">V6系で実際に使っていた横並び表をそのまま移植。コンピ／馬連／単勝／複勝／ワイド／三連複を固定表示。</div>
+    <div class="marketScroll">
+      ${compiRow(x)}
+      ${marketRankRow('馬連',x.ur,x.walls.uma,[],'uma')}
+      ${marketRankRow('単勝',x.tr,x.walls.tan,[x.walls.t80],'tan')}
+      ${marketRankRow('複勝',x.fr,x.walls.fuku,[x.walls.f6,x.walls.f15],'fuku')}
+      ${marketRankRow('ワイド',x.wr,x.walls.wide,[],'wide')}
+      ${marketRankRow('三連複',x.sr,x.walls.san,[],'san')}
+    </div>
+    <div class="wallLegend">
+      <span><i class="legendLine uma"></i>馬連1.8壁</span><span><i class="legendLine tan"></i>単勝1.8壁</span><span><i class="legendLine fuku"></i>複勝1.8壁</span><span><i class="legendLine wide"></i>ワイド1.8壁</span><span><i class="legendLine san"></i>三連複1.8壁</span><span><i class="legendLine f6"></i>複勝6倍</span><span><i class="legendLine f15"></i>複勝15倍</span><span><i class="legendLine t80"></i>単勝80倍</span>
+    </div>
+    <div class="title" style="font-size:16px;margin-top:10px">五市場・オッズの壁</div>
     <div class="marketRow"><div class="marketName">馬連</div><div class="marketValue">${wallsText(x.walls.uma)}</div></div>
     <div class="marketRow"><div class="marketName">単勝</div><div class="marketValue">${wallsText(x.walls.tan)}<br>10倍壁 ${x.walls.t10?x.walls.t10.before+'→'+x.walls.t10.next:'なし'} ／ 30倍壁 ${x.walls.t30?x.walls.t30.before+'→'+x.walls.t30.next:'なし'} ／ 80倍壁 ${x.walls.t80?x.walls.t80.before+'→'+x.walls.t80.next:'なし'}</div></div>
     <div class="marketRow"><div class="marketName">複勝</div><div class="marketValue">${wallsText(x.walls.fuku)}<br>6倍壁 ${x.walls.f6?x.walls.f6.before+'→'+x.walls.f6.next:'なし'} ／ 10倍壁 ${x.walls.f10?x.walls.f10.before+'→'+x.walls.f10.next:'なし'} ／ 15倍壁 ${x.walls.f15?x.walls.f15.before+'→'+x.walls.f15.next:'なし'}</div></div>
@@ -367,6 +453,8 @@ function render(x){
     <div class="marketRow"><div class="marketName">三連複</div><div class="marketValue">${wallsText(x.walls.san)}</div></div>
     <div class="grid2"><div class="box"><div class="boxL">壁前保護</div><div class="boxV">${fmt(x.wallFront)}</div></div><div class="box"><div class="boxL">壁直後保護</div><div class="boxV">${fmt(x.wallAfter)}</div></div></div>
   </div>
+
+  ${allVerticalCard(x)}
 
   <div class="card sectionFav">
     <div class="title">③ 1番人気信用度・タテ目</div>
@@ -425,7 +513,7 @@ function clearAll(){$('input').value='';$('out').innerHTML='';latest=null}
 function copyForChat(){
   if(!latest){alert('先に解析してください');return}
   const x=latest,m=x.meta;
-  const t=`【${x.d.title}】\n競馬メジアン V8.00 P型司令塔・予想専用\n\n【最上段P司令塔】\n${x.p}（${x.sum}）\n${m.code} ${m.type}\nモード：${m.mode==='UPSET'?'荒れ':m.mode==='SOLID'?'本線保全':'選別'}\n大谷式：${x.otani}/3\n1-3差：${x.g13}P\n最大壁：${x.maxGap.after}位後${x.maxGap.gap}P（${x.maxGap.before}→${x.maxGap.next}）\n頭：${m.head}位まで／連対：${m.place}位まで／3着：${m.third}位まで\n\n【1番人気信用度】\n対象：${x.fav||'-'}番\n判定：${x.favLevel}\nタテ目倍率：${x.verticalRatio==null?'判定不可':x.verticalRatio.toFixed(2)+'倍'}\n三連複初不在：${x.absenceOdds??'-'}倍\n\n【予想師原型】\n${fmt(x.yoso)}\n\n【穴関係】\nまっちゃん穴単：${fmt(x.holeSingles)}\n大荒れ頭：${x.bigHead||'なし'}\nWIN5穴：${fmt(x.win5Hole)}\n市場複数上昇：${fmt(x.marketRise)}\n書籍×メジアン上位：${x.bookMedian.slice(0,5).map(z=>z.h+'番('+z.score+')').join(' / ')||'なし'}\n\n【最終3頭】\n${x.final3.join('・')}\n1着本線：${x.headMain||'なし'}\n穴単100円保護：${fmt(x.singleProtect)}\n馬連：${x.pairs.join(' / ')}\nワイド：${x.pairs.join(' / ')}\n三連複：${x.tri||'なし'}`;
+  const t=`【${x.d.title}】\n競馬メジアン V8.02 P型司令塔・旧五市場表＋全馬タテ目・予想専用\n\n【最上段P司令塔】\n${x.p}（${x.sum}）\n${m.code} ${m.type}\nモード：${m.mode==='UPSET'?'荒れ':m.mode==='SOLID'?'本線保全':'選別'}\n大谷式：${x.otani}/3\n1-3差：${x.g13}P\n最大壁：${x.maxGap.after}位後${x.maxGap.gap}P（${x.maxGap.before}→${x.maxGap.next}）\n頭：${m.head}位まで／連対：${m.place}位まで／3着：${m.third}位まで\n\n【1番人気信用度】\n対象：${x.fav||'-'}番\n判定：${x.favLevel}\nタテ目倍率：${x.verticalRatio==null?'判定不可':x.verticalRatio.toFixed(2)+'倍'}\n三連複初不在：${x.absenceOdds??'-'}倍\n\n【全馬タテ目倍率・独自研究】\n${x.allHorseVertical.map(z=>`${z.h}番 ${z.pair1||'-'} / ${z.pair2||'-'} → ${z.verticalPair||'-'} ${z.verticalOdds??'-'}倍 ÷ ${z.baseOdds??'-'}倍 = ${z.ratio==null?z.status:z.ratio.toFixed(2)+'倍'}`).join('\\n')}\n\n【予想師原型】\n${fmt(x.yoso)}\n\n【穴関係】\nまっちゃん穴単：${fmt(x.holeSingles)}\n大荒れ頭：${x.bigHead||'なし'}\nWIN5穴：${fmt(x.win5Hole)}\n市場複数上昇：${fmt(x.marketRise)}\n書籍×メジアン上位：${x.bookMedian.slice(0,5).map(z=>z.h+'番('+z.score+')').join(' / ')||'なし'}\n\n【最終3頭】\n${x.final3.join('・')}\n1着本線：${x.headMain||'なし'}\n穴単100円保護：${fmt(x.singleProtect)}\n馬連：${x.pairs.join(' / ')}\nワイド：${x.pairs.join(' / ')}\n三連複：${x.tri||'なし'}`;
   navigator.clipboard?.writeText(t).then(()=>alert('コピーしました')).catch(()=>prompt('コピーしてください',t));
 }
 function sample(){
@@ -512,3 +600,5 @@ run();
 </script>
 </body>
 </html>
+競馬メジアン_V8.02_P司令塔_旧五市場表＋全馬タテ目移植版.html
+HTML
