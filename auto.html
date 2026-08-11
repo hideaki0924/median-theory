@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07111f">
-<title>オート研究所 V1.02 本番蓄積版</title>
+<title>オート研究所 V1.03 保存強化版</title>
 <style>
 :root{
   --bg:#07111f;--card:#0f1d35;--card2:#122544;--line:#304965;
@@ -37,7 +37,7 @@ button.green{background:#15803d}button.gray{background:#475569}button.red{backgr
 </head>
 <body>
 <div class="wrap">
-<h1>🏁 オート研究所 V1.02</h1>
+<h1>🏁 オート研究所 V1.03</h1>
 <div class="sub">入力場所は1か所だけ。チャッピーの1レース分コードを丸ごと貼って保存。</div>
 
 <div class="tabs">
@@ -118,6 +118,11 @@ TRACK_TEMP 31.0
       <div class="stat">前走記録<br><b id="nPast">0</b></div>
       <div class="stat">オッズ<br><b id="nOdds">0</b></div>
     </div>
+  </div>
+
+  <div class="card">
+    <h2>登録済みレース</h2>
+    <div id="raceList" class="note">読み込み中…</div>
   </div>
 
   <div class="card">
@@ -319,10 +324,54 @@ async function saveParsed(){
     $('msg').innerHTML='<span class="bad">見出しが読み取れないため保存できません。</span>';
     return;
   }
-  await put('races',{...r,updatedAt:new Date().toISOString()});
-  for(const p of r.past)await put('past',p);
-  $('msg').innerHTML='<span class="good">保存しました。</span>';
-  await refresh();
+
+  $('msg').innerHTML='<span class="warn">保存中…</span>';
+
+  try{
+    // レースと前走を1トランザクションで一括保存。
+    // 途中失敗を「保存しました」と誤表示しない。
+    await new Promise((resolve,reject)=>{
+      const tx=db.transaction(['races','past'],'readwrite');
+      const raceStore=tx.objectStore('races');
+      const pastStore=tx.objectStore('past');
+
+      raceStore.put({...r,updatedAt:new Date().toISOString()});
+
+      // 同一レースを再保存しても過去走が無限増殖しないよう、
+      // raceId + 選手 + 日付 + 場 + R を固定キーにする。
+      for(const p0 of r.past){
+        const p={...p0};
+        p.id=[r.id,p.player,p.date,p.venue,p.raceNo].join('|');
+        p.raceId=r.id;
+        pastStore.put(p);
+      }
+
+      tx.oncomplete=()=>resolve();
+      tx.onerror=()=>reject(tx.error||new Error('IndexedDB保存エラー'));
+      tx.onabort=()=>reject(tx.error||new Error('IndexedDB保存中断'));
+    });
+
+    // 本当に登録されたか直後に検証
+    const saved=await new Promise((resolve,reject)=>{
+      const req=db.transaction('races').objectStore('races').get(r.id);
+      req.onsuccess=()=>resolve(req.result);
+      req.onerror=()=>reject(req.error);
+    });
+
+    if(!saved) throw new Error('保存後の照合でレースが見つかりません');
+
+    lastParsed=r;
+    await refresh();
+
+    $('msg').innerHTML=
+      '<span class="good">保存完了：'+esc(r.date)+' '+esc(r.venue)+r.raceNo+
+      'R（出走'+r.entries.length+'人 / 前走'+r.past.length+
+      '件 / オッズ'+((r.odds?.f2?.length||0)+(r.odds?.t2?.length||0)+(r.odds?.t3?.length||0))+
+      '件）</span>';
+  }catch(err){
+    console.error(err);
+    $('msg').innerHTML='<span class="bad">保存失敗：'+esc(err?.message||String(err))+'</span>';
+  }
 }
 
 async function playerMap(){
@@ -353,6 +402,20 @@ async function refresh(){
   $('nEntries').textContent=rs.reduce((s,r)=>s+r.entries.length,0);
   $('nPast').textContent=ps.length;
   $('nOdds').textContent=rs.reduce((s,r)=>s+(r.odds?.f2?.length||0)+(r.odds?.t2?.length||0)+(r.odds?.t3?.length||0),0);
+
+  const sorted=[...rs].sort((a,b)=>
+    String(b.date||'').localeCompare(String(a.date||'')) ||
+    String(b.venue||'').localeCompare(String(a.venue||'')) ||
+    (Number(b.raceNo||0)-Number(a.raceNo||0))
+  );
+  if($('raceList')){
+    $('raceList').innerHTML=sorted.map(r=>
+      '<div class="item"><b>'+esc(r.date)+' '+esc(r.venue)+r.raceNo+'R</b>'+
+      '<br>出走 '+(r.entries?.length||0)+'人 / 前走 '+(r.past?.length||0)+
+      '件 / 2車複 '+(r.odds?.f2?.length||0)+' / 2車単 '+(r.odds?.t2?.length||0)+
+      ' / 3連単 '+(r.odds?.t3?.length||0)+'</div>'
+    ).join('')||'まだ登録がありません。';
+  }
   renderPlayers();
 }
 
@@ -440,5 +503,3 @@ $('deleteAll').onclick=async()=>{
 </script>
 </body>
 </html>
-auto.html
-HTML
