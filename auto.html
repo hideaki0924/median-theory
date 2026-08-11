@@ -2,307 +2,266 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#07101f">
-<title>オートメジアン V24.26 競馬式本表・移動車・ステルス統合版</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07111f">
+<title>オート研究所 V1.01 一括貼り版</title>
 <style>
-:root{
-  --bg:#07101f;--panel:#0d1d38;--panel2:#10264a;--ink:#fff;--muted:#b8c5da;
-  --blue:#38bdf8;--yellow:#fde047;--orange:#fb923c;--pink:#f472b6;--red:#fb7185;
-  --green:#4ade80;--cyan:#67e8f9;--line:#35517a;
-}
+:root{--bg:#07111f;--card:#0f1d35;--line:#304965;--text:#fff;--muted:#a8bad0;--cyan:#67e8f9;--green:#4ade80;--red:#fb7185;--yellow:#fde047}
 *{box-sizing:border-box}
-body{margin:0;background:linear-gradient(180deg,#06101f,#08182e 48%,#040914);color:#fff;
-font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:16px;line-height:1.55}
-main{max-width:760px;margin:auto}
-h1{font-size:25px;line-height:1.35;margin:4px 0 8px;color:#fff}
-.sub{color:#cbd5e1;font-weight:800;margin-bottom:12px}
-textarea{width:100%;height:360px;border-radius:13px;border:2px solid #3b82f6;padding:12px;
-font:15px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;background:#f8fafc;color:#111}
-button{border:0;border-radius:15px;padding:13px 17px;margin:9px 5px 7px 0;font-size:18px;font-weight:1000}
-.go{background:#22c55e;color:#052e16}.sample{background:#fde047;color:#111}.clear{background:#64748b;color:#fff}.copy{background:#f59e0b;color:#fff}
-.card{background:rgba(13,29,56,.95);border:2px solid #2563eb;border-radius:21px;padding:14px;margin:14px 0;
-box-shadow:0 0 22px rgba(37,99,235,.18)}
-.card h2{font-size:23px;color:#fde047;margin:0 0 10px}
-.hot{border-color:#f472b6;background:linear-gradient(135deg,#260012,#4d1233,#13000b)}
-.cyanCard{border-color:#67e8f9;background:linear-gradient(135deg,#001d24,#064653,#001116)}
-.orangeCard{border-color:#fb923c;background:linear-gradient(135deg,#241000,#4a2107,#120700)}
-.small{font-size:14px;color:#cbd5e1}.strong{font-weight:1000;color:#fde047}.ok{font-weight:1000;color:#86efac}
-.warn{font-weight:1000;color:#fda4af}
-.badge{display:inline-block;padding:4px 7px;border-radius:999px;background:#172a49;border:1px solid #355b8e;
-font-weight:1000;margin:2px}.badge.cyan{background:#003746;color:#a5f3fc}.badge.pink{background:#4d1233;color:#fbcfe8}
-.badge.yellow{background:#3b3104;color:#fff6a5}.badge.green{background:#073b22;color:#bbf7d0}
-.tableWrap{overflow-x:auto;border:1px solid #334b70;border-radius:13px;background:#050b16;padding:6px}
-.marketTable{border-collapse:separate;border-spacing:0;min-width:100%;width:max-content;font-weight:1000}
-.marketTable th,.marketTable td{height:44px;min-width:42px;padding:3px 5px;text-align:center;border-bottom:1px solid #21395d;border-right:2px solid #29466d}
-.marketTable th{background:#0c1b33;color:#dbeafe;font-size:15px}
-.marketTable th:first-child,.marketTable td:first-child{position:sticky;left:0;z-index:2;min-width:74px;background:#071529;text-align:left;padding-left:8px}
-.marketTable .w1{border-right:5px solid var(--yellow);box-shadow:inset -3px 0 0 rgba(253,224,71,.35)}
-.marketTable .w2{border-right:5px solid var(--orange);box-shadow:inset -3px 0 0 rgba(251,146,60,.4)}
-.marketTable .w3{border-right:5px solid var(--pink);box-shadow:inset -3px 0 0 rgba(244,114,182,.45)}
-.marketTable .w4{border-right:6px solid var(--red);box-shadow:inset -4px 0 0 rgba(251,113,133,.5)}
-.car{display:inline-flex;align-items:center;justify-content:center;width:31px;height:31px;border-radius:9px;font-size:20px;font-weight:1000}
-.c1{background:#e5e7eb;color:#111}.c2{background:#16181f}.c3{background:#c52222}.c4{background:#2448c7}.c5{background:#f5c62a;color:#111}.c6{background:#2c8d28}.c7{background:#f97316}.c8{background:#d946ef;color:#fff}
-.legend{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}.leg{font-size:11px;background:#111827;border:1px solid #334155;border-radius:999px;padding:4px 7px;font-weight:900}
-.line{display:inline-block;width:22px;height:4px;border-radius:9px;margin-right:5px;vertical-align:middle}
-pre{white-space:pre-wrap;word-break:break-word;background:#030914;border:1px solid #263b5f;border-radius:13px;padding:12px;font-size:15px;color:#e5edff}
-.rank{padding:6px 0;border-bottom:1px solid #2b4268}
-.grid{display:grid;grid-template-columns:1fr;gap:9px}@media(min-width:680px){.grid{grid-template-columns:1fr 1fr}}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding:8px 8px 30px}
+.wrap{max-width:980px;margin:auto}
+h1{font-size:21px;margin:4px 0}.sub,.note{color:var(--muted);font-size:12px;line-height:1.65}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin:10px 0}
+.card h2{color:var(--cyan);font-size:16px;margin:0 0 8px}
+textarea{width:100%;min-height:430px;background:#071428;color:#fff;border:1px solid #38526f;border-radius:10px;padding:10px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;line-height:1.55}
+button{border:0;border-radius:9px;padding:10px 13px;font-weight:700;color:#fff;background:#2563eb}
+button.green{background:#15803d}button.gray{background:#475569}button.red{background:#be123c}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.stat{background:#132641;border:1px solid var(--line);border-radius:10px;padding:9px}.stat b{font-size:18px;color:var(--cyan)}
+.item{background:#0a172b;border:1px solid var(--line);border-radius:9px;padding:8px;margin:6px 0}
+.good{color:var(--green)}.bad{color:var(--red)}.warn{color:var(--yellow)}
+.tabs{display:flex;gap:6px;overflow:auto;position:sticky;top:0;background:var(--bg);padding:6px 0;z-index:5}
+.tab{white-space:nowrap;background:#10223e;color:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 11px}.tab.active{color:var(--cyan);border-color:var(--cyan)}
+.panel{display:none}.panel.active{display:block}
+input{width:100%;background:#071428;color:#fff;border:1px solid #38526f;border-radius:8px;padding:8px}
+@media(max-width:600px){.stats{grid-template-columns:1fr 1fr}textarea{min-height:380px}}
 </style>
 </head>
-<body><main>
-<h1>オートメジアン V24.26<br>競馬式本表コンパクト・四市場壁・移動車・ステルス統合版</h1>
-<div class="sub">本表をiPhone向けコンパクト表示／四市場1.8壁／移動車／市場逆行／占有コア／👻ステルス車</div>
-<textarea id="input" placeholder="【飯塚8R】
+<body>
+<div class="wrap">
+<h1>🏁 オート研究所 V1.01</h1>
+<div class="sub">チャッピーが出した1レース分コードを、ここへ丸ごと1回貼るだけ。</div>
 
-[HANDICAP]
-1 0m 0.14 3.33 0.111
-
-[TAN]
-5 1.2
-
-[NISHA]
-5-6 2.1
-
-[WIDE]
-5-6 1.1-1.3
-
-[SANREN]
-2-5-6 2.1"></textarea>
-<div>
-<button class="go" onclick="run()">解析する</button>
-<button class="sample" onclick="loadSample()">サンプル</button>
-<button class="clear" onclick="clearAll()">クリア</button>
-<button class="copy" onclick="copyResult()">結果コピー</button>
+<div class="tabs">
+<button class="tab active" data-tab="paste">一括登録</button>
+<button class="tab" data-tab="players">選手DB</button>
+<button class="tab" data-tab="data">保存・出力</button>
 </div>
-<div id="out"></div>
-</main>
+
+<section id="paste" class="panel active">
+<div class="card">
+<h2>一括貼り登録</h2>
+<div class="note">入力場所はここ1か所だけ。スクショを送ってもらったら、チャッピーがこの形式のコードを出します。それを全部コピーして貼って「解析確認」→「保存」。</div>
+<textarea id="bulk" placeholder="【2026年8月11日 川口1R】
+
+[RACE]
+TRACK 良
+WEATHER 晴
+TEMP 32.0
+TRACK_TEMP 48.0
+
+[ENTRY]
+1 選手A 0 A1 3.40 0.12
+2 選手B 10 A2 3.36 0.09
+
+[RESULT]
+2-1-...
+
+[PAST]
+選手A|2026-08-10,川口,8,1,0,3.38,0.11,3.410,良
+選手B|2026-08-09,川口,7,3,10,3.39,0.13,3.425,良
+
+[ODDS_2FUKU]
+1-2 4.3
+
+[ODDS_2TAN]
+2-1 6.8
+
+[ODDS_3TAN]
+2-1-3 15.4"></textarea>
+<div class="actions">
+<button id="check">解析確認</button>
+<button class="green" id="save">保存</button>
+<button class="gray" id="clearBox">入力欄クリア</button>
+</div>
+<div id="msg" class="note"></div>
+</div>
+
+<div class="card">
+<h2>解析確認</h2>
+<div id="preview" class="note">まだ解析していません。</div>
+</div>
+</section>
+
+<section id="players" class="panel">
+<div class="card">
+<h2>選手DB</h2>
+<input id="search" placeholder="選手名で検索">
+<div id="playerList"></div>
+</div>
+</section>
+
+<section id="data" class="panel">
+<div class="card">
+<h2>登録状況</h2>
+<div class="stats">
+<div class="stat">レース<br><b id="nRaces">0</b></div>
+<div class="stat">選手<br><b id="nPlayers">0</b></div>
+<div class="stat">出走記録<br><b id="nEntries">0</b></div>
+<div class="stat">前走記録<br><b id="nPast">0</b></div>
+</div>
+</div>
+
+<div class="card">
+<h2>バックアップ</h2>
+<div class="actions">
+<button id="csv">CSV書出し</button>
+<button id="json">JSONバックアップ</button>
+<label style="display:inline-block"><span class="tab">JSON読込</span><input id="importJson" type="file" accept=".json" style="display:none"></label>
+</div>
+</div>
+
+<div class="card">
+<h2>危険操作</h2>
+<button class="red" id="deleteAll">全データ削除</button>
+</div>
+</section>
+</div>
+
 <script>
-let latestCopyText="";
+const DB='auto_lab_v101',VER=1;
+let db=null,lastParsed=null;
 const $=id=>document.getElementById(id);
-function norm(s){return String(s||"").replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0))
-.replace(/[．]/g,".").replace(/[－ー―–—]/g,"-").replace(/[＝]/g,"=").replace(/[〜～]/g,"-");}
-function num(x){const m=String(x||"").replace(/,/g,"").match(/\d+(?:\.\d+)?/);return m?Number(m[0]):NaN}
-function key(a){return a.map(Number).sort((x,y)=>x-y).join("-")}
-function splitCombo(s){return norm(s).split(/[-=]/).map(x=>parseInt(x,10)).filter(Number.isFinite)}
-function parse(raw){
- const lines=norm(raw).split(/\n/).map(x=>x.trim()).filter(Boolean);let title="【オート】",sec="";
- const d={hp:{},tan:[],nisha:[],wide:[],san:[]};
- for(const line of lines){
-  if(line.startsWith("【")){title=line;continue}
-  const sm=line.match(/^\[([^\]]+)\]/);if(sm){sec=sm[1].toUpperCase();continue}
-  const p=line.split(/\s+/);
-  if(sec==="HANDICAP"&&p.length>=4){
-   const c=parseInt(p[0]),han=parseInt(p[1]),st=num(p[2]),trial=num(p[3]),dev=num(p[4]);
-   if(c)d.hp[c]={han,st,trial,dev};
-  }else if((sec==="TAN"||sec==="TANSHO")&&p.length>=2){
-   const c=parseInt(p[0]),od=num(p[1]);if(c&&Number.isFinite(od)&&od>0)d.tan.push({car:c,od});
-  }else if((sec==="NISHA"||sec==="NIREN"||sec==="2REN")&&p.length>=2){
-   const cs=splitCombo(p[0]),od=num(p[1]);if(cs.length===2&&Number.isFinite(od)&&od>0)d.nisha.push({cars:cs,od,key:key(cs)});
-  }else if(sec==="WIDE"&&p.length>=2){
-   const cs=splitCombo(p[0]);const ns=p.slice(1).join(" ").match(/\d+(?:\.\d+)?/g)||[];
-   const lo=ns.length?Number(ns[0]):NaN,hi=ns.length>1?Number(ns[1]):lo;
-   if(cs.length===2&&Number.isFinite(lo)&&lo>0)d.wide.push({cars:cs,od:lo,hi,key:key(cs)});
-  }else if((sec==="SANREN"||sec==="SANPUKU"||sec==="3REN")&&p.length>=2){
-   const cs=splitCombo(p[0]),od=num(p[1]);if(cs.length===3&&Number.isFinite(od)&&od>0)d.san.push({cars:cs,od,key:key(cs)});
+const num=v=>{const x=parseFloat(v);return Number.isFinite(x)?x:null};
+
+function openDB(){
+ return new Promise((ok,ng)=>{
+  const r=indexedDB.open(DB,VER);
+  r.onupgradeneeded=e=>{
+   const d=e.target.result;
+   if(!d.objectStoreNames.contains('races'))d.createObjectStore('races',{keyPath:'id'});
+   if(!d.objectStoreNames.contains('past'))d.createObjectStore('past',{keyPath:'id'});
+  };
+  r.onsuccess=e=>{db=e.target.result;ok()};
+  r.onerror=()=>ng(r.error);
+ });
+}
+function all(s){return new Promise((ok,ng)=>{const r=db.transaction(s).objectStore(s).getAll();r.onsuccess=()=>ok(r.result||[]);r.onerror=()=>ng(r.error)})}
+function put(s,o){return new Promise((ok,ng)=>{const r=db.transaction(s,'readwrite').objectStore(s).put(o);r.onsuccess=ok;r.onerror=()=>ng(r.error)})}
+function clearStore(s){return new Promise((ok,ng)=>{const r=db.transaction(s,'readwrite').objectStore(s).clear();r.onsuccess=ok;r.onerror=()=>ng(r.error)})}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+
+function parseBulk(text){
+ const lines=text.split(/\r?\n/);
+ let section='', race={entries:[],odds:{f2:'',t2:'',t3:''},past:[]}, oddsBuf={f2:[],t2:[],t3:[]};
+ for(let raw of lines){
+  const line=raw.trim();
+  if(!line)continue;
+
+  const head=line.match(/^【(\d{4})年(\d{1,2})月(\d{1,2})日\s+(.+?)(\d+)R】$/);
+  if(head){
+    race.date=`${head[1]}-${String(head[2]).padStart(2,'0')}-${String(head[3]).padStart(2,'0')}`;
+    race.venue=head[4].trim(); race.raceNo=+head[5];
+    continue;
   }
- }
- ["tan","nisha","wide","san"].forEach(k=>d[k].sort((a,b)=>a.od-b.od));
- return {title,d};
-}
-function carSpan(c){return `<span class="car c${c}">${c}</span>`}
-function allCars(d){return [...new Set([...Object.keys(d.hp).map(Number),...d.tan.map(x=>x.car),...d.nisha.flatMap(x=>x.cars),...d.wide.flatMap(x=>x.cars),...d.san.flatMap(x=>x.cars)])].sort((a,b)=>a-b)}
-function marketRow(list,isTan=false){
- const row=[],trigger=[],seen=new Set();
- if(isTan){list.forEach(x=>{if(!seen.has(x.car)){seen.add(x.car);row.push(x.car);trigger.push(x.od)}})}
- else list.forEach(x=>x.cars.forEach(c=>{if(!seen.has(c)){seen.add(c);row.push(c);trigger.push(x.od)}}));
- return {row,trigger};
-}
-function walls(trigger){
- const out=[];
- for(let i=0;i<trigger.length-1;i++){
-  const a=trigger[i],b=trigger[i+1];if(!(a>0&&b>0))continue;
-  const r=b/a;if(r>=1.8){
-   let level=r>=4?4:r>=3?3:r>=2.2?2:1;
-   out.push({pos:i+1,level,from:a,to:b,ratio:r});
+  if(/^\[.+\]$/.test(line)){section=line;continue}
+
+  if(section==='[RACE]'){
+    const [k,...rest]=line.split(/\s+/); const v=rest.join(' ');
+    if(k==='TRACK')race.track=v;
+    if(k==='WEATHER')race.weather=v;
+    if(k==='TEMP')race.temp=num(v);
+    if(k==='TRACK_TEMP')race.trackTemp=num(v);
+    if(k==='WIND')race.wind=num(v);
+    continue;
   }
- }
- return out;
-}
-function wallCls(pos,ws){const w=ws.find(x=>x.pos===pos);return w?"w"+w.level:""}
-function tableHtml(rows){
- const max=Math.max(...Object.values(rows).map(x=>x.row.length),1);
- let h='<div class="tableWrap"><table class="marketTable"><tr><th>本表</th>';
- for(let i=1;i<=max;i++)h+=`<th>${i}</th>`;h+='</tr>';
- for(const [name,o] of Object.entries(rows)){
-  h+=`<tr><th>${name}</th>`;
-  for(let i=0;i<max;i++)h+=`<td class="${wallCls(i+1,o.walls)}">${o.row[i]?carSpan(o.row[i]):""}</td>`;
-  h+='</tr>';
- }
- return h+'</table></div><div class="legend"><span class="leg"><i class="line" style="background:#fde047"></i>第1壁</span><span class="leg"><i class="line" style="background:#fb923c"></i>第2壁</span><span class="leg"><i class="line" style="background:#f472b6"></i>急断層</span><span class="leg"><i class="line" style="background:#fb7185"></i>特大壁</span></div>';
-}
-function rankMap(row){const m={};row.forEach((c,i)=>m[c]=i+1);return m}
-function count(list,c,n){return list.slice(0,n).filter(x=>x.cars.includes(c)).length}
-function bestRank(list,c){const i=list.findIndex(x=>x.cars.includes(c));return i<0?99:i+1}
-function topPartners(list,c,n){const m={};list.slice(0,n).forEach(x=>{if(x.cars.includes(c))x.cars.forEach(z=>{if(z!==c)m[z]=(m[z]||0)+1})});return Object.entries(m).sort((a,b)=>b[1]-a[1]).map(x=>Number(x[0]))}
-function analyze(pack){
- const {title,d}=pack,cars=allCars(d);
- const rTan=marketRow(d.tan,true),rNi=marketRow(d.nisha),rWi=marketRow(d.wide),rSa=marketRow(d.san);
- const rows={単勝:{...rTan,walls:walls(rTan.trigger)},"2車複":{...rNi,walls:walls(rNi.trigger)},ワイド:{...rWi,walls:walls(rWi.trigger)},"3連系":{...rSa,walls:walls(rSa.trigger)}};
- const maps={tan:rankMap(rTan.row),ni:rankMap(rNi.row),wi:rankMap(rWi.row),sa:rankMap(rSa.row)};
- const tanOdds={};d.tan.forEach(x=>tanOdds[x.car]=x.od);
- const tri1=d.san[0]?.cars||[], pair1=d.nisha[0]?.cars||[];
- const scores=[],movers=[],stealth=[],reverse=[],cores=[];
- for(const c of cars){
-  const tr=maps.tan[c]||99,nr=maps.ni[c]||99,wr=maps.wi[c]||99,sr=maps.sa[c]||99;
-  const nc=count(d.nisha,c,10),wc=count(d.wide,c,10),sc=count(d.san,c,20);
-  const markets=[nc>0,wc>0,sc>0].filter(Boolean).length;
-  let score=0,reasons=[];
-  if(tr<=3){score+=16;reasons.push("単勝上位")}
-  if(nr<=3){score+=18;reasons.push("2車複本表上位")}
-  if(wr<=3){score+=16;reasons.push("ワイド本表上位")}
-  if(sr<=3){score+=18;reasons.push("3連系本表上位")}
-  if(pair1.includes(c)){score+=16;reasons.push("2車複1番人気構成車")}
-  if(tri1.includes(c)){score+=22;reasons.push("3連系1番人気構成車")}
-  score+=Math.min(15,nc*3)+Math.min(15,wc*3)+Math.min(20,sc*2);
-  const hp=d.hp[c];if(hp){if(hp.trial<=Math.min(...Object.values(d.hp).map(x=>x.trial).filter(Number.isFinite))+.02){score+=10;reasons.push("試走上位")}
-   if(hp.st<=.13){score+=7;reasons.push("ST上位")}if(hp.dev<=.09){score+=7;reasons.push("偏差上位")}}
-  if((tr>=3&&nr===1)||(tr-nr>=2&&nr<=3)||(tri1.includes(c)&&tr>=3)){movers.push({c,why:`単勝${tr===99?"圏外":tr+"位"}→2車複${nr===99?"圏外":nr+"位"}／3連1番人気${tri1.includes(c)?"入り":"外"}`});score+=18;reasons.push("移動車")}
-  if(tr>=4&&(nr<=3||sr<=3)){reverse.push({c,why:`単勝${tr}位に対し連系${Math.min(nr,sr)}位`});score+=12;reasons.push("市場逆行")}
-  if(markets===3&&tr>=4&&nc>=2&&wc>=2&&sc>=3){
-   const sscore=nc+wc+sc+(tri1.includes(c)?3:0)+(pair1.includes(c)?2:0);
-   stealth.push({c,level:sscore>=14?"S":sscore>=10?"A":"B",score:sscore,why:`単勝${tr}位／2車複${nc}回・ワイド${wc}回・3連系${sc}回`});
-   score+=sscore>=14?22:sscore>=10?16:10;reasons.push("ステルス"+(sscore>=14?"S":sscore>=10?"A":"B"))
+
+  if(section==='[ENTRY]'){
+    const a=line.split(/\s+/);
+    if(a.length>=2)race.entries.push({
+      car:num(a[0]),name:a[1]||'',handicap:num(a[2]),rank:a[3]||'',
+      trial:num(a[4]),st:num(a[5]),trialDev:num(a[6]),finish:num(a[7]),raceTime:num(a[8])
+    });
+    continue;
   }
-  const occ=nc+wc+sc;cores.push({c,occ,nc,wc,sc});
-  scores.push({c,score,tr,nr,wr,sr,od:tanOdds[c],reasons});
+
+  if(section==='[RESULT]'){race.finishOrder=line;continue}
+
+  if(section==='[PAST]'){
+    const p=line.indexOf('|');
+    if(p>0){
+      const player=line.slice(0,p).trim();
+      const a=line.slice(p+1).split(',').map(x=>x.trim());
+      race.past.push({id:uid(),player,date:a[0]||'',venue:a[1]||'',raceNo:num(a[2]),finish:num(a[3]),handicap:num(a[4]),trial:num(a[5]),st:num(a[6]),raceTime:num(a[7]),track:a[8]||''});
+    }
+    continue;
+  }
+
+  if(section==='[ODDS_2FUKU]'){oddsBuf.f2.push(line);continue}
+  if(section==='[ODDS_2TAN]'){oddsBuf.t2.push(line);continue}
+  if(section==='[ODDS_3TAN]'){oddsBuf.t3.push(line);continue}
  }
- scores.sort((a,b)=>b.score-a.score||a.c-b.c);cores.sort((a,b)=>b.occ-a.occ||a.c-b.c);
- const headCandidates=[...new Set([...movers.map(x=>x.c),...(tri1||[]),...(pair1||[])])].filter(c=>cars.includes(c)).slice(0,4);
- const wallLines=Object.entries(rows).map(([n,o])=>`${n}：${o.walls.length?o.walls.map(w=>`${w.pos}位後 ${w.from}→${w.to}（${w.ratio.toFixed(2)}倍）`).join(" / "):"1.8壁なし"}`);
- const common={};Object.entries(rows).forEach(([n,o])=>o.walls.forEach(w=>(common[w.pos]||(common[w.pos]=[])).push(n)));
- const commonTop=Object.entries(common).sort((a,b)=>b[1].length-a[1].length)[0];
- const diagnosis=commonTop&&commonTop[1].length>=3?`共通壁ロック：${commonTop[1].join("・")}が${commonTop[0]}位後で一致`:
-  movers.length?`券種移動型：${movers.map(x=>x.c+"号車").join("・")}が単勝評価より連系で浮上`:"通常市場型";
- const copy=`${title}
-オートメジアン V24.26 競馬式本表・移動車・ステルス統合版
-
-【診断】
-${diagnosis}
-
-【四市場1.8壁】
-${wallLines.join("\n")}
-
-【移動車】
-${movers.length?movers.map(x=>x.c+"号車 "+x.why).join("\n"):"なし"}
-
-【市場逆行】
-${reverse.length?reverse.map(x=>x.c+"号車 "+x.why).join("\n"):"なし"}
-
-【占有コア】
-${cores.slice(0,4).map((x,i)=>`${i+1}位 ${x.c}号車 合計${x.occ}（2車複${x.nc}・ワイド${x.wc}・3連系${x.sc}）`).join("\n")}
-
-【ステルス車】
-${stealth.length?stealth.map(x=>`${x.c}号車[${x.level}] ${x.why}`).join("\n"):"なし"}
-
-【頭候補監査】
-${headCandidates.length?headCandidates.map(c=>c+"号車").join("・"):"なし"}
-
-【総合候補】
-${scores.slice(0,6).map((x,i)=>`${i+1}位 ${x.c}号車【${x.score}】 ${x.reasons.join("・")}`).join("\n")}`;
- latestCopyText=copy;
- return {title,d,rows,movers,reverse,cores,stealth,scores,headCandidates,diagnosis,wallLines};
+ race.odds.f2=oddsBuf.f2.join('\n');
+ race.odds.t2=oddsBuf.t2.join('\n');
+ race.odds.t3=oddsBuf.t3.join('\n');
+ race.id=[race.date,race.venue,race.raceNo].filter(Boolean).join('_')||uid();
+ return race;
 }
-function run(){
- try{
-  const raw=$("input").value.trim();if(!raw)throw new Error("入力データがありません");
-  const a=analyze(parse(raw));
-  let h=`<div class="card"><h2>📊本表・競馬版サイズ</h2>${tableHtml(a.rows)}</div>`;
-  h+=`<div class="card orangeCard"><h2>🧱競馬式・四市場1.8壁</h2><div class="strong">${a.diagnosis}</div><pre>${a.wallLines.join("\n")}</pre></div>`;
-  h+=`<div class="grid"><div class="card cyanCard"><h2>🚄移動車</h2>${a.movers.length?a.movers.map(x=>`<div class="rank">${carSpan(x.c)} <b>${x.why}</b><br><span class="small">頭候補へ強制昇格・単勝固定馬の頭信頼度を1段下げる</span></div>`).join(""):"<div>なし</div>"}</div>`;
-  h+=`<div class="card"><h2>↕️市場逆行</h2>${a.reverse.length?a.reverse.map(x=>`<div class="rank">${carSpan(x.c)} ${x.why}</div>`).join(""):"<div>なし</div>"}</div></div>`;
-  h+=`<div class="card"><h2>📈市場占有コア</h2>${a.cores.slice(0,6).map((x,i)=>`<div class="rank"><span class="badge ${i<2?"green":""}">${i+1}位</span> ${carSpan(x.c)} 合計<b>${x.occ}</b>回　<span class="small">2車複${x.nc}・ワイド${x.wc}・3連系${x.sc}</span></div>`).join("")}</div>`;
-  h+=`<div class="card hot"><h2>👻ステルス車</h2>${a.stealth.length?a.stealth.map(x=>`<div class="rank">${carSpan(x.c)} <span class="badge pink">ステルス${x.level}</span> ${x.why}<br><span class="small">${x.level==="S"?"3連系削除禁止・3着以上保護":x.level==="A"?"相手保護":"注意表示"}</span></div>`).join(""):"<div>該当なし</div>"}</div>`;
-  h+=`<div class="card"><h2>🔒頭候補監査</h2><div>${a.headCandidates.length?a.headCandidates.map(carSpan).join(" "):"なし"}</div><div class="small">三連系1番人気構成車・2車複1番人気構成車・移動車を頭候補として監査。後方の単勝1倍台だけを自動固定しない。</div></div>`;
-  h+=`<div class="card"><h2>🏁総合候補</h2>${a.scores.slice(0,6).map((x,i)=>`<div class="rank"><span class="badge ${i<3?"yellow":""}">${i+1}位 ${x.c}号車【${x.score}】</span><br><span class="small">${x.reasons.join("・")||"通常"}</span></div>`).join("")}</div>`;
-  h+=`<div class="card"><h2>📋コピー用</h2><pre>${latestCopyText}</pre></div>`;
-  $("out").innerHTML=h;
- }catch(e){$("out").innerHTML=`<div class="card hot"><h2>入力エラー</h2><pre>${e.message||e}</pre></div>`}
+
+function previewRace(r){
+ if(!r.date||!r.venue||!r.raceNo)return '<span class="bad">見出し（日付・場・R）が読み取れていません。</span>';
+ return `
+ <div class="item"><b>${r.date} ${r.venue}${r.raceNo}R</b><br>
+ 出走 ${r.entries.length}人 / 前走 ${r.past.length}件 / 2車複 ${r.odds.f2? r.odds.f2.split('\\n').length:0}組 /
+ 2車単 ${r.odds.t2? r.odds.t2.split('\\n').length:0}組 / 3連単 ${r.odds.t3? r.odds.t3.split('\\n').length:0}組</div>
+ <div class="item"><b>選手</b><br>${r.entries.map(e=>`${e.car||'-'} ${e.name} H${e.handicap??'-'} 試走${e.trial??'-'} ST${e.st??'-'}`).join('<br>')||'なし'}</div>
+ <div class="item"><b>結果</b><br>${r.finishOrder||'未入力'}</div>`;
 }
-function copyResult(){if(!latestCopyText){alert("先に解析してください");return}navigator.clipboard?.writeText(latestCopyText).then(()=>alert("コピーしました")).catch(()=>fallback())}
-function fallback(){const t=document.createElement("textarea");t.value=latestCopyText;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove();alert("コピーしました")}
-function clearAll(){$("input").value="";$("out").innerHTML="";latestCopyText=""}
-function loadSample(){$("input").value=`【飯塚8R】
 
-[HANDICAP]
-1 0m 0.14 3.33 0.111
-2 0m 0.19 3.36 0.090
-3 10m 0.17 3.32 0.107
-4 10m 0.13 3.32 0.110
-5 10m 0.10 3.31 0.096
-6 10m 0.13 3.34 0.111
+async function saveParsed(){
+ const r=lastParsed||parseBulk($('bulk').value);
+ if(!r.date||!r.venue||!r.raceNo){$('msg').innerHTML='<span class="bad">見出しが読み取れないため保存できません。</span>';return}
+ await put('races',{...r,updatedAt:new Date().toISOString()});
+ for(const p of r.past)await put('past',p);
+ $('msg').innerHTML='<span class="good">保存しました。入力は1か所だけでOKです。</span>';
+ refresh();
+}
 
-[TAN]
-5 1.2
-6 3.2
-1 8.6
-2 10.5
-3 13.0
-4 22.0
+async function playerMap(){
+ const m=new Map(),rs=await all('races'),ps=await all('past');
+ const add=(n,o)=>{if(!n)return;if(!m.has(n))m.set(n,[]);m.get(n).push(o)};
+ rs.forEach(r=>r.entries.forEach(e=>add(e.name,{...e,date:r.date,venue:r.venue,raceNo:r.raceNo,track:r.track,source:'race'})));
+ ps.forEach(p=>add(p.player,p));
+ return m;
+}
+async function renderPlayers(){
+ const m=await playerMap(),q=$('search').value.trim();
+ const arr=[...m.entries()].filter(([n])=>n.includes(q)).sort((a,b)=>b[1].length-a[1].length);
+ $('playerList').innerHTML=arr.map(([n,rows])=>`<div class="item"><b>${n}</b><br><span class="note">${rows.length}走登録</span></div>`).join('')||'<div class="note">まだデータがありません。</div>';
+}
+async function refresh(){
+ const rs=await all('races'),ps=await all('past'),pm=await playerMap();
+ $('nRaces').textContent=rs.length;$('nPlayers').textContent=pm.size;
+ $('nEntries').textContent=rs.reduce((s,r)=>s+r.entries.length,0);$('nPast').textContent=ps.length;
+ renderPlayers();
+}
+function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+async function exportCSV(){
+ const rs=await all('races');
+ const head=['日付','場','R','車番','選手名','ハンデ','ランク','試走','ST','着順','競走T','走路','結果','2車複','2車単','3連単'];
+ const out=[head];
+ rs.forEach(r=>r.entries.forEach(e=>out.push([r.date,r.venue,r.raceNo,e.car,e.name,e.handicap,e.rank,e.trial,e.st,e.finish,e.raceTime,r.track,r.finishOrder,r.odds.f2,r.odds.t2,r.odds.t3])));
+ const esc=v=>{v=String(v??'');return/[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+ dl(new Blob(['\ufeff'+out.map(r=>r.map(esc).join(',')).join('\n')],{type:'text/csv'}),'オート研究所_V1.01.csv');
+}
+async function exportJSON(){
+ dl(new Blob([JSON.stringify({version:'1.01',races:await all('races'),past:await all('past')},null,2)],{type:'application/json'}),'オート研究所_V1.01_backup.json');
+}
 
-[NISHA]
-5-6 2.1
-1-5 5.9
-2-5 7.4
-2-6 8.8
-1-2 11.0
-4-6 11.0
-3-5 11.7
-1-6 14.3
-1-3 22.9
-4-5 25.9
-1-4 28.2
-3-6 29.0
-2-3 41.1
-2-4 58.1
-3-4 58.1
+document.querySelectorAll('.tab[data-tab]').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('.tab[data-tab],.panel').forEach(x=>x.classList.remove('active'));
+ b.classList.add('active');$(b.dataset.tab).classList.add('active');
+});
+$('check').onclick=()=>{lastParsed=parseBulk($('bulk').value);$('preview').innerHTML=previewRace(lastParsed);$('msg').textContent=''};
+$('save').onclick=saveParsed;
+$('clearBox').onclick=()=>{$('bulk').value='';$('preview').textContent='まだ解析していません。';lastParsed=null;$('msg').textContent=''};
+$('search').oninput=renderPlayers;
+$('csv').onclick=exportCSV;$('json').onclick=exportJSON;
+$('importJson').onchange=async e=>{const d=JSON.parse(await e.target.files[0].text());for(const r of d.races||[])await put('races',r);for(const p of d.past||[])await put('past',p);refresh();alert('読込完了')};
+$('deleteAll').onclick=async()=>{if(confirm('全データを削除しますか？')&&confirm('本当に削除しますか？')){await clearStore('races');await clearStore('past');refresh()}};
 
-[WIDE]
-5-6 1.1-1.3
-1-5 1.3-1.7
-1-6 1.8-2.6
-2-5 2.8-3.7
-3-5 3.0-3.8
-2-6 3.1-4.1
-3-6 3.2-4.1
-3-4 4.9-5.1
-1-2 4.8-6.0
-2-3 5.6-6.0
-4-6 6.4-7.9
-1-3 6.8-8.3
-4-5 6.6-8.1
-2-4 17.0-17.8
-1-4 16.5-19.5
-
-[SANREN]
-2-5-6 2.1
-1-5-6 5.4
-3-5-6 7.1
-4-5-6 9.5
-1-3-5 14.5
-1-2-5 15.7
-1-2-6 19.4
-1-4-5 24.3
-2-3-5 28.1
-2-4-5 29.1
-3-4-5 29.3
-2-3-6 30.7
-2-4-6 35.0
-1-4-6 38.7
-3-4-6 39.1
-1-2-3 41.1
-1-3-6 41.1
-1-2-4 76.5
-1-3-4 76.5
-2-3-4 88.9`;run()}
-</script></body></html>
+(async()=>{await openDB();await refresh()})();
+</script>
+</body>
+</html>
