@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="banei-compi-second-v1.00">
+<meta name="app-build" content="banei-compi-second-v1.01">
 
-<title>ばんえいコンピ2位頭研究所 V1.00</title>
+<title>ばんえいコンピ2位頭研究所 V1.01</title>
 
 <style>
 :root{
@@ -21,28 +21,32 @@
   --orange:#fb923c;
   --muted:#cbd5e1;
 }
-*{box-sizing:border-box}
+*{box-sizing:border-box;min-width:0}
 html,body{
   margin:0;
   background:var(--bg);
   color:#fff;
-  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+  overflow-x:hidden;
 }
 body{
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
   padding:8px 8px calc(30px + env(safe-area-inset-bottom));
-  overflow-x:hidden;
+  font-size:14px;
 }
 h1{
   font-size:21px;
-  margin:5px 0 2px;
   color:var(--cyan);
+  margin:5px 0 2px;
 }
 h2{
   font-size:17px;
-  margin:0 0 10px;
   color:var(--yellow);
+  margin:0 0 9px;
 }
-.small{font-size:12px;color:var(--muted)}
+.small{
+  font-size:12px;
+  color:var(--muted);
+}
 .card{
   background:var(--card);
   border:1px solid var(--line);
@@ -57,7 +61,7 @@ h2{
   padding:10px;
   margin:8px 0;
 }
-.grid{
+.grid2{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
   gap:7px;
@@ -67,57 +71,85 @@ h2{
   grid-template-columns:repeat(3,minmax(0,1fr));
   gap:7px;
 }
+.grid4{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:7px;
+}
+.stat{
+  background:#07152e;
+  border:1px solid #334155;
+  border-radius:10px;
+  text-align:center;
+  padding:8px 3px;
+  font-size:11px;
+}
+.stat b{
+  display:block;
+  font-size:21px;
+  color:var(--cyan);
+  margin-top:2px;
+}
+.stat.green b{color:var(--green)}
+.stat.red b{color:var(--red)}
+.stat.yellow b{color:var(--yellow)}
 input,select,textarea,button{
   width:100%;
-  font:inherit;
   border-radius:9px;
-  border:1px solid #475569;
+  font:inherit;
 }
 input,select,textarea{
+  border:1px solid #475569;
   background:#07152e;
   color:#fff;
   padding:9px;
 }
 textarea{
-  min-height:240px;
+  min-height:290px;
   resize:vertical;
   line-height:1.45;
 }
 button{
-  border:none;
-  padding:11px 8px;
+  border:0;
+  padding:11px 7px;
   font-weight:800;
   background:#2563eb;
   color:#fff;
 }
 button.green{background:#15803d}
 button.orange{background:#c2410c}
-button.red{background:#b91c1c}
 button.gray{background:#475569}
-button.yellow{
-  background:#ca8a04;
-  color:#fff;
-}
+button.red{background:#b91c1c}
+button.yellow{background:#a16207}
 button:active{transform:scale(.99)}
-.stat{
-  text-align:center;
-  background:#07152e;
-  border:1px solid #334155;
-  border-radius:10px;
-  padding:9px 4px;
-}
-.stat b{
+label{
   display:block;
-  font-size:22px;
-  color:var(--cyan);
+  color:#cbd5e1;
+  font-size:11px;
+  margin-bottom:3px;
 }
-.stat.good b{color:var(--green)}
-.stat.warn b{color:var(--yellow)}
-.stat.bad b{color:var(--red)}
-table{
-  width:100%;
-  border-collapse:collapse;
+.notice{
+  background:#3a2a05;
+  border:1px solid #a16207;
+  border-radius:9px;
+  padding:9px;
   font-size:12px;
+  color:#fde68a;
+}
+.ok{color:var(--green);font-weight:800}
+.ng{color:var(--red);font-weight:800}
+.yel{color:var(--yellow);font-weight:800}
+.cyan{color:var(--cyan);font-weight:800}
+.scroll{
+  overflow:auto;
+  max-height:600px;
+  border:1px solid #334155;
+  border-radius:9px;
+}
+table{
+  border-collapse:collapse;
+  width:100%;
+  font-size:11px;
 }
 th,td{
   border-bottom:1px solid #334155;
@@ -126,128 +158,114 @@ th,td{
   white-space:nowrap;
 }
 th{
+  background:#172554;
   position:sticky;
   top:0;
-  background:#172554;
-  color:#e2e8f0;
+  z-index:1;
 }
-.scroll{
-  overflow:auto;
-  max-height:520px;
-  border:1px solid #334155;
-  border-radius:9px;
-}
-.tag{
-  display:inline-block;
-  padding:2px 6px;
-  border-radius:999px;
-  margin:1px;
-  font-size:11px;
-  background:#334155;
-}
-.tag.ss{background:#7c2d12}
-.tag.hit{background:#166534}
-.tag.miss{background:#991b1b}
-.tag.p{background:#1e40af}
-.ok{color:var(--green);font-weight:800}
-.ng{color:var(--red);font-weight:800}
-.yellowText{color:var(--yellow);font-weight:800}
-.cyan{color:var(--cyan)}
+tr.hit td{background:rgba(22,101,52,.16)}
+tr.miss td{background:rgba(153,27,27,.13)}
 hr{
   border:0;
   border-top:1px solid #334155;
   margin:12px 0;
 }
-label{
-  font-size:12px;
-  color:#cbd5e1;
-  display:block;
-  margin-bottom:3px;
-}
-details{
-  margin-top:8px;
-}
+details{margin-top:8px}
 summary{
-  cursor:pointer;
-  font-weight:800;
   color:var(--cyan);
+  font-weight:800;
+  cursor:pointer;
 }
-pre{
-  white-space:pre-wrap;
-  word-break:break-word;
-  background:#061126;
-  border:1px solid #334155;
-  padding:10px;
-  border-radius:9px;
-  font-size:12px;
+.pill{
+  display:inline-block;
+  border-radius:999px;
+  padding:2px 6px;
+  font-size:10px;
+  margin:1px;
+  background:#334155;
 }
-.notice{
-  background:#3f2a00;
-  border:1px solid #a16207;
-  padding:9px;
-  border-radius:9px;
-  color:#fde68a;
-  font-size:12px;
-}
+.pill.ss{background:#9a3412}
+.pill.win{background:#166534}
+.pill.pick{background:#7e22ce}
 </style>
 </head>
 
 <body>
 
-<h1>ばんえいコンピ2位頭研究所 V1.00</h1>
+<h1>ばんえいコンピ2位頭研究所 V1.01</h1>
 <div class="small">
-帯広専用・コンピ2位頭研究／IndexedDB永久保存／JSON完全バックアップ
+中央コンピ研究所方式・COMPI＋PICK＋RESULT原本保存
 </div>
+
+<!-- ======================================================
+     全体監査
+====================================================== -->
 
 <div class="card">
-<h2>データ監査</h2>
+<h2>母集団</h2>
 
-<div class="grid3">
+<div class="grid4">
   <div class="stat">
-    登録R
-    <b id="statTotal">0</b>
+    登録
+    <b id="sTotal">0</b>
   </div>
-  <div class="stat good">
-    完全R
-    <b id="statComplete">0</b>
+
+  <div class="stat green">
+    完全
+    <b id="sComplete">0</b>
   </div>
-  <div class="stat bad">
-    欠損R
-    <b id="statIncomplete">0</b>
+
+  <div class="stat red">
+    欠損
+    <b id="sMissing">0</b>
+  </div>
+
+  <div class="stat yellow">
+    開催日
+    <b id="sDays">0</b>
   </div>
 </div>
 
-<div class="grid3" style="margin-top:7px">
+<div class="grid4" style="margin-top:7px">
   <div class="stat">
     2位頭
-    <b id="statSecondWins">0</b>
+    <b id="sSecondWins">0</b>
   </div>
+
   <div class="stat">
     2位頭率
-    <b id="statSecondRate">0%</b>
+    <b id="sSecondRate">0%</b>
   </div>
+
   <div class="stat">
-    SS件数
-    <b id="statSS">0</b>
+    推奨1着
+    <b id="sPickWins">0</b>
+  </div>
+
+  <div class="stat">
+    SS
+    <b id="sSS">0</b>
   </div>
 </div>
 
 <div id="dbStatus" class="small" style="margin-top:8px"></div>
 </div>
 
+<!-- ======================================================
+     入力
+====================================================== -->
+
 <div class="card">
-<h2>一括登録</h2>
+<h2>データ一括登録</h2>
 
 <div class="notice">
-1Rにつき COMPI と RESULT を保存します。RESULTが1〜3着まで無いレースは「欠損」として扱い、研究集計から除外できます。
+入力する原本は <b>コンピ指数・推奨馬・1〜3着結果だけ</b>。
+P・指数差・壁・二強断層・着順コンピ順位などはアプリ側で自動計算します。
 </div>
 
-<textarea id="bulkInput" placeholder="ここにまとめて貼付
-
-例：
+<textarea id="bulk" placeholder="例：
 
 【2026年8月10日 帯広1R】
-
 [COMPI]
 3 78
 7 75
@@ -264,27 +282,42 @@ pre{
 [RESULT]
 7-3-5
 
-[OTANI]
-1
-1
-0
 
-※ [OTANI] は3条件を 1/0 で入力
-※ 無ければ省略可能
+【2026年8月10日 帯広2R】
+[COMPI]
+5 76
+1 75
+8 61
+3 58
+2 54
+7 50
+4 47
+6 42
+
+[PICK]
+5
+
+[RESULT]
+1-5-8
 "></textarea>
 
-<div class="grid" style="margin-top:8px">
-  <button class="green" onclick="previewBulk()">解析確認</button>
+<div class="grid2" style="margin-top:8px">
+  <button class="green" onclick="preview()">解析確認</button>
   <button onclick="saveBulk()">解析して保存</button>
 </div>
 
-<div id="previewArea"></div>
+<div id="previewBox"></div>
 </div>
 
-<div class="card">
-<h2>研究条件</h2>
+<!-- ======================================================
+     2位頭研究
+====================================================== -->
 
-<div class="grid">
+<div class="card">
+<h2>コンピ2位頭研究</h2>
+
+<div class="grid2">
+
   <div>
     <label>P</label>
     <select id="fP">
@@ -299,183 +332,234 @@ pre{
   </div>
 
   <div>
-    <label>大谷式</label>
-    <select id="fOtani">
+    <label>推奨馬コンピ順位</label>
+    <select id="fPickRank">
       <option value="">全部</option>
-      <option value="0">0/3</option>
-      <option value="1">1/3</option>
-      <option value="2">2/3</option>
-      <option value="3">3/3</option>
+      <option value="1">1位</option>
+      <option value="2">2位</option>
+      <option value="3">3位</option>
+      <option value="4">4位</option>
+      <option value="5">5位</option>
+      <option value="6">6位以下</option>
     </select>
   </div>
 
   <div>
-    <label>1位－2位差 最大</label>
+    <label>1位指数 最小</label>
+    <input id="f1min" type="number" placeholder="指定なし">
+  </div>
+
+  <div>
+    <label>1位指数 最大</label>
+    <input id="f1max" type="number" placeholder="指定なし">
+  </div>
+
+  <div>
+    <label>2位指数 最小</label>
+    <input id="f2min" type="number" placeholder="指定なし">
+  </div>
+
+  <div>
+    <label>2位指数 最大</label>
+    <input id="f2max" type="number" placeholder="指定なし">
+  </div>
+
+  <div>
+    <label>1－2差 最小</label>
+    <input id="f12min" type="number" placeholder="指定なし">
+  </div>
+
+  <div>
+    <label>1－2差 最大</label>
     <input id="f12max" type="number" placeholder="例 3">
   </div>
 
   <div>
-    <label>1位－2位差 最小</label>
-    <input id="f12min" type="number" placeholder="任意">
-  </div>
-
-  <div>
-    <label>2位－3位差 最小</label>
+    <label>2－3差 最小</label>
     <input id="f23min" type="number" placeholder="例 10">
   </div>
 
   <div>
-    <label>2位－3位差 最大</label>
-    <input id="f23max" type="number" placeholder="任意">
+    <label>2－3差 最大</label>
+    <input id="f23max" type="number" placeholder="指定なし">
   </div>
 
   <div>
-    <label>1位－3位差 最小</label>
-    <input id="f13min" type="number" placeholder="任意">
+    <label>1－3差 最小</label>
+    <input id="f13min" type="number" placeholder="指定なし">
   </div>
 
   <div>
-    <label>1位－3位差 最大</label>
-    <input id="f13max" type="number" placeholder="任意">
-  </div>
-
-  <div>
-    <label>コンピ1位指数 最小</label>
-    <input id="fTopMin" type="number" placeholder="任意">
-  </div>
-
-  <div>
-    <label>コンピ1位指数 最大</label>
-    <input id="fTopMax" type="number" placeholder="任意">
+    <label>1－3差 最大</label>
+    <input id="f13max" type="number" placeholder="指定なし">
   </div>
 
   <div>
     <label>二強断層SS</label>
     <select id="fSS">
-      <option value="">問わない</option>
-      <option value="1">SSのみ</option>
+      <option value="">全部</option>
+      <option value="1">SSだけ</option>
       <option value="0">SS以外</option>
     </select>
   </div>
 
   <div>
-    <label>完全データ</label>
-    <select id="fComplete">
-      <option value="1">完全Rのみ</option>
-      <option value="">欠損も含む</option>
+    <label>最大壁位置</label>
+    <select id="fWall">
+      <option value="">全部</option>
+      <option value="1">1位後</option>
+      <option value="2">2位後</option>
+      <option value="3">3位後</option>
+      <option value="4">4位後</option>
+      <option value="5">5位後</option>
+      <option value="6">6位後以下</option>
     </select>
   </div>
+
 </div>
 
-<div class="grid" style="margin-top:9px">
-  <button onclick="runResearch()">この条件で検証</button>
+<div class="grid2" style="margin-top:8px">
+  <button onclick="research()">この条件で集計</button>
   <button class="gray" onclick="resetFilters()">条件リセット</button>
 </div>
 </div>
 
-<div class="card">
-<h2>コンピ2位頭・検証結果</h2>
+<!-- ======================================================
+     集計結果
+====================================================== -->
 
-<div class="grid3">
+<div class="card">
+<h2>検証結果</h2>
+
+<div class="grid4">
   <div class="stat">
     該当
-    <b id="rCount">0</b>
+    <b id="rN">0</b>
   </div>
-  <div class="stat good">
+
+  <div class="stat green">
     2位頭
-    <b id="rWins">0</b>
+    <b id="rWin">0</b>
   </div>
+
   <div class="stat">
-    的中率
+    2位頭率
     <b id="rRate">0%</b>
   </div>
+
+  <div class="stat yellow">
+    失敗
+    <b id="rMiss">0</b>
+  </div>
 </div>
 
-<div id="highPattern" style="margin-top:10px"></div>
+<div id="rateAlert"></div>
 
 <div class="card2">
-<b class="cyan">2位頭時の2着コンピ順位</b>
-<div id="secondPlaceRanks" class="small" style="margin-top:6px">データなし</div>
-</div>
-
-<div class="card2">
-<b class="cyan">2位頭時の3着コンピ順位</b>
-<div id="thirdPlaceRanks" class="small" style="margin-top:6px">データなし</div>
-</div>
-
-<div class="card2">
-<b class="cyan">コンピ1位の行方</b>
-<div id="rank1Behavior" class="small" style="margin-top:6px">データなし</div>
+<div class="cyan">2位頭になった時の2着コンピ順位</div>
+<div id="secondRanks" class="small" style="margin-top:6px">―</div>
 </div>
 
 <div class="card2">
-<b class="yellowText">例外・失敗レース</b>
-<div id="exceptions" class="small" style="margin-top:6px">データなし</div>
+<div class="cyan">2位頭になった時の3着コンピ順位</div>
+<div id="thirdRanks" class="small" style="margin-top:6px">―</div>
+</div>
+
+<div class="card2">
+<div class="cyan">2位頭になった時のコンピ1位</div>
+<div id="rank1Result" class="small" style="margin-top:6px">―</div>
+</div>
+
+<div class="card2">
+<div class="cyan">2位頭になった時の推奨馬</div>
+<div id="pickResult" class="small" style="margin-top:6px">―</div>
+</div>
+
+<div class="card2">
+<div class="yel">2位が勝たなかったレース</div>
+<div id="missList" class="small" style="margin-top:6px">―</div>
 </div>
 </div>
+
+<!-- ======================================================
+     自動探索
+====================================================== -->
 
 <div class="card">
-<h2>90%以上パターン探索</h2>
+<h2>高確率パターン自動探索</h2>
 
 <div class="small">
-登録済み完全データから、代表的な条件組み合わせを自動探索します。
-母数が少なすぎる偶然を避けるため、最低件数を指定できます。
+保存済み母集団から「コンピ2位が勝ちやすい条件」を自動探索します。
+母数の小さい100％を過大評価しないため、最低件数を指定できます。
 </div>
 
-<div class="grid" style="margin-top:8px">
+<div class="grid2" style="margin-top:8px">
+
   <div>
-    <label>最低該当件数</label>
-    <input id="patternMinN" type="number" value="5" min="2">
+    <label>最低該当数</label>
+    <input id="autoMinN" type="number" value="10" min="2">
   </div>
+
   <div>
-    <label>最低2位頭率 %</label>
-    <input id="patternMinRate" type="number" value="90" min="0" max="100">
+    <label>最低的中率</label>
+    <input id="autoMinRate" type="number" value="80" min="0" max="100">
   </div>
+
 </div>
 
-<button class="orange" style="margin-top:8px" onclick="searchPatterns()">
-90%以上パターンを探索
+<button class="orange" style="margin-top:8px" onclick="autoSearch()">
+高確率条件を探す
 </button>
 
-<div id="patternResults" style="margin-top:10px"></div>
+<div id="autoResult" style="margin-top:9px"></div>
 </div>
+
+<!-- ======================================================
+     一覧
+====================================================== -->
 
 <div class="card">
-<h2>全レース一覧</h2>
+<h2>登録データ</h2>
 
-<div class="grid">
-  <button class="gray" onclick="renderAll()">全件表示</button>
-  <button class="gray" onclick="showIncomplete()">欠損だけ表示</button>
+<div class="grid2">
+  <button class="gray" onclick="renderAll()">全レース</button>
+  <button class="gray" onclick="renderMissing()">欠損だけ</button>
 </div>
 
-<div id="raceTable" style="margin-top:8px"></div>
+<div id="raceList" style="margin-top:8px"></div>
 </div>
+
+<!-- ======================================================
+     バックアップ
+====================================================== -->
 
 <div class="card">
 <h2>バックアップ</h2>
 
 <div class="notice">
-重要：研究終了時には必ず「JSON完全バックアップ」を保存してください。JSONがあれば別PC・別ブラウザでも研究データを復元できます。
+<b>JSONが完全バックアップ。</b><br>
+研究終了時・大量登録後は必ず保存してください。
+CSVはチャッピーへ渡して再検証するときにも使えます。
 </div>
 
-<div class="grid" style="margin-top:8px">
+<div class="grid2" style="margin-top:8px">
   <button class="green" onclick="exportJSON()">JSON完全バックアップ</button>
-  <button class="green" onclick="exportCSV()">CSV研究用出力</button>
-</div>
-
-<div style="margin-top:8px">
-  <input type="file" id="restoreFile" accept=".json">
-  <button class="yellow" style="margin-top:6px" onclick="restoreJSON()">
-    JSONから完全復元
-  </button>
+  <button class="green" onclick="exportCSV()">CSV出力</button>
 </div>
 
 <hr>
 
+<label>JSONバックアップを選択</label>
+<input id="restoreFile" type="file" accept=".json">
+
+<button class="yellow" style="margin-top:7px" onclick="restoreJSON()">
+JSONから復元
+</button>
+
 <details>
 <summary>危険操作</summary>
 <div class="small" style="margin:8px 0">
-全件削除はバックアップ確認後だけ使用してください。
+JSONバックアップを取ってから使用してください。
 </div>
 <button class="red" onclick="deleteAll()">全データ削除</button>
 </details>
@@ -484,46 +568,41 @@ pre{
 <script>
 "use strict";
 
-/* =========================================================
-   ばんえいコンピ2位頭研究所 V1.00
-   ========================================================= */
+/* ==========================================================
+   DB
+========================================================== */
 
-const DB_NAME = "BaneiCompiSecondLab";
-const DB_VERSION = 1;
-const STORE = "races";
+const DB_NAME="BaneiCompiSecondLab_V101";
+const DB_VERSION=1;
+const STORE="races";
 
-let db = null;
-let races = [];
-
-/* -------------------------
-   IndexedDB
-------------------------- */
+let db=null;
+let races=[];
 
 function openDB(){
   return new Promise((resolve,reject)=>{
-    const req = indexedDB.open(DB_NAME,DB_VERSION);
+    const req=indexedDB.open(DB_NAME,DB_VERSION);
 
-    req.onupgradeneeded = e=>{
+    req.onupgradeneeded=e=>{
       const d=e.target.result;
 
       if(!d.objectStoreNames.contains(STORE)){
         const s=d.createObjectStore(STORE,{keyPath:"id"});
         s.createIndex("date","date",{unique:false});
-        s.createIndex("p","p",{unique:false});
-        s.createIndex("secondWin","secondWin",{unique:false});
+        s.createIndex("raceNo","raceNo",{unique:false});
       }
     };
 
     req.onsuccess=e=>{
       db=e.target.result;
-      resolve(db);
+      resolve();
     };
 
     req.onerror=e=>reject(e.target.error);
   });
 }
 
-function getAllDB(){
+function dbGetAll(){
   return new Promise((resolve,reject)=>{
     const tx=db.transaction(STORE,"readonly");
     const req=tx.objectStore(STORE).getAll();
@@ -533,494 +612,625 @@ function getAllDB(){
   });
 }
 
-function putRace(r){
+function dbPut(r){
   return new Promise((resolve,reject)=>{
     const tx=db.transaction(STORE,"readwrite");
     tx.objectStore(STORE).put(r);
+
     tx.oncomplete=()=>resolve();
     tx.onerror=()=>reject(tx.error);
   });
 }
 
-function clearDB(){
+function dbClear(){
   return new Promise((resolve,reject)=>{
     const tx=db.transaction(STORE,"readwrite");
     tx.objectStore(STORE).clear();
+
     tx.oncomplete=()=>resolve();
     tx.onerror=()=>reject(tx.error);
   });
 }
 
-/* -------------------------
-   共通
-------------------------- */
+/* ==========================================================
+   Utility
+========================================================== */
 
-function esc(s){
-  return String(s??"")
+function esc(v){
+  return String(v??"")
     .replace(/&/g,"&amp;")
     .replace(/</g,"&lt;")
     .replace(/>/g,"&gt;")
     .replace(/"/g,"&quot;");
 }
 
-function pct(a,b){
+function n(v){
+  if(v===null||v===undefined||v==="") return null;
+
+  const x=Number(v);
+  return Number.isFinite(x)?x:null;
+}
+
+function pc(a,b){
   if(!b)return "0.0%";
-  return (a/b*100).toFixed(1)+"%";
+  return (100*a/b).toFixed(1)+"%";
 }
 
-function num(v){
-  if(v===null||v===undefined||v==="")return null;
-  const n=Number(v);
-  return Number.isFinite(n)?n:null;
+function stamp(){
+  const d=new Date();
+
+  return [
+    d.getFullYear(),
+    String(d.getMonth()+1).padStart(2,"0"),
+    String(d.getDate()).padStart(2,"0")
+  ].join("-")+"_"+[
+    String(d.getHours()).padStart(2,"0"),
+    String(d.getMinutes()).padStart(2,"0")
+  ].join("");
 }
 
-function downloadText(name,text,type){
-  const blob=new Blob([text],{type:type||"text/plain;charset=utf-8"});
+function download(name,text,type){
+  const blob=new Blob([text],{
+    type:type||"text/plain;charset=utf-8"
+  });
+
   const url=URL.createObjectURL(blob);
   const a=document.createElement("a");
+
   a.href=url;
   a.download=name;
+
   document.body.appendChild(a);
   a.click();
   a.remove();
+
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 
-function dateStamp(){
-  const d=new Date();
-  const y=d.getFullYear();
-  const m=String(d.getMonth()+1).padStart(2,"0");
-  const day=String(d.getDate()).padStart(2,"0");
-  const h=String(d.getHours()).padStart(2,"0");
-  const mi=String(d.getMinutes()).padStart(2,"0");
-  return `${y}-${m}-${day}_${h}${mi}`;
-}
-
-/* -------------------------
-   P判定
-   上位3頭合計値を保存。
-   P区分は後から変更可能なよう
-   raw値も保持する。
-------------------------- */
+/* ==========================================================
+   P
+   上位3頭コンピ指数合計から分類
+========================================================== */
 
 function calcP(sum){
+
   if(sum==null)return "";
-
-  /*
-    研究途中で定義変更できるよう、
-    ここだけ変更すれば全再計算可能。
-
-    現段階の初期分類：
-    220以上 P6
-    215～219 P5
-    210～214 P4
-    205～209 P3
-    200～204 P2
-    199以下 P1
-  */
 
   if(sum>=220)return "P6";
   if(sum>=215)return "P5";
   if(sum>=210)return "P4";
   if(sum>=205)return "P3";
   if(sum>=200)return "P2";
+
   return "P1";
 }
 
-/* -------------------------
-   レース派生値計算
-------------------------- */
+/* ==========================================================
+   派生データ
+========================================================== */
 
-function enrichRace(r){
+function enrich(raw){
 
-  r.compi=(r.compi||[])
-    .filter(x=>Number.isFinite(Number(x.horse)) && Number.isFinite(Number(x.index)))
-    .map(x=>({
-      horse:Number(x.horse),
-      index:Number(x.index)
-    }))
-    .sort((a,b)=>b.index-a.index);
+  const r={...raw};
 
-  r.compi.forEach((x,i)=>x.rank=i+1);
+  r.compi=Array.isArray(r.compi)
+    ?r.compi
+      .map(x=>({
+        horse:Number(x.horse),
+        index:Number(x.index)
+      }))
+      .filter(x=>
+        Number.isFinite(x.horse)&&
+        Number.isFinite(x.index)
+      )
+    :[];
 
-  const top1=r.compi[0]||null;
-  const top2=r.compi[1]||null;
-  const top3=r.compi[2]||null;
+  r.compi.sort((a,b)=>b.index-a.index);
 
-  r.top1Horse=top1?.horse??null;
-  r.top2Horse=top2?.horse??null;
-  r.top3Horse=top3?.horse??null;
+  r.compi.forEach((x,i)=>{
+    x.rank=i+1;
+  });
 
-  r.top1Index=top1?.index??null;
-  r.top2Index=top2?.index??null;
-  r.top3Index=top3?.index??null;
+  r.result=Array.isArray(r.result)
+    ?r.result.slice(0,3).map(Number)
+    :[];
 
-  r.diff12=(top1&&top2)?top1.index-top2.index:null;
-  r.diff23=(top2&&top3)?top2.index-top3.index:null;
-  r.diff13=(top1&&top3)?top1.index-top3.index:null;
+  r.pick=r.pick==null?null:Number(r.pick);
 
-  r.top3Sum=(top1&&top2&&top3)
-    ?top1.index+top2.index+top3.index
+  const c1=r.compi[0]||null;
+  const c2=r.compi[1]||null;
+  const c3=r.compi[2]||null;
+
+  r.c1Horse=c1?.horse??null;
+  r.c2Horse=c2?.horse??null;
+  r.c3Horse=c3?.horse??null;
+
+  r.c1=c1?.index??null;
+  r.c2=c2?.index??null;
+  r.c3=c3?.index??null;
+
+  r.d12=(c1&&c2)?c1.index-c2.index:null;
+  r.d23=(c2&&c3)?c2.index-c3.index:null;
+  r.d13=(c1&&c3)?c1.index-c3.index:null;
+
+  r.top3Sum=(c1&&c2&&c3)
+    ?c1.index+c2.index+c3.index
     :null;
 
   r.p=calcP(r.top3Sum);
 
-  const rankOfHorse=h=>{
+  function rankOfHorse(h){
     if(h==null)return null;
-    const x=r.compi.find(x=>x.horse===Number(h));
-    return x?x.rank:null;
-  };
 
-  r.resultRanks=(r.result||[]).map(rankOfHorse);
+    const x=r.compi.find(v=>v.horse===Number(h));
+
+    return x?x.rank:null;
+  }
+
+  r.pickRank=rankOfHorse(r.pick);
+
+  r.resultRanks=r.result.map(rankOfHorse);
 
   r.firstRank=r.resultRanks[0]??null;
   r.secondRank=r.resultRanks[1]??null;
   r.thirdRank=r.resultRanks[2]??null;
 
-  r.secondWin=(r.firstRank===2);
+  r.secondWin=r.firstRank===2;
+
+  r.pickFinish=null;
+
+  if(r.pick!=null){
+    const ix=r.result.indexOf(r.pick);
+
+    if(ix>=0){
+      r.pickFinish=ix+1;
+    }
+  }
 
   r.rank1Finish=null;
 
-  if(r.top1Horse!=null && Array.isArray(r.result)){
-    const i=r.result.indexOf(r.top1Horse);
-    r.rank1Finish=i>=0?i+1:null;
+  if(r.c1Horse!=null){
+    const ix=r.result.indexOf(r.c1Horse);
+
+    if(ix>=0){
+      r.rank1Finish=ix+1;
+    }
   }
 
-  /* 二強断層SS
-     基本定義：
-     1-2差 <= 3
-     2-3差 >= 10
+  /*
+    二強断層SS
+    1位と2位が3P以内
+    2位と3位が10P以上
   */
-  r.ss=(
-    r.diff12!=null &&
-    r.diff23!=null &&
-    r.diff12<=3 &&
-    r.diff23>=10
-  );
+  r.ss=
+    r.d12!=null &&
+    r.d23!=null &&
+    r.d12<=3 &&
+    r.d23>=10;
 
-  /* 最大壁 */
+  /*
+    全コンピ指数から最大壁
+  */
   r.maxWallGap=null;
   r.maxWallAfterRank=null;
 
   if(r.compi.length>=2){
+
     let best=-Infinity;
-    let after=null;
+    let pos=null;
 
     for(let i=0;i<r.compi.length-1;i++){
-      const gap=r.compi[i].index-r.compi[i+1].index;
+
+      const gap=
+        r.compi[i].index-
+        r.compi[i+1].index;
 
       if(gap>best){
         best=gap;
-        after=i+1;
+        pos=i+1;
       }
     }
 
     r.maxWallGap=best;
-    r.maxWallAfterRank=after;
+    r.maxWallAfterRank=pos;
   }
 
-  r.otaniFlags=Array.isArray(r.otaniFlags)
-    ?r.otaniFlags.slice(0,3).map(x=>Number(x)?1:0)
-    :[];
+  /*
+    第2壁も保存
+  */
+  const walls=[];
 
-  r.otaniCount=r.otaniFlags.length
-    ?r.otaniFlags.reduce((a,b)=>a+b,0)
-    :null;
+  for(let i=0;i<r.compi.length-1;i++){
+    walls.push({
+      afterRank:i+1,
+      gap:r.compi[i].index-r.compi[i+1].index
+    });
+  }
 
-  r.complete=(
+  walls.sort((a,b)=>b.gap-a.gap);
+
+  r.secondWallGap=walls[1]?.gap??null;
+  r.secondWallAfterRank=walls[1]?.afterRank??null;
+
+  r.complete=
     r.compi.length>=3 &&
-    Array.isArray(r.result) &&
-    r.result.length>=3 &&
-    r.resultRanks.length>=3 &&
-    r.resultRanks.slice(0,3).every(x=>x!=null)
-  );
-
-  r.updatedAt=new Date().toISOString();
+    r.pick!=null &&
+    r.pickRank!=null &&
+    r.result.length===3 &&
+    r.resultRanks.length===3 &&
+    r.resultRanks.every(x=>x!=null);
 
   return r;
 }
 
-/* -------------------------
-   一括解析
-------------------------- */
+/* ==========================================================
+   入力解析
+========================================================== */
 
-function parseBulk(text){
+function parseInput(text){
 
-  text=text.replace(/\r/g,"");
+  text=String(text||"").replace(/\r/g,"");
 
-  const headerRe=/【\s*(\d{4})年(\d{1,2})月(\d{1,2})日\s+帯広\s*(\d{1,2})R\s*】/g;
+  /*
+    場名は帯広を想定。
+    「帯広1R」「帯広 1R」どちらも可。
+  */
+  const header=
+    /【\s*(\d{4})年(\d{1,2})月(\d{1,2})日\s+帯広\s*(\d{1,2})R\s*】/g;
 
-  const matches=[...text.matchAll(headerRe)];
-  const out=[];
+  const matches=[...text.matchAll(header)];
+  const result=[];
 
   for(let i=0;i<matches.length;i++){
 
     const m=matches[i];
 
     const start=m.index;
-    const end=(i+1<matches.length)
+    const end=
+      i+1<matches.length
       ?matches[i+1].index
       :text.length;
 
     const block=text.slice(start,end);
 
-    const y=Number(m[1]);
-    const mo=Number(m[2]);
-    const d=Number(m[3]);
+    const year=Number(m[1]);
+    const month=Number(m[2]);
+    const day=Number(m[3]);
     const raceNo=Number(m[4]);
 
     const date=
-      `${y}-${String(mo).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+      `${year}-`+
+      `${String(month).padStart(2,"0")}-`+
+      `${String(day).padStart(2,"0")}`;
 
     const id=`${date}_帯広_${raceNo}R`;
 
-    const compi=[];
-    const c=block.match(/\[COMPI\]([\s\S]*?)(?=\n\[[A-Z]+\]|$)/i);
+    /* COMPI */
+    let compi=[];
 
-    if(c){
-      const lines=c[1].trim().split("\n");
+    const cm=
+      block.match(
+        /\[COMPI\]([\s\S]*?)(?=\n\s*\[(?:PICK|RESULT)\]|$)/i
+      );
+
+    if(cm){
+
+      const lines=cm[1]
+        .trim()
+        .split("\n");
 
       for(const line of lines){
-        const mm=line.trim().match(/^(\d+)\s+(-?\d+(?:\.\d+)?)$/);
 
-        if(mm){
+        const x=
+          line.trim()
+          .match(/^(\d+)\s+(-?\d+(?:\.\d+)?)$/);
+
+        if(x){
           compi.push({
-            horse:Number(mm[1]),
-            index:Number(mm[2])
+            horse:Number(x[1]),
+            index:Number(x[2])
           });
         }
       }
     }
 
+    /* PICK */
     let pick=null;
-    const p=block.match(/\[PICK\]\s*([\s\S]*?)(?=\n\[[A-Z]+\]|$)/i);
 
-    if(p){
-      const mm=p[1].match(/\d+/);
-      if(mm)pick=Number(mm[0]);
+    const pm=
+      block.match(
+        /\[PICK\]\s*([\s\S]*?)(?=\n\s*\[RESULT\]|$)/i
+      );
+
+    if(pm){
+      const x=pm[1].match(/\d+/);
+      if(x)pick=Number(x[0]);
     }
 
-    let result=[];
-    const rr=block.match(/\[RESULT\]\s*([\s\S]*?)(?=\n\[[A-Z]+\]|$)/i);
+    /* RESULT */
+    let raceResult=[];
 
-    if(rr){
-      result=(rr[1].match(/\d+/g)||[])
+    const rm=
+      block.match(
+        /\[RESULT\]\s*([\s\S]*?)(?=\n\s*【|$)/i
+      );
+
+    if(rm){
+      raceResult=
+        (rm[1].match(/\d+/g)||[])
         .slice(0,3)
         .map(Number);
     }
 
-    let otaniFlags=[];
-    const oo=block.match(/\[OTANI\]\s*([\s\S]*?)(?=\n\[[A-Z]+\]|$)/i);
-
-    if(oo){
-      otaniFlags=(oo[1].match(/[01]/g)||[])
-        .slice(0,3)
-        .map(Number);
-    }
-
-    const race=enrichRace({
-      id,
-      date,
-      place:"帯広",
-      raceNo,
-      compi,
-      pick,
-      result,
-      otaniFlags,
-      createdAt:new Date().toISOString()
-    });
-
-    out.push(race);
+    result.push(
+      enrich({
+        id,
+        date,
+        place:"帯広",
+        raceNo,
+        compi,
+        pick,
+        result:raceResult,
+        createdAt:new Date().toISOString()
+      })
+    );
   }
 
-  return out;
+  return result;
 }
 
-function previewBulk(){
+/* ==========================================================
+   解析確認
+========================================================== */
 
-  const data=parseBulk(
-    document.getElementById("bulkInput").value
+function preview(){
+
+  const list=parseInput(
+    document.getElementById("bulk").value
   );
 
-  if(!data.length){
-    document.getElementById("previewArea").innerHTML=
-      `<div class="card2 ng">認識できるレースがありません。</div>`;
+  if(!list.length){
+
+    document.getElementById("previewBox").innerHTML=
+      `<div class="card2 ng">
+      レースを認識できません。
+      </div>`;
+
     return;
   }
 
-  const complete=data.filter(x=>x.complete).length;
+  const complete=
+    list.filter(x=>x.complete).length;
 
   let html=`
-    <div class="card2">
-      認識 <b>${data.length}R</b> ／
-      完全 <b class="ok">${complete}R</b> ／
-      欠損 <b class="ng">${data.length-complete}R</b>
-  `;
+  <div class="card2">
 
-  html+=`<div class="scroll"><table>
+  <div>
+  認識 <b>${list.length}R</b>
+  ／ 完全 <b class="ok">${complete}R</b>
+  ／ 欠損 <b class="ng">${list.length-complete}R</b>
+  </div>
+
+  <div class="scroll" style="margin-top:7px">
+
+  <table>
   <thead>
   <tr>
     <th>日付</th>
     <th>R</th>
     <th>頭数</th>
+    <th>推奨</th>
+    <th>推順位</th>
     <th>結果</th>
     <th>着コンピ</th>
+    <th>上位3</th>
     <th>P</th>
-    <th>1-2</th>
-    <th>2-3</th>
-    <th>SS</th>
     <th>2位頭</th>
     <th>状態</th>
   </tr>
-  </thead><tbody>`;
+  </thead>
+  <tbody>
+  `;
 
-  for(const r of data){
+  for(const r of list){
+
     html+=`
-      <tr>
-        <td>${r.date}</td>
-        <td>${r.raceNo}</td>
-        <td>${r.compi.length}</td>
-        <td>${r.result.join("-")||"-"}</td>
-        <td>${r.resultRanks.join("-")||"-"}</td>
-        <td>${r.p}</td>
-        <td>${r.diff12??"-"}</td>
-        <td>${r.diff23??"-"}</td>
-        <td>${r.ss?"SS":""}</td>
-        <td>${r.secondWin?"○":"×"}</td>
-        <td class="${r.complete?"ok":"ng"}">
-          ${r.complete?"完全":"欠損"}
-        </td>
-      </tr>
+    <tr>
+      <td>${r.date}</td>
+      <td>${r.raceNo}</td>
+      <td>${r.compi.length}</td>
+      <td>${r.pick??"-"}</td>
+      <td>${r.pickRank??"-"}</td>
+      <td>${r.result.join("-")||"-"}</td>
+      <td>${r.resultRanks.join("-")||"-"}</td>
+      <td>${r.c1??"-"}-${r.c2??"-"}-${r.c3??"-"}</td>
+      <td>${r.p}</td>
+      <td class="${r.secondWin?"ok":"ng"}">
+        ${r.secondWin?"○":"×"}
+      </td>
+      <td class="${r.complete?"ok":"ng"}">
+        ${r.complete?"完全":"欠損"}
+      </td>
+    </tr>
     `;
   }
 
-  html+="</tbody></table></div></div>";
+  html+=`
+  </tbody>
+  </table>
+  </div>
+  </div>
+  `;
 
-  document.getElementById("previewArea").innerHTML=html;
+  document.getElementById("previewBox").innerHTML=html;
 }
+
+/* ==========================================================
+   保存
+========================================================== */
 
 async function saveBulk(){
 
-  const text=document.getElementById("bulkInput").value;
-  const data=parseBulk(text);
+  const list=parseInput(
+    document.getElementById("bulk").value
+  );
 
-  if(!data.length){
+  if(!list.length){
     alert("レースを認識できません。");
     return;
   }
 
-  for(const r of data){
-    await putRace(r);
+  for(const r of list){
+    await dbPut(r);
   }
 
-  document.getElementById("bulkInput").value="";
-  document.getElementById("previewArea").innerHTML="";
+  document.getElementById("bulk").value="";
+  document.getElementById("previewBox").innerHTML="";
 
   await reload();
 
-  alert(`${data.length}R 保存しました。`);
+  alert(`${list.length}R 保存しました。`);
 }
 
-/* -------------------------
-   データ再読込
-------------------------- */
+/* ==========================================================
+   再読込
+========================================================== */
 
 async function reload(){
 
-  races=await getAllDB();
-
-  races=races
-    .map(enrichRace)
+  races=(await dbGetAll())
+    .map(enrich)
     .sort((a,b)=>{
-      if(a.date!==b.date)return a.date.localeCompare(b.date);
+      if(a.date!==b.date){
+        return a.date.localeCompare(b.date);
+      }
       return a.raceNo-b.raceNo;
     });
 
   updateStats();
-  runResearch();
+  research();
   renderAll();
 
   document.getElementById("dbStatus").innerHTML=
-    `IndexedDB保存中：${esc(DB_NAME)} ／ 最終読込 ${new Date().toLocaleTimeString()}`;
+    `IndexedDB保存済み ／ ${races.length}R ／ `+
+    `最終読込 ${new Date().toLocaleTimeString()}`;
 }
 
 function updateStats(){
 
   const total=races.length;
-  const complete=races.filter(x=>x.complete).length;
-  const incomplete=total-complete;
 
-  const comp=races.filter(x=>x.complete);
-  const wins=comp.filter(x=>x.secondWin).length;
-  const ss=comp.filter(x=>x.ss).length;
+  const complete=
+    races.filter(x=>x.complete);
 
-  document.getElementById("statTotal").textContent=total;
-  document.getElementById("statComplete").textContent=complete;
-  document.getElementById("statIncomplete").textContent=incomplete;
-  document.getElementById("statSecondWins").textContent=wins;
-  document.getElementById("statSecondRate").textContent=pct(wins,complete);
-  document.getElementById("statSS").textContent=ss;
+  const missing=
+    total-complete.length;
+
+  const days=
+    new Set(races.map(x=>x.date)).size;
+
+  const secondWins=
+    complete.filter(x=>x.secondWin).length;
+
+  const pickWins=
+    complete.filter(x=>x.pickFinish===1).length;
+
+  const ss=
+    complete.filter(x=>x.ss).length;
+
+  document.getElementById("sTotal").textContent=total;
+  document.getElementById("sComplete").textContent=complete.length;
+  document.getElementById("sMissing").textContent=missing;
+  document.getElementById("sDays").textContent=days;
+
+  document.getElementById("sSecondWins").textContent=secondWins;
+  document.getElementById("sSecondRate").textContent=
+    pc(secondWins,complete.length);
+
+  document.getElementById("sPickWins").textContent=pickWins;
+  document.getElementById("sSS").textContent=ss;
 }
 
-/* -------------------------
-   フィルター
-------------------------- */
+/* ==========================================================
+   研究フィルター
+========================================================== */
 
-function getFilters(){
+function filters(){
 
   return {
     p:document.getElementById("fP").value,
-    otani:document.getElementById("fOtani").value,
-    d12min:num(document.getElementById("f12min").value),
-    d12max:num(document.getElementById("f12max").value),
-    d23min:num(document.getElementById("f23min").value),
-    d23max:num(document.getElementById("f23max").value),
-    d13min:num(document.getElementById("f13min").value),
-    d13max:num(document.getElementById("f13max").value),
-    topMin:num(document.getElementById("fTopMin").value),
-    topMax:num(document.getElementById("fTopMax").value),
+    pickRank:document.getElementById("fPickRank").value,
+
+    c1min:n(document.getElementById("f1min").value),
+    c1max:n(document.getElementById("f1max").value),
+
+    c2min:n(document.getElementById("f2min").value),
+    c2max:n(document.getElementById("f2max").value),
+
+    d12min:n(document.getElementById("f12min").value),
+    d12max:n(document.getElementById("f12max").value),
+
+    d23min:n(document.getElementById("f23min").value),
+    d23max:n(document.getElementById("f23max").value),
+
+    d13min:n(document.getElementById("f13min").value),
+    d13max:n(document.getElementById("f13max").value),
+
     ss:document.getElementById("fSS").value,
-    complete:document.getElementById("fComplete").value
+    wall:document.getElementById("fWall").value
   };
 }
 
-function applyFilters(list,f){
+function applyFilter(list,f){
 
   return list.filter(r=>{
 
-    if(f.complete==="1"&&!r.complete)return false;
+    if(!r.complete)return false;
 
-    if(f.p&&r.p!==f.p)return false;
+    if(f.p && r.p!==f.p)return false;
 
-    if(f.otani!==""&&r.otaniCount!==Number(f.otani))
-      return false;
+    if(f.pickRank){
 
-    if(f.d12min!=null&&(r.diff12==null||r.diff12<f.d12min))
-      return false;
+      const target=Number(f.pickRank);
 
-    if(f.d12max!=null&&(r.diff12==null||r.diff12>f.d12max))
-      return false;
+      if(target===6){
+        if(r.pickRank==null||r.pickRank<6)return false;
+      }else{
+        if(r.pickRank!==target)return false;
+      }
+    }
 
-    if(f.d23min!=null&&(r.diff23==null||r.diff23<f.d23min))
-      return false;
+    if(f.c1min!=null && r.c1<f.c1min)return false;
+    if(f.c1max!=null && r.c1>f.c1max)return false;
 
-    if(f.d23max!=null&&(r.diff23==null||r.diff23>f.d23max))
-      return false;
+    if(f.c2min!=null && r.c2<f.c2min)return false;
+    if(f.c2max!=null && r.c2>f.c2max)return false;
 
-    if(f.d13min!=null&&(r.diff13==null||r.diff13<f.d13min))
-      return false;
+    if(f.d12min!=null && r.d12<f.d12min)return false;
+    if(f.d12max!=null && r.d12>f.d12max)return false;
 
-    if(f.d13max!=null&&(r.diff13==null||r.diff13>f.d13max))
-      return false;
+    if(f.d23min!=null && r.d23<f.d23min)return false;
+    if(f.d23max!=null && r.d23>f.d23max)return false;
 
-    if(f.topMin!=null&&(r.top1Index==null||r.top1Index<f.topMin))
-      return false;
-
-    if(f.topMax!=null&&(r.top1Index==null||r.top1Index>f.topMax))
-      return false;
+    if(f.d13min!=null && r.d13<f.d13min)return false;
+    if(f.d13max!=null && r.d13>f.d13max)return false;
 
     if(f.ss==="1"&&!r.ss)return false;
     if(f.ss==="0"&&r.ss)return false;
+
+    if(f.wall){
+
+      const target=Number(f.wall);
+
+      if(target===6){
+        if(
+          r.maxWallAfterRank==null ||
+          r.maxWallAfterRank<6
+        )return false;
+      }else{
+        if(r.maxWallAfterRank!==target)return false;
+      }
+    }
 
     return true;
   });
@@ -1029,229 +1239,353 @@ function applyFilters(list,f){
 function resetFilters(){
 
   [
-    "fP","fOtani","f12min","f12max",
-    "f23min","f23max","f13min","f13max",
-    "fTopMin","fTopMax","fSS"
+    "fP",
+    "fPickRank",
+    "f1min",
+    "f1max",
+    "f2min",
+    "f2max",
+    "f12min",
+    "f12max",
+    "f23min",
+    "f23max",
+    "f13min",
+    "f13max",
+    "fSS",
+    "fWall"
   ].forEach(id=>{
     document.getElementById(id).value="";
   });
 
-  document.getElementById("fComplete").value="1";
-
-  runResearch();
+  research();
 }
 
-/* -------------------------
-   研究集計
-------------------------- */
+/* ==========================================================
+   順位分布
+========================================================== */
 
-function rankDistribution(list,key){
+function rankMap(list,key){
 
   const map={};
 
   for(const r of list){
-    const rank=r[key];
 
-    if(rank==null)continue;
+    const x=r[key];
 
-    map[rank]=(map[rank]||0)+1;
+    if(x==null)continue;
+
+    map[x]=(map[x]||0)+1;
   }
 
   return map;
 }
 
-function distHTML(map,total){
+function rankHTML(map,total){
 
-  const keys=Object.keys(map)
+  const keys=
+    Object.keys(map)
     .map(Number)
     .sort((a,b)=>a-b);
 
   if(!keys.length)return "データなし";
 
-  return keys.map(k=>{
-    return `コンピ${k}位：
-      <b>${map[k]}</b>件
-      （${pct(map[k],total)}）`;
-  }).join("<br>");
+  return keys.map(k=>
+    `コンピ${k}位：
+     <b>${map[k]}件</b>
+     （${pc(map[k],total)}）`
+  ).join("<br>");
 }
 
-function runResearch(){
+/* ==========================================================
+   研究
+========================================================== */
 
-  const filtered=applyFilters(races,getFilters());
+function research(){
 
-  const wins=filtered.filter(x=>x.complete&&x.secondWin);
+  const list=
+    applyFilter(races,filters());
 
-  const count=filtered.filter(x=>x.complete).length;
+  const wins=
+    list.filter(x=>x.secondWin);
 
-  document.getElementById("rCount").textContent=count;
-  document.getElementById("rWins").textContent=wins.length;
-  document.getElementById("rRate").textContent=pct(wins.length,count);
+  const misses=
+    list.filter(x=>!x.secondWin);
 
-  const rate=count?wins.length/count*100:0;
+  document.getElementById("rN").textContent=list.length;
+  document.getElementById("rWin").textContent=wins.length;
+  document.getElementById("rRate").textContent=
+    pc(wins.length,list.length);
+  document.getElementById("rMiss").textContent=misses.length;
 
-  if(count&&rate>=90){
-    document.getElementById("highPattern").innerHTML=
+  const rate=
+    list.length
+    ?wins.length/list.length*100
+    :0;
+
+  if(list.length && rate>=90){
+
+    document.getElementById("rateAlert").innerHTML=
       `<div class="card2 ok">
-        ★ 90％以上パターン：
-        ${wins.length}/${count}
-        ＝ ${rate.toFixed(1)}%
-      </div>`;
+       ★ 90％超：
+       ${wins.length}/${list.length}
+       ＝ ${rate.toFixed(1)}%
+       </div>`;
+
+  }else if(list.length && rate>=80){
+
+    document.getElementById("rateAlert").innerHTML=
+      `<div class="card2 yel">
+       ★ 80％超：
+       ${wins.length}/${list.length}
+       ＝ ${rate.toFixed(1)}%
+       </div>`;
+
   }else{
-    document.getElementById("highPattern").innerHTML="";
+    document.getElementById("rateAlert").innerHTML="";
   }
 
-  const d2=rankDistribution(wins,"secondRank");
-  const d3=rankDistribution(wins,"thirdRank");
+  document.getElementById("secondRanks").innerHTML=
+    rankHTML(
+      rankMap(wins,"secondRank"),
+      wins.length
+    );
 
-  document.getElementById("secondPlaceRanks").innerHTML=
-    distHTML(d2,wins.length);
-
-  document.getElementById("thirdPlaceRanks").innerHTML=
-    distHTML(d3,wins.length);
+  document.getElementById("thirdRanks").innerHTML=
+    rankHTML(
+      rankMap(wins,"thirdRank"),
+      wins.length
+    );
 
   let rank1Second=0;
   let rank1Third=0;
-  let rank1Gone=0;
+  let rank1Out=0;
 
   for(const r of wins){
 
-    if(r.rank1Finish===2)rank1Second++;
-    else if(r.rank1Finish===3)rank1Third++;
-    else rank1Gone++;
+    if(r.rank1Finish===2){
+      rank1Second++;
+    }else if(r.rank1Finish===3){
+      rank1Third++;
+    }else{
+      rank1Out++;
+    }
   }
 
-  document.getElementById("rank1Behavior").innerHTML=
-    `
-    2着残り：
-    <b>${rank1Second}</b>/${wins.length}
-    （${pct(rank1Second,wins.length)}）<br>
+  document.getElementById("rank1Result").innerHTML=
+    `2着：
+     <b>${rank1Second}</b>/${wins.length}
+     （${pc(rank1Second,wins.length)}）<br>
 
-    3着残り：
-    <b>${rank1Third}</b>/${wins.length}
-    （${pct(rank1Third,wins.length)}）<br>
+     3着：
+     <b>${rank1Third}</b>/${wins.length}
+     （${pc(rank1Third,wins.length)}）<br>
 
-    3着外：
-    <b>${rank1Gone}</b>/${wins.length}
-    （${pct(rank1Gone,wins.length)}）
-    `;
+     3着外：
+     <b>${rank1Out}</b>/${wins.length}
+     （${pc(rank1Out,wins.length)}）`;
 
-  const misses=filtered.filter(x=>x.complete&&!x.secondWin);
+  let pick1=0;
+  let pick2=0;
+  let pick3=0;
+  let pickOut=0;
+
+  for(const r of wins){
+
+    if(r.pickFinish===1)pick1++;
+    else if(r.pickFinish===2)pick2++;
+    else if(r.pickFinish===3)pick3++;
+    else pickOut++;
+  }
+
+  document.getElementById("pickResult").innerHTML=
+    `推奨馬1着：
+     <b>${pick1}</b>/${wins.length}
+     （${pc(pick1,wins.length)}）<br>
+
+     推奨馬2着：
+     <b>${pick2}</b>/${wins.length}
+     （${pc(pick2,wins.length)}）<br>
+
+     推奨馬3着：
+     <b>${pick3}</b>/${wins.length}
+     （${pc(pick3,wins.length)}）<br>
+
+     推奨馬3着外：
+     <b>${pickOut}</b>/${wins.length}
+     （${pc(pickOut,wins.length)}）`;
 
   if(!misses.length){
-    document.getElementById("exceptions").innerHTML=
+
+    document.getElementById("missList").innerHTML=
       `<span class="ok">失敗例なし</span>`;
+
   }else{
 
-    document.getElementById("exceptions").innerHTML=
+    document.getElementById("missList").innerHTML=
       misses.map(r=>
         `<div class="card2">
-          <b>${r.date} 帯広${r.raceNo}R</b><br>
-          結果：${r.result.join("-")}
-          ／着コンピ順位：${r.resultRanks.join("-")}<br>
-          P=${r.p}
-          ／1-2差=${r.diff12}
-          ／2-3差=${r.diff23}
-          ／1-3差=${r.diff13}
-          ／大谷=${r.otaniCount==null?"未入力":r.otaniCount+"/3"}
-          ／SS=${r.ss?"○":"×"}
+
+        <b>${r.date} 帯広${r.raceNo}R</b><br>
+
+        上位：
+        ${r.c1}-${r.c2}-${r.c3}
+        ／ P=${r.p}<br>
+
+        1-2差=${r.d12}
+        ／2-3差=${r.d23}
+        ／1-3差=${r.d13}<br>
+
+        推奨=${r.pick}
+        （コンピ${r.pickRank}位）
+        ／結果=${r.result.join("-")}
+        ／着コンピ=${r.resultRanks.join("-")}<br>
+
+        最大壁：
+        ${r.maxWallAfterRank}位後
+        ${r.maxWallGap}P
+        ／SS=${r.ss?"○":"×"}
+
         </div>`
       ).join("");
   }
 
-  renderRaceList(filtered,"条件該当レース");
+  renderList(list,"条件該当");
 }
 
-/* -------------------------
-   90%以上パターン探索
-------------------------- */
+/* ==========================================================
+   自動探索
+========================================================== */
 
-function searchPatterns(){
+function autoSearch(){
 
-  const complete=races.filter(x=>x.complete);
+  const base=
+    races.filter(x=>x.complete);
 
-  const minN=Math.max(
-    2,
-    Number(document.getElementById("patternMinN").value)||5
-  );
+  const minN=
+    Math.max(
+      2,
+      Number(document.getElementById("autoMinN").value)||10
+    );
 
   const minRate=
-    Number(document.getElementById("patternMinRate").value)||90;
+    Number(document.getElementById("autoMinRate").value)||80;
 
-  const rules=[];
+  const results=[];
 
-  const pOptions=[
+  /*
+    単独条件だけでなく複合条件も調査
+  */
+
+  const pSets=[
     null,
-    ["P1"],["P2"],["P3"],["P4"],["P5"],["P6"],
-    ["P5","P6"],
+    ["P1"],
+    ["P2"],
+    ["P3"],
+    ["P4"],
+    ["P5"],
+    ["P6"],
+    ["P1","P2"],
+    ["P1","P2","P3"],
     ["P4","P5","P6"],
-    ["P1","P2","P3"]
+    ["P5","P6"]
   ];
 
-  const d12maxOptions=[null,1,2,3,4,5];
-  const d23minOptions=[null,6,8,10,12,15];
-  const otaniOptions=[null,1,2,3];
-  const ssOptions=[null,true];
+  const d12maxs=[
+    null,1,2,3,4,5,6
+  ];
 
-  for(const ps of pOptions){
-    for(const d12max of d12maxOptions){
-      for(const d23min of d23minOptions){
-        for(const otani of otaniOptions){
-          for(const ss of ssOptions){
+  const d23mins=[
+    null,5,6,7,8,9,10,11,12,13,14,15
+  ];
 
-            const hasCondition=
-              ps!==null||
-              d12max!==null||
-              d23min!==null||
-              otani!==null||
-              ss!==null;
+  const c2mins=[
+    null,65,68,70,72,74,75,76,77,78
+  ];
 
-            if(!hasCondition)continue;
+  const ssModes=[
+    null,true
+  ];
 
-            const subset=complete.filter(r=>{
+  for(const ps of pSets){
 
-              if(ps&&!ps.includes(r.p))return false;
+    for(const d12max of d12maxs){
 
-              if(
-                d12max!=null &&
-                (r.diff12==null||r.diff12>d12max)
-              )return false;
+      for(const d23min of d23mins){
 
-              if(
-                d23min!=null &&
-                (r.diff23==null||r.diff23<d23min)
-              )return false;
+        for(const c2min of c2mins){
 
-              if(
-                otani!=null &&
-                r.otaniCount!==otani
-              )return false;
+          for(const ss of ssModes){
 
-              if(ss===true&&!r.ss)return false;
+            if(
+              ps==null &&
+              d12max==null &&
+              d23min==null &&
+              c2min==null &&
+              ss==null
+            )continue;
 
-              return true;
-            });
+            const list=
+              base.filter(r=>{
 
-            if(subset.length<minN)continue;
+                if(ps && !ps.includes(r.p))
+                  return false;
 
-            const wins=subset.filter(r=>r.secondWin).length;
-            const rate=wins/subset.length*100;
+                if(
+                  d12max!=null &&
+                  r.d12>d12max
+                )return false;
+
+                if(
+                  d23min!=null &&
+                  r.d23<d23min
+                )return false;
+
+                if(
+                  c2min!=null &&
+                  r.c2<c2min
+                )return false;
+
+                if(
+                  ss===true &&
+                  !r.ss
+                )return false;
+
+                return true;
+              });
+
+            if(list.length<minN)continue;
+
+            const wins=
+              list.filter(r=>r.secondWin);
+
+            const rate=
+              wins.length/list.length*100;
 
             if(rate<minRate)continue;
 
-            const labels=[];
+            const label=[];
 
-            if(ps)labels.push(`P=${ps.join("/")}`);
-            if(d12max!=null)labels.push(`1-2差≦${d12max}`);
-            if(d23min!=null)labels.push(`2-3差≧${d23min}`);
-            if(otani!=null)labels.push(`大谷${otani}/3`);
-            if(ss===true)labels.push("二強断層SS");
+            if(ps)
+              label.push(`P ${ps.join("/")}`);
 
-            rules.push({
-              label:labels.join(" ＋ "),
-              n:subset.length,
-              wins,
+            if(d12max!=null)
+              label.push(`1-2差≦${d12max}`);
+
+            if(d23min!=null)
+              label.push(`2-3差≧${d23min}`);
+
+            if(c2min!=null)
+              label.push(`2位指数≧${c2min}`);
+
+            if(ss===true)
+              label.push("二強断層SS");
+
+            results.push({
+              label:label.join(" ＋ "),
+              n:list.length,
+              wins:wins.length,
               rate,
-              misses:subset.filter(r=>!r.secondWin)
+              misses:list.filter(r=>!r.secondWin)
             });
           }
         }
@@ -1259,170 +1593,254 @@ function searchPatterns(){
     }
   }
 
-  /* 同じ母数・率の重複をある程度除去 */
-  const unique=[];
+  /*
+    重複条件の整理
+  */
+
   const seen=new Set();
 
-  rules
+  const unique=
+    results
     .sort((a,b)=>{
-      if(b.rate!==a.rate)return b.rate-a.rate;
+
+      if(b.rate!==a.rate)
+        return b.rate-a.rate;
+
       return b.n-a.n;
     })
-    .forEach(x=>{
-      const key=`${x.n}_${x.wins}_${x.label}`;
+    .filter(x=>{
 
-      if(!seen.has(key)){
-        seen.add(key);
-        unique.push(x);
-      }
-    });
+      const key=
+        `${x.label}|${x.n}|${x.wins}`;
 
-  const top=unique.slice(0,100);
+      if(seen.has(key))
+        return false;
 
-  if(!top.length){
-    document.getElementById("patternResults").innerHTML=
-      `<div class="card2">条件を満たすパターンなし</div>`;
+      seen.add(key);
+
+      return true;
+    })
+    .slice(0,100);
+
+  if(!unique.length){
+
+    document.getElementById("autoResult").innerHTML=
+      `<div class="card2">
+       条件を満たすパターンはありません。
+       </div>`;
+
     return;
   }
 
-  let html=`<div class="scroll"><table>
+  let html=`
+  <div class="scroll">
+
+  <table>
   <thead>
   <tr>
     <th>条件</th>
-    <th>該当</th>
+    <th>母数</th>
     <th>2位頭</th>
     <th>率</th>
-    <th>失敗</th>
+    <th>失敗例</th>
   </tr>
-  </thead><tbody>`;
+  </thead>
+  <tbody>
+  `;
 
-  for(const x of top){
+  for(const x of unique){
 
-    const miss=x.misses.map(r=>
-      `${r.date} ${r.raceNo}R`
-    ).join("<br>");
+    const misses=
+      x.misses.length
+      ?x.misses.map(r=>
+        `${r.date} ${r.raceNo}R`
+       ).join("<br>")
+      :"なし";
 
     html+=`
-      <tr>
-        <td style="text-align:left">${esc(x.label)}</td>
-        <td>${x.n}</td>
-        <td>${x.wins}</td>
-        <td class="${x.rate>=90?"ok":""}">
-          ${x.rate.toFixed(1)}%
-        </td>
-        <td>${miss||"なし"}</td>
-      </tr>
+    <tr>
+      <td style="text-align:left">
+        ${esc(x.label)}
+      </td>
+
+      <td>${x.n}</td>
+
+      <td>${x.wins}</td>
+
+      <td class="${x.rate>=90?"ok":"yel"}">
+        ${x.rate.toFixed(1)}%
+      </td>
+
+      <td>${misses}</td>
+    </tr>
     `;
   }
 
-  html+="</tbody></table></div>";
+  html+=`
+  </tbody>
+  </table>
+  </div>
+  `;
 
-  document.getElementById("patternResults").innerHTML=html;
+  document.getElementById("autoResult").innerHTML=html;
 }
 
-/* -------------------------
+/* ==========================================================
    レース一覧
-------------------------- */
+========================================================== */
 
-function renderRaceList(list,title){
+function renderList(list,title){
 
   let html=`
-    <div class="small" style="margin:7px 0">
-      ${esc(title)}：${list.length}R
-    </div>
+  <div class="small" style="margin:7px 0">
+    ${esc(title)}：${list.length}R
+  </div>
 
-    <div class="scroll">
-    <table>
-    <thead>
-    <tr>
-      <th>日付</th>
-      <th>R</th>
-      <th>P</th>
-      <th>上位指数</th>
-      <th>差</th>
-      <th>結果</th>
-      <th>着コンピ</th>
-      <th>大谷</th>
-      <th>SS</th>
-      <th>2位頭</th>
-    </tr>
-    </thead>
-    <tbody>
+  <div class="scroll">
+
+  <table>
+  <thead>
+  <tr>
+    <th>日付</th>
+    <th>R</th>
+    <th>推奨</th>
+    <th>推順位</th>
+    <th>上位3指数</th>
+    <th>P</th>
+    <th>差12</th>
+    <th>差23</th>
+    <th>結果</th>
+    <th>着コンピ</th>
+    <th>壁</th>
+    <th>SS</th>
+    <th>2位頭</th>
+  </tr>
+  </thead>
+  <tbody>
   `;
 
   for(const r of list){
 
     html+=`
-      <tr>
-        <td>${r.date}</td>
-        <td>${r.raceNo}</td>
-        <td>${r.p}</td>
-        <td>
-          ${r.top1Index??"-"} /
-          ${r.top2Index??"-"} /
-          ${r.top3Index??"-"}
-        </td>
-        <td>
-          ${r.diff12??"-"} /
-          ${r.diff23??"-"} /
-          ${r.diff13??"-"}
-        </td>
-        <td>${r.result?.join("-")||"-"}</td>
-        <td>${r.resultRanks?.join("-")||"-"}</td>
-        <td>
-          ${r.otaniCount==null?"-":r.otaniCount+"/3"}
-        </td>
-        <td>${r.ss?"SS":""}</td>
-        <td class="${r.secondWin?"ok":"ng"}">
-          ${r.secondWin?"○":"×"}
-        </td>
-      </tr>
+    <tr class="${r.secondWin?"hit":"miss"}">
+
+      <td>${r.date}</td>
+      <td>${r.raceNo}</td>
+
+      <td>${r.pick??"-"}</td>
+      <td>${r.pickRank??"-"}</td>
+
+      <td>
+        ${r.c1??"-"}-
+        ${r.c2??"-"}-
+        ${r.c3??"-"}
+      </td>
+
+      <td>${r.p}</td>
+
+      <td>${r.d12??"-"}</td>
+      <td>${r.d23??"-"}</td>
+
+      <td>${r.result.join("-")||"-"}</td>
+
+      <td>
+        ${r.resultRanks.join("-")||"-"}
+      </td>
+
+      <td>
+        ${r.maxWallAfterRank??"-"}後/
+        ${r.maxWallGap??"-"}P
+      </td>
+
+      <td>
+        ${r.ss
+          ?'<span class="pill ss">SS</span>'
+          :""}
+      </td>
+
+      <td>
+        ${r.secondWin
+          ?'<span class="pill win">○</span>'
+          :'<span class="ng">×</span>'}
+      </td>
+
+    </tr>
     `;
   }
 
-  html+="</tbody></table></div>";
+  html+=`
+  </tbody>
+  </table>
+  </div>
+  `;
 
-  document.getElementById("raceTable").innerHTML=html;
+  document.getElementById("raceList").innerHTML=html;
 }
 
 function renderAll(){
-  renderRaceList(races,"全登録レース");
+  renderList(races,"全登録レース");
 }
 
-function showIncomplete(){
-  renderRaceList(
+function renderMissing(){
+  renderList(
     races.filter(x=>!x.complete),
     "欠損レース"
   );
 }
 
-/* -------------------------
-   JSONバックアップ
-------------------------- */
+/* ==========================================================
+   JSON
+========================================================== */
 
 function exportJSON(){
 
   const payload={
     app:"ばんえいコンピ2位頭研究所",
-    version:"1.00",
+    version:"1.01",
     exportedAt:new Date().toISOString(),
-    raceCount:races.length,
-    races:races
+
+    total:races.length,
+
+    originalData:races.map(r=>({
+      id:r.id,
+      date:r.date,
+      place:r.place,
+      raceNo:r.raceNo,
+
+      compi:r.compi.map(x=>({
+        horse:x.horse,
+        index:x.index
+      })),
+
+      pick:r.pick,
+
+      result:[
+        ...r.result
+      ],
+
+      createdAt:r.createdAt
+    }))
   };
 
-  downloadText(
-    `ばんえいコンピ2位頭研究所_V1.00_backup_${dateStamp()}.json`,
+  download(
+    `ばんえいコンピ2位頭研究所_V1.01_backup_${stamp()}.json`,
     JSON.stringify(payload,null,2),
     "application/json;charset=utf-8"
   );
 }
 
+/* ==========================================================
+   JSON復元
+========================================================== */
+
 async function restoreJSON(){
 
-  const file=document.getElementById("restoreFile").files[0];
+  const file=
+    document.getElementById("restoreFile").files[0];
 
   if(!file){
-    alert("JSONファイルを選択してください。");
+
+    alert("JSONバックアップを選択してください。");
     return;
   }
 
@@ -1431,35 +1849,50 @@ async function restoreJSON(){
   try{
     obj=JSON.parse(await file.text());
   }catch(e){
+
     alert("JSONを読み込めません。");
     return;
   }
 
-  const data=Array.isArray(obj)
-    ?obj
-    :obj.races;
+  let data=null;
+
+  if(Array.isArray(obj)){
+    data=obj;
+  }
+
+  if(Array.isArray(obj.originalData)){
+    data=obj.originalData;
+  }
+
+  if(Array.isArray(obj.races)){
+    data=obj.races;
+  }
 
   if(!Array.isArray(data)){
-    alert("バックアップ形式が違います。");
+
+    alert("対応していないJSONです。");
     return;
   }
 
-  const ok=confirm(
-    `${data.length}Rを復元します。\n`+
-    `同じ日付・Rは上書きされます。\n\n実行しますか？`
-  );
-
-  if(!ok)return;
+  if(
+    !confirm(
+      `${data.length}Rを復元します。\n`+
+      `同じ日付・Rは上書きされます。\n\n実行しますか？`
+    )
+  ){
+    return;
+  }
 
   for(const raw of data){
 
-    const r=enrichRace(raw);
+    const r=enrich(raw);
 
     if(!r.id){
-      r.id=`${r.date}_帯広_${r.raceNo}R`;
+      r.id=
+        `${r.date}_帯広_${r.raceNo}R`;
     }
 
-    await putRace(r);
+    await dbPut(r);
   }
 
   await reload();
@@ -1467,11 +1900,11 @@ async function restoreJSON(){
   alert(`${data.length}R 復元しました。`);
 }
 
-/* -------------------------
+/* ==========================================================
    CSV
-------------------------- */
+========================================================== */
 
-function csvCell(v){
+function csv(v){
 
   if(v==null)return "";
 
@@ -1491,114 +1924,163 @@ function exportCSV(){
     "場",
     "R",
     "頭数",
+
     "推奨馬",
+    "推奨馬コンピ順位",
+    "推奨馬着順",
+
     "結果",
     "1着コンピ順位",
     "2着コンピ順位",
     "3着コンピ順位",
+
     "コンピ1位馬",
     "コンピ1位指数",
+
     "コンピ2位馬",
     "コンピ2位指数",
+
     "コンピ3位馬",
     "コンピ3位指数",
+
     "1-2差",
     "2-3差",
     "1-3差",
+
     "上位3頭合計",
     "P",
-    "大谷合格数",
-    "二強断層SS",
-    "最大壁差",
+
     "最大壁位置",
+    "最大壁差",
+
+    "第2壁位置",
+    "第2壁差",
+
+    "二強断層SS",
+
     "コンピ2位頭",
     "コンピ1位着順",
+
     "完全データ",
+
     "全コンピ"
   ];
 
-  const lines=[header.map(csvCell).join(",")];
+  const lines=[
+    header.map(csv).join(",")
+  ];
 
   for(const r of races){
 
-    const allCompi=r.compi
-      .map(x=>`${x.rank}:${x.horse}:${x.index}`)
-      .join("|");
+    const allCompi=
+      r.compi.map(x=>
+        `${x.rank}:${x.horse}:${x.index}`
+      ).join("|");
 
     const row=[
       r.date,
       "帯広",
       r.raceNo,
       r.compi.length,
+
       r.pick,
+      r.pickRank,
+      r.pickFinish,
+
       r.result.join("-"),
       r.firstRank,
       r.secondRank,
       r.thirdRank,
-      r.top1Horse,
-      r.top1Index,
-      r.top2Horse,
-      r.top2Index,
-      r.top3Horse,
-      r.top3Index,
-      r.diff12,
-      r.diff23,
-      r.diff13,
+
+      r.c1Horse,
+      r.c1,
+
+      r.c2Horse,
+      r.c2,
+
+      r.c3Horse,
+      r.c3,
+
+      r.d12,
+      r.d23,
+      r.d13,
+
       r.top3Sum,
       r.p,
-      r.otaniCount,
-      r.ss?1:0,
-      r.maxWallGap,
+
       r.maxWallAfterRank,
+      r.maxWallGap,
+
+      r.secondWallAfterRank,
+      r.secondWallGap,
+
+      r.ss?1:0,
+
       r.secondWin?1:0,
       r.rank1Finish,
+
       r.complete?1:0,
+
       allCompi
     ];
 
-    lines.push(row.map(csvCell).join(","));
+    lines.push(
+      row.map(csv).join(",")
+    );
   }
 
-  /* Excel文字化け防止 BOM */
-  const text="\uFEFF"+lines.join("\n");
+  /*
+    Excel文字化け防止
+  */
+  const text=
+    "\uFEFF"+
+    lines.join("\n");
 
-  downloadText(
-    `ばんえいコンピ2位頭研究所_V1.00_${dateStamp()}.csv`,
+  download(
+    `ばんえいコンピ2位頭研究所_V1.01_${stamp()}.csv`,
     text,
     "text/csv;charset=utf-8"
   );
 }
 
-/* -------------------------
-   全削除
-------------------------- */
+/* ==========================================================
+   削除
+========================================================== */
 
 async function deleteAll(){
 
-  const a=prompt(
-    "全データを削除します。\n\n実行する場合だけ\n削除する\nと入力してください。"
-  );
+  const word=
+    prompt(
+      "全レースを削除します。\n\n"+
+      "実行する場合だけ\n"+
+      "削除する\n"+
+      "と入力してください。"
+    );
 
-  if(a!=="削除する")return;
+  if(word!=="削除する"){
+    return;
+  }
 
-  const b=confirm(
-    "本当に全レースを削除しますか？\n"+
-    "JSONバックアップが無い場合は戻せません。"
-  );
+  if(
+    !confirm(
+      "本当に全データを削除しますか？\n"+
+      "JSONバックアップが無ければ戻せません。"
+    )
+  ){
+    return;
+  }
 
-  if(!b)return;
-
-  await clearDB();
+  await dbClear();
   await reload();
 
   alert("全データを削除しました。");
 }
 
-/* -------------------------
+/* ==========================================================
    起動
-------------------------- */
+========================================================== */
 
-(async function(){
+(async()=>{
 
   try{
 
@@ -1611,7 +2093,8 @@ async function deleteAll(){
 
     document.getElementById("dbStatus").innerHTML=
       `<span class="ng">
-        IndexedDB起動エラー：${esc(e.message||e)}
+      IndexedDB起動エラー：
+      ${esc(e.message||e)}
       </span>`;
   }
 
