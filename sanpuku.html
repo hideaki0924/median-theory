@@ -1,171 +1,1621 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピーOCR 三連複V0.4</title>
-<script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07101f">
+<meta name="app-build" content="banei-compi-second-v1.00">
+
+<title>ばんえいコンピ2位頭研究所 V1.00</title>
+
 <style>
-body{background:#07101f;color:white;font-family:sans-serif;padding:16px}
-h1{color:#ffd84d}
-.box{background:#111827;padding:14px;border-radius:16px;margin:12px 0}
-button,input{width:100%;font-size:20px;padding:14px;margin:8px 0;border-radius:12px}
-textarea{width:100%;height:220px;font-size:16px;border-radius:12px;padding:10px;box-sizing:border-box}
-.copy{background:#16a34a;color:white;font-weight:bold}
-.small{font-size:14px;color:#cbd5e1}
+:root{
+  --bg:#07101f;
+  --card:#10224a;
+  --card2:#0b1835;
+  --line:#334155;
+  --cyan:#67e8f9;
+  --yellow:#fde047;
+  --red:#fb7185;
+  --green:#4ade80;
+  --orange:#fb923c;
+  --muted:#cbd5e1;
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;
+  background:var(--bg);
+  color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+}
+body{
+  padding:8px 8px calc(30px + env(safe-area-inset-bottom));
+  overflow-x:hidden;
+}
+h1{
+  font-size:21px;
+  margin:5px 0 2px;
+  color:var(--cyan);
+}
+h2{
+  font-size:17px;
+  margin:0 0 10px;
+  color:var(--yellow);
+}
+.small{font-size:12px;color:var(--muted)}
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:12px;
+  margin:10px 0;
+}
+.card2{
+  background:var(--card2);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:10px;
+  margin:8px 0;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:7px;
+}
+.grid3{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:7px;
+}
+input,select,textarea,button{
+  width:100%;
+  font:inherit;
+  border-radius:9px;
+  border:1px solid #475569;
+}
+input,select,textarea{
+  background:#07152e;
+  color:#fff;
+  padding:9px;
+}
+textarea{
+  min-height:240px;
+  resize:vertical;
+  line-height:1.45;
+}
+button{
+  border:none;
+  padding:11px 8px;
+  font-weight:800;
+  background:#2563eb;
+  color:#fff;
+}
+button.green{background:#15803d}
+button.orange{background:#c2410c}
+button.red{background:#b91c1c}
+button.gray{background:#475569}
+button.yellow{
+  background:#ca8a04;
+  color:#fff;
+}
+button:active{transform:scale(.99)}
+.stat{
+  text-align:center;
+  background:#07152e;
+  border:1px solid #334155;
+  border-radius:10px;
+  padding:9px 4px;
+}
+.stat b{
+  display:block;
+  font-size:22px;
+  color:var(--cyan);
+}
+.stat.good b{color:var(--green)}
+.stat.warn b{color:var(--yellow)}
+.stat.bad b{color:var(--red)}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:12px;
+}
+th,td{
+  border-bottom:1px solid #334155;
+  padding:6px 4px;
+  text-align:center;
+  white-space:nowrap;
+}
+th{
+  position:sticky;
+  top:0;
+  background:#172554;
+  color:#e2e8f0;
+}
+.scroll{
+  overflow:auto;
+  max-height:520px;
+  border:1px solid #334155;
+  border-radius:9px;
+}
+.tag{
+  display:inline-block;
+  padding:2px 6px;
+  border-radius:999px;
+  margin:1px;
+  font-size:11px;
+  background:#334155;
+}
+.tag.ss{background:#7c2d12}
+.tag.hit{background:#166534}
+.tag.miss{background:#991b1b}
+.tag.p{background:#1e40af}
+.ok{color:var(--green);font-weight:800}
+.ng{color:var(--red);font-weight:800}
+.yellowText{color:var(--yellow);font-weight:800}
+.cyan{color:var(--cyan)}
+hr{
+  border:0;
+  border-top:1px solid #334155;
+  margin:12px 0;
+}
+label{
+  font-size:12px;
+  color:#cbd5e1;
+  display:block;
+  margin-bottom:3px;
+}
+details{
+  margin-top:8px;
+}
+summary{
+  cursor:pointer;
+  font-weight:800;
+  color:var(--cyan);
+}
+pre{
+  white-space:pre-wrap;
+  word-break:break-word;
+  background:#061126;
+  border:1px solid #334155;
+  padding:10px;
+  border-radius:9px;
+  font-size:12px;
+}
+.notice{
+  background:#3f2a00;
+  border:1px solid #a16207;
+  padding:9px;
+  border-radius:9px;
+  color:#fde68a;
+  font-size:12px;
+}
 </style>
 </head>
 
 <body>
 
-<h1>📸三連複OCR V0.4</h1>
-<p>文字化け馬番を対応表で変換 → [SANPUKU]</p>
-
-<div class="box">
-<h2>馬番対応表</h2>
-<div class="small">例：A=4 / B=8 / H=9 / 1H=11 / 1=11</div>
-<textarea id="map" style="height:120px">A=4
-B=8
-H=9
-1H=11
-1=11
-</textarea>
+<h1>ばんえいコンピ2位頭研究所 V1.00</h1>
+<div class="small">
+帯広専用・コンピ2位頭研究／IndexedDB永久保存／JSON完全バックアップ
 </div>
 
-<div class="box">
-<h2>三連複画像</h2>
-<input type="file" id="img" accept="image/*">
-<button onclick="runOCR()">画像を読み取る</button>
+<div class="card">
+<h2>データ監査</h2>
+
+<div class="grid3">
+  <div class="stat">
+    登録R
+    <b id="statTotal">0</b>
+  </div>
+  <div class="stat good">
+    完全R
+    <b id="statComplete">0</b>
+  </div>
+  <div class="stat bad">
+    欠損R
+    <b id="statIncomplete">0</b>
+  </div>
 </div>
 
-<div class="box">
-<h2>OCR結果・修正欄</h2>
-<textarea id="raw"></textarea>
-<button onclick="makeSanpuku()">[SANPUKU]生成</button>
+<div class="grid3" style="margin-top:7px">
+  <div class="stat">
+    2位頭
+    <b id="statSecondWins">0</b>
+  </div>
+  <div class="stat">
+    2位頭率
+    <b id="statSecondRate">0%</b>
+  </div>
+  <div class="stat">
+    SS件数
+    <b id="statSS">0</b>
+  </div>
 </div>
 
-<div class="box">
-<h2>メジアンアプリコード</h2>
-<textarea id="code"></textarea>
-<button class="copy" onclick="copyCode()">コピー</button>
+<div id="dbStatus" class="small" style="margin-top:8px"></div>
+</div>
+
+<div class="card">
+<h2>一括登録</h2>
+
+<div class="notice">
+1Rにつき COMPI と RESULT を保存します。RESULTが1〜3着まで無いレースは「欠損」として扱い、研究集計から除外できます。
+</div>
+
+<textarea id="bulkInput" placeholder="ここにまとめて貼付
+
+例：
+
+【2026年8月10日 帯広1R】
+
+[COMPI]
+3 78
+7 75
+5 63
+1 59
+8 54
+2 50
+6 47
+4 44
+
+[PICK]
+7
+
+[RESULT]
+7-3-5
+
+[OTANI]
+1
+1
+0
+
+※ [OTANI] は3条件を 1/0 で入力
+※ 無ければ省略可能
+"></textarea>
+
+<div class="grid" style="margin-top:8px">
+  <button class="green" onclick="previewBulk()">解析確認</button>
+  <button onclick="saveBulk()">解析して保存</button>
+</div>
+
+<div id="previewArea"></div>
+</div>
+
+<div class="card">
+<h2>研究条件</h2>
+
+<div class="grid">
+  <div>
+    <label>P</label>
+    <select id="fP">
+      <option value="">全部</option>
+      <option>P1</option>
+      <option>P2</option>
+      <option>P3</option>
+      <option>P4</option>
+      <option>P5</option>
+      <option>P6</option>
+    </select>
+  </div>
+
+  <div>
+    <label>大谷式</label>
+    <select id="fOtani">
+      <option value="">全部</option>
+      <option value="0">0/3</option>
+      <option value="1">1/3</option>
+      <option value="2">2/3</option>
+      <option value="3">3/3</option>
+    </select>
+  </div>
+
+  <div>
+    <label>1位－2位差 最大</label>
+    <input id="f12max" type="number" placeholder="例 3">
+  </div>
+
+  <div>
+    <label>1位－2位差 最小</label>
+    <input id="f12min" type="number" placeholder="任意">
+  </div>
+
+  <div>
+    <label>2位－3位差 最小</label>
+    <input id="f23min" type="number" placeholder="例 10">
+  </div>
+
+  <div>
+    <label>2位－3位差 最大</label>
+    <input id="f23max" type="number" placeholder="任意">
+  </div>
+
+  <div>
+    <label>1位－3位差 最小</label>
+    <input id="f13min" type="number" placeholder="任意">
+  </div>
+
+  <div>
+    <label>1位－3位差 最大</label>
+    <input id="f13max" type="number" placeholder="任意">
+  </div>
+
+  <div>
+    <label>コンピ1位指数 最小</label>
+    <input id="fTopMin" type="number" placeholder="任意">
+  </div>
+
+  <div>
+    <label>コンピ1位指数 最大</label>
+    <input id="fTopMax" type="number" placeholder="任意">
+  </div>
+
+  <div>
+    <label>二強断層SS</label>
+    <select id="fSS">
+      <option value="">問わない</option>
+      <option value="1">SSのみ</option>
+      <option value="0">SS以外</option>
+    </select>
+  </div>
+
+  <div>
+    <label>完全データ</label>
+    <select id="fComplete">
+      <option value="1">完全Rのみ</option>
+      <option value="">欠損も含む</option>
+    </select>
+  </div>
+</div>
+
+<div class="grid" style="margin-top:9px">
+  <button onclick="runResearch()">この条件で検証</button>
+  <button class="gray" onclick="resetFilters()">条件リセット</button>
+</div>
+</div>
+
+<div class="card">
+<h2>コンピ2位頭・検証結果</h2>
+
+<div class="grid3">
+  <div class="stat">
+    該当
+    <b id="rCount">0</b>
+  </div>
+  <div class="stat good">
+    2位頭
+    <b id="rWins">0</b>
+  </div>
+  <div class="stat">
+    的中率
+    <b id="rRate">0%</b>
+  </div>
+</div>
+
+<div id="highPattern" style="margin-top:10px"></div>
+
+<div class="card2">
+<b class="cyan">2位頭時の2着コンピ順位</b>
+<div id="secondPlaceRanks" class="small" style="margin-top:6px">データなし</div>
+</div>
+
+<div class="card2">
+<b class="cyan">2位頭時の3着コンピ順位</b>
+<div id="thirdPlaceRanks" class="small" style="margin-top:6px">データなし</div>
+</div>
+
+<div class="card2">
+<b class="cyan">コンピ1位の行方</b>
+<div id="rank1Behavior" class="small" style="margin-top:6px">データなし</div>
+</div>
+
+<div class="card2">
+<b class="yellowText">例外・失敗レース</b>
+<div id="exceptions" class="small" style="margin-top:6px">データなし</div>
+</div>
+</div>
+
+<div class="card">
+<h2>90%以上パターン探索</h2>
+
+<div class="small">
+登録済み完全データから、代表的な条件組み合わせを自動探索します。
+母数が少なすぎる偶然を避けるため、最低件数を指定できます。
+</div>
+
+<div class="grid" style="margin-top:8px">
+  <div>
+    <label>最低該当件数</label>
+    <input id="patternMinN" type="number" value="5" min="2">
+  </div>
+  <div>
+    <label>最低2位頭率 %</label>
+    <input id="patternMinRate" type="number" value="90" min="0" max="100">
+  </div>
+</div>
+
+<button class="orange" style="margin-top:8px" onclick="searchPatterns()">
+90%以上パターンを探索
+</button>
+
+<div id="patternResults" style="margin-top:10px"></div>
+</div>
+
+<div class="card">
+<h2>全レース一覧</h2>
+
+<div class="grid">
+  <button class="gray" onclick="renderAll()">全件表示</button>
+  <button class="gray" onclick="showIncomplete()">欠損だけ表示</button>
+</div>
+
+<div id="raceTable" style="margin-top:8px"></div>
+</div>
+
+<div class="card">
+<h2>バックアップ</h2>
+
+<div class="notice">
+重要：研究終了時には必ず「JSON完全バックアップ」を保存してください。JSONがあれば別PC・別ブラウザでも研究データを復元できます。
+</div>
+
+<div class="grid" style="margin-top:8px">
+  <button class="green" onclick="exportJSON()">JSON完全バックアップ</button>
+  <button class="green" onclick="exportCSV()">CSV研究用出力</button>
+</div>
+
+<div style="margin-top:8px">
+  <input type="file" id="restoreFile" accept=".json">
+  <button class="yellow" style="margin-top:6px" onclick="restoreJSON()">
+    JSONから完全復元
+  </button>
+</div>
+
+<hr>
+
+<details>
+<summary>危険操作</summary>
+<div class="small" style="margin:8px 0">
+全件削除はバックアップ確認後だけ使用してください。
+</div>
+<button class="red" onclick="deleteAll()">全データ削除</button>
+</details>
 </div>
 
 <script>
-async function runOCR(){
-  const file=document.getElementById("img").files[0];
-  if(!file){
-    alert("画像を選択してください");
+"use strict";
+
+/* =========================================================
+   ばんえいコンピ2位頭研究所 V1.00
+   ========================================================= */
+
+const DB_NAME = "BaneiCompiSecondLab";
+const DB_VERSION = 1;
+const STORE = "races";
+
+let db = null;
+let races = [];
+
+/* -------------------------
+   IndexedDB
+------------------------- */
+
+function openDB(){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open(DB_NAME,DB_VERSION);
+
+    req.onupgradeneeded = e=>{
+      const d=e.target.result;
+
+      if(!d.objectStoreNames.contains(STORE)){
+        const s=d.createObjectStore(STORE,{keyPath:"id"});
+        s.createIndex("date","date",{unique:false});
+        s.createIndex("p","p",{unique:false});
+        s.createIndex("secondWin","secondWin",{unique:false});
+      }
+    };
+
+    req.onsuccess=e=>{
+      db=e.target.result;
+      resolve(db);
+    };
+
+    req.onerror=e=>reject(e.target.error);
+  });
+}
+
+function getAllDB(){
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(STORE,"readonly");
+    const req=tx.objectStore(STORE).getAll();
+
+    req.onsuccess=()=>resolve(req.result||[]);
+    req.onerror=()=>reject(req.error);
+  });
+}
+
+function putRace(r){
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(STORE,"readwrite");
+    tx.objectStore(STORE).put(r);
+    tx.oncomplete=()=>resolve();
+    tx.onerror=()=>reject(tx.error);
+  });
+}
+
+function clearDB(){
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(STORE,"readwrite");
+    tx.objectStore(STORE).clear();
+    tx.oncomplete=()=>resolve();
+    tx.onerror=()=>reject(tx.error);
+  });
+}
+
+/* -------------------------
+   共通
+------------------------- */
+
+function esc(s){
+  return String(s??"")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;");
+}
+
+function pct(a,b){
+  if(!b)return "0.0%";
+  return (a/b*100).toFixed(1)+"%";
+}
+
+function num(v){
+  if(v===null||v===undefined||v==="")return null;
+  const n=Number(v);
+  return Number.isFinite(n)?n:null;
+}
+
+function downloadText(name,text,type){
+  const blob=new Blob([text],{type:type||"text/plain;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+function dateStamp(){
+  const d=new Date();
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,"0");
+  const day=String(d.getDate()).padStart(2,"0");
+  const h=String(d.getHours()).padStart(2,"0");
+  const mi=String(d.getMinutes()).padStart(2,"0");
+  return `${y}-${m}-${day}_${h}${mi}`;
+}
+
+/* -------------------------
+   P判定
+   上位3頭合計値を保存。
+   P区分は後から変更可能なよう
+   raw値も保持する。
+------------------------- */
+
+function calcP(sum){
+  if(sum==null)return "";
+
+  /*
+    研究途中で定義変更できるよう、
+    ここだけ変更すれば全再計算可能。
+
+    現段階の初期分類：
+    220以上 P6
+    215～219 P5
+    210～214 P4
+    205～209 P3
+    200～204 P2
+    199以下 P1
+  */
+
+  if(sum>=220)return "P6";
+  if(sum>=215)return "P5";
+  if(sum>=210)return "P4";
+  if(sum>=205)return "P3";
+  if(sum>=200)return "P2";
+  return "P1";
+}
+
+/* -------------------------
+   レース派生値計算
+------------------------- */
+
+function enrichRace(r){
+
+  r.compi=(r.compi||[])
+    .filter(x=>Number.isFinite(Number(x.horse)) && Number.isFinite(Number(x.index)))
+    .map(x=>({
+      horse:Number(x.horse),
+      index:Number(x.index)
+    }))
+    .sort((a,b)=>b.index-a.index);
+
+  r.compi.forEach((x,i)=>x.rank=i+1);
+
+  const top1=r.compi[0]||null;
+  const top2=r.compi[1]||null;
+  const top3=r.compi[2]||null;
+
+  r.top1Horse=top1?.horse??null;
+  r.top2Horse=top2?.horse??null;
+  r.top3Horse=top3?.horse??null;
+
+  r.top1Index=top1?.index??null;
+  r.top2Index=top2?.index??null;
+  r.top3Index=top3?.index??null;
+
+  r.diff12=(top1&&top2)?top1.index-top2.index:null;
+  r.diff23=(top2&&top3)?top2.index-top3.index:null;
+  r.diff13=(top1&&top3)?top1.index-top3.index:null;
+
+  r.top3Sum=(top1&&top2&&top3)
+    ?top1.index+top2.index+top3.index
+    :null;
+
+  r.p=calcP(r.top3Sum);
+
+  const rankOfHorse=h=>{
+    if(h==null)return null;
+    const x=r.compi.find(x=>x.horse===Number(h));
+    return x?x.rank:null;
+  };
+
+  r.resultRanks=(r.result||[]).map(rankOfHorse);
+
+  r.firstRank=r.resultRanks[0]??null;
+  r.secondRank=r.resultRanks[1]??null;
+  r.thirdRank=r.resultRanks[2]??null;
+
+  r.secondWin=(r.firstRank===2);
+
+  r.rank1Finish=null;
+
+  if(r.top1Horse!=null && Array.isArray(r.result)){
+    const i=r.result.indexOf(r.top1Horse);
+    r.rank1Finish=i>=0?i+1:null;
+  }
+
+  /* 二強断層SS
+     基本定義：
+     1-2差 <= 3
+     2-3差 >= 10
+  */
+  r.ss=(
+    r.diff12!=null &&
+    r.diff23!=null &&
+    r.diff12<=3 &&
+    r.diff23>=10
+  );
+
+  /* 最大壁 */
+  r.maxWallGap=null;
+  r.maxWallAfterRank=null;
+
+  if(r.compi.length>=2){
+    let best=-Infinity;
+    let after=null;
+
+    for(let i=0;i<r.compi.length-1;i++){
+      const gap=r.compi[i].index-r.compi[i+1].index;
+
+      if(gap>best){
+        best=gap;
+        after=i+1;
+      }
+    }
+
+    r.maxWallGap=best;
+    r.maxWallAfterRank=after;
+  }
+
+  r.otaniFlags=Array.isArray(r.otaniFlags)
+    ?r.otaniFlags.slice(0,3).map(x=>Number(x)?1:0)
+    :[];
+
+  r.otaniCount=r.otaniFlags.length
+    ?r.otaniFlags.reduce((a,b)=>a+b,0)
+    :null;
+
+  r.complete=(
+    r.compi.length>=3 &&
+    Array.isArray(r.result) &&
+    r.result.length>=3 &&
+    r.resultRanks.length>=3 &&
+    r.resultRanks.slice(0,3).every(x=>x!=null)
+  );
+
+  r.updatedAt=new Date().toISOString();
+
+  return r;
+}
+
+/* -------------------------
+   一括解析
+------------------------- */
+
+function parseBulk(text){
+
+  text=text.replace(/\r/g,"");
+
+  const headerRe=/【\s*(\d{4})年(\d{1,2})月(\d{1,2})日\s+帯広\s*(\d{1,2})R\s*】/g;
+
+  const matches=[...text.matchAll(headerRe)];
+  const out=[];
+
+  for(let i=0;i<matches.length;i++){
+
+    const m=matches[i];
+
+    const start=m.index;
+    const end=(i+1<matches.length)
+      ?matches[i+1].index
+      :text.length;
+
+    const block=text.slice(start,end);
+
+    const y=Number(m[1]);
+    const mo=Number(m[2]);
+    const d=Number(m[3]);
+    const raceNo=Number(m[4]);
+
+    const date=
+      `${y}-${String(mo).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+
+    const id=`${date}_帯広_${raceNo}R`;
+
+    const compi=[];
+    const c=block.match(/\[COMPI\]([\s\S]*?)(?=\n\[[A-Z]+\]|$)/i);
+
+    if(c){
+      const lines=c[1].trim().split("\n");
+
+      for(const line of lines){
+        const mm=line.trim().match(/^(\d+)\s+(-?\d+(?:\.\d+)?)$/);
+
+        if(mm){
+          compi.push({
+            horse:Number(mm[1]),
+            index:Number(mm[2])
+          });
+        }
+      }
+    }
+
+    let pick=null;
+    const p=block.match(/\[PICK\]\s*([\s\S]*?)(?=\n\[[A-Z]+\]|$)/i);
+
+    if(p){
+      const mm=p[1].match(/\d+/);
+      if(mm)pick=Number(mm[0]);
+    }
+
+    let result=[];
+    const rr=block.match(/\[RESULT\]\s*([\s\S]*?)(?=\n\[[A-Z]+\]|$)/i);
+
+    if(rr){
+      result=(rr[1].match(/\d+/g)||[])
+        .slice(0,3)
+        .map(Number);
+    }
+
+    let otaniFlags=[];
+    const oo=block.match(/\[OTANI\]\s*([\s\S]*?)(?=\n\[[A-Z]+\]|$)/i);
+
+    if(oo){
+      otaniFlags=(oo[1].match(/[01]/g)||[])
+        .slice(0,3)
+        .map(Number);
+    }
+
+    const race=enrichRace({
+      id,
+      date,
+      place:"帯広",
+      raceNo,
+      compi,
+      pick,
+      result,
+      otaniFlags,
+      createdAt:new Date().toISOString()
+    });
+
+    out.push(race);
+  }
+
+  return out;
+}
+
+function previewBulk(){
+
+  const data=parseBulk(
+    document.getElementById("bulkInput").value
+  );
+
+  if(!data.length){
+    document.getElementById("previewArea").innerHTML=
+      `<div class="card2 ng">認識できるレースがありません。</div>`;
     return;
   }
 
-  document.getElementById("raw").value="読み取り中...";
+  const complete=data.filter(x=>x.complete).length;
 
-  const result=await Tesseract.recognize(file,"jpn+eng");
-  document.getElementById("raw").value=result.data.text;
-}
+  let html=`
+    <div class="card2">
+      認識 <b>${data.length}R</b> ／
+      完全 <b class="ok">${complete}R</b> ／
+      欠損 <b class="ng">${data.length-complete}R</b>
+  `;
 
-function buildMap(){
-  const m={};
+  html+=`<div class="scroll"><table>
+  <thead>
+  <tr>
+    <th>日付</th>
+    <th>R</th>
+    <th>頭数</th>
+    <th>結果</th>
+    <th>着コンピ</th>
+    <th>P</th>
+    <th>1-2</th>
+    <th>2-3</th>
+    <th>SS</th>
+    <th>2位頭</th>
+    <th>状態</th>
+  </tr>
+  </thead><tbody>`;
 
-  document.getElementById("map").value
-    .split(/\n/)
-    .forEach(line=>{
-      const p=line.trim().split("=");
-      if(p.length===2){
-        m[p[0].trim()]=p[1].trim();
-      }
-    });
-
-  return m;
-}
-
-function cleanLine(s){
-  return s
-    .replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0))
-    .replace(/[．]/g,".")
-    .replace(/[ー―－–—]/g,"-")
-    .replace(/[|｜]/g," ")
-    .replace(/\s+/g," ")
-    .trim();
-}
-
-function tokenToHorse(tok,map){
-  tok=tok.trim();
-
-  if(map[tok]) return map[tok];
-
-  if(/^\d+$/.test(tok)){
-    const n=Number(tok);
-    if(n>=1 && n<=18) return tok;
+  for(const r of data){
+    html+=`
+      <tr>
+        <td>${r.date}</td>
+        <td>${r.raceNo}</td>
+        <td>${r.compi.length}</td>
+        <td>${r.result.join("-")||"-"}</td>
+        <td>${r.resultRanks.join("-")||"-"}</td>
+        <td>${r.p}</td>
+        <td>${r.diff12??"-"}</td>
+        <td>${r.diff23??"-"}</td>
+        <td>${r.ss?"SS":""}</td>
+        <td>${r.secondWin?"○":"×"}</td>
+        <td class="${r.complete?"ok":"ng"}">
+          ${r.complete?"完全":"欠損"}
+        </td>
+      </tr>
+    `;
   }
 
-  return "";
+  html+="</tbody></table></div></div>";
+
+  document.getElementById("previewArea").innerHTML=html;
 }
 
-function makeSanpuku(){
-  const map=buildMap();
-  const lines=document.getElementById("raw").value.split(/\n/);
+async function saveBulk(){
 
-  let out="[SANPUKU]\n";
-  const used=new Set();
+  const text=document.getElementById("bulkInput").value;
+  const data=parseBulk(text);
 
-  lines.forEach(line=>{
-    let s=cleanLine(line);
-    if(!s) return;
+  if(!data.length){
+    alert("レースを認識できません。");
+    return;
+  }
 
-    const oddsMatch=s.match(/\d+(?:\.\d+)?\s*$/);
-    if(!oddsMatch) return;
+  for(const r of data){
+    await putRace(r);
+  }
 
-    const odds=oddsMatch[0].trim();
+  document.getElementById("bulkInput").value="";
+  document.getElementById("previewArea").innerHTML="";
 
-    s=s.replace(/\d+(?:\.\d+)?\s*$/,"").trim();
+  await reload();
 
-    // 人気順位を削除
-    s=s.replace(/^\d+\s+/,"").trim();
+  alert(`${data.length}R 保存しました。`);
+}
 
-    // OCR崩れ補正
-    s=s.replace(/A-H B/g,"A H B");
-    s=s.replace(/A-8B-1H/g,"A 8 B 1H");
-    s=s.replace(/A-H-1H/g,"A H 1H");
-    s=s.replace(/B-H-1H/g,"B H 1H");
-    s=s.replace(/8B/g,"8 B");
-    s=s.replace(/1H/g,"1H");
+/* -------------------------
+   データ再読込
+------------------------- */
 
-    const parts=s
-      .split(/[-\s]+/)
-      .map(x=>x.trim())
-      .filter(Boolean);
+async function reload(){
 
-    const horses=[];
+  races=await getAllDB();
 
-    parts.forEach(p=>{
-      const h=tokenToHorse(p,map);
-      if(h && !horses.includes(h)){
-        horses.push(h);
+  races=races
+    .map(enrichRace)
+    .sort((a,b)=>{
+      if(a.date!==b.date)return a.date.localeCompare(b.date);
+      return a.raceNo-b.raceNo;
+    });
+
+  updateStats();
+  runResearch();
+  renderAll();
+
+  document.getElementById("dbStatus").innerHTML=
+    `IndexedDB保存中：${esc(DB_NAME)} ／ 最終読込 ${new Date().toLocaleTimeString()}`;
+}
+
+function updateStats(){
+
+  const total=races.length;
+  const complete=races.filter(x=>x.complete).length;
+  const incomplete=total-complete;
+
+  const comp=races.filter(x=>x.complete);
+  const wins=comp.filter(x=>x.secondWin).length;
+  const ss=comp.filter(x=>x.ss).length;
+
+  document.getElementById("statTotal").textContent=total;
+  document.getElementById("statComplete").textContent=complete;
+  document.getElementById("statIncomplete").textContent=incomplete;
+  document.getElementById("statSecondWins").textContent=wins;
+  document.getElementById("statSecondRate").textContent=pct(wins,complete);
+  document.getElementById("statSS").textContent=ss;
+}
+
+/* -------------------------
+   フィルター
+------------------------- */
+
+function getFilters(){
+
+  return {
+    p:document.getElementById("fP").value,
+    otani:document.getElementById("fOtani").value,
+    d12min:num(document.getElementById("f12min").value),
+    d12max:num(document.getElementById("f12max").value),
+    d23min:num(document.getElementById("f23min").value),
+    d23max:num(document.getElementById("f23max").value),
+    d13min:num(document.getElementById("f13min").value),
+    d13max:num(document.getElementById("f13max").value),
+    topMin:num(document.getElementById("fTopMin").value),
+    topMax:num(document.getElementById("fTopMax").value),
+    ss:document.getElementById("fSS").value,
+    complete:document.getElementById("fComplete").value
+  };
+}
+
+function applyFilters(list,f){
+
+  return list.filter(r=>{
+
+    if(f.complete==="1"&&!r.complete)return false;
+
+    if(f.p&&r.p!==f.p)return false;
+
+    if(f.otani!==""&&r.otaniCount!==Number(f.otani))
+      return false;
+
+    if(f.d12min!=null&&(r.diff12==null||r.diff12<f.d12min))
+      return false;
+
+    if(f.d12max!=null&&(r.diff12==null||r.diff12>f.d12max))
+      return false;
+
+    if(f.d23min!=null&&(r.diff23==null||r.diff23<f.d23min))
+      return false;
+
+    if(f.d23max!=null&&(r.diff23==null||r.diff23>f.d23max))
+      return false;
+
+    if(f.d13min!=null&&(r.diff13==null||r.diff13<f.d13min))
+      return false;
+
+    if(f.d13max!=null&&(r.diff13==null||r.diff13>f.d13max))
+      return false;
+
+    if(f.topMin!=null&&(r.top1Index==null||r.top1Index<f.topMin))
+      return false;
+
+    if(f.topMax!=null&&(r.top1Index==null||r.top1Index>f.topMax))
+      return false;
+
+    if(f.ss==="1"&&!r.ss)return false;
+    if(f.ss==="0"&&r.ss)return false;
+
+    return true;
+  });
+}
+
+function resetFilters(){
+
+  [
+    "fP","fOtani","f12min","f12max",
+    "f23min","f23max","f13min","f13max",
+    "fTopMin","fTopMax","fSS"
+  ].forEach(id=>{
+    document.getElementById(id).value="";
+  });
+
+  document.getElementById("fComplete").value="1";
+
+  runResearch();
+}
+
+/* -------------------------
+   研究集計
+------------------------- */
+
+function rankDistribution(list,key){
+
+  const map={};
+
+  for(const r of list){
+    const rank=r[key];
+
+    if(rank==null)continue;
+
+    map[rank]=(map[rank]||0)+1;
+  }
+
+  return map;
+}
+
+function distHTML(map,total){
+
+  const keys=Object.keys(map)
+    .map(Number)
+    .sort((a,b)=>a-b);
+
+  if(!keys.length)return "データなし";
+
+  return keys.map(k=>{
+    return `コンピ${k}位：
+      <b>${map[k]}</b>件
+      （${pct(map[k],total)}）`;
+  }).join("<br>");
+}
+
+function runResearch(){
+
+  const filtered=applyFilters(races,getFilters());
+
+  const wins=filtered.filter(x=>x.complete&&x.secondWin);
+
+  const count=filtered.filter(x=>x.complete).length;
+
+  document.getElementById("rCount").textContent=count;
+  document.getElementById("rWins").textContent=wins.length;
+  document.getElementById("rRate").textContent=pct(wins.length,count);
+
+  const rate=count?wins.length/count*100:0;
+
+  if(count&&rate>=90){
+    document.getElementById("highPattern").innerHTML=
+      `<div class="card2 ok">
+        ★ 90％以上パターン：
+        ${wins.length}/${count}
+        ＝ ${rate.toFixed(1)}%
+      </div>`;
+  }else{
+    document.getElementById("highPattern").innerHTML="";
+  }
+
+  const d2=rankDistribution(wins,"secondRank");
+  const d3=rankDistribution(wins,"thirdRank");
+
+  document.getElementById("secondPlaceRanks").innerHTML=
+    distHTML(d2,wins.length);
+
+  document.getElementById("thirdPlaceRanks").innerHTML=
+    distHTML(d3,wins.length);
+
+  let rank1Second=0;
+  let rank1Third=0;
+  let rank1Gone=0;
+
+  for(const r of wins){
+
+    if(r.rank1Finish===2)rank1Second++;
+    else if(r.rank1Finish===3)rank1Third++;
+    else rank1Gone++;
+  }
+
+  document.getElementById("rank1Behavior").innerHTML=
+    `
+    2着残り：
+    <b>${rank1Second}</b>/${wins.length}
+    （${pct(rank1Second,wins.length)}）<br>
+
+    3着残り：
+    <b>${rank1Third}</b>/${wins.length}
+    （${pct(rank1Third,wins.length)}）<br>
+
+    3着外：
+    <b>${rank1Gone}</b>/${wins.length}
+    （${pct(rank1Gone,wins.length)}）
+    `;
+
+  const misses=filtered.filter(x=>x.complete&&!x.secondWin);
+
+  if(!misses.length){
+    document.getElementById("exceptions").innerHTML=
+      `<span class="ok">失敗例なし</span>`;
+  }else{
+
+    document.getElementById("exceptions").innerHTML=
+      misses.map(r=>
+        `<div class="card2">
+          <b>${r.date} 帯広${r.raceNo}R</b><br>
+          結果：${r.result.join("-")}
+          ／着コンピ順位：${r.resultRanks.join("-")}<br>
+          P=${r.p}
+          ／1-2差=${r.diff12}
+          ／2-3差=${r.diff23}
+          ／1-3差=${r.diff13}
+          ／大谷=${r.otaniCount==null?"未入力":r.otaniCount+"/3"}
+          ／SS=${r.ss?"○":"×"}
+        </div>`
+      ).join("");
+  }
+
+  renderRaceList(filtered,"条件該当レース");
+}
+
+/* -------------------------
+   90%以上パターン探索
+------------------------- */
+
+function searchPatterns(){
+
+  const complete=races.filter(x=>x.complete);
+
+  const minN=Math.max(
+    2,
+    Number(document.getElementById("patternMinN").value)||5
+  );
+
+  const minRate=
+    Number(document.getElementById("patternMinRate").value)||90;
+
+  const rules=[];
+
+  const pOptions=[
+    null,
+    ["P1"],["P2"],["P3"],["P4"],["P5"],["P6"],
+    ["P5","P6"],
+    ["P4","P5","P6"],
+    ["P1","P2","P3"]
+  ];
+
+  const d12maxOptions=[null,1,2,3,4,5];
+  const d23minOptions=[null,6,8,10,12,15];
+  const otaniOptions=[null,1,2,3];
+  const ssOptions=[null,true];
+
+  for(const ps of pOptions){
+    for(const d12max of d12maxOptions){
+      for(const d23min of d23minOptions){
+        for(const otani of otaniOptions){
+          for(const ss of ssOptions){
+
+            const hasCondition=
+              ps!==null||
+              d12max!==null||
+              d23min!==null||
+              otani!==null||
+              ss!==null;
+
+            if(!hasCondition)continue;
+
+            const subset=complete.filter(r=>{
+
+              if(ps&&!ps.includes(r.p))return false;
+
+              if(
+                d12max!=null &&
+                (r.diff12==null||r.diff12>d12max)
+              )return false;
+
+              if(
+                d23min!=null &&
+                (r.diff23==null||r.diff23<d23min)
+              )return false;
+
+              if(
+                otani!=null &&
+                r.otaniCount!==otani
+              )return false;
+
+              if(ss===true&&!r.ss)return false;
+
+              return true;
+            });
+
+            if(subset.length<minN)continue;
+
+            const wins=subset.filter(r=>r.secondWin).length;
+            const rate=wins/subset.length*100;
+
+            if(rate<minRate)continue;
+
+            const labels=[];
+
+            if(ps)labels.push(`P=${ps.join("/")}`);
+            if(d12max!=null)labels.push(`1-2差≦${d12max}`);
+            if(d23min!=null)labels.push(`2-3差≧${d23min}`);
+            if(otani!=null)labels.push(`大谷${otani}/3`);
+            if(ss===true)labels.push("二強断層SS");
+
+            rules.push({
+              label:labels.join(" ＋ "),
+              n:subset.length,
+              wins,
+              rate,
+              misses:subset.filter(r=>!r.secondWin)
+            });
+          }
+        }
+      }
+    }
+  }
+
+  /* 同じ母数・率の重複をある程度除去 */
+  const unique=[];
+  const seen=new Set();
+
+  rules
+    .sort((a,b)=>{
+      if(b.rate!==a.rate)return b.rate-a.rate;
+      return b.n-a.n;
+    })
+    .forEach(x=>{
+      const key=`${x.n}_${x.wins}_${x.label}`;
+
+      if(!seen.has(key)){
+        seen.add(key);
+        unique.push(x);
       }
     });
 
-    if(horses.length>=3){
-      const trio=horses
-        .slice(0,3)
-        .map(Number)
-        .sort((a,b)=>a-b)
-        .join("-");
+  const top=unique.slice(0,100);
 
-      if(!used.has(trio)){
-        out+=trio+" "+odds+"\n";
-        used.add(trio);
-      }
+  if(!top.length){
+    document.getElementById("patternResults").innerHTML=
+      `<div class="card2">条件を満たすパターンなし</div>`;
+    return;
+  }
+
+  let html=`<div class="scroll"><table>
+  <thead>
+  <tr>
+    <th>条件</th>
+    <th>該当</th>
+    <th>2位頭</th>
+    <th>率</th>
+    <th>失敗</th>
+  </tr>
+  </thead><tbody>`;
+
+  for(const x of top){
+
+    const miss=x.misses.map(r=>
+      `${r.date} ${r.raceNo}R`
+    ).join("<br>");
+
+    html+=`
+      <tr>
+        <td style="text-align:left">${esc(x.label)}</td>
+        <td>${x.n}</td>
+        <td>${x.wins}</td>
+        <td class="${x.rate>=90?"ok":""}">
+          ${x.rate.toFixed(1)}%
+        </td>
+        <td>${miss||"なし"}</td>
+      </tr>
+    `;
+  }
+
+  html+="</tbody></table></div>";
+
+  document.getElementById("patternResults").innerHTML=html;
+}
+
+/* -------------------------
+   レース一覧
+------------------------- */
+
+function renderRaceList(list,title){
+
+  let html=`
+    <div class="small" style="margin:7px 0">
+      ${esc(title)}：${list.length}R
+    </div>
+
+    <div class="scroll">
+    <table>
+    <thead>
+    <tr>
+      <th>日付</th>
+      <th>R</th>
+      <th>P</th>
+      <th>上位指数</th>
+      <th>差</th>
+      <th>結果</th>
+      <th>着コンピ</th>
+      <th>大谷</th>
+      <th>SS</th>
+      <th>2位頭</th>
+    </tr>
+    </thead>
+    <tbody>
+  `;
+
+  for(const r of list){
+
+    html+=`
+      <tr>
+        <td>${r.date}</td>
+        <td>${r.raceNo}</td>
+        <td>${r.p}</td>
+        <td>
+          ${r.top1Index??"-"} /
+          ${r.top2Index??"-"} /
+          ${r.top3Index??"-"}
+        </td>
+        <td>
+          ${r.diff12??"-"} /
+          ${r.diff23??"-"} /
+          ${r.diff13??"-"}
+        </td>
+        <td>${r.result?.join("-")||"-"}</td>
+        <td>${r.resultRanks?.join("-")||"-"}</td>
+        <td>
+          ${r.otaniCount==null?"-":r.otaniCount+"/3"}
+        </td>
+        <td>${r.ss?"SS":""}</td>
+        <td class="${r.secondWin?"ok":"ng"}">
+          ${r.secondWin?"○":"×"}
+        </td>
+      </tr>
+    `;
+  }
+
+  html+="</tbody></table></div>";
+
+  document.getElementById("raceTable").innerHTML=html;
+}
+
+function renderAll(){
+  renderRaceList(races,"全登録レース");
+}
+
+function showIncomplete(){
+  renderRaceList(
+    races.filter(x=>!x.complete),
+    "欠損レース"
+  );
+}
+
+/* -------------------------
+   JSONバックアップ
+------------------------- */
+
+function exportJSON(){
+
+  const payload={
+    app:"ばんえいコンピ2位頭研究所",
+    version:"1.00",
+    exportedAt:new Date().toISOString(),
+    raceCount:races.length,
+    races:races
+  };
+
+  downloadText(
+    `ばんえいコンピ2位頭研究所_V1.00_backup_${dateStamp()}.json`,
+    JSON.stringify(payload,null,2),
+    "application/json;charset=utf-8"
+  );
+}
+
+async function restoreJSON(){
+
+  const file=document.getElementById("restoreFile").files[0];
+
+  if(!file){
+    alert("JSONファイルを選択してください。");
+    return;
+  }
+
+  let obj;
+
+  try{
+    obj=JSON.parse(await file.text());
+  }catch(e){
+    alert("JSONを読み込めません。");
+    return;
+  }
+
+  const data=Array.isArray(obj)
+    ?obj
+    :obj.races;
+
+  if(!Array.isArray(data)){
+    alert("バックアップ形式が違います。");
+    return;
+  }
+
+  const ok=confirm(
+    `${data.length}Rを復元します。\n`+
+    `同じ日付・Rは上書きされます。\n\n実行しますか？`
+  );
+
+  if(!ok)return;
+
+  for(const raw of data){
+
+    const r=enrichRace(raw);
+
+    if(!r.id){
+      r.id=`${r.date}_帯広_${r.raceNo}R`;
     }
-  });
 
-  document.getElementById("code").value=out;
+    await putRace(r);
+  }
+
+  await reload();
+
+  alert(`${data.length}R 復元しました。`);
 }
 
-function copyCode(){
-  navigator.clipboard.writeText(document.getElementById("code").value);
-  alert("コピーしました");
+/* -------------------------
+   CSV
+------------------------- */
+
+function csvCell(v){
+
+  if(v==null)return "";
+
+  const s=String(v);
+
+  if(/[",\n]/.test(s)){
+    return `"${s.replace(/"/g,'""')}"`;
+  }
+
+  return s;
 }
+
+function exportCSV(){
+
+  const header=[
+    "日付",
+    "場",
+    "R",
+    "頭数",
+    "推奨馬",
+    "結果",
+    "1着コンピ順位",
+    "2着コンピ順位",
+    "3着コンピ順位",
+    "コンピ1位馬",
+    "コンピ1位指数",
+    "コンピ2位馬",
+    "コンピ2位指数",
+    "コンピ3位馬",
+    "コンピ3位指数",
+    "1-2差",
+    "2-3差",
+    "1-3差",
+    "上位3頭合計",
+    "P",
+    "大谷合格数",
+    "二強断層SS",
+    "最大壁差",
+    "最大壁位置",
+    "コンピ2位頭",
+    "コンピ1位着順",
+    "完全データ",
+    "全コンピ"
+  ];
+
+  const lines=[header.map(csvCell).join(",")];
+
+  for(const r of races){
+
+    const allCompi=r.compi
+      .map(x=>`${x.rank}:${x.horse}:${x.index}`)
+      .join("|");
+
+    const row=[
+      r.date,
+      "帯広",
+      r.raceNo,
+      r.compi.length,
+      r.pick,
+      r.result.join("-"),
+      r.firstRank,
+      r.secondRank,
+      r.thirdRank,
+      r.top1Horse,
+      r.top1Index,
+      r.top2Horse,
+      r.top2Index,
+      r.top3Horse,
+      r.top3Index,
+      r.diff12,
+      r.diff23,
+      r.diff13,
+      r.top3Sum,
+      r.p,
+      r.otaniCount,
+      r.ss?1:0,
+      r.maxWallGap,
+      r.maxWallAfterRank,
+      r.secondWin?1:0,
+      r.rank1Finish,
+      r.complete?1:0,
+      allCompi
+    ];
+
+    lines.push(row.map(csvCell).join(","));
+  }
+
+  /* Excel文字化け防止 BOM */
+  const text="\uFEFF"+lines.join("\n");
+
+  downloadText(
+    `ばんえいコンピ2位頭研究所_V1.00_${dateStamp()}.csv`,
+    text,
+    "text/csv;charset=utf-8"
+  );
+}
+
+/* -------------------------
+   全削除
+------------------------- */
+
+async function deleteAll(){
+
+  const a=prompt(
+    "全データを削除します。\n\n実行する場合だけ\n削除する\nと入力してください。"
+  );
+
+  if(a!=="削除する")return;
+
+  const b=confirm(
+    "本当に全レースを削除しますか？\n"+
+    "JSONバックアップが無い場合は戻せません。"
+  );
+
+  if(!b)return;
+
+  await clearDB();
+  await reload();
+
+  alert("全データを削除しました。");
+}
+
+/* -------------------------
+   起動
+------------------------- */
+
+(async function(){
+
+  try{
+
+    await openDB();
+    await reload();
+
+  }catch(e){
+
+    console.error(e);
+
+    document.getElementById("dbStatus").innerHTML=
+      `<span class="ng">
+        IndexedDB起動エラー：${esc(e.message||e)}
+      </span>`;
+  }
+
+})();
 </script>
 
 </body>
