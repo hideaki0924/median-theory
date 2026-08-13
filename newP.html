@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="central-newp-v1.10-20260813">
-<title>競馬メジアン 中央新P研究所 V1.10</title>
+<meta name="app-build" content="central-newp-v1.11-20260814">
+<title>競馬メジアン 中央新P研究所 V1.11</title>
 <style>
 :root{
   --bg:#07101f;--card:#0e1d3c;--card2:#0a1731;--line:#2f466f;
@@ -73,7 +73,7 @@ hr{border:0;border-top:1px solid #294263}
 </head>
 <body>
 <main>
-  <h1>競馬メジアン 中央新P研究所 V1.10</h1>
+  <h1>競馬メジアン 中央新P研究所 V1.11</h1>
   <div class="sub">696R再構築版｜PA〜PF＋SUB＋H2＋X｜事前判定→結果検証を同じアプリで蓄積</div>
 
   <div class="tabs">
@@ -387,9 +387,47 @@ function analyzeRace(r){
    id:`${r.date}_${r.place}_${r.race}`};
 }
 
+
+function finalVerdict(a){
+ const c=a.compi||[], byRank=r=>c[r-1]?.horse;
+ const top1=byRank(1),top2=byRank(2),top3=byRank(3),top4=byRank(4),top5=byRank(5);
+ let axis=top1,headMain=top1,reversals=[],mainOpp=[],holeWatch=[],danger='中',join='○';
+ if(a.np==='PA'){
+   danger='低';join='◎';reversals=[top2,top3];mainOpp=[top2,top3,top4,top5];
+ }else if(a.np==='PB'){
+   danger=a.sub==='PB-H'?'中':'低〜中';join='○';reversals=[top2,top3,top4];mainOpp=[top2,top3,top4,top5];
+ }else if(a.np==='PC'){
+   danger='中';join='○';
+   if((a.h2||'').startsWith('H2-C')){axis=top2;headMain=top2;reversals=[top1,top3]}
+   else reversals=[top2,top3];
+   mainOpp=[top1,top2,top3,top4,top5].filter(h=>h!==axis);
+ }else if(a.np==='PD'){
+   danger=a.x?'高':'中';join=a.x?'△':'○';
+   if(a.h2==='H2-D SS'){axis=top2;headMain=top2;reversals=[top1].concat(a.holeHead||[])}
+   else if((a.h2||'').startsWith('H2-C')){axis=top2;headMain=top2;reversals=[top1,top3]}
+   else reversals=[top2,top3,top4];
+   mainOpp=[top1,top2,top3,top4,top5].filter(h=>h!==axis);
+ }else if(a.np==='PE'){
+   danger='高';join='△';
+   axis=top2||top1;headMain=axis;
+   reversals=a.sub==='PE-2H'?[top3,top4,top5]:[top1,top3,top4];
+   mainOpp=[top1,top2,top3,top4,top5].filter(h=>h!==axis);
+ }else{
+   danger='最高';join='見送り寄り';axis=top2||top3;headMain=axis;
+   reversals=[top3,top4,top5,byRank(6)].filter(h=>h!==axis);
+   mainOpp=(a.band.head||[]).map(byRank).filter(h=>h&&h!==axis);
+ }
+ reversals=uniq(reversals).filter(Boolean);
+ mainOpp=uniq(mainOpp).filter(Boolean);
+ holeWatch=uniq((a.mid49to55||[]).concat((a.band.place3||[]).filter(r=>r>=6).map(byRank)))
+   .filter(h=>h&&h!==axis&&!mainOpp.includes(h)).slice(0,4);
+ if(a.x&&join==='◎')join='○'; else if(a.x&&join==='○')join='△';
+ return {axis,headMain,reversals,mainOpp,holeWatch,danger,join};
+}
+
 function summaryText(a){
  return `【${a.date} ${a.place}${a.race}R】
-中央新P V1.10
+中央新P V1.11
 新P：${a.np}（${P_BANDS[a.np].desc}）
 SUB：${a.sub||'なし'}
 H2：${a.h2||'なし'}
@@ -420,6 +458,15 @@ ${a.protectedHorses.join('・')||'なし'}
 【最終5頭】
 ${a.final.join('・')||'なし'}
 
+【🔥最終結論】
+軸：${finalVerdict(a).axis||'なし'}
+頭本線：${finalVerdict(a).headMain||'なし'}
+逆転：${finalVerdict(a).reversals.join('・')||'なし'}
+相手本線：${finalVerdict(a).mainOpp.join('・')||'なし'}
+穴監査：${finalVerdict(a).holeWatch.join('・')||'なし'}
+危険度：${finalVerdict(a).danger}
+参加：${finalVerdict(a).join}
+
 ${a.notes.map(x=>'・'+x).join('\n')}
 ${a.result.length?`\n【結果】${a.result.join('-')} / コンピ順位 ${a.resultRanks.join('|')}`:''}`;
 }
@@ -428,6 +475,18 @@ function renderResults(arr){
  $('#results').innerHTML=arr.map(a=>`
  <div class="card">
    <div class="title">${esc(a.date)} ${esc(a.place)}${a.race}R</div>
+   ${(()=>{const v=finalVerdict(a);return `<div class="card inner" style="border:2px solid #f59e0b;background:#251b05">
+      <div class="title" style="color:#fde047">🔥 最終結論</div>
+      <div class="kv">
+        <div class="k">軸</div><div class="v big">${v.axis??'—'}</div>
+        <div class="k">頭本線</div><div class="v">${v.headMain??'—'}</div>
+        <div class="k">逆転</div><div class="v">${v.reversals.join('・')||'なし'}</div>
+        <div class="k">相手本線</div><div class="v">${v.mainOpp.join('・')||'なし'}</div>
+        <div class="k">穴監査</div><div class="v warn">${v.holeWatch.join('・')||'なし'}</div>
+        <div class="k">危険度</div><div class="v">${v.danger}</div>
+        <div class="k">参加</div><div class="v">${v.join}</div>
+      </div>
+    </div>`})()}
    <div class="badges">
     <span class="badge ${a.np.toLowerCase()}">${a.np}・${esc(P_BANDS[a.np].desc)}</span>
     ${a.sub?`<span class="badge subb">${esc(a.sub)}</span>`:''}
@@ -551,14 +610,14 @@ function download(content,name,type){
 }
 function csvEsc(v){const s=Array.isArray(v)?v.join('|'):String(v??'');return /[,"\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s}
 async function exportJSON(){
- const rows=await allRows();download(JSON.stringify({app:'競馬メジアン 中央新P研究所',version:'1.10',exportedAt:new Date().toISOString(),races:rows},null,2),`中央新P_V1.10_backup_${new Date().toISOString().slice(0,10)}.json`,'application/json')
+ const rows=await allRows();download(JSON.stringify({app:'競馬メジアン 中央新P研究所',version:'1.11',exportedAt:new Date().toISOString(),races:rows},null,2),`中央新P_V1.11_backup_${new Date().toISOString().slice(0,10)}.json`,'application/json')
 }
 async function exportCSV(){
  const rows=await allRows();
  const keys=['date','place','race','n','p1','p2','p3','sum','d12','d23','d13','wallPos','wallGap','oldP','np','sub','h2','x','headCandidates','protectedHorses','final','result','resultRanks'];
  const labels=['日付','場','R','頭数','1位指数','2位指数','3位指数','上位3合計','差1_2','差2_3','差1_3','最大壁位置','最大壁差','旧P','新P','SUB','H2','X','頭候補','削除禁止','最終5頭','結果','結果コンピ順位'];
  const text='\ufeff'+labels.join(',')+'\n'+rows.map(r=>keys.map(k=>csvEsc(r[k])).join(',')).join('\n');
- download(text,`中央新P_V1.10_log_${new Date().toISOString().slice(0,10)}.csv`,'text/csv;charset=utf-8')
+ download(text,`中央新P_V1.11_log_${new Date().toISOString().slice(0,10)}.csv`,'text/csv;charset=utf-8')
 }
 async function importJSON(file){
  const t=await file.text(), j=JSON.parse(t), arr=Array.isArray(j)?j:j.races;
@@ -598,5 +657,3 @@ refreshAll();
 </script>
 </body>
 </html>
-競馬メジアン_中央新P研究所_V1.10.html
-HTML
