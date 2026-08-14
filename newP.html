@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="central-newp-v1.22-practical-view-20260814">
-<title>競馬メジアン 中央新P統合研究所 V1.22</title>
+<meta name="app-build" content="central-newp-v1.23-slide-subtype-20260815">
+<title>競馬メジアン 中央新P統合研究所 V1.23</title>
 
 <style>
 :root{
@@ -175,9 +175,9 @@ hr{border:0;border-top:1px solid #294263}
 <body>
 <main>
 
-<h1>競馬メジアン 中央新P統合研究所 V1.22</h1>
+<h1>競馬メジアン 中央新P統合研究所 V1.23</h1>
 <div class="sub">
-696R再構築PA〜PF ＋ 3着スライドV0.4。最上段は実戦用、研究詳細は下段に分離
+696R再構築PA〜PF ＋ 3着スライドV0.5。S2+をA〜Dへ分解し、最上段は実戦用
 </div>
 
 <div class="tabs">
@@ -242,7 +242,7 @@ PA〜PF・S2+・X3・壁・指数帯などの研究情報は下の「研究詳�
  <div class="title">保存履歴</div>
 
  <div class="topbar">
-  <button id="reanalyzeAll" class="purple">V1.22で全件再解析</button>
+  <button id="reanalyzeAll" class="purple">V1.23で全件再解析</button>
   <button id="exportJson" class="green">JSONバックアップ</button>
   <button id="exportCsv" class="orange">CSV出力</button>
   <button id="importJson" class="purple">JSON読込</button>
@@ -252,7 +252,7 @@ PA〜PF・S2+・X3・壁・指数帯などの研究情報は下の「研究詳�
 
  <div class="notice">
  V1.20から更新する前にJSONバックアップ推奨。更新後は
- 「V1.22で全件再解析」を押すと、保存済みレースにも3着スライド判定が追加されます。
+ 「V1.23で全件再解析」を押すと、保存済みレースにも3着スライド判定が追加されます。
  </div>
 
  <div class="tablewrap">
@@ -535,7 +535,7 @@ function structureType(f){
 }
 
 /* ==============================
-   3着スライド V0.4
+   3着スライド V0.5
    ============================== */
 
 function thirdSlideJudge(c,f){
@@ -546,6 +546,7 @@ function thirdSlideJudge(c,f){
  const d35=Number.isFinite(p3)&&Number.isFinite(p5)?p3-p5:null;
 
  let slide='S1';
+ let slideSub='';
  let label='軽スライド';
  let level='中';
  let baseThird='1〜8位';
@@ -557,10 +558,34 @@ function thirdSlideJudge(c,f){
   baseThird='1〜5位';
  }
  else if(Number.isFinite(d35) && n>=14 && d35<=7){
+
   slide='S2+';
-  label='深スライド最警戒';
-  level='最高';
-  baseThird='1〜8位＋深層';
+
+  /* 696R S2+ 230Rを再分解したV0.5 */
+  if(f.d23>=10 && f.d12<=10){
+   slideSub='A';
+   label='上位2頭ブロック型';
+   level='中';
+   baseThird='1〜8位中心';
+  }
+  else if(f.d12<=5 && f.d23<=5){
+   slideSub='B';
+   label='上位密集・深滑り型';
+   level='最高';
+   baseThird='1〜8位＋深層';
+  }
+  else if(f.d12>=10){
+   slideSub='C';
+   label='1位突出・下位流動型';
+   level='最高';
+   baseThird='1〜8位＋深層';
+  }
+  else{
+   slideSub='D';
+   label='混合型';
+   level='高';
+   baseThird='1〜8位＋深層';
+  }
  }
  else if(Number.isFinite(d35) && d35>=8 && p1<=76){
   slide='S2';
@@ -585,18 +610,27 @@ function thirdSlideJudge(c,f){
   .map((z,i)=>({rank:i+1,horse:z.horse,point:z.point}))
   .filter(z=>z.rank>=9&&z.rank<=12&&z.point>=46&&z.point<=52);
 
- const deepLimit=slide==='S2+'?3:(slide==='S2'?2:0);
+ /* Aは深滑り率が低いため2頭まで。B/Cは3頭、DとS2は2頭 */
+ let deepLimit=0;
+ if(slide==='S2+') deepLimit=(slideSub==='B'||slideSub==='C')?3:2;
+ else if(slide==='S2') deepLimit=2;
+
  const deepCandidates=deepPool.slice(0,deepLimit);
 
  const x3Pool=c
   .map((z,i)=>({rank:i+1,horse:z.horse,point:z.point}))
   .filter(z=>z.rank>=14&&z.rank<=16&&z.point>=40&&z.point<=42);
 
- const x3On=(slide==='S2'||slide==='S2+') && f.wallGap<=12 && x3Pool.length>0;
+ /* A型は超深を自動ONにしない。B/C/DまたはS2で最大壁12P以下の時だけ */
+ const x3Eligible=
+  slide==='S2' ||
+  (slide==='S2+' && slideSub!=='A');
+
+ const x3On=x3Eligible && f.wallGap<=12 && x3Pool.length>0;
  const x3Hot=x3On && p1<=72;
 
  return {
-  slide,label,level,baseThird,d35,
+  slide,slideSub,label,level,baseThird,d35,
   deepPool,
   deepCandidates,
   x3On,
@@ -704,7 +738,8 @@ function analyzeRace(r){
  const slide=thirdSlideJudge(c,f);
 
  if(slide.slide==='S2+'){
-  notes.push(`3着S2+：14頭以上＋3-5差${slide.d35}P。深スライド最警戒`);
+  const tag=slide.slideSub?`S2+${slide.slideSub}`:'S2+';
+  notes.push(`3着${tag}：${slide.label} / 3-5差${slide.d35}P`);
  }else if(slide.slide==='S2'){
   notes.push(`3着S2：1位${p1}P＋3-5差${slide.d35}P。9〜12位を解禁`);
  }
@@ -803,6 +838,7 @@ function analyzeRace(r){
   trustPlace:trust.place,
   notes,
   slide:slide.slide,
+  slideSub:slide.slideSub||'',
   slideLabel:slide.label,
   slideLevel:slide.level,
   slideBaseThird:slide.baseThird,
@@ -939,6 +975,7 @@ function practicalVerdict(a){
  if(a.sub==='PE-2H') first=uniq([byRank(2),byRank(3),byRank(4),byRank(1)]);
  if(a.structure==='上位2頭ブロック型') first=uniq([byRank(1),byRank(2)]);
  if(a.structure==='一強・大断層型') first=uniq([byRank(1),byRank(2)]);
+ if(a.slide==='S2+' && a.slideSub==='A') first=uniq([byRank(1),byRank(2),byRank(3)]);
  first=uniq(first).filter(Boolean).slice(0,4);
 
  // 2着候補：1着候補＋上位の相手、ただし広げすぎない
@@ -971,12 +1008,7 @@ function practicalVerdict(a){
    raceShape='硬め';
  }
 
- let thirdRisk='普通';
- if(a.slide==='S0') thirdRisk='低';
- else if(a.slide==='S0+') thirdRisk='やや低';
- else if(a.slide==='S1') thirdRisk='普通';
- else if(a.slide==='S2') thirdRisk='高';
- else if(a.slide==='S2+') thirdRisk='最高';
+ let thirdRisk=a.slideLevel||'普通';
 
  return {first,second,thirdA,thirdB,thirdC,thirdD,raceShape,thirdRisk};
 }
@@ -1006,7 +1038,7 @@ function summaryText(a){
 SUB：${a.sub||'なし'}
 H2：${a.h2||'なし'}
 X：${a.x?'ON':'OFF'}
-3着S：${a.slide}（${a.slideLabel}）
+3着S：${a.slide}${a.slideSub||''}（${a.slideLabel}）
 X3：${a.x3On?(a.x3Hot?'🔥ON':'ON'):'OFF'}
 
 旧P：${a.oldP}（${a.sum}P・補助）
@@ -1071,7 +1103,7 @@ function renderResults(arr){
        ${a.sub?`<span class="badge subb">${esc(a.sub)}</span>`:''}
        ${a.h2?`<span class="badge h2">${esc(a.h2)}</span>`:''}
        ${a.x?`<span class="badge x">X ON</span>`:'<span class="badge">X OFF</span>'}
-       <span class="badge ${slideBadgeClass(a.slide)}">${a.slide}・${esc(a.slideLabel)}</span>
+       <span class="badge ${slideBadgeClass(a.slide)}">${a.slide}${a.slideSub||''}・${esc(a.slideLabel)}</span>
        ${a.x3On?`<span class="badge x3">X3 ${a.x3Hot?'🔥':''}ON</span>`:'<span class="badge">X3 OFF</span>'}
       </div>
 
@@ -1098,9 +1130,9 @@ function renderResults(arr){
       </div>
 
       <div class="card inner slidebox">
-       <div class="title" style="color:#c084fc">🎯 3着スライド V0.4</div>
+       <div class="title" style="color:#c084fc">🎯 3着スライド V0.5</div>
        <div class="kv">
-        <div class="k">判定</div><div class="v">${a.slide}（${a.slideLabel}）</div>
+        <div class="k">判定</div><div class="v">${a.slide}${a.slideSub||''}（${a.slideLabel}）</div>
         <div class="k">深層候補</div><div class="v warn">${fmtSlideCandidates(a)}</div>
         <div class="k">X3</div><div class="v">${a.x3On?(a.x3Hot?'🔥ON':'ON'):'OFF'}</div>
         <div class="k">超深候補</div><div class="v ${a.x3On?'bad':''}">${fmtX3Candidates(a)}</div>
@@ -1240,7 +1272,7 @@ async function reanalyzeAll(){
   return;
  }
 
- if(!confirm(`${rows.length}件をV1.22判定で再解析します。\n先にJSONバックアップを推奨します。`))return;
+ if(!confirm(`${rows.length}件をV1.23判定で再解析します。\n先にJSONバックアップを推奨します。`))return;
 
  let count=0;
  for(const old of rows){
@@ -1261,7 +1293,7 @@ async function reanalyzeAll(){
  }
 
  await refreshAll();
- alert(`${count}件をV1.22で再解析しました`);
+ alert(`${count}件をV1.23で再解析しました`);
 }
 
 /* ==============================
@@ -1281,7 +1313,7 @@ async function refreshHistory(){
    <tr>
     <td>${esc(a.date)}</td><td>${esc(a.place)}</td><td>${a.race}R</td>
     <td>${a.np||'—'}</td><td>${esc(a.structure||'—')}</td><td>${a.sub||'—'}</td><td>${a.h2||'—'}</td><td>${a.x?'ON':'—'}</td>
-    <td>${a.slide||'—'}</td>
+    <td>${a.slide?`${a.slide}${a.slideSub||''}`:'—'}</td>
     <td>${(a.slideDeepHorses||[]).join('・')||'—'}</td>
     <td>${a.x3On?`${a.x3Hot?'🔥':''}${(a.x3Horses||[]).join('・')}`:'—'}</td>
     <td>${a.pick??'—'}</td>
@@ -1379,8 +1411,18 @@ async function refreshStats(){
   `;
  }).join('');
 
- $('#slideStatsBody').innerHTML=['S0','S0+','S1','S2','S2+'].map(s=>{
-  const a=done.filter(x=>x.slide===s);
+ const slideDefs=[
+  ['S0',x=>x.slide==='S0'],
+  ['S0+',x=>x.slide==='S0+'],
+  ['S1',x=>x.slide==='S1'],
+  ['S2',x=>x.slide==='S2'],
+  ['S2+A',x=>x.slide==='S2+'&&x.slideSub==='A'],
+  ['S2+B',x=>x.slide==='S2+'&&x.slideSub==='B'],
+  ['S2+C',x=>x.slide==='S2+'&&x.slideSub==='C'],
+  ['S2+D',x=>x.slide==='S2+'&&x.slideSub==='D']
+ ];
+ $('#slideStatsBody').innerHTML=slideDefs.map(([s,fn])=>{
+  const a=done.filter(fn);
   const s15=a.filter(x=>thirdRankIn(x,1,5)).length;
   const s68=a.filter(x=>thirdRankIn(x,6,8)).length;
   const s9=a.filter(thirdDeep).length;
@@ -1488,12 +1530,12 @@ async function exportJSON(){
  download(
   JSON.stringify({
    app:'競馬メジアン 中央新P統合研究所',
-   version:'1.22',
-   thirdSlide:'V0.4',
+   version:'1.23',
+   thirdSlide:'V0.5',
    exportedAt:new Date().toISOString(),
    races:rows
   },null,2),
-  `中央新P_V1.22_backup_${new Date().toISOString().slice(0,10)}.json`,
+  `中央新P_V1.23_backup_${new Date().toISOString().slice(0,10)}.json`,
   'application/json'
  );
 }
@@ -1508,7 +1550,7 @@ async function exportCSV(){
   'wallPos','wallGap','secondPos','secondGap',
   'oldP','np','structure','sub','h2','x','pick',
   'trustHead','trustPlace',
-  'slide','slideLabel','slideLevel','slideBaseThird',
+  'slide','slideSub','slideLabel','slideLevel','slideBaseThird',
   'slideDeepHorses','x3On','x3Hot','x3Horses','slideDeepHit','x3Hit',
   'headCandidates','band54to57','mid49to55','low46to49',
   'protectedHorses','final','result','resultRanks'
@@ -1521,7 +1563,7 @@ async function exportCSV(){
   '最大壁位置','最大壁差','第2壁位置','第2壁差',
   '旧P','新P','構造型','SUB','H2','X','PICK',
   '頭信頼','馬券内信頼',
-  '3着S','3着S名称','3着S危険度','基本3着帯',
+  '3着S','3着Sサブ型','3着S名称','3着S危険度','基本3着帯',
   '深候補','X3','X3強','X3候補','深候補的中','X3的中',
   '頭候補','54_57','49_55','46_49',
   '削除禁止','最終5頭','結果','結果コンピ順位'
@@ -1532,7 +1574,7 @@ async function exportCSV(){
 
  download(
   text,
-  `中央新P_V1.22_log_${new Date().toISOString().slice(0,10)}.csv`,
+  `中央新P_V1.23_log_${new Date().toISOString().slice(0,10)}.csv`,
   'text/csv;charset=utf-8'
  );
 }
@@ -1551,7 +1593,7 @@ async function importJSON(file){
  for(const old of arr)await put(old);
 
  await refreshAll();
- alert(`${arr.length}件読み込みました。\n旧版データならV1.22で全件再解析してください。`);
+ alert(`${arr.length}件読み込みました。\n旧版データならV1.23で全件再解析してください。`);
 }
 
 /* ==============================
