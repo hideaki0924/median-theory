@@ -4,8 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="central-newp-v1.23-slide-subtype-20260815">
-<title>競馬メジアン 中央新P統合研究所 V1.23</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="中央新P V1.25">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="app-build" content="central-newp-v1.25-head-pwa-20260815">
+<title>競馬メジアン 中央新P統合研究所 V1.25</title>
 
 <style>
 :root{
@@ -169,15 +174,24 @@ details.research>summary{
 details.research[open]>summary{border-bottom:1px solid #294263}
 details.research .research-body{padding:9px}
 hr{border:0;border-top:1px solid #294263}
+.appbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0 10px}
+.appbar .appstate{font-size:12px;color:var(--muted);padding:7px 9px;border:1px solid #294263;border-radius:10px;background:#09162c}
+button.install{background:#0f766e}
+@media(display-mode:standalone){#installAppBtn{display:none}}
 </style>
 </head>
 
 <body>
 <main>
 
-<h1>競馬メジアン 中央新P統合研究所 V1.23</h1>
+<h1>競馬メジアン 中央新P統合研究所 V1.25</h1>
 <div class="sub">
-696R再構築PA〜PF ＋ 3着スライドV0.5。S2+をA〜Dへ分解し、最上段は実戦用
+696R再構築PA〜PF ＋ 3着スライドV0.5 ＋ H2-BLOCK ＋ HEAD司令塔V1.0。BLOCK最優先、C2/T3-H/T3-2を独立統合
+</div>
+
+<div class="appbar">
+ <button id="installAppBtn" class="install">📲 アプリとして追加</button>
+ <span id="appState" class="appstate">ブラウザ版</span>
 </div>
 
 <div class="tabs">
@@ -242,7 +256,7 @@ PA〜PF・S2+・X3・壁・指数帯などの研究情報は下の「研究詳�
  <div class="title">保存履歴</div>
 
  <div class="topbar">
-  <button id="reanalyzeAll" class="purple">V1.23で全件再解析</button>
+  <button id="reanalyzeAll" class="purple">V1.25で全件再解析</button>
   <button id="exportJson" class="green">JSONバックアップ</button>
   <button id="exportCsv" class="orange">CSV出力</button>
   <button id="importJson" class="purple">JSON読込</button>
@@ -252,7 +266,7 @@ PA〜PF・S2+・X3・壁・指数帯などの研究情報は下の「研究詳�
 
  <div class="notice">
  V1.20から更新する前にJSONバックアップ推奨。更新後は
- 「V1.23で全件再解析」を押すと、保存済みレースにも3着スライド判定が追加されます。
+ 「V1.25で全件再解析」を押すと、保存済みレースにも3着スライド判定が追加されます。
  </div>
 
  <div class="tablewrap">
@@ -657,6 +671,8 @@ function trustJudge(a){
 
  if(a.sub==='PE-2H')head='D';
  if(a.h2==='H2-C SS'){head='B';place='B';}
+ if(a.h2==='H2-BLOCK S'){head='A';place='A';}
+ if(a.h2==='H2-BLOCK SS'){head='A';place='A';}
  if(a.x){
   if(head==='A')head='B';
   else if(head==='B')head='C';
@@ -683,6 +699,9 @@ function analyzeRace(r){
  const d23=p2-p3;
  const d13=p1-p3;
  const d35=Number.isFinite(p5)?p3-p5:null;
+ const p4=c[3]?.point??null;
+ const d34=Number.isFinite(p4)?p3-p4:null;
+ const pickRank=r.pick?((c.findIndex(z=>z.horse===r.pick))+1):null;
 
  let wallPos=1;
  let wallGap=-Infinity;
@@ -705,9 +724,39 @@ function analyzeRace(r){
  const x=xFlag(f);
 
  let h2='';
- if(p1>=80 && d12<=3)h2='H2-C SS';
+ /* H2-BLOCK V1.0（696R検証）
+    A : PC＋1-2差<=2＋2-3差14〜17P = 研究監視級
+    S : PC＋1-2差<=2＋2-3差18P以上 = 実戦強判定
+    SS: Sのうち2-3差19P以上 = 最上位信頼表示
+ */
+ if(np==='PC' && d12<=2 && d23>=19)h2='H2-BLOCK SS';
+ else if(np==='PC' && d12<=2 && d23>=18)h2='H2-BLOCK S';
+ else if(np==='PC' && d12<=2 && d23>=14)h2='H2-BLOCK A';
+ else if(p1>=80 && d12<=3)h2='H2-C SS';
  else if(p1>=80 && d12<=5)h2='H2-C';
  else if(p1>=80&&op==='P3'&&np==='PD'&&d12>=10&&d12<=18&&d23>=6)h2='H2-D SS';
+
+ /* HEAD司令塔 V1.0（V1.55・696R再検証）
+    C2-S: 1-2差=1P＋2-3差>=8P。全28Rで2位頭60.7%。
+           ただしBLOCK S重複5Rは2位頭2/5のため、BLOCKを必ず優先。
+           BLOCK外かつNP!=PCでは2位頭15? ではなく12/17=70.6%相当の強化帯。
+    C2-A/B: 研究タグのみ（頭強制なし）。
+    T3-HR: 3位指数>=69＋3-4差>=12P。18R中17Rで上位3頭頭(94.4%)。
+    T3-2: 3-4差>=13P＋PICK順位1/2。馬連2点研究。PCでは抑制。
+ */
+ let c2='';
+ if(d12===1 && d23>=8)c2='C2-S';
+ else if(d12===2 && d23>=8)c2='C2-A';
+ else if(d12===3 && d23>=8)c2='C2-B';
+
+ const t3h=Number.isFinite(d34) && p3>=69 && d34>=12;
+ const t3hOriginal=Number.isFinite(d34) && p3>=70 && d34>=12;
+ const t32=Number.isFinite(d34) && d34>=13 && (pickRank===1||pickRank===2);
+ let headCover='';
+ if(h2==='H2-BLOCK S'||h2==='H2-BLOCK SS') headCover='HEAD2-LOCK';
+ else if(t3h) headCover='HEAD3-LOCK';
+ else if(c2==='C2-S' && np!=='PC') headCover='HEAD2-C2';
+ else if(c2==='C2-S') headCover='HEAD2-C2-WATCH';
 
  let band={
   ...P_BANDS[np],
@@ -717,6 +766,19 @@ function analyzeRace(r){
  };
 
  const notes=[];
+
+ if(c2==='C2-S'){
+  if(h2==='H2-BLOCK S'||h2==='H2-BLOCK SS') notes.push('C2-S発動。ただしH2-BLOCKと重複するため2位固定は禁止・BLOCK優先');
+  else if(np!=='PC') notes.push('C2-S強化：BLOCK外＋非PC。コンピ2位を頭本線へ昇格');
+  else notes.push('C2-S監視：PCでは2位頭固定せず、2位を頭有力候補に留める');
+ }
+ if(c2==='C2-A')notes.push('C2-A：2位頭有力の研究タグ。実戦頭は強制しない');
+ if(c2==='C2-B')notes.push('C2-B：2位頭候補・連軸研究タグ。実戦頭は強制しない');
+ if(t3h)notes.push(`T3-HR：3位${p3}P＋3-4差${d34}P。頭を上位3頭へロック`);
+ if(t32){
+  if(np==='PC')notes.push('T3-2：条件成立だがPCでは馬連2点の自動推奨を抑制');
+  else notes.push('T3-2：PICK＋上位3頭残り2頭への馬連2点を監視候補');
+ }
 
  if(sub==='PB-S'){
   band.head=[1,2,3];
@@ -759,7 +821,27 @@ function analyzeRace(r){
  let headRanks=[...band.head];
  let headPriority=[];
 
- if(h2==='H2-C SS'||h2==='H2-C'){
+ if(h2==='H2-BLOCK SS'||h2==='H2-BLOCK S'){
+  headPriority=[1,2];
+  headRanks=[1,2];
+  notes.push(`${h2}：頭はコンピ1・2位に圧縮。2着は5位以内、3着は8位以内を基本`);
+ }
+ else if(h2==='H2-BLOCK A'){
+  headPriority=[1,2,3,4,5];
+  notes.push('H2-BLOCK A：14〜17P帯は監視級。頭1・2位を強制固定しない');
+ }
+ else if(t3h){
+  headPriority=[1,2,3];
+  headRanks=[1,2,3];
+ }
+ else if(c2==='C2-S' && np!=='PC'){
+  headPriority=[2,1,3,4,5,6];
+  headRanks=uniq([2,1,3].concat(headRanks));
+ }
+ else if(c2==='C2-S'){
+  headPriority=[2,1,3,4,5,6];
+ }
+ else if(h2==='H2-C SS'||h2==='H2-C'){
   headPriority=[2,1,3,4,5];
   headRanks=uniq([2,1,3].concat(headRanks));
   notes.push(`${h2}：コンピ2位を頭上位へ昇格`);
@@ -786,7 +868,10 @@ function analyzeRace(r){
  if(np==='PA')protectedHorses.push(byRank(1));
  if(sub==='PE-2H')protectedHorses.push(byRank(2));
  if(h2.startsWith('H2-C'))protectedHorses.push(byRank(2));
+ if(h2.startsWith('H2-BLOCK'))protectedHorses.push(byRank(1),byRank(2));
  if(h2==='H2-D SS')protectedHorses.push(byRank(1),byRank(2));
+ if(t3h)protectedHorses.push(byRank(1),byRank(2),byRank(3));
+ if(c2==='C2-S')protectedHorses.push(byRank(2));
 
  const wallAfter=byRank(wallPos+1);
  if(wallAfter&&wallGap>=8&&wallPos<=6){
@@ -828,9 +913,9 @@ function analyzeRace(r){
  const a={
   ...r,
   n,p1,p2,p3,p5,sum,
-  d12,d23,d13,d35,
+  d12,d23,d13,d35,d34,p4,pickRank,
   wallPos,wallGap,secondPos,secondGap,
-  oldP:op,np,sub,x,h2,structure,band,
+  oldP:op,np,sub,x,h2,c2,t3h,t3hOriginal,t32,headCover,structure,band,
   headCandidates,protectedHorses,final,
   band54to57,mid49to55,low46to49,
   resultRanks,
@@ -882,7 +967,10 @@ function finalVerdict(a){
   danger=a.sub==='PB-H'?'中':'低〜中';join='B+';
  }else if(a.np==='PC'){
   danger='中';join='B';
-  if((a.h2||'').startsWith('H2-C')){axis=top2;headMain=top2;reversals=[top1,top3];}
+  if(a.h2==='H2-BLOCK SS'||a.h2==='H2-BLOCK S'){
+   axis=top1;headMain=top1;reversals=[top2];danger='低';join='A';
+  }
+  else if((a.h2||'').startsWith('H2-C')){axis=top2;headMain=top2;reversals=[top1,top3];}
   else{axis=top1;headMain=top1;reversals=[top2,top3];}
   mainOpp=[top1,top2,top3,top4,top5].filter(h=>h!==axis);
  }else if(a.np==='PD'){
@@ -912,6 +1000,19 @@ function finalVerdict(a){
   axis=top2||top3||top1;headMain=axis;reversals=uniq([top3,top4,top1].concat(reversals));
   danger='高';join='C';
  }
+
+ // HEAD司令塔：BLOCK > T3-HR > C2-S の順で上書き
+ if(a.h2==='H2-BLOCK S'||a.h2==='H2-BLOCK SS'){
+  axis=top1;headMain=top1;reversals=uniq([top2]);danger='低';join='A';
+ }else if(a.t3h){
+  axis=top1;headMain=top1;reversals=uniq([top2,top3]);
+  if(join==='C'||join==='見送り')join='B';
+ }else if(a.c2==='C2-S' && a.np!=='PC'){
+  axis=top2;headMain=top2;reversals=uniq([top1,top3].concat(reversals));
+ }else if(a.c2==='C2-S'){
+  reversals=uniq([top2,top1,top3].concat(reversals));
+ }
+
  if(a.x){
   danger='最高';
   if(join==='A')join='B';
@@ -976,6 +1077,12 @@ function practicalVerdict(a){
  if(a.structure==='上位2頭ブロック型') first=uniq([byRank(1),byRank(2)]);
  if(a.structure==='一強・大断層型') first=uniq([byRank(1),byRank(2)]);
  if(a.slide==='S2+' && a.slideSub==='A') first=uniq([byRank(1),byRank(2),byRank(3)]);
+ // HEAD司令塔。BLOCKは必ず最後に優先する
+ if(a.t3h) first=uniq([byRank(1),byRank(2),byRank(3)]);
+ if(a.c2==='C2-S' && a.np!=='PC' && a.h2!=='H2-BLOCK S' && a.h2!=='H2-BLOCK SS') first=uniq([byRank(2),byRank(1),byRank(3),byRank(4)]);
+ else if(a.c2==='C2-S' && a.h2!=='H2-BLOCK S' && a.h2!=='H2-BLOCK SS') first=uniq([byRank(2),byRank(1),byRank(3)]);
+ // H2-BLOCK S/SS は最後に強制圧縮（他ルールより優先）
+ if(a.h2==='H2-BLOCK S'||a.h2==='H2-BLOCK SS') first=uniq([byRank(1),byRank(2)]);
  first=uniq(first).filter(Boolean).slice(0,4);
 
  // 2着候補：1着候補＋上位の相手、ただし広げすぎない
@@ -995,6 +1102,27 @@ function practicalVerdict(a){
  // 3着D：超深候補
  let thirdD=(a.x3Horses||[]).slice(0,2);
 
+ // H2-BLOCK S/SS 専用の実戦圧縮
+ let blockTickets=[];
+ let blockExacta=[];
+ let t32Tickets=[];
+ if(a.t32 && a.np!=='PC' && a.pickRank && (a.pickRank===1||a.pickRank===2)){
+   const others=[1,2,3].filter(r=>r!==a.pickRank);
+   t32Tickets=others.map(r=>[byRank(a.pickRank),byRank(r)]).filter(z=>z[0]&&z[1]);
+ }
+ if(a.h2==='H2-BLOCK S'||a.h2==='H2-BLOCK SS'){
+   first=uniq([byRank(1),byRank(2)]).filter(Boolean);
+   second=top(5).filter(Boolean);
+   thirdA=[byRank(1),byRank(3),byRank(4),byRank(5)].filter(Boolean);
+   thirdB=[byRank(6),byRank(7),byRank(8)].filter(Boolean);
+   thirdC=[];
+   thirdD=[];
+   const pairRanks=[[1,2],[1,3],[1,4],[1,5],[2,3],[2,4],[2,5]];
+   const exactRanks=[[1,2],[1,3],[1,4],[1,5],[2,3],[2,4],[2,5]];
+   blockTickets=pairRanks.map(([x,y])=>[byRank(x),byRank(y)]).filter(z=>z[0]&&z[1]);
+   blockExacta=exactRanks.map(([x,y])=>[byRank(x),byRank(y)]).filter(z=>z[0]&&z[1]);
+ }
+
  // レース全体の荒れ度は3着スライドとは分離
  let raceShape='普通';
  if(a.np==='PA' || a.structure==='一強・大断層型' || a.structure==='上位2頭ブロック型'){
@@ -1009,8 +1137,14 @@ function practicalVerdict(a){
  }
 
  let thirdRisk=a.slideLevel||'普通';
+ if(a.h2==='H2-BLOCK S'||a.h2==='H2-BLOCK SS'){
+   raceShape='硬め（HEAD2ロック）';
+   thirdRisk='低〜中（9位以下抑制）';
+ }else if(a.t3h){
+   raceShape='上位3頭ロック型';
+ }
 
- return {first,second,thirdA,thirdB,thirdC,thirdD,raceShape,thirdRisk};
+ return {first,second,thirdA,thirdB,thirdC,thirdD,raceShape,thirdRisk,blockTickets,blockExacta,t32Tickets};
 }
 
 function summaryText(a){
@@ -1018,7 +1152,7 @@ function summaryText(a){
  const p=practicalVerdict(a);
 
  return `【${a.date} ${a.place}${a.race}R】
-中央新P統合 V1.22
+中央新P統合 V1.25
 
 【実戦結論】
 1着候補：${p.first.join('・')||'なし'}
@@ -1031,18 +1165,22 @@ function summaryText(a){
 
 レース全体：${p.raceShape}
 3着荒れ度：${p.thirdRisk}
+${p.blockTickets.length?`BLOCK馬連7点：${p.blockTickets.map(z=>z.join('-')).join(' / ')}`:''}
+${p.blockExacta.length?`BLOCK馬単7点：${p.blockExacta.map(z=>z.join('→')).join(' / ')}`:''}
+${p.t32Tickets.length?`T3-2馬連2点：${p.t32Tickets.map(z=>z.join('-')).join(' / ')}`:''}
 
 【研究詳細】
 新P：${a.np}（${P_BANDS[a.np].desc}）
 構造：${a.structure}
 SUB：${a.sub||'なし'}
 H2：${a.h2||'なし'}
+HEAD：${a.headCover||'通常'} / C2：${a.c2||'なし'} / T3-HR：${a.t3h?'ON':'OFF'} / T3-2：${a.t32?'ON':'OFF'}
 X：${a.x?'ON':'OFF'}
 3着S：${a.slide}${a.slideSub||''}（${a.slideLabel}）
 X3：${a.x3On?(a.x3Hot?'🔥ON':'ON'):'OFF'}
 
 旧P：${a.oldP}（${a.sum}P・補助）
-1-2差：${a.d12}P / 2-3差：${a.d23}P / 1-3差：${a.d13}P / 3-5差：${Number.isFinite(a.d35)?a.d35:'—'}P
+1-2差：${a.d12}P / 2-3差：${a.d23}P / 3-4差：${Number.isFinite(a.d34)?a.d34:'—'}P / 1-3差：${a.d13}P / 3-5差：${Number.isFinite(a.d35)?a.d35:'—'}P
 最大壁：${a.wallPos}位後 ${a.wallGap}P
 第2壁：${a.secondPos??'—'}位後 ${Number.isFinite(a.secondGap)?a.secondGap:'—'}P
 
@@ -1090,6 +1228,10 @@ function renderResults(arr){
 
       <div class="k">3着荒れ度</div>
       <div class="v">${p.thirdRisk}</div>
+
+      ${p.blockTickets.length?`<div class="k">BLOCK馬連7点</div><div class="v">${p.blockTickets.map(z=>z.join('-')).join(' / ')}</div>`:''}
+      ${p.blockExacta.length?`<div class="k">BLOCK馬単7点</div><div class="v">${p.blockExacta.map(z=>z.join('→')).join(' / ')}</div>`:''}
+      ${p.t32Tickets.length?`<div class="k">T3-2馬連2点</div><div class="v">${p.t32Tickets.map(z=>z.join('-')).join(' / ')}</div>`:''}
     </div>
    </div>
 
@@ -1102,6 +1244,10 @@ function renderResults(arr){
        <span class="badge structure">${esc(a.structure)}</span>
        ${a.sub?`<span class="badge subb">${esc(a.sub)}</span>`:''}
        ${a.h2?`<span class="badge h2">${esc(a.h2)}</span>`:''}
+       ${a.headCover?`<span class="badge h2">${esc(a.headCover)}</span>`:''}
+       ${a.c2?`<span class="badge pick">${esc(a.c2)}</span>`:''}
+       ${a.t3h?`<span class="badge structure">T3-HR</span>`:''}
+       ${a.t32?`<span class="badge pick">T3-2</span>`:''}
        ${a.x?`<span class="badge x">X ON</span>`:'<span class="badge">X OFF</span>'}
        <span class="badge ${slideBadgeClass(a.slide)}">${a.slide}${a.slideSub||''}・${esc(a.slideLabel)}</span>
        ${a.x3On?`<span class="badge x3">X3 ${a.x3Hot?'🔥':''}ON</span>`:'<span class="badge">X3 OFF</span>'}
@@ -1112,7 +1258,8 @@ function renderResults(arr){
         <div class="kv">
          <div class="k">旧P（補助）</div><div class="v">${a.oldP} / ${a.sum}P</div>
          <div class="k">上位3</div><div class="v">${a.p1} - ${a.p2} - ${a.p3}</div>
-         <div class="k">指数差</div><div class="v">1-2 ${a.d12} / 2-3 ${a.d23} / 1-3 ${a.d13} / 3-5 ${Number.isFinite(a.d35)?a.d35:'—'}</div>
+         <div class="k">指数差</div><div class="v">1-2 ${a.d12} / 2-3 ${a.d23} / 3-4 ${Number.isFinite(a.d34)?a.d34:'—'} / 1-3 ${a.d13} / 3-5 ${Number.isFinite(a.d35)?a.d35:'—'}</div>
+         <div class="k">HEAD司令塔</div><div class="v">${a.headCover||'通常'} / ${a.c2||'C2なし'} / T3-HR ${a.t3h?'ON':'OFF'} / T3-2 ${a.t32?'ON':'OFF'}</div>
          <div class="k">最大壁</div><div class="v">${a.wallPos}位後 ${a.wallGap}P</div>
          <div class="k">第2壁</div><div class="v">${a.secondPos??'—'}位後 ${Number.isFinite(a.secondGap)?a.secondGap:'—'}P</div>
          <div class="k">1位信頼</div><div class="v">頭 ${a.trustHead} / 馬券内 ${a.trustPlace}</div>
@@ -1548,7 +1695,7 @@ async function exportCSV(){
   'p1','p2','p3','p5','sum',
   'd12','d23','d13','d35',
   'wallPos','wallGap','secondPos','secondGap',
-  'oldP','np','structure','sub','h2','x','pick',
+  'oldP','np','structure','sub','h2','headCover','c2','t3h','t32','d34','pickRank','x','pick',
   'trustHead','trustPlace',
   'slide','slideSub','slideLabel','slideLevel','slideBaseThird',
   'slideDeepHorses','x3On','x3Hot','x3Horses','slideDeepHit','x3Hit',
@@ -1561,7 +1708,7 @@ async function exportCSV(){
   '1位指数','2位指数','3位指数','5位指数','上位3合計',
   '差1_2','差2_3','差1_3','差3_5',
   '最大壁位置','最大壁差','第2壁位置','第2壁差',
-  '旧P','新P','構造型','SUB','H2','X','PICK',
+  '旧P','新P','構造型','SUB','H2','HEAD','C2','T3-HR','T3-2','差3_4','PICK順位','X','PICK',
   '頭信頼','馬券内信頼',
   '3着S','3着Sサブ型','3着S名称','3着S危険度','基本3着帯',
   '深候補','X3','X3強','X3候補','深候補的中','X3的中',
@@ -1574,7 +1721,7 @@ async function exportCSV(){
 
  download(
   text,
-  `中央新P_V1.23_log_${new Date().toISOString().slice(0,10)}.csv`,
+  `中央新P_V1.25_HEAD_log_${new Date().toISOString().slice(0,10)}.csv`,
   'text/csv;charset=utf-8'
  );
 }
@@ -1593,7 +1740,7 @@ async function importJSON(file){
  for(const old of arr)await put(old);
 
  await refreshAll();
- alert(`${arr.length}件読み込みました。\n旧版データならV1.23で全件再解析してください。`);
+ alert(`${arr.length}件読み込みました。\n旧版データならV1.25で全件再解析してください。`);
 }
 
 /* ==============================
@@ -1674,5 +1821,42 @@ $('#deleteAll').onclick=async()=>{
 refreshAll();
 
 </script>
+
+<script>
+/* PWA shell: prediction logic above is unchanged. */
+let deferredInstallPrompt=null;
+const installBtn=document.getElementById('installAppBtn');
+const appState=document.getElementById('appState');
+function isStandalone(){return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;}
+function updateAppState(){
+ if(isStandalone()){
+  appState.textContent='✅ アプリモード';
+  if(installBtn) installBtn.style.display='none';
+ }else{
+  appState.textContent=navigator.onLine?'ブラウザ版・オンライン':'ブラウザ版・オフライン';
+ }
+}
+window.addEventListener('beforeinstallprompt',e=>{
+ e.preventDefault(); deferredInstallPrompt=e;
+ if(installBtn) installBtn.style.display='inline-block';
+});
+if(installBtn) installBtn.addEventListener('click',async()=>{
+ if(deferredInstallPrompt){
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt=null; updateAppState(); return;
+ }
+ const isiOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+ if(isiOS){ alert('iPhone/iPadではSafariの共有ボタン →「ホーム画面に追加」でアプリ化できます。'); }
+ else{ alert('このページをHTTPSで開き、ブラウザの「アプリをインストール」または「ホーム画面に追加」を使ってください。'); }
+});
+window.addEventListener('appinstalled',updateAppState);
+window.addEventListener('online',updateAppState); window.addEventListener('offline',updateAppState);
+updateAppState();
+if('serviceWorker' in navigator && location.protocol!=='file:'){
+ window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+</script>
+
 </body>
 </html>
