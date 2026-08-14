@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
-<meta name="app-build" content="central-newp-v1.20-20260814">
-<title>競馬メジアン 中央新P統合研究所 V1.20</title>
+<meta name="app-build" content="central-newp-v1.21-third-slide-20260814">
+<title>競馬メジアン 中央新P統合研究所 V1.21</title>
 
 <style>
 :root{
@@ -78,6 +78,11 @@ textarea{
 .badge.subb{background:#854d0e}
 .badge.structure{background:#334155}
 .badge.pick{background:#713f12}
+.badge.slide0{background:#14532d}
+.badge.slide1{background:#854d0e}
+.badge.slide2{background:#9a3412}
+.badge.slide2p{background:#991b1b}
+.badge.x3{background:#701a75}
 
 .title{font-weight:900;color:var(--cyan);font-size:17px}
 .kv{display:grid;grid-template-columns:145px 1fr;gap:3px 8px;font-size:14px}
@@ -138,6 +143,10 @@ th{
  border:2px solid #f59e0b!important;
  background:#251b05!important
 }
+.slidebox{
+ border:2px solid #c084fc!important;
+ background:#1f1230!important
+}
 hr{border:0;border-top:1px solid #294263}
 </style>
 </head>
@@ -145,9 +154,9 @@ hr{border:0;border-top:1px solid #294263}
 <body>
 <main>
 
-<h1>競馬メジアン 中央新P統合研究所 V1.20</h1>
+<h1>競馬メジアン 中央新P統合研究所 V1.21</h1>
 <div class="sub">
-696R再構築PA〜PFを母体に、SUB・H2・X・構造差・壁・頭信頼・特殊指数・削除禁止・参加判定を統合
+696R再構築PA〜PF ＋ 3着スライドV0.4。SUB・H2・X・構造差・壁・頭信頼・特殊指数・削除禁止・参加判定を統合
 </div>
 
 <div class="tabs">
@@ -199,8 +208,8 @@ hr{border:0;border-top:1px solid #294263}
 
 <div class="engine">
 判定固定順：
-<strong>新P → SUB → H2 → X → 構造型 → 差・最大壁 → 頭/馬券内信頼 → 順位帯 → 特殊指数 → 削除禁止 → 最終5頭 → 参加判定</strong>。
-旧P1〜P6は補助監査だけに使用。
+<strong>新P → SUB → H2 → X → 構造型 → 差・最大壁 → 頭/馬券内信頼 → 順位帯 → 3着スライド → 特殊指数 → 削除禁止 → 最終5頭 → 参加判定</strong>。
+旧P1〜P6は補助監査だけに使用。3着スライドは新Pとは独立して保存・検証します。
 </div>
 
 <div id="results"></div>
@@ -213,7 +222,7 @@ hr{border:0;border-top:1px solid #294263}
  <div class="title">保存履歴</div>
 
  <div class="topbar">
-  <button id="reanalyzeAll" class="purple">V1.20で全件再解析</button>
+  <button id="reanalyzeAll" class="purple">V1.21で全件再解析</button>
   <button id="exportJson" class="green">JSONバックアップ</button>
   <button id="exportCsv" class="orange">CSV出力</button>
   <button id="importJson" class="purple">JSON読込</button>
@@ -222,8 +231,8 @@ hr{border:0;border-top:1px solid #294263}
  </div>
 
  <div class="notice">
- V1.11から更新した直後は、先にJSONバックアップを取り、その後
- 「V1.20で全件再解析」を押してください。
+ V1.20から更新する前にJSONバックアップ推奨。更新後は
+ 「V1.21で全件再解析」を押すと、保存済みレースにも3着スライド判定が追加されます。
  </div>
 
  <div class="tablewrap">
@@ -232,6 +241,7 @@ hr{border:0;border-top:1px solid #294263}
   <tr>
    <th>日付</th><th>場</th><th>R</th>
    <th>新P</th><th>構造</th><th>SUB</th><th>H2</th><th>X</th>
+   <th>3着S</th><th>深候補</th><th>X3</th>
    <th>PICK</th><th>頭候補</th><th>削除禁止</th><th>最終5頭</th>
    <th>参加</th><th>結果</th><th>順位</th><th>操作</th>
   </tr>
@@ -262,6 +272,21 @@ hr{border:0;border-top:1px solid #294263}
    </tr>
   </thead>
   <tbody id="pStatsBody"></tbody>
+ </table>
+ </div>
+
+ <div class="sep"></div>
+
+ <div class="title">3着スライド検証</div>
+ <div class="tablewrap">
+ <table>
+  <thead>
+   <tr>
+    <th>判定</th><th>結果済</th><th>3着1〜5位</th><th>3着6〜8位</th>
+    <th>3着9位以下</th><th>深候補的中</th><th>X3的中</th>
+   </tr>
+  </thead>
+  <tbody id="slideStatsBody"></tbody>
  </table>
  </div>
 
@@ -320,42 +345,12 @@ const pct=(n,d)=>d?`${(100*n/d).toFixed(1)}%`:'—';
    ============================== */
 
 const P_BANDS={
- PA:{
-  head:[1,2,3],
-  place2:[1,2,3,4,5],
-  place3:[1,2,3,4,5,6,7],
-  desc:'1位強軸型'
- },
- PB:{
-  head:[1,2,3,4],
-  place2:[1,2,3,4,5,6],
-  place3:[1,2,3,4,5,6,7],
-  desc:'1位優勢・穴侵入型'
- },
- PC:{
-  head:[1,2,3],
-  place2:[1,2,3,4,5],
-  place3:[1,2,3,4,5,6,7],
-  desc:'上位入替型'
- },
- PD:{
-  head:[1,2,3,4,5],
-  place2:[1,2,3,4,5,6,7,8],
-  place3:[1,2,3,4,5,6,7,8],
-  desc:'標準混戦型'
- },
- PE:{
-  head:[1,2,3,4,5,6],
-  place2:[1,2,3,4,5,6,7],
-  place3:[1,2,3,4,5,6,7,8],
-  desc:'1位危険型'
- },
- PF:{
-  head:[2,3,4,5,6,7,8],
-  place2:[1,2,3,4,5,6,7,8,9],
-  place3:[1,2,3,4,5,6,7,8,9],
-  desc:'全面崩壊型'
- }
+ PA:{head:[1,2,3],place2:[1,2,3,4,5],place3:[1,2,3,4,5,6,7],desc:'1位強軸型'},
+ PB:{head:[1,2,3,4],place2:[1,2,3,4,5,6],place3:[1,2,3,4,5,6,7],desc:'1位優勢・穴侵入型'},
+ PC:{head:[1,2,3],place2:[1,2,3,4,5],place3:[1,2,3,4,5,6,7],desc:'上位入替型'},
+ PD:{head:[1,2,3,4,5],place2:[1,2,3,4,5,6,7,8],place3:[1,2,3,4,5,6,7,8],desc:'標準混戦型'},
+ PE:{head:[1,2,3,4,5,6],place2:[1,2,3,4,5,6,7],place3:[1,2,3,4,5,6,7,8],desc:'1位危険型'},
+ PF:{head:[2,3,4,5,6,7,8],place2:[1,2,3,4,5,6,7,8,9],place3:[1,2,3,4,5,6,7,8,9],desc:'全面崩壊型'}
 };
 
 function oldP(sum){
@@ -367,10 +362,8 @@ function oldP(sum){
  return 'P6';
 }
 
-/* 696Rから再構築したPA〜PF本体 */
 function newP(f){
  const {n,p1,sum,d12,wallPos,wallGap}=f;
-
  if(d12<=4){
   if(p1<=75){
    if(wallPos<=3){
@@ -394,12 +387,10 @@ function newP(f){
     return n<=12?'PC':'PD';
    }else{
     if(sum<=215)return 'PB';
-
     if(d12<=9){
      if(d12<=7)return n<=12?'PC':'PD';
      return 'PB';
     }
-
     return 'PA';
    }
   }
@@ -407,10 +398,8 @@ function newP(f){
  }
 }
 
-/* SUB */
 function subType(f){
  const {n,p1,p2,p3,sum,d12,d23,wallPos,wallGap}=f;
-
  if(p1<=74){
   if(wallPos<=3){
    if(d12<=3){
@@ -431,7 +420,6 @@ function subType(f){
     return '';
    }else{
     if(p1<=82)return '';
-
     if(n<=11){
      if(sum<=216)return p3<=61?'PB-H':'PB-S';
      return '';
@@ -462,25 +450,16 @@ function xFlag(f){
    ============================== */
 
 function parseBlocks(text){
-
  const norm=text.replace(/\r/g,'').trim();
  if(!norm)return [];
-
  const starts=[...norm.matchAll(/【([^】]+)】/g)];
-
- if(!starts.length){
-  throw new Error('【日付 場R】の見出しがありません');
- }
+ if(!starts.length)throw new Error('【日付 場R】の見出しがありません');
 
  const out=[];
-
  for(let i=0;i<starts.length;i++){
-
   const head=starts[i][1].trim();
-
   const from=starts[i].index+starts[i][0].length;
   const to=i+1<starts.length?starts[i+1].index:norm.length;
-
   const body=norm.slice(from,to);
 
   const m=
@@ -490,62 +469,32 @@ function parseBlocks(text){
 
   if(!m)throw new Error(`見出しを読めません：${head}`);
 
-  const date=
-   `${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
-
+  const date=`${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
   const place=m[4].trim();
   const race=Number(m[5]);
 
-  const compiSec=
-   (body.match(/\[COMPI\]([\s\S]*?)(?=\n\[[A-Z]+\]|$)/i)||[])[1];
-
-  if(!compiSec){
-   throw new Error(`${head}：[COMPI]がありません`);
-  }
+  const compiSec=(body.match(/\[COMPI\]([\s\S]*?)(?=\n\[[A-Z]+\]|$)/i)||[])[1];
+  if(!compiSec)throw new Error(`${head}：[COMPI]がありません`);
 
   const compi=[];
-
   compiSec.split('\n').forEach(line=>{
    const mm=line.trim().match(/^(\d+)\s+(\d+(?:\.\d+)?)/);
-   if(mm){
-    compi.push({
-     horse:Number(mm[1]),
-     point:Number(mm[2])
-    });
-   }
+   if(mm)compi.push({horse:Number(mm[1]),point:Number(mm[2])});
   });
 
-  if(compi.length<3){
-   throw new Error(`${head}：コンピは最低3頭必要です`);
-  }
-
+  if(compi.length<3)throw new Error(`${head}：コンピは最低3頭必要です`);
   compi.sort((a,b)=>b.point-a.point);
 
-  /* PICK */
-  const pickSec=
-   (body.match(/\[PICK\]([\s\S]*?)(?=\n\[[A-Z]+\]|$)/i)||[])[1]||'';
-
+  const pickSec=(body.match(/\[PICK\]([\s\S]*?)(?=\n\[[A-Z]+\]|$)/i)||[])[1]||'';
   const pickMatch=pickSec.match(/(\d+)/);
-
   const pick=pickMatch?Number(pickMatch[1]):null;
 
-  /* RESULT */
-  const resSec=
-   (body.match(/\[RESULT\]([\s\S]*?)(?=\n\[[A-Z]+\]|$)/i)||[])[1]||'';
+  const resSec=(body.match(/\[RESULT\]([\s\S]*?)(?=\n\[[A-Z]+\]|$)/i)||[])[1]||'';
+  const rm=resSec.match(/(\d+)\s*[-－]\s*(\d+)\s*[-－]\s*(\d+)/);
+  const result=rm?[Number(rm[1]),Number(rm[2]),Number(rm[3])]:[];
 
-  const rm=resSec.match(
-   /(\d+)\s*[-－]\s*(\d+)\s*[-－]\s*(\d+)/
-  );
-
-  const result=rm
-   ?[Number(rm[1]),Number(rm[2]),Number(rm[3])]
-   :[];
-
-  out.push({
-   date,place,race,compi,pick,result
-  });
+  out.push({date,place,race,compi,pick,result});
  }
-
  return out;
 }
 
@@ -554,38 +503,88 @@ function parseBlocks(text){
    ============================== */
 
 function structureType(f){
-
  const {p1,d12,d23,d13,wallPos,wallGap}=f;
-
- if(d12>=20){
-  return '一強・大断層型';
- }
-
- if(d12<=4 && d23>=10){
-  return '上位2頭ブロック型';
- }
-
- if(d12<=5 && d23<=5){
-  return '上位密集・頭替わり型';
- }
-
- if(wallPos>=4 && wallGap>=10){
-  return '上位ロック・壁直後侵入型';
- }
-
- if(p1<=75 && d12<=5){
-  return '1位危険・全面入替型';
- }
-
- if(d13<=10){
-  return '上位3頭密集型';
- }
-
- if(wallPos<=2 && wallGap>=10){
-  return '上位断層型';
- }
-
+ if(d12>=20)return '一強・大断層型';
+ if(d12<=4 && d23>=10)return '上位2頭ブロック型';
+ if(d12<=5 && d23<=5)return '上位密集・頭替わり型';
+ if(wallPos>=4 && wallGap>=10)return '上位ロック・壁直後侵入型';
+ if(p1<=75 && d12<=5)return '1位危険・全面入替型';
+ if(d13<=10)return '上位3頭密集型';
+ if(wallPos<=2 && wallGap>=10)return '上位断層型';
  return '標準構造型';
+}
+
+/* ==============================
+   3着スライド V0.4
+   ============================== */
+
+function thirdSlideJudge(c,f){
+ const n=f.n;
+ const p1=f.p1;
+ const p3=c[2]?.point;
+ const p5=c[4]?.point;
+ const d35=Number.isFinite(p3)&&Number.isFinite(p5)?p3-p5:null;
+
+ let slide='S1';
+ let label='軽スライド';
+ let level='中';
+ let baseThird='1〜8位';
+
+ if(n<=9){
+  slide='S0';
+  label='固定型';
+  level='低';
+  baseThird='1〜5位';
+ }
+ else if(Number.isFinite(d35) && n>=14 && d35<=7){
+  slide='S2+';
+  label='深スライド最警戒';
+  level='最高';
+  baseThird='1〜8位＋深層';
+ }
+ else if(Number.isFinite(d35) && d35>=8 && p1<=76){
+  slide='S2';
+  label='深スライド警戒';
+  level='高';
+  baseThird='1〜8位＋深層';
+ }
+ else if(Number.isFinite(d35) && d35>=8 && p1>=77){
+  slide='S0+';
+  label='上位止まり寄り';
+  level='低〜中';
+  baseThird='1〜8位';
+ }
+ else{
+  slide='S1';
+  label='軽スライド';
+  level='中';
+  baseThird='1〜8位';
+ }
+
+ const deepPool=c
+  .map((z,i)=>({rank:i+1,horse:z.horse,point:z.point}))
+  .filter(z=>z.rank>=9&&z.rank<=12&&z.point>=46&&z.point<=52);
+
+ const deepLimit=slide==='S2+'?3:(slide==='S2'?2:0);
+ const deepCandidates=deepPool.slice(0,deepLimit);
+
+ const x3Pool=c
+  .map((z,i)=>({rank:i+1,horse:z.horse,point:z.point}))
+  .filter(z=>z.rank>=14&&z.rank<=16&&z.point>=40&&z.point<=42);
+
+ const x3On=(slide==='S2'||slide==='S2+') && f.wallGap<=12 && x3Pool.length>0;
+ const x3Hot=x3On && p1<=72;
+
+ return {
+  slide,label,level,baseThird,d35,
+  deepPool,
+  deepCandidates,
+  x3On,
+  x3Hot,
+  x3Candidates:x3On?x3Pool:[],
+  deepRule:'9〜12位 × 46〜52P',
+  x3Rule:'14〜16位 × 40〜42P'
+ };
 }
 
 /* ==============================
@@ -593,51 +592,22 @@ function structureType(f){
    ============================== */
 
 function trustJudge(a){
-
  let head='C';
  let place='C';
+ if(a.np==='PA'){head='A';place='A';}
+ else if(a.np==='PB'){head='B';place='B';}
+ else if(a.np==='PC'){head='C';place='B';}
+ else if(a.np==='PD'){head='C';place='B';}
+ else if(a.np==='PE'){head='D';place='C';}
+ else if(a.np==='PF'){head='D';place='D';}
 
- if(a.np==='PA'){
-  head='A';
-  place='A';
- }
- else if(a.np==='PB'){
-  head='B';
-  place='B';
- }
- else if(a.np==='PC'){
-  head='C';
-  place='B';
- }
- else if(a.np==='PD'){
-  head='C';
-  place='B';
- }
- else if(a.np==='PE'){
-  head='D';
-  place='C';
- }
- else if(a.np==='PF'){
-  head='D';
-  place='D';
- }
-
- if(a.sub==='PE-2H'){
-  head='D';
- }
-
- if(a.h2==='H2-C SS'){
-  head='B';
-  place='B';
- }
-
+ if(a.sub==='PE-2H')head='D';
+ if(a.h2==='H2-C SS'){head='B';place='B';}
  if(a.x){
   if(head==='A')head='B';
   else if(head==='B')head='C';
-
   if(place==='A')place='B';
  }
-
  return {head,place};
 }
 
@@ -646,76 +616,44 @@ function trustJudge(a){
    ============================== */
 
 function analyzeRace(r){
-
  const c=r.compi;
  const n=c.length;
 
  const p1=c[0].point;
  const p2=c[1].point;
  const p3=c[2].point;
+ const p5=c[4]?.point??null;
 
  const sum=p1+p2+p3;
-
  const d12=p1-p2;
  const d23=p2-p3;
  const d13=p1-p3;
+ const d35=Number.isFinite(p5)?p3-p5:null;
 
  let wallPos=1;
  let wallGap=-Infinity;
-
  let secondPos=null;
  let secondGap=-Infinity;
 
  const gaps=[];
-
  for(let i=0;i<c.length-1;i++){
-  gaps.push({
-   pos:i+1,
-   gap:c[i].point-c[i+1].point
-  });
+  gaps.push({pos:i+1,gap:c[i].point-c[i+1].point});
  }
-
  gaps.sort((a,b)=>b.gap-a.gap||a.pos-b.pos);
 
- if(gaps[0]){
-  wallPos=gaps[0].pos;
-  wallGap=gaps[0].gap;
- }
+ if(gaps[0]){wallPos=gaps[0].pos;wallGap=gaps[0].gap;}
+ if(gaps[1]){secondPos=gaps[1].pos;secondGap=gaps[1].gap;}
 
- if(gaps[1]){
-  secondPos=gaps[1].pos;
-  secondGap=gaps[1].gap;
- }
-
- const f={
-  n,p1,p2,p3,sum,
-  d12,d23,d13,
-  wallPos,wallGap
- };
-
+ const f={n,p1,p2,p3,sum,d12,d23,d13,wallPos,wallGap};
  const op=oldP(sum);
  const np=newP(f);
  const sub=subType(f);
  const x=xFlag(f);
 
  let h2='';
-
- if(p1>=80 && d12<=3){
-  h2='H2-C SS';
- }
- else if(p1>=80 && d12<=5){
-  h2='H2-C';
- }
- else if(
-  p1>=80 &&
-  op==='P3' &&
-  np==='PD' &&
-  d12>=10 &&
-  d12<=18 &&
-  d23>=6
- ){
-  h2='H2-D SS';
- }
+ if(p1>=80 && d12<=3)h2='H2-C SS';
+ else if(p1>=80 && d12<=5)h2='H2-C';
+ else if(p1>=80&&op==='P3'&&np==='PD'&&d12>=10&&d12<=18&&d23>=6)h2='H2-D SS';
 
  let band={
   ...P_BANDS[np],
@@ -730,20 +668,12 @@ function analyzeRace(r){
   band.head=[1,2,3];
   notes.push('PB-S：PA寄り。頭1〜3位を優先');
  }
-
- if(sub==='PB-H'){
-  notes.push('PB-H：1位優勢だが下位侵入を強制監査');
- }
-
+ if(sub==='PB-H')notes.push('PB-H：1位優勢だが下位侵入を強制監査');
  if(sub==='PE-2H'){
   band.head=[2,3,4,5,6,7];
   notes.push('PE-2H：1位を頭から降格。2位を逆転頭A');
  }
-
- if(np==='PF'){
-  notes.push('PF：全面崩壊型。1位頭固定禁止');
- }
-
+ if(np==='PF')notes.push('PF：全面崩壊型。1位頭固定禁止');
  if(x){
   notes.push('X：下位侵入警報。2・3着帯を拡張');
   band.place2=uniq(band.place2.concat([9,10]));
@@ -751,20 +681,26 @@ function analyzeRace(r){
  }
 
  const structure=structureType(f);
+ const slide=thirdSlideJudge(c,f);
+
+ if(slide.slide==='S2+'){
+  notes.push(`3着S2+：14頭以上＋3-5差${slide.d35}P。深スライド最警戒`);
+ }else if(slide.slide==='S2'){
+  notes.push(`3着S2：1位${p1}P＋3-5差${slide.d35}P。9〜12位を解禁`);
+ }
+ if(slide.deepCandidates.length){
+  notes.push(`3着深候補：${slide.deepCandidates.map(z=>`${z.horse}番(${z.rank}位/${z.point}P)`).join('・')}`);
+ }
+ if(slide.x3On){
+  notes.push(`X3${slide.x3Hot?'🔥':''}：超深3着候補 ${slide.x3Candidates.map(z=>`${z.horse}番(${z.rank}位/${z.point}P)`).join('・')}`);
+ }
 
  const byRank=rank=>c[rank-1]?.horse;
 
- /* 特殊指数 */
- const band54to57=
-  c.filter(z=>z.point>=54&&z.point<=57).map(z=>z.horse);
+ const band54to57=c.filter(z=>z.point>=54&&z.point<=57).map(z=>z.horse);
+ const mid49to55=c.filter(z=>z.point>=49&&z.point<=55).map(z=>z.horse);
+ const low46to49=c.filter(z=>z.point>=46&&z.point<=49).map(z=>z.horse);
 
- const mid49to55=
-  c.filter(z=>z.point>=49&&z.point<=55).map(z=>z.horse);
-
- const low46to49=
-  c.filter(z=>z.point>=46&&z.point<=49).map(z=>z.horse);
-
- /* 頭候補 */
  let headRanks=[...band.head];
  let headPriority=[];
 
@@ -777,115 +713,51 @@ function analyzeRace(r){
   headPriority=[2,1,3,4,5,6,7];
   notes.push('H2-D SS：2位頭攻撃型');
  }
- else if(sub==='PE-2H'){
-  headPriority=[2,3,4,5,6,7,1];
- }
- else if(np==='PA'||np==='PB'){
-  headPriority=[1,2,3,4,5];
- }
- else if(np==='PF'){
-  headPriority=[2,3,4,5,6,7,8,1];
- }
- else{
-  headPriority=[1,2,3,4,5,6];
- }
+ else if(sub==='PE-2H')headPriority=[2,3,4,5,6,7,1];
+ else if(np==='PA'||np==='PB')headPriority=[1,2,3,4,5];
+ else if(np==='PF')headPriority=[2,3,4,5,6,7,8,1];
+ else headPriority=[1,2,3,4,5,6];
 
  let headCandidates=[];
-
  headPriority.forEach(rr=>{
   if(headRanks.includes(rr)||h2){
    const h=byRank(rr);
    if(h)headCandidates.push(h);
   }
  });
-
  headCandidates=uniq(headCandidates).slice(0,6);
 
- /* 削除禁止 */
  let protectedHorses=[];
+ if(np==='PA')protectedHorses.push(byRank(1));
+ if(sub==='PE-2H')protectedHorses.push(byRank(2));
+ if(h2.startsWith('H2-C'))protectedHorses.push(byRank(2));
+ if(h2==='H2-D SS')protectedHorses.push(byRank(1),byRank(2));
 
- if(np==='PA'){
-  protectedHorses.push(byRank(1));
- }
-
- if(sub==='PE-2H'){
-  protectedHorses.push(byRank(2));
- }
-
- if(h2.startsWith('H2-C')){
-  protectedHorses.push(byRank(2));
- }
-
- if(h2==='H2-D SS'){
-  protectedHorses.push(byRank(1),byRank(2));
- }
-
- /* 最大壁直後 */
  const wallAfter=byRank(wallPos+1);
-
- if(
-  wallAfter &&
-  wallGap>=8 &&
-  wallPos<=6
- ){
+ if(wallAfter&&wallGap>=8&&wallPos<=6){
   protectedHorses.push(wallAfter);
   notes.push(`最大壁直後：${wallAfter}番を侵入監査`);
  }
 
- /* 54〜57は順位条件つき */
  c.forEach((z,i)=>{
   const rank=i+1;
-
-  if(
-   z.point>=54 &&
-   z.point<=57 &&
-   rank<=6
-  ){
-   protectedHorses.push(z.horse);
-  }
+  if(z.point>=54&&z.point<=57&&rank<=6)protectedHorses.push(z.horse);
  });
-
- /* 46〜49は自動昇格しない */
  protectedHorses=uniq(protectedHorses);
 
- /* 最終5頭 */
  let final=[];
-
  const add=h=>{
-  if(
-   h &&
-   !final.includes(h) &&
-   final.length<5
-  ){
-   final.push(h);
-  }
+  if(h&&!final.includes(h)&&final.length<5)final.push(h);
  };
 
- /* まず頭候補 */
  headCandidates.slice(0,3).forEach(add);
-
- /* 上位順位を優先 */
  [1,2,3,4,5].forEach(rk=>add(byRank(rk)));
-
- /* 削除禁止 */
  protectedHorses.forEach(add);
-
- /* まだ足りなければ壁直後 */
  add(wallAfter);
+ for(let rk=6;rk<=n;rk++)add(byRank(rk));
 
- /* それでも足りなければ6位以降 */
- for(let rk=6;rk<=n;rk++){
-  add(byRank(rk));
- }
+ const trust=trustJudge({np,sub,h2,x});
 
- /* 信頼 */
- const temp={
-  np,sub,h2,x
- };
-
- const trust=trustJudge(temp);
-
- /* 結果順位 */
  const resultRanks=r.result.length
   ?r.result.map(h=>{
     const i=c.findIndex(z=>z.horse===h);
@@ -893,33 +765,44 @@ function analyzeRace(r){
    })
   :[];
 
+ const thirdHorse=r.result?.[2]??null;
+ const thirdRank=resultRanks?.[2]??null;
+ const deepCandidateHorses=slide.deepCandidates.map(z=>z.horse);
+ const x3CandidateHorses=slide.x3Candidates.map(z=>z.horse);
+
  const a={
   ...r,
-  n,p1,p2,p3,sum,
-  d12,d23,d13,
-  wallPos,wallGap,
-  secondPos,secondGap,
-  oldP:op,
-  np,sub,x,h2,
-  structure,
-  band,
-  headCandidates,
-  protectedHorses,
-  final,
-  band54to57,
-  mid49to55,
-  low46to49,
+  n,p1,p2,p3,p5,sum,
+  d12,d23,d13,d35,
+  wallPos,wallGap,secondPos,secondGap,
+  oldP:op,np,sub,x,h2,structure,band,
+  headCandidates,protectedHorses,final,
+  band54to57,mid49to55,low46to49,
   resultRanks,
   trustHead:trust.head,
   trustPlace:trust.place,
   notes,
+  slide:slide.slide,
+  slideLabel:slide.label,
+  slideLevel:slide.level,
+  slideBaseThird:slide.baseThird,
+  slideDeepRule:slide.deepRule,
+  slideDeepPool:slide.deepPool,
+  slideDeepCandidates:slide.deepCandidates,
+  slideDeepHorses:deepCandidateHorses,
+  x3On:slide.x3On,
+  x3Hot:slide.x3Hot,
+  x3Rule:slide.x3Rule,
+  x3Candidates:slide.x3Candidates,
+  x3Horses:x3CandidateHorses,
+  thirdHorse,
+  thirdRank,
+  slideDeepHit:thirdHorse?deepCandidateHorses.includes(thirdHorse):false,
+  x3Hit:thirdHorse?x3CandidateHorses.includes(thirdHorse):false,
   id:`${r.date}_${r.place}_${r.race}`
  };
 
- return {
-  ...a,
-  verdict:finalVerdict(a)
- };
+ return {...a,verdict:finalVerdict(a)};
 }
 
 /* ==============================
@@ -927,140 +810,52 @@ function analyzeRace(r){
    ============================== */
 
 function finalVerdict(a){
-
  const c=a.compi||[];
  const byRank=r=>c[r-1]?.horse;
 
- const top1=byRank(1);
- const top2=byRank(2);
- const top3=byRank(3);
- const top4=byRank(4);
- const top5=byRank(5);
- const top6=byRank(6);
+ const top1=byRank(1),top2=byRank(2),top3=byRank(3),
+       top4=byRank(4),top5=byRank(5),top6=byRank(6);
 
- let axis=top1;
- let headMain=top1;
- let reversals=[];
- let mainOpp=[];
- let holeWatch=[];
- let danger='中';
- let join='B';
+ let axis=top1,headMain=top1,reversals=[],mainOpp=[],holeWatch=[];
+ let danger='中',join='B';
 
  if(a.np==='PA'){
-  axis=top1;
-  headMain=top1;
-  reversals=[top2,top3];
-  mainOpp=[top2,top3,top4,top5];
-  danger='低';
-  join='A';
+  axis=top1;headMain=top1;reversals=[top2,top3];mainOpp=[top2,top3,top4,top5];danger='低';join='A';
+ }else if(a.np==='PB'){
+  axis=top1;headMain=top1;reversals=[top2,top3,top4];mainOpp=[top2,top3,top4,top5];
+  danger=a.sub==='PB-H'?'中':'低〜中';join='B+';
+ }else if(a.np==='PC'){
+  danger='中';join='B';
+  if((a.h2||'').startsWith('H2-C')){axis=top2;headMain=top2;reversals=[top1,top3];}
+  else{axis=top1;headMain=top1;reversals=[top2,top3];}
+  mainOpp=[top1,top2,top3,top4,top5].filter(h=>h!==axis);
+ }else if(a.np==='PD'){
+  danger=a.x?'高':'中';join=a.x?'C':'B';
+  if(a.h2==='H2-D SS'){axis=top2;headMain=top2;reversals=[top1,top3,top4];}
+  else if((a.h2||'').startsWith('H2-C')){axis=top2;headMain=top2;reversals=[top1,top3];}
+  else{axis=top1;headMain=top1;reversals=[top2,top3,top4];}
+  mainOpp=[top1,top2,top3,top4,top5].filter(h=>h!==axis);
+ }else if(a.np==='PE'){
+  danger='高';join='C';axis=top2||top1;headMain=axis;
+  reversals=a.sub==='PE-2H'?[top3,top4,top5,top1]:[top1,top3,top4,top5];
+  mainOpp=[top1,top2,top3,top4,top5].filter(h=>h!==axis);
+ }else{
+  danger='最高';join='見送り';axis=top2||top3||top1;headMain=axis;
+  reversals=[top3,top4,top5,top6].filter(h=>h!==axis);
+  mainOpp=[top2,top3,top4,top5,top6].filter(h=>h&&h!==axis);
  }
 
- else if(a.np==='PB'){
-  axis=top1;
-  headMain=top1;
-  reversals=[top2,top3,top4];
-  mainOpp=[top2,top3,top4,top5];
-  danger=a.sub==='PB-H'?'中':'低〜中';
-  join='B+';
- }
-
- else if(a.np==='PC'){
-
-  danger='中';
-  join='B';
-
-  if((a.h2||'').startsWith('H2-C')){
-   axis=top2;
-   headMain=top2;
-   reversals=[top1,top3];
-  }else{
-   axis=top1;
-   headMain=top1;
-   reversals=[top2,top3];
-  }
-
-  mainOpp=[top1,top2,top3,top4,top5]
-   .filter(h=>h!==axis);
- }
-
- else if(a.np==='PD'){
-
-  danger=a.x?'高':'中';
-  join=a.x?'C':'B';
-
-  if(a.h2==='H2-D SS'){
-   axis=top2;
-   headMain=top2;
-   reversals=[top1,top3,top4];
-  }
-  else if((a.h2||'').startsWith('H2-C')){
-   axis=top2;
-   headMain=top2;
-   reversals=[top1,top3];
-  }
-  else{
-   axis=top1;
-   headMain=top1;
-   reversals=[top2,top3,top4];
-  }
-
-  mainOpp=[top1,top2,top3,top4,top5]
-   .filter(h=>h!==axis);
- }
-
- else if(a.np==='PE'){
-
-  danger='高';
-  join='C';
-
-  axis=top2||top1;
-  headMain=axis;
-
-  if(a.sub==='PE-2H'){
-   reversals=[top3,top4,top5,top1];
-  }else{
-   reversals=[top1,top3,top4,top5];
-  }
-
-  mainOpp=[top1,top2,top3,top4,top5]
-   .filter(h=>h!==axis);
- }
-
- else{
-
-  danger='最高';
-  join='見送り';
-
-  axis=top2||top3||top1;
-  headMain=axis;
-
-  reversals=[top3,top4,top5,top6]
-   .filter(h=>h!==axis);
-
-  mainOpp=[top2,top3,top4,top5,top6]
-   .filter(h=>h&&h!==axis);
- }
-
- /* 構造補正 */
  if(a.structure==='上位2頭ブロック型'){
-  axis=top1;
-  headMain=top1;
-  reversals=uniq([top2].concat(reversals));
+  axis=top1;headMain=top1;reversals=uniq([top2].concat(reversals));
  }
-
  if(a.structure==='上位密集・頭替わり型'){
   reversals=uniq([top2,top3,top4].concat(reversals));
   if(join==='A')join='B+';
  }
-
  if(a.structure==='1位危険・全面入替型'){
-  axis=top2||top3||top1;
-  headMain=axis;
-  reversals=uniq([top3,top4,top1].concat(reversals));
-  danger='高';
-  join='C';
+  axis=top2||top3||top1;headMain=axis;reversals=uniq([top3,top4,top1].concat(reversals));
+  danger='高';join='C';
  }
-
  if(a.x){
   danger='最高';
   if(join==='A')join='B';
@@ -1072,43 +867,43 @@ function finalVerdict(a){
 
  holeWatch=uniq(
   (a.mid49to55||[])
-  .concat(
-   (a.low46to49||[])
-  )
-  .concat(
-   (a.band.place3||[])
-   .filter(r=>r>=6)
-   .map(byRank)
-  )
+  .concat(a.low46to49||[])
+  .concat((a.band.place3||[]).filter(r=>r>=6).map(byRank))
  )
- .filter(
-  h=>h &&
-  h!==axis &&
-  !mainOpp.includes(h)
- )
+ .filter(h=>h&&h!==axis&&!mainOpp.includes(h))
  .slice(0,5);
 
- return {
-  axis,
-  headMain,
-  reversals,
-  mainOpp,
-  holeWatch,
-  danger,
-  join
- };
+ return {axis,headMain,reversals,mainOpp,holeWatch,danger,join};
 }
 
 /* ==============================
    表示
    ============================== */
 
-function summaryText(a){
+function slideBadgeClass(s){
+ if(s==='S2+')return 'slide2p';
+ if(s==='S2')return 'slide2';
+ if(s==='S1')return 'slide1';
+ return 'slide0';
+}
 
+function fmtSlideCandidates(a){
+ return (a.slideDeepCandidates||[])
+  .map(z=>`${z.horse}番(${z.rank}位/${z.point}P)`)
+  .join('・')||'なし';
+}
+
+function fmtX3Candidates(a){
+ return (a.x3Candidates||[])
+  .map(z=>`${z.horse}番(${z.rank}位/${z.point}P)`)
+  .join('・')||'なし';
+}
+
+function summaryText(a){
  const v=finalVerdict(a);
 
  return `【${a.date} ${a.place}${a.race}R】
-中央新P統合 V1.20
+中央新P統合 V1.21
 
 新P：${a.np}（${P_BANDS[a.np].desc}）
 構造：${a.structure}
@@ -1122,6 +917,7 @@ PICK：${a.pick??'なし'}
 1-2差：${a.d12}P
 2-3差：${a.d23}P
 1-3差：${a.d13}P
+3-5差：${Number.isFinite(a.d35)?a.d35:'—'}P
 
 最大壁：${a.wallPos}位後 ${a.wallGap}P
 第2壁：${a.secondPos??'—'}位後 ${Number.isFinite(a.secondGap)?a.secondGap:'—'}P
@@ -1129,6 +925,15 @@ PICK：${a.pick??'なし'}
 【1位信頼】
 頭：${a.trustHead}
 馬券内：${a.trustPlace}
+
+【3着スライド】
+判定：${a.slide}（${a.slideLabel}）
+危険度：${a.slideLevel}
+基本3着帯：${a.slideBaseThird}
+深層ルール：${a.slideDeepRule}
+深層候補：${fmtSlideCandidates(a)}
+X3：${a.x3On?(a.x3Hot?'🔥ON':'ON'):'OFF'}
+超深候補：${fmtX3Candidates(a)}
 
 【頭候補】
 ${a.headCandidates.join('・')||'なし'}
@@ -1160,221 +965,113 @@ ${a.final.join('・')||'なし'}
 
 ${a.notes.map(x=>'・'+x).join('\n')}
 ${a.result.length
- ?`\n【結果】${a.result.join('-')} / コンピ順位 ${a.resultRanks.join('|')}`
+ ?`\n【結果】${a.result.join('-')} / コンピ順位 ${a.resultRanks.join('|')}
+【3着S結果】3着${a.thirdRank}位 / 深候補${a.slideDeepHit?'的中':'—'} / X3${a.x3Hit?'的中':'—'}`
  :''}`;
 }
 
 function renderResults(arr){
-
  $('#results').innerHTML=arr.map(a=>{
-
   const v=finalVerdict(a);
 
   return `
   <div class="card">
-
-   <div class="title">
-    ${esc(a.date)} ${esc(a.place)}${a.race}R
-   </div>
+   <div class="title">${esc(a.date)} ${esc(a.place)}${a.race}R</div>
 
    <div class="card inner finalbox">
-    <div class="title" style="color:#fde047">
-     🔥 最終結論
-    </div>
-
+    <div class="title" style="color:#fde047">🔥 最終結論</div>
     <div class="kv">
-     <div class="k">軸</div>
-     <div class="v big">${v.axis??'—'}</div>
+     <div class="k">軸</div><div class="v big">${v.axis??'—'}</div>
+     <div class="k">頭本線</div><div class="v">${v.headMain??'—'}</div>
+     <div class="k">逆転</div><div class="v">${v.reversals.join('・')||'なし'}</div>
+     <div class="k">相手本線</div><div class="v">${v.mainOpp.join('・')||'なし'}</div>
+     <div class="k">穴監査</div><div class="v warn">${v.holeWatch.join('・')||'なし'}</div>
+     <div class="k">危険度</div><div class="v">${v.danger}</div>
+     <div class="k">参加</div><div class="v big">${v.join}</div>
+    </div>
+   </div>
 
-     <div class="k">頭本線</div>
-     <div class="v">${v.headMain??'—'}</div>
-
-     <div class="k">逆転</div>
-     <div class="v">${v.reversals.join('・')||'なし'}</div>
-
-     <div class="k">相手本線</div>
-     <div class="v">${v.mainOpp.join('・')||'なし'}</div>
-
-     <div class="k">穴監査</div>
-     <div class="v warn">${v.holeWatch.join('・')||'なし'}</div>
-
-     <div class="k">危険度</div>
-     <div class="v">${v.danger}</div>
-
-     <div class="k">参加</div>
-     <div class="v big">${v.join}</div>
+   <div class="card inner slidebox">
+    <div class="title" style="color:#c084fc">🎯 3着スライド V0.4</div>
+    <div class="badges">
+     <span class="badge ${slideBadgeClass(a.slide)}">${a.slide}・${esc(a.slideLabel)}</span>
+     ${a.x3On?`<span class="badge x3">X3 ${a.x3Hot?'🔥':''}ON</span>`:'<span class="badge">X3 OFF</span>'}
+    </div>
+    <div class="kv">
+     <div class="k">3-5差</div><div class="v">${Number.isFinite(a.d35)?a.d35:'—'}P</div>
+     <div class="k">スライド危険</div><div class="v">${a.slideLevel}</div>
+     <div class="k">基本3着帯</div><div class="v">${a.slideBaseThird}</div>
+     <div class="k">深層ルール</div><div class="v">${a.slideDeepRule}</div>
+     <div class="k">深層候補</div><div class="v big warn">${fmtSlideCandidates(a)}</div>
+     <div class="k">超深ルール</div><div class="v">${a.x3Rule}</div>
+     <div class="k">超深候補</div><div class="v ${a.x3On?'bad':''}">${fmtX3Candidates(a)}</div>
     </div>
    </div>
 
    <div class="badges">
-
-    <span class="badge ${a.np.toLowerCase()}">
-     ${a.np}・${esc(P_BANDS[a.np].desc)}
-    </span>
-
-    <span class="badge structure">
-     ${esc(a.structure)}
-    </span>
-
-    ${a.sub
-     ?`<span class="badge subb">${esc(a.sub)}</span>`
-     :''}
-
-    ${a.h2
-     ?`<span class="badge h2">${esc(a.h2)}</span>`
-     :''}
-
-    ${a.x
-     ?`<span class="badge x">X ON</span>`
-     :'<span class="badge">X OFF</span>'}
-
-    ${a.pick
-     ?`<span class="badge pick">PICK ${a.pick}</span>`
-     :''}
-
+    <span class="badge ${a.np.toLowerCase()}">${a.np}・${esc(P_BANDS[a.np].desc)}</span>
+    <span class="badge structure">${esc(a.structure)}</span>
+    ${a.sub?`<span class="badge subb">${esc(a.sub)}</span>`:''}
+    ${a.h2?`<span class="badge h2">${esc(a.h2)}</span>`:''}
+    ${a.x?`<span class="badge x">X ON</span>`:'<span class="badge">X OFF</span>'}
+    ${a.pick?`<span class="badge pick">PICK ${a.pick}</span>`:''}
    </div>
 
    <div class="grid2">
-
     <div class="card inner">
-
      <div class="kv">
-
-      <div class="k">旧P（補助）</div>
-      <div class="v">${a.oldP} / ${a.sum}P</div>
-
-      <div class="k">上位3</div>
-      <div class="v">
-       ${a.p1} - ${a.p2} - ${a.p3}
-      </div>
-
-      <div class="k">指数差</div>
-      <div class="v">
-       1-2 ${a.d12} /
-       2-3 ${a.d23} /
-       1-3 ${a.d13}
-      </div>
-
-      <div class="k">最大壁</div>
-      <div class="v">
-       ${a.wallPos}位後 ${a.wallGap}P
-      </div>
-
-      <div class="k">第2壁</div>
-      <div class="v">
-       ${a.secondPos??'—'}位後
-       ${Number.isFinite(a.secondGap)?a.secondGap:'—'}P
-      </div>
-
-      <div class="k">1位信頼</div>
-      <div class="v">
-       頭 ${a.trustHead} /
-       馬券内 ${a.trustPlace}
-      </div>
-
+      <div class="k">旧P（補助）</div><div class="v">${a.oldP} / ${a.sum}P</div>
+      <div class="k">上位3</div><div class="v">${a.p1} - ${a.p2} - ${a.p3}</div>
+      <div class="k">指数差</div><div class="v">1-2 ${a.d12} / 2-3 ${a.d23} / 1-3 ${a.d13}</div>
+      <div class="k">最大壁</div><div class="v">${a.wallPos}位後 ${a.wallGap}P</div>
+      <div class="k">第2壁</div><div class="v">${a.secondPos??'—'}位後 ${Number.isFinite(a.secondGap)?a.secondGap:'—'}P</div>
+      <div class="k">1位信頼</div><div class="v">頭 ${a.trustHead} / 馬券内 ${a.trustPlace}</div>
      </div>
-
     </div>
 
     <div class="card inner">
-
      <div class="mini">頭候補</div>
-     <div class="horses">
-      ${a.headCandidates.join('・')||'—'}
-     </div>
-
+     <div class="horses">${a.headCandidates.join('・')||'—'}</div>
      <div class="mini">最終5頭</div>
-     <div class="horses cyan">
-      ${a.final.join('・')||'—'}
-     </div>
-
+     <div class="horses cyan">${a.final.join('・')||'—'}</div>
      <div class="mini">削除禁止</div>
-     <div class="rankline warn">
-      ${a.protectedHorses.join('・')||'なし'}
-     </div>
-
+     <div class="rankline warn">${a.protectedHorses.join('・')||'なし'}</div>
     </div>
-
    </div>
 
    <div class="grid3">
-
-    <div class="card inner">
-     <b>頭帯</b>
-     <div>${a.band.head.join('・')}位</div>
-    </div>
-
-    <div class="card inner">
-     <b>2着帯</b>
-     <div>${a.band.place2.join('・')}位</div>
-    </div>
-
-    <div class="card inner">
-     <b>3着帯</b>
-     <div>${a.band.place3.join('・')}位</div>
-    </div>
-
+    <div class="card inner"><b>頭帯</b><div>${a.band.head.join('・')}位</div></div>
+    <div class="card inner"><b>2着帯</b><div>${a.band.place2.join('・')}位</div></div>
+    <div class="card inner"><b>3着帯</b><div>${a.band.place3.join('・')}位</div></div>
    </div>
 
    <div class="card inner">
-
     <div class="kv">
-
-     <div class="k">54〜57P</div>
-     <div class="v">
-      ${a.band54to57.join('・')||'なし'}
-     </div>
-
-     <div class="k">49〜55P</div>
-     <div class="v">
-      ${a.mid49to55.join('・')||'なし'}
-     </div>
-
-     <div class="k">46〜49P</div>
-     <div class="v">
-      ${a.low46to49.join('・')||'なし'}
-     </div>
-
+     <div class="k">54〜57P</div><div class="v">${a.band54to57.join('・')||'なし'}</div>
+     <div class="k">49〜55P</div><div class="v">${a.mid49to55.join('・')||'なし'}</div>
+     <div class="k">46〜49P</div><div class="v">${a.low46to49.join('・')||'なし'}</div>
     </div>
-
    </div>
 
-   ${a.notes.length
-    ?`<div class="notice">
-       ${a.notes.map(esc).join('<br>')}
-      </div>`
-    :''}
+   ${a.notes.length?`<div class="notice">${a.notes.map(esc).join('<br>')}</div>`:''}
 
-   ${a.result.length
-    ?`<div class="rankline">
-       <b>結果：</b>${a.result.join('-')}
-      　
-       <b>コンピ順位：</b>
-       ${a.resultRanks.join('|')}
-      </div>`
-    :''}
+   ${a.result.length?`<div class="rankline">
+    <b>結果：</b>${a.result.join('-')}　
+    <b>コンピ順位：</b>${a.resultRanks.join('|')}　
+    <b>3着S：</b>${a.slide} / ${a.slideDeepHit?'深候補的中':'深候補—'} / ${a.x3Hit?'X3的中':'X3—'}
+   </div>`:''}
 
    <div class="rowbuttons">
-    <button
-     class="secondary copyOne"
-     data-id="${esc(a.id)}">
-     この判定をコピー
-    </button>
+    <button class="secondary copyOne" data-id="${esc(a.id)}">この判定をコピー</button>
    </div>
-
   </div>
   `;
-
  }).join('');
 
  window.currentAnalyses=arr;
-
  $$('.copyOne').forEach(b=>{
   b.onclick=()=>{
-
-   const a=window.currentAnalyses
-    .find(x=>x.id===b.dataset.id);
-
+   const a=window.currentAnalyses.find(x=>x.id===b.dataset.id);
    copyText(summaryText(a));
   };
  });
@@ -1391,111 +1088,67 @@ async function copyText(t){
 
 /* ==============================
    IndexedDB
-   V1.11と同じDB名を維持
+   既存DB名を維持
    ============================== */
 
 const DB='CentralNewP_V110';
 const STORE='races';
 
 function openDB(){
-
  return new Promise((res,rej)=>{
-
   const q=indexedDB.open(DB,1);
-
   q.onupgradeneeded=e=>{
-
    const d=e.target.result;
-
    if(!d.objectStoreNames.contains(STORE)){
-    d.createObjectStore(
-     STORE,
-     {keyPath:'id'}
-    );
+    d.createObjectStore(STORE,{keyPath:'id'});
    }
   };
-
   q.onsuccess=e=>res(e.target.result);
-
   q.onerror=e=>rej(e.target.error);
-
  });
 }
 
 async function put(a){
-
  const d=await openDB();
-
  return new Promise((res,rej)=>{
-
   const t=d.transaction(STORE,'readwrite');
-
   t.objectStore(STORE).put(a);
-
   t.oncomplete=res;
-
   t.onerror=e=>rej(e.target.error);
-
  });
 }
 
 async function allRows(){
-
  const d=await openDB();
-
  return new Promise((res,rej)=>{
-
-  const q=
-   d.transaction(STORE)
-   .objectStore(STORE)
-   .getAll();
-
+  const q=d.transaction(STORE).objectStore(STORE).getAll();
   q.onsuccess=()=>res(q.result);
-
   q.onerror=e=>rej(e.target.error);
-
  });
 }
 
 async function del(id){
-
  const d=await openDB();
-
  return new Promise((res,rej)=>{
-
   const t=d.transaction(STORE,'readwrite');
-
   t.objectStore(STORE).delete(id);
-
   t.oncomplete=res;
-
   t.onerror=e=>rej(e.target.error);
-
  });
 }
 
 async function clearDB(){
-
  const d=await openDB();
-
  return new Promise((res,rej)=>{
-
   const t=d.transaction(STORE,'readwrite');
-
   t.objectStore(STORE).clear();
-
   t.oncomplete=res;
-
   t.onerror=e=>rej(e.target.error);
-
  });
 }
 
 function serialize(a){
- return {
-  ...a,
-  compi:a.compi.map(x=>({...x}))
- };
+ return {...a,compi:a.compi.map(x=>({...x}))};
 }
 
 /* ==============================
@@ -1503,50 +1156,28 @@ function serialize(a){
    ============================== */
 
 async function doAnalyze(save=false){
-
  try{
-
   const races=parseBlocks($('#input').value);
-
   const arr=races.map(analyzeRace);
-
   renderResults(arr);
 
-  $('#status').innerHTML=
-   `<span class="good">
-    ${arr.length}レース解析成功
-   </span>`;
+  $('#status').innerHTML=`<span class="good">${arr.length}レース解析成功</span>`;
 
   if(save){
-
-   for(const a of arr){
-    await put(serialize(a));
-   }
-
-   $('#status').innerHTML=
-    `<span class="good">
-     ${arr.length}レース解析・保存完了
-    </span>`;
-
+   for(const a of arr)await put(serialize(a));
+   $('#status').innerHTML=`<span class="good">${arr.length}レース解析・保存完了</span>`;
    await refreshAll();
   }
-
  }catch(e){
-
-  $('#status').innerHTML=
-   `<span class="bad">
-    ${esc(e.message)}
-   </span>`;
-
+  $('#status').innerHTML=`<span class="bad">${esc(e.message)}</span>`;
  }
 }
 
 /* ==============================
-   V1.20 再解析
+   V1.21 再解析
    ============================== */
 
 async function reanalyzeAll(){
-
  const rows=await allRows();
 
  if(!rows.length){
@@ -1554,47 +1185,28 @@ async function reanalyzeAll(){
   return;
  }
 
- if(!confirm(
-  `${rows.length}件をV1.20判定で再解析します。\n先にJSONバックアップを推奨します。`
- )){
-  return;
- }
+ if(!confirm(`${rows.length}件をV1.21判定で再解析します。\n先にJSONバックアップを推奨します。`))return;
 
  let count=0;
-
  for(const old of rows){
-
-  if(
-   !Array.isArray(old.compi) ||
-   old.compi.length<3
-  ){
-   continue;
-  }
+  if(!Array.isArray(old.compi)||old.compi.length<3)continue;
 
   const base={
    date:old.date,
    place:old.place,
    race:old.race,
-   compi:old.compi.map(x=>({
-    horse:Number(x.horse),
-    point:Number(x.point)
-   })),
+   compi:old.compi.map(x=>({horse:Number(x.horse),point:Number(x.point)})),
    pick:old.pick??null,
-   result:Array.isArray(old.result)
-    ?old.result
-    :[]
+   result:Array.isArray(old.result)?old.result:[]
   };
 
   const fresh=analyzeRace(base);
-
   await put(serialize(fresh));
-
   count++;
  }
 
  await refreshAll();
-
- alert(`${count}件をV1.20で再解析しました`);
+ alert(`${count}件をV1.21で再解析しました`);
 }
 
 /* ==============================
@@ -1602,81 +1214,40 @@ async function reanalyzeAll(){
    ============================== */
 
 async function refreshHistory(){
+ const rows=(await allRows()).sort((a,b)=>{
+  const ka=`${a.date}_${String(a.race).padStart(2,'0')}`;
+  const kb=`${b.date}_${String(b.race).padStart(2,'0')}`;
+  return kb.localeCompare(ka);
+ });
 
- const rows=
-  (await allRows())
-  .sort((a,b)=>{
-   const ka=`${a.date}_${String(a.race).padStart(2,'0')}`;
-   const kb=`${b.date}_${String(b.race).padStart(2,'0')}`;
-   return kb.localeCompare(ka);
-  });
-
- $('#historyBody').innerHTML=
-  rows.map(a=>{
-
-   const v=a.verdict||finalVerdict(a);
-
-   return `
+ $('#historyBody').innerHTML=rows.map(a=>{
+  const v=a.verdict||finalVerdict(a);
+  return `
    <tr>
-
-    <td>${esc(a.date)}</td>
-    <td>${esc(a.place)}</td>
-    <td>${a.race}R</td>
-
-    <td>${a.np||'—'}</td>
-    <td>${esc(a.structure||'—')}</td>
-    <td>${a.sub||'—'}</td>
-    <td>${a.h2||'—'}</td>
-    <td>${a.x?'ON':'—'}</td>
-
+    <td>${esc(a.date)}</td><td>${esc(a.place)}</td><td>${a.race}R</td>
+    <td>${a.np||'—'}</td><td>${esc(a.structure||'—')}</td><td>${a.sub||'—'}</td><td>${a.h2||'—'}</td><td>${a.x?'ON':'—'}</td>
+    <td>${a.slide||'—'}</td>
+    <td>${(a.slideDeepHorses||[]).join('・')||'—'}</td>
+    <td>${a.x3On?`${a.x3Hot?'🔥':''}${(a.x3Horses||[]).join('・')}`:'—'}</td>
     <td>${a.pick??'—'}</td>
-
-    <td>
-     ${(a.headCandidates||[]).join('・')}
-    </td>
-
-    <td>
-     ${(a.protectedHorses||[]).join('・')}
-    </td>
-
-    <td>
-     ${(a.final||[]).join('・')}
-    </td>
-
+    <td>${(a.headCandidates||[]).join('・')}</td>
+    <td>${(a.protectedHorses||[]).join('・')}</td>
+    <td>${(a.final||[]).join('・')}</td>
     <td>${v.join||'—'}</td>
-
-    <td>
-     ${(a.result||[]).join('-')||'—'}
-    </td>
-
-    <td>
-     ${(a.resultRanks||[]).join('|')||'—'}
-    </td>
-
-    <td>
-     <button
-      class="red delOne"
-      data-id="${esc(a.id)}">
-      削除
-     </button>
-    </td>
-
+    <td>${(a.result||[]).join('-')||'—'}</td>
+    <td>${(a.resultRanks||[]).join('|')||'—'}</td>
+    <td><button class="red delOne" data-id="${esc(a.id)}">削除</button></td>
    </tr>
-   `;
-
-  }).join('');
+  `;
+ }).join('');
 
  $$('.delOne').forEach(b=>{
-
   b.onclick=async()=>{
-
    if(confirm('このレースを削除しますか？')){
     await del(b.dataset.id);
     await refreshAll();
    }
-
   };
-
  });
 }
 
@@ -1685,67 +1256,31 @@ async function refreshHistory(){
    ============================== */
 
 function resultDone(a){
-
- return (
-  Array.isArray(a.resultRanks) &&
-  a.resultRanks.length===3 &&
-  a.resultRanks.every(x=>Number.isFinite(x))
- );
+ return Array.isArray(a.resultRanks)&&a.resultRanks.length===3&&a.resultRanks.every(x=>Number.isFinite(x));
 }
-
-function headHit(a){
- return (
-  resultDone(a) &&
-  (a.headCandidates||[])
-   .includes(a.result[0])
- );
-}
-
-function top1Win(a){
- return resultDone(a)&&a.resultRanks[0]===1;
-}
-
-function top1Place(a){
- return resultDone(a)&&a.resultRanks.includes(1);
-}
-
-function secondWin(a){
- return resultDone(a)&&a.resultRanks[0]===2;
-}
-
-function secondPlace(a){
- return resultDone(a)&&a.resultRanks.includes(2);
-}
-
-function finalContainsAll(a){
- return (
-  resultDone(a) &&
-  a.result.every(
-   h=>(a.final||[]).includes(h)
-  )
- );
-}
-
+function headHit(a){return resultDone(a)&&(a.headCandidates||[]).includes(a.result[0]);}
+function top1Win(a){return resultDone(a)&&a.resultRanks[0]===1;}
+function top1Place(a){return resultDone(a)&&a.resultRanks.includes(1);}
+function secondWin(a){return resultDone(a)&&a.resultRanks[0]===2;}
+function secondPlace(a){return resultDone(a)&&a.resultRanks.includes(2);}
+function finalContainsAll(a){return resultDone(a)&&a.result.every(h=>(a.final||[]).includes(h));}
 function pickPlace(a){
-
- if(
-  !resultDone(a) ||
-  !Number.isFinite(Number(a.pick))
- ){
-  return false;
- }
-
+ if(!resultDone(a)||!Number.isFinite(Number(a.pick)))return false;
  return a.result.includes(Number(a.pick));
 }
+function thirdRankIn(a,lo,hi){
+ return resultDone(a)&&Number.isFinite(a.resultRanks[2])&&a.resultRanks[2]>=lo&&a.resultRanks[2]<=hi;
+}
+function thirdDeep(a){return resultDone(a)&&Number.isFinite(a.resultRanks[2])&&a.resultRanks[2]>=9;}
+function slideDeepHitFn(a){return resultDone(a)&&(a.slideDeepHorses||[]).includes(a.result[2]);}
+function x3HitFn(a){return resultDone(a)&&(a.x3Horses||[]).includes(a.result[2]);}
 
 /* ==============================
    集計
    ============================== */
 
 async function refreshStats(){
-
  const rows=await allRows();
-
  const done=rows.filter(resultDone);
 
  const h2=done.filter(a=>a.h2);
@@ -1754,161 +1289,84 @@ async function refreshStats(){
  const headHits=done.filter(headHit).length;
  const finalHits=done.filter(finalContainsAll).length;
 
- const picks=done.filter(
-  a=>Number.isFinite(Number(a.pick))
- );
+ const picks=done.filter(a=>Number.isFinite(Number(a.pick)));
+ const pickPlaces=picks.filter(pickPlace).length;
 
- const pickPlaces=
-  picks.filter(pickPlace).length;
+ const deepDone=done.filter(a=>a.slide==='S2'||a.slide==='S2+');
+ const deepHit=deepDone.filter(slideDeepHitFn).length;
 
  $('#statsCards').innerHTML=[
-
   ['保存R',rows.length],
-
   ['結果済',done.length],
-
-  [
-   '頭候補捕捉',
-   `${headHits}/${done.length} ${pct(headHits,done.length)}`
-  ],
-
-  [
-   '最終5頭3頭内包',
-   `${finalHits}/${done.length} ${pct(finalHits,done.length)}`
-  ],
-
-  [
-   'PICK馬券内',
-   `${pickPlaces}/${picks.length} ${pct(pickPlaces,picks.length)}`
-  ],
-
-  ['H2結果済',h2.length],
-
-  ['X結果済',x.length],
-
-  [
-   '1位勝率',
-   pct(
-    done.filter(top1Win).length,
-    done.length
-   )
-  ],
-
-  [
-   '1位馬券内',
-   pct(
-    done.filter(top1Place).length,
-    done.length
-   )
-  ]
-
+  ['頭候補捕捉',`${headHits}/${done.length} ${pct(headHits,done.length)}`],
+  ['最終5頭3頭内包',`${finalHits}/${done.length} ${pct(finalHits,done.length)}`],
+  ['PICK馬券内',`${pickPlaces}/${picks.length} ${pct(pickPlaces,picks.length)}`],
+  ['S2/S2+結果済',deepDone.length],
+  ['深候補3着的中',`${deepHit}/${deepDone.length} ${pct(deepHit,deepDone.length)}`],
+  ['1位勝率',pct(done.filter(top1Win).length,done.length)],
+  ['1位馬券内',pct(done.filter(top1Place).length,done.length)]
  ].map(([l,n])=>`
-  <div class="stat">
-   <div class="n">${n}</div>
-   <div class="l">${l}</div>
-  </div>
+  <div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>
  `).join('');
 
- $('#pStatsBody').innerHTML=
-  ['PA','PB','PC','PD','PE','PF']
-  .map(p=>{
-
-   const a=done.filter(x=>x.np===p);
-
-   const picksP=a.filter(
-    x=>Number.isFinite(Number(x.pick))
-   );
-
-   return `
+ $('#pStatsBody').innerHTML=['PA','PB','PC','PD','PE','PF'].map(p=>{
+  const a=done.filter(x=>x.np===p);
+  const picksP=a.filter(x=>Number.isFinite(Number(x.pick)));
+  return `
    <tr>
-    <td>${p}</td>
-    <td>${a.length}</td>
-
-    <td>
-     ${pct(a.filter(top1Win).length,a.length)}
-    </td>
-
-    <td>
-     ${pct(a.filter(top1Place).length,a.length)}
-    </td>
-
-    <td>
-     ${pct(a.filter(headHit).length,a.length)}
-    </td>
-
-    <td>
-     ${pct(a.filter(finalContainsAll).length,a.length)}
-    </td>
-
-    <td>
-     ${pct(picksP.filter(pickPlace).length,picksP.length)}
-    </td>
+    <td>${p}</td><td>${a.length}</td>
+    <td>${pct(a.filter(top1Win).length,a.length)}</td>
+    <td>${pct(a.filter(top1Place).length,a.length)}</td>
+    <td>${pct(a.filter(headHit).length,a.length)}</td>
+    <td>${pct(a.filter(finalContainsAll).length,a.length)}</td>
+    <td>${pct(picksP.filter(pickPlace).length,picksP.length)}</td>
    </tr>
-   `;
+  `;
+ }).join('');
 
-  }).join('');
+ $('#slideStatsBody').innerHTML=['S0','S0+','S1','S2','S2+'].map(s=>{
+  const a=done.filter(x=>x.slide===s);
+  const s15=a.filter(x=>thirdRankIn(x,1,5)).length;
+  const s68=a.filter(x=>thirdRankIn(x,6,8)).length;
+  const s9=a.filter(thirdDeep).length;
+  const dh=a.filter(slideDeepHitFn).length;
+  const x3Base=a.filter(x=>x.x3On);
+  const x3h=x3Base.filter(x3HitFn).length;
+
+  return `
+   <tr>
+    <td>${s}</td><td>${a.length}</td>
+    <td>${s15} ${pct(s15,a.length)}</td>
+    <td>${s68} ${pct(s68,a.length)}</td>
+    <td>${s9} ${pct(s9,a.length)}</td>
+    <td>${dh} ${pct(dh,a.length)}</td>
+    <td>${x3h}/${x3Base.length} ${pct(x3h,x3Base.length)}</td>
+   </tr>
+  `;
+ }).join('');
 
  const specs=[
-
   ['PE-2H',a=>a.sub==='PE-2H'],
-
   ['PB-S',a=>a.sub==='PB-S'],
-
   ['PB-H',a=>a.sub==='PB-H'],
-
   ['H2-C SS',a=>a.h2==='H2-C SS'],
-
   ['H2-C',a=>a.h2==='H2-C'],
-
   ['H2-D SS',a=>a.h2==='H2-D SS'],
-
   ['X',a=>a.x]
-
  ];
 
- $('#specialStatsBody').innerHTML=
-  specs.map(([name,fn])=>{
-
-   const a=done.filter(fn);
-
-   return `
+ $('#specialStatsBody').innerHTML=specs.map(([name,fn])=>{
+  const a=done.filter(fn);
+  return `
    <tr>
-
-    <td>${name}</td>
-    <td>${a.length}</td>
-
-    <td>
-     ${pct(
-      a.filter(secondWin).length,
-      a.length
-     )}
-    </td>
-
-    <td>
-     ${pct(
-      a.filter(secondPlace).length,
-      a.length
-     )}
-    </td>
-
-    <td>
-     ${pct(
-      a.filter(headHit).length,
-      a.length
-     )}
-    </td>
-
-    <td>
-     ${pct(
-      a.filter(finalContainsAll).length,
-      a.length
-     )}
-    </td>
-
+    <td>${name}</td><td>${a.length}</td>
+    <td>${pct(a.filter(secondWin).length,a.length)}</td>
+    <td>${pct(a.filter(secondPlace).length,a.length)}</td>
+    <td>${pct(a.filter(headHit).length,a.length)}</td>
+    <td>${pct(a.filter(finalContainsAll).length,a.length)}</td>
    </tr>
-   `;
-
-  }).join('');
+  `;
+ }).join('');
 
  refreshIndexStats(done);
 }
@@ -1918,60 +1376,29 @@ async function refreshStats(){
    ============================== */
 
 function refreshIndexStats(done){
-
- const defs=[
-
-  ['54〜57',54,57],
-
-  ['49〜55',49,55],
-
-  ['46〜49',46,49],
-
-  ['40〜45',40,45]
-
- ];
-
+ const defs=[['54〜57',54,57],['49〜55',49,55],['46〜52',46,52],['46〜49',46,49],['40〜42',40,42],['40〜45',40,45]];
  const rows=[];
 
  defs.forEach(([label,lo,hi])=>{
-
-  let total=0;
-  let win=0;
-  let second=0;
-  let third=0;
+  let total=0,win=0,second=0,third=0;
 
   done.forEach(a=>{
-
    a.compi.forEach(z=>{
-
     if(z.point>=lo&&z.point<=hi){
-
      total++;
-
      if(a.result[0]===z.horse)win++;
-
      if(a.result[1]===z.horse)second++;
-
      if(a.result[2]===z.horse)third++;
     }
-
    });
-
   });
 
   const place=win+second+third;
-
   rows.push(`
    <tr>
-    <td>${label}</td>
-    <td>${total}</td>
-    <td>${win}</td>
-    <td>${second}</td>
-    <td>${third}</td>
-    <td>${pct(place,total)}</td>
+    <td>${label}</td><td>${total}</td><td>${win}</td><td>${second}</td><td>${third}</td><td>${pct(place,total)}</td>
    </tr>
   `);
-
  });
 
  $('#indexStatsBody').innerHTML=rows.join('');
@@ -1987,111 +1414,70 @@ async function refreshAll(){
    ============================== */
 
 function download(content,name,type){
-
- const blob=new Blob(
-  [content],
-  {type}
- );
-
+ const blob=new Blob([content],{type});
  const u=URL.createObjectURL(blob);
-
  const a=document.createElement('a');
-
  a.href=u;
  a.download=name;
-
  a.click();
-
- setTimeout(
-  ()=>URL.revokeObjectURL(u),
-  1200
- );
+ setTimeout(()=>URL.revokeObjectURL(u),1200);
 }
 
 function csvEsc(v){
-
- const s=Array.isArray(v)
-  ?v.join('|')
-  :String(v??'');
-
- return /[,"\n]/.test(s)
-  ?`"${s.replace(/"/g,'""')}"`
-  :s;
+ const s=Array.isArray(v)?v.map(x=>typeof x==='object'?JSON.stringify(x):x).join('|'):String(v??'');
+ return /[,"\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s;
 }
 
 async function exportJSON(){
-
  const rows=await allRows();
-
  download(
   JSON.stringify({
    app:'競馬メジアン 中央新P統合研究所',
-   version:'1.20',
+   version:'1.21',
+   thirdSlide:'V0.4',
    exportedAt:new Date().toISOString(),
    races:rows
   },null,2),
-
-  `中央新P_V1.20_backup_${new Date().toISOString().slice(0,10)}.json`,
-
+  `中央新P_V1.21_backup_${new Date().toISOString().slice(0,10)}.json`,
   'application/json'
  );
 }
 
 async function exportCSV(){
-
  const rows=await allRows();
 
  const keys=[
-  'date','place','race',
-  'n',
-  'p1','p2','p3','sum',
-  'd12','d23','d13',
-  'wallPos','wallGap',
-  'secondPos','secondGap',
-  'oldP','np','structure',
-  'sub','h2','x','pick',
+  'date','place','race','n',
+  'p1','p2','p3','p5','sum',
+  'd12','d23','d13','d35',
+  'wallPos','wallGap','secondPos','secondGap',
+  'oldP','np','structure','sub','h2','x','pick',
   'trustHead','trustPlace',
-  'headCandidates',
-  'band54to57',
-  'mid49to55',
-  'low46to49',
-  'protectedHorses',
-  'final',
-  'result','resultRanks'
+  'slide','slideLabel','slideLevel','slideBaseThird',
+  'slideDeepHorses','x3On','x3Hot','x3Horses','slideDeepHit','x3Hit',
+  'headCandidates','band54to57','mid49to55','low46to49',
+  'protectedHorses','final','result','resultRanks'
  ];
 
  const labels=[
-  '日付','場','R',
-  '頭数',
-  '1位指数','2位指数','3位指数','上位3合計',
-  '差1_2','差2_3','差1_3',
-  '最大壁位置','最大壁差',
-  '第2壁位置','第2壁差',
-  '旧P','新P','構造型',
-  'SUB','H2','X','PICK',
+  '日付','場','R','頭数',
+  '1位指数','2位指数','3位指数','5位指数','上位3合計',
+  '差1_2','差2_3','差1_3','差3_5',
+  '最大壁位置','最大壁差','第2壁位置','第2壁差',
+  '旧P','新P','構造型','SUB','H2','X','PICK',
   '頭信頼','馬券内信頼',
-  '頭候補',
-  '54_57',
-  '49_55',
-  '46_49',
-  '削除禁止',
-  '最終5頭',
-  '結果','結果コンピ順位'
+  '3着S','3着S名称','3着S危険度','基本3着帯',
+  '深候補','X3','X3強','X3候補','深候補的中','X3的中',
+  '頭候補','54_57','49_55','46_49',
+  '削除禁止','最終5頭','結果','結果コンピ順位'
  ];
 
- const text=
-  '\ufeff'+
-  labels.join(',')+
-  '\n'+
-  rows.map(
-   r=>keys.map(
-    k=>csvEsc(r[k])
-   ).join(',')
-  ).join('\n');
+ const text='\ufeff'+labels.join(',')+'\n'+
+  rows.map(r=>keys.map(k=>csvEsc(r[k])).join(',')).join('\n');
 
  download(
   text,
-  `中央新P_V1.20_log_${new Date().toISOString().slice(0,10)}.csv`,
+  `中央新P_V1.21_log_${new Date().toISOString().slice(0,10)}.csv`,
   'text/csv;charset=utf-8'
  );
 }
@@ -2101,29 +1487,16 @@ async function exportCSV(){
    ============================== */
 
 async function importJSON(file){
-
  const t=await file.text();
-
  const j=JSON.parse(t);
+ const arr=Array.isArray(j)?j:j.races;
 
- const arr=
-  Array.isArray(j)
-  ?j
-  :j.races;
+ if(!Array.isArray(arr))throw new Error('races配列がありません');
 
- if(!Array.isArray(arr)){
-  throw new Error('races配列がありません');
- }
-
- for(const old of arr){
-
-  /* 古いデータもそのまま保存可能 */
-  await put(old);
- }
+ for(const old of arr)await put(old);
 
  await refreshAll();
-
- alert(`${arr.length}件読み込みました`);
+ alert(`${arr.length}件読み込みました。\n旧版データならV1.21で全件再解析してください。`);
 }
 
 /* ==============================
@@ -2131,51 +1504,30 @@ async function importJSON(file){
    ============================== */
 
 $$('.tab').forEach(b=>{
-
  b.onclick=()=>{
-
-  $$('.tab').forEach(
-   x=>x.classList.remove('active')
-  );
-
-  $$('.panel').forEach(
-   x=>x.classList.remove('active')
-  );
-
+  $$('.tab').forEach(x=>x.classList.remove('active'));
+  $$('.panel').forEach(x=>x.classList.remove('active'));
   b.classList.add('active');
+  $('#'+b.dataset.tab).classList.add('active');
 
-  $('#'+b.dataset.tab)
-   .classList.add('active');
-
-  if(b.dataset.tab!=='judge'){
-   refreshAll();
-  }
-
+  if(b.dataset.tab!=='judge')refreshAll();
  };
-
 });
 
 /* ==============================
    ボタン
    ============================== */
 
-$('#analyzeBtn').onclick=
- ()=>doAnalyze(false);
-
-$('#saveBtn').onclick=
- ()=>doAnalyze(true);
+$('#analyzeBtn').onclick=()=>doAnalyze(false);
+$('#saveBtn').onclick=()=>doAnalyze(true);
 
 $('#clearBtn').onclick=()=>{
-
  $('#input').value='';
-
  $('#results').innerHTML='';
-
  $('#status').textContent='入力待機中';
 };
 
 $('#sampleBtn').onclick=()=>{
-
  $('#input').value=
 `【2026年8月15日 新潟1R】
 [COMPI]
@@ -2200,50 +1552,26 @@ $('#sampleBtn').onclick=()=>{
  doAnalyze(false);
 };
 
-$('#reanalyzeAll').onclick=
- reanalyzeAll;
+$('#reanalyzeAll').onclick=reanalyzeAll;
+$('#exportJson').onclick=exportJSON;
+$('#exportCsv').onclick=exportCSV;
+$('#importJson').onclick=()=>$('#importFile').click();
 
-$('#exportJson').onclick=
- exportJSON;
+$('#importFile').onchange=async e=>{
+ try{
+  if(e.target.files[0])await importJSON(e.target.files[0]);
+ }catch(err){
+  alert(err.message);
+ }
+ e.target.value='';
+};
 
-$('#exportCsv').onclick=
- exportCSV;
-
-$('#importJson').onclick=
- ()=>$('#importFile').click();
-
-$('#importFile').onchange=
- async e=>{
-
-  try{
-
-   if(e.target.files[0]){
-    await importJSON(
-     e.target.files[0]
-    );
-   }
-
-  }catch(err){
-
-   alert(err.message);
-
-  }
-
-  e.target.value='';
- };
-
-$('#deleteAll').onclick=
- async()=>{
-
-  if(confirm(
-   '全件削除します。バックアップ済みですか？'
-  )){
-
-   await clearDB();
-
-   await refreshAll();
-  }
- };
+$('#deleteAll').onclick=async()=>{
+ if(confirm('全件削除します。バックアップ済みですか？')){
+  await clearDB();
+  await refreshAll();
+ }
+};
 
 /* 起動 */
 refreshAll();
