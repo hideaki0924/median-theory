@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
 <meta name="app-build" content="central-newp-v1.23-slide-subtype-20260815">
-<title>競馬メジアン 中央新P統合研究所 V1.37</title>
+<title>競馬メジアン 中央新P統合研究所 V1.38</title>
 
 <style>
 :root{
@@ -160,6 +160,17 @@ th{
 .third-b{color:#67e8f9}
 .third-c{color:#fde047}
 .third-d{color:#fb7185}
+
+.simpleVerdict{border:3px solid #22c55e!important;background:linear-gradient(145deg,#071b14,#103322,#07101f)!important}
+.simpleLabel{font-size:24px;font-weight:950;margin-bottom:10px}
+.simpleGrid{display:grid;grid-template-columns:145px 1fr;gap:9px 12px;align-items:start}
+.simpleGrid .k{color:#b7c3d9;font-weight:900}
+.simpleGrid .v{font-weight:950;font-size:20px;overflow-wrap:anywhere}
+.simpleMain{color:#fde047;font-size:26px!important}
+.simpleHole{color:#fb7185}
+.simpleThird{color:#67e8f9}
+.simpleComment{margin-top:10px;padding:10px;border-radius:10px;background:#020617;border:1px solid #334155;font-weight:900;line-height:1.6}
+@media(max-width:560px){.simpleGrid{grid-template-columns:115px 1fr}.simpleGrid .v{font-size:18px}.simpleLabel{font-size:21px}}
 details.research{
  margin-top:8px;border:1px solid #3a4d6e;border-radius:12px;background:#09162c
 }
@@ -185,9 +196,9 @@ hr{border:0;border-top:1px solid #294263}
 <body>
 <main>
 
-<h1>競馬メジアン 中央新P統合研究所 V1.37</h1>
+<h1>競馬メジアン 中央新P統合研究所 V1.38</h1>
 <div class="sub">
-696R再構築PA〜PF ＋ 3着スライドV0.5 ＋ H2-BLOCK ＋ HEAD司令塔V1.0。BLOCK最優先、C2/T3-H/T3-2を独立統合
+実戦画面は日本語で結論だけ表示。PA〜PF・HEAD・X2・3着Sなどの研究記号は「研究詳細」に収納しています。
 </div>
 
 <div class="tabs">
@@ -238,8 +249,8 @@ hr{border:0;border-top:1px solid #294263}
 </div>
 
 <div class="engine">
-実戦表示は<strong>1着候補 → 2着候補 → 3着A/B/C/D → レース全体 → 3着荒れ度</strong>の順。
-PA〜PF・S2+・X3・壁・指数帯などの研究情報は下の「研究詳細」にまとめます。
+<strong>実戦モード：</strong>普段は「レース判定・中心馬・逆転候補・穴の1着・2着・3着・荒れ予報」だけ見ればOK。<br>
+アルファベットや研究数値は各レース下の「研究詳細を開く」に収納しています。
 </div>
 
 <div id="unifiedCommander"></div>
@@ -253,7 +264,7 @@ PA〜PF・S2+・X3・壁・指数帯などの研究情報は下の「研究詳�
  <div class="title">保存履歴</div>
 
  <div class="topbar">
-  <button id="reanalyzeAll" class="purple">V1.23で全件再解析</button>
+  <button id="reanalyzeAll" class="purple">V1.38で全件再解析</button>
   <button id="exportJson" class="green">JSONバックアップ</button>
   <button id="exportCsv" class="orange">CSV出力</button>
   <button id="importJson" class="purple">JSON読込</button>
@@ -263,7 +274,7 @@ PA〜PF・S2+・X3・壁・指数帯などの研究情報は下の「研究詳�
 
  <div class="notice">
  V1.20から更新する前にJSONバックアップ推奨。更新後は
- 「V1.23で全件再解析」を押すと、保存済みレースにも3着スライド判定が追加されます。
+ 「V1.38で全件再解析」を押すと、保存済みレースにも3着スライド判定が追加されます。
  </div>
 
  <div class="tablewrap">
@@ -1130,7 +1141,7 @@ function practicalVerdict(a){
    blockExacta=pairRanks.map(([x,y])=>[byRank(x),byRank(y)]).filter(z=>z[0]&&z[1]);
  }
 
- // ===== V1.37 X2-DEEP-GATE / COLLAPSE-LANE =====
+ // ===== V1.38 X2-DEEP-GATE / COLLAPSE-LANE =====
  const x2Collapse=(a.n>=14 && a.sum<=202);
  let x2Gate='OFF';
  let x2Mode='通常';
@@ -1231,113 +1242,96 @@ function practicalVerdict(a){
  };
 }
 
+function simpleRaceLabel(a,p){
+ if(p.x2Collapse && p.x2Gate==='SS')return '💣 大崩れ・穴頭勝負';
+ if(p.x2Collapse && (p.x2Gate==='S'||p.x2Gate==='A'))return '🔴 穴頭チャンス';
+ if(a.np==='PF'||a.x)return '⚠️ 大荒れ警戒';
+ if(a.np==='PE'||a.sub==='PE-2H'||p.headBan.length)return '🟡 頭替わり注意';
+ return '🟢 通常勝負';
+}
+
+function simpleHoleHeads(a,p){
+ if(p.x2Collapse && ['SS','S','A'].includes(p.x2Gate))return uniq(p.x2DeepA.concat(p.x2DeepB));
+ return [];
+}
+
+function simpleComment(a,p){
+ if(p.x2Collapse && p.x2Gate==='SS')return '上位4頭の固定はしない。穴の1着候補を中心に、2着も中位まで広く見る。';
+ if(p.x2Collapse && p.x2Gate==='S')return '穴の1着候補を強く評価。ただし上位馬も相手には残す。';
+ if(p.x2Collapse && p.x2Gate==='A')return '穴頭は押さえるが、相手は上位馬を優先する。';
+ if(p.x2Collapse && p.x2Gate==='WATCH')return 'X2条件には入るが穴頭の強昇格はしない。1着は通常の上位候補を優先。';
+ if(a.np==='PF')return '1位固定は避ける。頭替わりを前提に見る。';
+ if(a.np==='PE'||a.sub==='PE-2H')return '1位を過信しない。逆転候補まで含めて頭を見る。';
+ if(p.raceShape==='硬め')return `${p.first[0]||'上位馬'}中心。無理に大穴頭を狙う条件ではない。`;
+ if(p.raceShape==='荒れ')return '上位固定は弱め。逆転候補と穴側まで確認する。';
+ return '中心馬を軸に、逆転候補までを1着候補として見る。';
+}
+
 function summaryText(a){
  const v=finalVerdict(a);
  const p=practicalVerdict(a);
+ const hole=simpleHoleHeads(a,p);
+ const main=p.first[0]||'なし';
+ const reversals=p.first.slice(1);
+ const thirdHole=uniq(p.thirdB.concat(p.thirdC,p.thirdD));
 
  return `【${a.date} ${a.place}${a.race}R】
-中央新P統合 V1.37
+中央新P統合 V1.38
 
-【実戦結論】
-1着候補：${p.first.join('・')||'なし'}
-${p.headA.length?`HEAD-A：${p.headA.join('・')}`:''}
-${p.headB.length?`HEAD-B：${p.headB.join('・')}`:''}
-${p.headC.length?`HEAD-C 深頭：${p.headC.join('・')}`:''}
-${p.headD.length?`HEAD-D 超深頭：${p.headD.join('・')}`:''}
-${p.headBan.length?`HEAD-BAN：${p.headBan.join('・')}（頭禁止）`:''}
-${p.x2Collapse?`X2：${p.x2Label}\n深頭A：${p.x2DeepA.join('・')||'なし'}${p.x2DeepRanksA.length?`（${p.x2DeepRanksA.join('・')}位）`:''}\n深頭B：${p.x2DeepB.join('・')||'なし'}${p.x2DeepRanksB.length?`（${p.x2DeepRanksB.join('・')}位）`:''}\nX2 2着本線：${p.x2SecondCore.join('・')||'なし'}\nX2 2着補助：${p.x2SecondSupport.join('・')||'なし'}\n最大壁直後：${p.wallAfterRole}`:''}
-${p.headInsurance.length?`HEAD保険：${p.headInsurance.join('・')}（薄い頭）`:''}
+【実戦モード】
+レース判定：${simpleRaceLabel(a,p)}
+中心馬：${main}
+逆転候補：${reversals.join('・')||'なし'}
+穴の1着候補：${hole.join('・')||'なし'}
 2着候補：${p.second.join('・')||'なし'}
-${p.secondDeep.length?`2着深層：${p.secondDeep.join('・')}`:''}
-
-3着A 本線：${p.thirdA.join('・')||'なし'}
-3着B 軽スライド：${p.thirdB.join('・')||'なし'}
-3着C 深穴：${p.thirdC.join('・')||'なし'}
-3着D 超穴：${p.thirdD.join('・')||'なし'}
-
-レース全体：${p.raceShape}
-3着荒れ度：${p.thirdRisk}
-${p.blockTickets.length?`BLOCK馬連7点：${p.blockTickets.map(z=>z.join('-')).join(' / ')}`:''}
-${p.blockExacta.length?`BLOCK馬単7点：${p.blockExacta.map(z=>z.join('→')).join(' / ')}`:''}
-${p.t32Tickets.length?`T3-2馬連2点：${p.t32Tickets.map(z=>z.join('-')).join(' / ')}`:''}
+3着本線：${p.thirdA.join('・')||'なし'}
+3着穴：${thirdHole.join('・')||'なし'}
+荒れ予報：${p.raceShape} / 3着 ${p.thirdRisk}
+ひとこと：${simpleComment(a,p)}
 
 【研究詳細】
 新P：${a.np}（${P_BANDS[a.np].desc}）
 構造：${a.structure}
-SUB：${a.sub||'なし'}
-H2：${a.h2||'なし'}
+SUB：${a.sub||'なし'} / H2：${a.h2||'なし'}
 HEAD：${a.headCover||'通常'} / C2：${a.c2||'なし'} / T3-HR：${a.t3h?'ON':'OFF'} / T3-2：${a.t32?'ON':'OFF'}
-X：${a.x?'ON':'OFF'}
-3着S：${a.slide}${a.slideSub||''}（${a.slideLabel}）
-X3：${a.x3On?(a.x3Hot?'🔥ON':'ON'):'OFF'}
-
+X：${a.x?'ON':'OFF'} / 3着S：${a.slide}${a.slideSub||''}（${a.slideLabel}） / X3：${a.x3On?(a.x3Hot?'🔥ON':'ON'):'OFF'}
+X2：${p.x2Collapse?p.x2Label:'OFF'}
 旧P：${a.oldP}（${a.sum}P・補助）
 1-2差：${a.d12}P / 2-3差：${a.d23}P / 3-4差：${Number.isFinite(a.d34)?a.d34:'—'}P / 1-3差：${a.d13}P / 3-5差：${Number.isFinite(a.d35)?a.d35:'—'}P
-最大壁：${a.wallPos}位後 ${a.wallGap}P
-第2壁：${a.secondPos??'—'}位後 ${Number.isFinite(a.secondGap)?a.secondGap:'—'}P
-
-軸：${v.axis||'なし'}
-頭本線：${v.headMain||'なし'}
-相手本線：${v.mainOpp.join('・')||'なし'}
-
-${a.result.length
- ?`\n【結果】${a.result.join('-')} / コンピ順位 ${a.resultRanks.join('|')}`
- :''}`;
+最大壁：${a.wallPos}位後 ${a.wallGap}P / 第2壁：${a.secondPos??'—'}位後 ${Number.isFinite(a.secondGap)?a.secondGap:'—'}P
+軸：${v.axis||'なし'} / 頭本線：${v.headMain||'なし'} / 相手本線：${v.mainOpp.join('・')||'なし'}
+${a.result.length?`結果：${a.result.join('-')} / コンピ順位 ${a.resultRanks.join('|')}`:''}`;
 }
 
 function renderResults(arr){
  $('#results').innerHTML=arr.map(a=>{
   const v=finalVerdict(a);
   const p=practicalVerdict(a);
+  const hole=simpleHoleHeads(a,p);
+  const main=p.first[0]||'なし';
+  const reversals=p.first.slice(1);
+  const thirdHole=uniq(p.thirdB.concat(p.thirdC,p.thirdD));
 
   return `
   <div class="card">
    <div class="title">${esc(a.date)} ${esc(a.place)}${a.race}R</div>
 
-   <div class="card inner practicalbox">
-    <div class="title" style="color:#4ade80">🏇 実戦結論</div>
-    <div class="practical-grid">
-      <div class="k">1着候補</div>
-      <div class="v">${p.first.join('・')||'なし'}</div>
-
-      ${p.headA.length?`<div class="k">HEAD-A</div><div class="v">${p.headA.join('・')}</div>`:''}
-      ${p.headB.length?`<div class="k">HEAD-B</div><div class="v third-b">${p.headB.join('・')}</div>`:''}
-      ${p.headC.length?`<div class="k">HEAD-C 深頭</div><div class="v third-c">${p.headC.join('・')}</div>`:''}
-      ${p.headD.length?`<div class="k">HEAD-D 超深頭</div><div class="v third-d">${p.headD.join('・')}</div>`:''}
-      ${p.headBan.length?`<div class="k">HEAD-BAN</div><div class="v third-d">${p.headBan.join('・')}（頭禁止）</div>`:''}
-      ${p.x2Collapse?`<div class="k">X2-DEEP-GATE</div><div class="v third-d">${p.x2Label}</div><div class="k">深頭A</div><div class="v third-c">${p.x2DeepA.join('・')||'なし'} ${p.x2DeepRanksA.length?`（${p.x2DeepRanksA.join('・')}位）`:''}</div><div class="k">深頭B</div><div class="v third-d">${p.x2DeepB.join('・')||'なし'} ${p.x2DeepRanksB.length?`（${p.x2DeepRanksB.join('・')}位）`:''}</div><div class="k">COLLAPSE-LANE</div><div class="v">${p.x2Mode}</div><div class="k">2着本線/補助</div><div class="v">${p.x2SecondCore.join('・')||'なし'} / ${p.x2SecondSupport.join('・')||'なし'}</div><div class="k">最大壁直後</div><div class="v">${p.wallAfterRole}</div>`:''}
-      ${p.headInsurance.length?`<div class="k">HEAD保険</div><div class="v">${p.headInsurance.join('・')}（薄い頭）</div>`:''}
-
-      <div class="k">2着候補</div>
-      <div class="v">${p.second.join('・')||'なし'}</div>
-      ${p.secondDeep.length?`<div class="k">2着深層</div><div class="v third-c">${p.secondDeep.join('・')}</div>`:''}
-
-      <div class="k">3着A 本線</div>
-      <div class="v third-a">${p.thirdA.join('・')||'なし'}</div>
-
-      <div class="k">3着B 軽穴</div>
-      <div class="v third-b">${p.thirdB.join('・')||'なし'}</div>
-
-      <div class="k">3着C 深穴</div>
-      <div class="v third-c">${p.thirdC.join('・')||'なし'}</div>
-
-      <div class="k">3着D 超穴</div>
-      <div class="v third-d">${p.thirdD.join('・')||'なし'}</div>
-
-      <div class="k">レース全体</div>
-      <div class="v">${p.raceShape}</div>
-
-      <div class="k">3着荒れ度</div>
-      <div class="v">${p.thirdRisk}</div>
-
-      ${p.blockTickets.length?`<div class="k">BLOCK馬連7点</div><div class="v">${p.blockTickets.map(z=>z.join('-')).join(' / ')}</div>`:''}
-      ${p.blockExacta.length?`<div class="k">BLOCK馬単7点</div><div class="v">${p.blockExacta.map(z=>z.join('→')).join(' / ')}</div>`:''}
-      ${p.t32Tickets.length?`<div class="k">T3-2馬連2点</div><div class="v">${p.t32Tickets.map(z=>z.join('-')).join(' / ')}</div>`:''}
+   <div class="card inner simpleVerdict">
+    <div class="simpleLabel">${simpleRaceLabel(a,p)}</div>
+    <div class="simpleGrid">
+      <div class="k">👑 中心馬</div><div class="v simpleMain">${main}</div>
+      <div class="k">🔄 逆転候補</div><div class="v">${reversals.join('・')||'なし'}</div>
+      <div class="k">💣 穴の1着</div><div class="v simpleHole">${hole.join('・')||'なし'}</div>
+      <div class="k">🥈 2着候補</div><div class="v">${p.second.join('・')||'なし'}</div>
+      <div class="k">🥉 3着本線</div><div class="v simpleThird">${p.thirdA.join('・')||'なし'}</div>
+      <div class="k">🌙 3着穴</div><div class="v">${thirdHole.join('・')||'なし'}</div>
+      <div class="k">📈 荒れ予報</div><div class="v">${p.raceShape} / 3着 ${p.thirdRisk}</div>
     </div>
+    <div class="simpleComment">💡 ${simpleComment(a,p)}</div>
    </div>
 
    <details class="research">
-    <summary>研究詳細を開く</summary>
+    <summary>🔬 研究詳細を開く（アルファベット・壁・指数はこちら）</summary>
     <div class="research-body">
 
       <div class="badges">
@@ -1361,6 +1355,8 @@ function renderResults(arr){
          <div class="k">上位3</div><div class="v">${a.p1} - ${a.p2} - ${a.p3}</div>
          <div class="k">指数差</div><div class="v">1-2 ${a.d12} / 2-3 ${a.d23} / 3-4 ${Number.isFinite(a.d34)?a.d34:'—'} / 1-3 ${a.d13} / 3-5 ${Number.isFinite(a.d35)?a.d35:'—'}</div>
          <div class="k">HEAD司令塔</div><div class="v">${a.headCover||'通常'} / ${a.c2||'C2なし'} / T3-HR ${a.t3h?'ON':'OFF'} / T3-2 ${a.t32?'ON':'OFF'}</div>
+         <div class="k">X2判定</div><div class="v">${p.x2Collapse?p.x2Label:'OFF（対象外）'}</div>
+         ${p.x2Collapse?`<div class="k">X2深頭A/B</div><div class="v">${p.x2DeepA.join('・')||'なし'} / ${p.x2DeepB.join('・')||'なし'}</div>`:''}
          <div class="k">最大壁</div><div class="v">${a.wallPos}位後 ${a.wallGap}P</div>
          <div class="k">第2壁</div><div class="v">${a.secondPos??'—'}位後 ${Number.isFinite(a.secondGap)?a.secondGap:'—'}P</div>
          <div class="k">1位信頼</div><div class="v">頭 ${a.trustHead} / 馬券内 ${a.trustPlace}</div>
@@ -1368,17 +1364,14 @@ function renderResults(arr){
        </div>
 
        <div class="card inner">
-        <div class="mini">軸</div>
-        <div class="horses">${v.axis??'—'}</div>
-        <div class="mini">頭候補</div>
-        <div class="horses">${a.headCandidates.join('・')||'—'}</div>
-        <div class="mini">最終5頭</div>
-        <div class="horses cyan">${a.final.join('・')||'—'}</div>
+        <div class="mini">軸</div><div class="horses">${v.axis??'—'}</div>
+        <div class="mini">通常HEAD候補</div><div class="horses">${a.headCandidates.join('・')||'—'}</div>
+        <div class="mini">最終5頭</div><div class="horses cyan">${a.final.join('・')||'—'}</div>
        </div>
       </div>
 
       <div class="card inner slidebox">
-       <div class="title" style="color:#c084fc">🎯 3着スライド V0.5</div>
+       <div class="title" style="color:#c084fc">🎯 3着スライド研究</div>
        <div class="kv">
         <div class="k">判定</div><div class="v">${a.slide}${a.slideSub||''}（${a.slideLabel}）</div>
         <div class="k">深層候補</div><div class="v warn">${fmtSlideCandidates(a)}</div>
@@ -1388,19 +1381,14 @@ function renderResults(arr){
       </div>
 
       ${a.notes.length?`<div class="notice">${a.notes.map(esc).join('<br>')}</div>`:''}
-
-      ${a.result.length?`<div class="rankline">
-       <b>結果：</b>${a.result.join('-')}　
-       <b>コンピ順位：</b>${a.resultRanks.join('|')}
-      </div>`:''}
+      ${a.result.length?`<div class="rankline"><b>結果：</b>${a.result.join('-')}　<b>コンピ順位：</b>${a.resultRanks.join('|')}</div>`:''}
     </div>
    </details>
 
    <div class="rowbuttons">
     <button class="secondary copyOne" data-id="${esc(a.id)}">この判定をコピー</button>
    </div>
-  </div>
-  `;
+  </div>`;
  }).join('');
 
  window.currentAnalyses=arr;
@@ -1520,7 +1508,7 @@ async function reanalyzeAll(){
   return;
  }
 
- if(!confirm(`${rows.length}件をV1.37判定で再解析します。\n先にJSONバックアップを推奨します。`))return;
+ if(!confirm(`${rows.length}件をV1.38判定で再解析します。\n先にJSONバックアップを推奨します。`))return;
 
  let count=0;
  for(const old of rows){
@@ -1541,7 +1529,7 @@ async function reanalyzeAll(){
  }
 
  await refreshAll();
- alert(`${count}件をV1.37で再解析しました`);
+ alert(`${count}件をV1.38で再解析しました`);
 }
 
 /* ==============================
@@ -1783,7 +1771,7 @@ async function exportJSON(){
    exportedAt:new Date().toISOString(),
    races:rows
   },null,2),
-  `中央新P_V1.23_backup_${new Date().toISOString().slice(0,10)}.json`,
+  `中央新P_V1.38_backup_${new Date().toISOString().slice(0,10)}.json`,
   'application/json'
  );
 }
@@ -1825,7 +1813,7 @@ async function exportCSV(){
 
  download(
   text,
-  `中央新P_V1.37_unified_log_${new Date().toISOString().slice(0,10)}.csv`,
+  `中央新P_V1.38_unified_log_${new Date().toISOString().slice(0,10)}.csv`,
   'text/csv;charset=utf-8'
  );
 }
@@ -1844,7 +1832,7 @@ async function importJSON(file){
  for(const old of arr)await put(old);
 
  await refreshAll();
- alert(`${arr.length}件読み込みました。\n旧版データならV1.37で全件再解析してください。`);
+ alert(`${arr.length}件読み込みました。\n旧版データならV1.38で全件再解析してください。`);
 }
 
 /* ==============================
@@ -1923,8 +1911,8 @@ $('#deleteAll').onclick=async()=>{
 
 
 /* =========================================================
-   V1.37 完全統合司令塔
-   V1.37純コンピ本体を壊さず、市場・タテ目監査を直接追加
+   V1.38 完全統合司令塔
+   V1.38純コンピ本体を壊さず、市場・タテ目監査を直接追加
    iframe/外部エンジンなし
    ========================================================= */
 function U32_num(x){ const n=Number(x); return Number.isFinite(n)?n:null; }
@@ -2105,7 +2093,7 @@ function U32_render(){
 
  box.innerHTML=`
  <div class="card unifiedCommander">
-  <div class="unifiedTitle">🧠 V1.37 完全統合司令塔</div>
+  <div class="unifiedTitle">🧠 V1.38 完全統合司令塔</div>
   <div class="unifiedGrid">
    <div class="unifiedK">1着本線</div><div class="unifiedV unifiedGood">${esc(headMain||'なし')}</div>
    <div class="unifiedK">逆転頭</div><div class="unifiedV">${esc(U32_fmt(reverse))}</div>
