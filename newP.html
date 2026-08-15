@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07101f">
 <meta name="app-build" content="central-newp-v1.23-slide-subtype-20260815">
-<title>競馬メジアン 中央新P統合研究所 V1.32</title>
+<title>競馬メジアン 中央新P統合研究所 V1.37</title>
 
 <style>
 :root{
@@ -185,7 +185,7 @@ hr{border:0;border-top:1px solid #294263}
 <body>
 <main>
 
-<h1>競馬メジアン 中央新P統合研究所 V1.32</h1>
+<h1>競馬メジアン 中央新P統合研究所 V1.37</h1>
 <div class="sub">
 696R再構築PA〜PF ＋ 3着スライドV0.5 ＋ H2-BLOCK ＋ HEAD司令塔V1.0。BLOCK最優先、C2/T3-H/T3-2を独立統合
 </div>
@@ -1057,49 +1057,63 @@ function fmtX3Candidates(a){
 function practicalVerdict(a){
  const c=a.compi||[];
  const byRank=r=>c[r-1]?.horse;
- const top=(n)=>c.slice(0,n).map(z=>z.horse);
+ const top=n=>c.slice(0,n).map(z=>z.horse);
+ const ranks=rs=>rs.map(byRank).filter(Boolean);
 
- // 1着候補：新P・構造・H2を使いながら実戦用に圧縮
  let first=[];
- if(a.np==='PA') first=top(2);
- else if(a.np==='PB') first=top(3);
- else if(a.np==='PC') first=top(3);
- else if(a.np==='PD') first=top(4);
- else if(a.np==='PE') first=[byRank(2),byRank(3),byRank(4),byRank(1)];
- else first=[byRank(2),byRank(3),byRank(4),byRank(5)];
+ let headA=[],headB=[],headC=[],headD=[],headBan=[],headInsurance=[];
 
- if((a.h2||'').startsWith('H2-C')) first=uniq([byRank(2),byRank(1),byRank(3)]);
- if(a.h2==='H2-D SS') first=uniq([byRank(2),byRank(1),byRank(3),byRank(4)]);
- if(a.sub==='PE-2H') first=uniq([byRank(2),byRank(3),byRank(4),byRank(1)]);
- if(a.structure==='上位2頭ブロック型') first=uniq([byRank(1),byRank(2)]);
- if(a.structure==='一強・大断層型') first=uniq([byRank(1),byRank(2)]);
- if(a.slide==='S2+' && a.slideSub==='A') first=uniq([byRank(1),byRank(2),byRank(3)]);
- // HEAD司令塔。BLOCKは必ず最後に優先する
- if(a.t3h) first=uniq([byRank(1),byRank(2),byRank(3)]);
- if(a.c2==='C2-S' && a.np!=='PC' && a.h2!=='H2-BLOCK S' && a.h2!=='H2-BLOCK SS') first=uniq([byRank(2),byRank(1),byRank(3),byRank(4)]);
- else if(a.c2==='C2-S' && a.h2!=='H2-BLOCK S' && a.h2!=='H2-BLOCK SS') first=uniq([byRank(2),byRank(1),byRank(3)]);
- // H2-BLOCK S/SS は最後に強制圧縮（他ルールより優先）
- if(a.h2==='H2-BLOCK S'||a.h2==='H2-BLOCK SS') first=uniq([byRank(1),byRank(2)]);
- first=uniq(first).filter(Boolean).slice(0,4);
+ if(a.np==='PA'){
+   headA=[byRank(1)]; headB=ranks([2,3,4]); first=uniq(headA.concat(headB));
+ }else if(a.np==='PB'){
+   headA=ranks([1,2,3]); headB=ranks([4,5,6,7]); first=uniq(headA.concat(headB));
+ }else if(a.np==='PC'){
+   headA=ranks([1,2,3]); headB=ranks([4]); first=uniq(headA);
+ }else if(a.np==='PD'){
+   headA=ranks([1,2,3,4]); headB=ranks([5,6,7]); headC=ranks([8,9,10]); first=uniq(headA);
+ }else if(a.np==='PE'){
+   headA=ranks([2,3,4]); headB=ranks([5,6,7]); headC=ranks([8,9,10]);
+   headInsurance=(a.sub==='PE-2H')?[]:[byRank(1)];
+   headBan=(a.sub==='PE-2H')?[byRank(1)]:[];
+   first=uniq(headA.concat(headB));
+ }else{
+   headA=ranks([2,3,4]); headB=ranks([5,6,7]); headC=ranks([8,9,10]); headD=ranks([11,12]);
+   headBan=[byRank(1)]; first=uniq(headA.concat(headB));
+ }
 
- // 2着候補：1着候補＋上位の相手、ただし広げすぎない
+ if((a.h2||'').startsWith('H2-C')) first=uniq(ranks([2,1,3]));
+ if(a.h2==='H2-D SS') first=uniq(ranks([2,1,3,4]));
+ if(a.sub==='PE-2H'){
+   headA=ranks([2,3,4]); headB=ranks([5,6,7]); headC=[]; headD=[];
+   headBan=[byRank(1)]; headInsurance=[]; first=uniq(headA.concat(headB));
+ }
+ if(a.structure==='上位2頭ブロック型') first=uniq(ranks([1,2]));
+ if(a.structure==='一強・大断層型') first=uniq(ranks([1,2]));
+ if(a.slide==='S2+' && a.slideSub==='A') first=uniq(ranks([1,2,3]));
+ if(a.t3h) first=uniq(ranks([1,2,3]));
+ if(a.c2==='C2-S' && a.np!=='PC' && !['H2-BLOCK S','H2-BLOCK SS'].includes(a.h2)) first=uniq(ranks([2,1,3,4]));
+ else if(a.c2==='C2-S' && !['H2-BLOCK S','H2-BLOCK SS'].includes(a.h2)) first=uniq(ranks([2,1,3]));
+ if(a.h2==='H2-BLOCK S'||a.h2==='H2-BLOCK SS') first=uniq(ranks([1,2]));
+ const firstLimit=(a.np==='PE'||a.np==='PF')?6:4;
+ first=uniq(first).filter(Boolean).slice(0,firstLimit);
+
  let second=uniq(first.concat(top(a.np==='PA'?4:5))).filter(Boolean).slice(0,5);
- if(a.np==='PE'||a.np==='PF') second=uniq(second.concat([byRank(6)])).filter(Boolean).slice(0,6);
+ let secondDeep=[];
+ if(a.np==='PE'){
+   second=uniq(first.concat([byRank(1)])).filter(Boolean).slice(0,7);
+   secondDeep=ranks([8,9,10]);
+ }
+ if(a.np==='PF'){
+   second=uniq(first.concat([byRank(1),byRank(8)])).filter(Boolean).slice(0,8);
+   secondDeep=ranks([9,10,11,12]);
+ }
 
- // 3着A：上位残り
  let thirdA=uniq(top(5).filter(h=>!first.slice(0,2).includes(h))).filter(Boolean).slice(0,4);
  if(!thirdA.length) thirdA=top(5).slice(2,5);
-
- // 3着B：6〜8位の軽スライド
- let thirdB=[6,7,8].map(byRank).filter(Boolean);
-
- // 3着C：深層候補
+ let thirdB=ranks([6,7,8]);
  let thirdC=(a.slideDeepHorses||[]).slice(0,3);
-
- // 3着D：超深候補
  let thirdD=(a.x3Horses||[]).slice(0,2);
 
- // H2-BLOCK S/SS 専用の実戦圧縮
  let blockTickets=[];
  let blockExacta=[];
  let t32Tickets=[];
@@ -1108,40 +1122,113 @@ function practicalVerdict(a){
    t32Tickets=others.map(r=>[byRank(a.pickRank),byRank(r)]).filter(z=>z[0]&&z[1]);
  }
  if(a.h2==='H2-BLOCK S'||a.h2==='H2-BLOCK SS'){
-   first=uniq([byRank(1),byRank(2)]).filter(Boolean);
-   second=top(5).filter(Boolean);
-   thirdA=[byRank(1),byRank(3),byRank(4),byRank(5)].filter(Boolean);
-   thirdB=[byRank(6),byRank(7),byRank(8)].filter(Boolean);
-   thirdC=[];
-   thirdD=[];
+   first=uniq(ranks([1,2])); headA=ranks([1,2]); headB=[]; headC=[]; headBan=[]; headInsurance=[];
+   second=top(5).filter(Boolean); secondDeep=[];
+   thirdA=ranks([1,3,4,5]); thirdB=ranks([6,7,8]); thirdC=[]; thirdD=[];
    const pairRanks=[[1,2],[1,3],[1,4],[1,5],[2,3],[2,4],[2,5]];
-   const exactRanks=[[1,2],[1,3],[1,4],[1,5],[2,3],[2,4],[2,5]];
    blockTickets=pairRanks.map(([x,y])=>[byRank(x),byRank(y)]).filter(z=>z[0]&&z[1]);
-   blockExacta=exactRanks.map(([x,y])=>[byRank(x),byRank(y)]).filter(z=>z[0]&&z[1]);
+   blockExacta=pairRanks.map(([x,y])=>[byRank(x),byRank(y)]).filter(z=>z[0]&&z[1]);
  }
 
- // レース全体の荒れ度は3着スライドとは分離
+ // ===== V1.37 X2-DEEP-GATE / COLLAPSE-LANE =====
+ const x2Collapse=(a.n>=14 && a.sum<=202);
+ let x2Gate='OFF';
+ let x2Mode='通常';
+ let x2DeepRanksA=[],x2DeepRanksB=[];
+ let x2DeepA=[],x2DeepB=[];
+ let x2SecondCore=[],x2SecondSupport=[];
+ let x2ThirdCore=[],x2ThirdDeep=[];
+
+ if(x2Collapse){
+   if(a.d12<=2 && a.wallGap<=7){
+     x2Gate='SS'; x2Mode='FULL-COLLAPSE';
+   }else if(a.d23>=6 || ((a.np==='PE'||a.np==='PF') && a.wallPos>=3 && a.wallPos<=6)){
+     x2Gate='S'; x2Mode='MIX-COLLAPSE';
+   }else if(a.np==='PD' && a.d12>=11 && a.wallPos===1){
+     x2Gate='A'; x2Mode='HEAD-REVERSAL';
+   }else{
+     x2Gate='WATCH'; x2Mode='TOP4-RETURN';
+   }
+
+   if(a.d23<=2){ x2DeepRanksA=[5,6,9]; }
+   else if(a.d23<=5){ x2DeepRanksA=[5,10]; x2DeepRanksB=[7]; }
+   else { x2DeepRanksA=[5,9]; }
+   x2DeepA=ranks(x2DeepRanksA);
+   x2DeepB=ranks(x2DeepRanksB);
+
+   if(x2Gate==='SS'){
+     // 732R検証：深頭勝利8/10。上位4頭固定を禁止し、深頭を頭本線へ切替。
+     first=uniq(x2DeepA.concat(x2DeepB)).filter(Boolean);
+     headC=uniq(x2DeepA); headD=uniq(x2DeepB);
+     x2SecondCore=ranks([5,6,7,8,9,10]);
+     x2SecondSupport=ranks([1,2,3,4]);
+     second=x2SecondCore.slice();
+     secondDeep=x2SecondSupport.slice();
+     x2ThirdCore=ranks([5,6,7,8,9,10]);
+     x2ThirdDeep=uniq((a.slideDeepHorses||[]).concat(ranks([11,12]))).filter(Boolean);
+     thirdA=x2ThirdCore.slice();
+     thirdB=ranks([6,7,8]);
+     thirdC=uniq(x2ThirdDeep).slice(0,4);
+   }else if(x2Gate==='S'){
+     // 深頭を強昇格。ただし上位残りもあるため通常HEADを完全には捨てない。
+     first=uniq(x2DeepA.concat(x2DeepB).concat(first)).filter(Boolean).slice(0,6);
+     headC=uniq(x2DeepA); headD=uniq(x2DeepB);
+     x2SecondCore=uniq(ranks([5,6,7,8,9,10]));
+     x2SecondSupport=ranks([1,2,3,4]);
+     second=uniq(x2SecondCore.concat(x2SecondSupport)).filter(Boolean);
+     secondDeep=[];
+     x2ThirdCore=uniq(ranks([1,2,3,4,5,6,7,8,9,10]));
+     x2ThirdDeep=uniq((a.slideDeepHorses||[]).concat(ranks([11,12]))).filter(Boolean);
+   }else if(x2Gate==='A'){
+     // 穴補助。上位側を優先しながら深頭を追加。
+     first=uniq(first.concat(x2DeepA,x2DeepB)).filter(Boolean).slice(0,6);
+     headC=uniq(x2DeepA); headD=uniq(x2DeepB);
+     x2SecondCore=ranks([1,2,3,4]);
+     x2SecondSupport=uniq(x2DeepA.concat(x2DeepB));
+     second=uniq(x2SecondCore.concat(x2SecondSupport)).filter(Boolean);
+     x2ThirdCore=uniq(ranks([1,2,3,4,5,6,7,8,9,10]));
+     x2ThirdDeep=uniq((a.slideDeepHorses||[]).concat(ranks([11,12]))).filter(Boolean);
+   }else{
+     // WATCH：35R中14R、5〜10位勝利0/14。深頭を頭へ自動昇格しない。
+     x2DeepA=[]; x2DeepB=[]; x2DeepRanksA=[]; x2DeepRanksB=[];
+     x2SecondCore=ranks([1,2,3,4]);
+     x2SecondSupport=[];
+     first=uniq(first).filter(Boolean);
+   }
+ }
+
+ // HEAD-BANはX2適用後にも必ず効かせる。
+ if(a.np==='PF' || a.sub==='PE-2H'){
+   const banned=byRank(1);
+   first=first.filter(h=>h!==banned);
+   headBan=uniq([banned].concat(headBan)).filter(Boolean);
+ }
+
+ const x2Label=x2Collapse?`X2-${x2Gate}（${x2Mode}）`:'OFF';
+
  let raceShape='普通';
- if(a.np==='PA' || a.structure==='一強・大断層型' || a.structure==='上位2頭ブロック型'){
-   raceShape='硬め';
- }
- if(a.np==='PE' || a.np==='PF' || a.x){
-   raceShape='荒れ';
- }
- // 上位断層型は1・2着硬め寄り
- if(a.structure==='上位断層型' && a.p1>=76 && a.d23>=8){
-   raceShape='硬め';
- }
+ if(a.np==='PA'||a.structure==='一強・大断層型'||a.structure==='上位2頭ブロック型') raceShape='硬め';
+ if(a.np==='PE'||a.np==='PF'||a.x) raceShape='荒れ';
+ if(a.structure==='上位断層型'&&a.p1>=76&&a.d23>=8) raceShape='硬め';
 
  let thirdRisk=a.slideLevel||'普通';
  if(a.h2==='H2-BLOCK S'||a.h2==='H2-BLOCK SS'){
-   raceShape='硬め（HEAD2ロック）';
-   thirdRisk='低〜中（9位以下抑制）';
- }else if(a.t3h){
-   raceShape='上位3頭ロック型';
+   raceShape='硬め（HEAD2ロック）'; thirdRisk='低〜中（9位以下抑制）';
+ }else if(a.t3h){ raceShape='上位3頭ロック型'; }
+ if(x2Collapse){
+   if(x2Gate==='SS'){raceShape='大荒れ・全面崩壊警戒（X2-SS）';thirdRisk='最高';}
+   else if(x2Gate==='S'){raceShape='大荒れ警戒（X2-S）';thirdRisk='高';}
+   else if(x2Gate==='A'){raceShape='頭反転警戒（X2-A）';thirdRisk='高';}
+   else {raceShape='X2-WATCH（上位頭維持）';thirdRisk='中〜高';}
  }
 
- return {first,second,thirdA,thirdB,thirdC,thirdD,raceShape,thirdRisk,blockTickets,blockExacta,t32Tickets};
+ return {
+   first,second,secondDeep,thirdA,thirdB,thirdC,thirdD,raceShape,thirdRisk,
+   blockTickets,blockExacta,t32Tickets,headA,headB,headC,headD,headBan,headInsurance,
+   x2Collapse,x2Label,x2Gate,x2Mode,x2DeepRanksA,x2DeepRanksB,x2DeepA,x2DeepB,
+   x2SecondCore,x2SecondSupport,x2ThirdCore,x2ThirdDeep,
+   wallAfterRole:x2Collapse?'連下監査（頭昇格理由にしない）':'通常監査'
+ };
 }
 
 function summaryText(a){
@@ -1149,11 +1236,19 @@ function summaryText(a){
  const p=practicalVerdict(a);
 
  return `【${a.date} ${a.place}${a.race}R】
-中央新P統合 V1.32
+中央新P統合 V1.37
 
 【実戦結論】
 1着候補：${p.first.join('・')||'なし'}
+${p.headA.length?`HEAD-A：${p.headA.join('・')}`:''}
+${p.headB.length?`HEAD-B：${p.headB.join('・')}`:''}
+${p.headC.length?`HEAD-C 深頭：${p.headC.join('・')}`:''}
+${p.headD.length?`HEAD-D 超深頭：${p.headD.join('・')}`:''}
+${p.headBan.length?`HEAD-BAN：${p.headBan.join('・')}（頭禁止）`:''}
+${p.x2Collapse?`X2：${p.x2Label}\n深頭A：${p.x2DeepA.join('・')||'なし'}${p.x2DeepRanksA.length?`（${p.x2DeepRanksA.join('・')}位）`:''}\n深頭B：${p.x2DeepB.join('・')||'なし'}${p.x2DeepRanksB.length?`（${p.x2DeepRanksB.join('・')}位）`:''}\nX2 2着本線：${p.x2SecondCore.join('・')||'なし'}\nX2 2着補助：${p.x2SecondSupport.join('・')||'なし'}\n最大壁直後：${p.wallAfterRole}`:''}
+${p.headInsurance.length?`HEAD保険：${p.headInsurance.join('・')}（薄い頭）`:''}
 2着候補：${p.second.join('・')||'なし'}
+${p.secondDeep.length?`2着深層：${p.secondDeep.join('・')}`:''}
 
 3着A 本線：${p.thirdA.join('・')||'なし'}
 3着B 軽スライド：${p.thirdB.join('・')||'なし'}
@@ -1205,8 +1300,17 @@ function renderResults(arr){
       <div class="k">1着候補</div>
       <div class="v">${p.first.join('・')||'なし'}</div>
 
+      ${p.headA.length?`<div class="k">HEAD-A</div><div class="v">${p.headA.join('・')}</div>`:''}
+      ${p.headB.length?`<div class="k">HEAD-B</div><div class="v third-b">${p.headB.join('・')}</div>`:''}
+      ${p.headC.length?`<div class="k">HEAD-C 深頭</div><div class="v third-c">${p.headC.join('・')}</div>`:''}
+      ${p.headD.length?`<div class="k">HEAD-D 超深頭</div><div class="v third-d">${p.headD.join('・')}</div>`:''}
+      ${p.headBan.length?`<div class="k">HEAD-BAN</div><div class="v third-d">${p.headBan.join('・')}（頭禁止）</div>`:''}
+      ${p.x2Collapse?`<div class="k">X2-DEEP-GATE</div><div class="v third-d">${p.x2Label}</div><div class="k">深頭A</div><div class="v third-c">${p.x2DeepA.join('・')||'なし'} ${p.x2DeepRanksA.length?`（${p.x2DeepRanksA.join('・')}位）`:''}</div><div class="k">深頭B</div><div class="v third-d">${p.x2DeepB.join('・')||'なし'} ${p.x2DeepRanksB.length?`（${p.x2DeepRanksB.join('・')}位）`:''}</div><div class="k">COLLAPSE-LANE</div><div class="v">${p.x2Mode}</div><div class="k">2着本線/補助</div><div class="v">${p.x2SecondCore.join('・')||'なし'} / ${p.x2SecondSupport.join('・')||'なし'}</div><div class="k">最大壁直後</div><div class="v">${p.wallAfterRole}</div>`:''}
+      ${p.headInsurance.length?`<div class="k">HEAD保険</div><div class="v">${p.headInsurance.join('・')}（薄い頭）</div>`:''}
+
       <div class="k">2着候補</div>
       <div class="v">${p.second.join('・')||'なし'}</div>
+      ${p.secondDeep.length?`<div class="k">2着深層</div><div class="v third-c">${p.secondDeep.join('・')}</div>`:''}
 
       <div class="k">3着A 本線</div>
       <div class="v third-a">${p.thirdA.join('・')||'なし'}</div>
@@ -1416,7 +1520,7 @@ async function reanalyzeAll(){
   return;
  }
 
- if(!confirm(`${rows.length}件をV1.23判定で再解析します。\n先にJSONバックアップを推奨します。`))return;
+ if(!confirm(`${rows.length}件をV1.37判定で再解析します。\n先にJSONバックアップを推奨します。`))return;
 
  let count=0;
  for(const old of rows){
@@ -1437,7 +1541,7 @@ async function reanalyzeAll(){
  }
 
  await refreshAll();
- alert(`${count}件をV1.23で再解析しました`);
+ alert(`${count}件をV1.37で再解析しました`);
 }
 
 /* ==============================
@@ -1685,7 +1789,8 @@ async function exportJSON(){
 }
 
 async function exportCSV(){
- const rows=await allRows();
+ const rawRows=await allRows();
+ const rows=rawRows.map(r=>{const p=practicalVerdict(r);return {...r,x2Collapse:p.x2Collapse,x2Gate:p.x2Gate,x2Mode:p.x2Mode,x2DeepA:p.x2DeepA,x2DeepB:p.x2DeepB,x2DeepRanksA:p.x2DeepRanksA,x2DeepRanksB:p.x2DeepRanksB,x2SecondCore:p.x2SecondCore,x2SecondSupport:p.x2SecondSupport,wallAfterRole:p.wallAfterRole};});
 
  const keys=[
   'date','place','race','n',
@@ -1697,7 +1802,8 @@ async function exportCSV(){
   'slide','slideSub','slideLabel','slideLevel','slideBaseThird',
   'slideDeepHorses','x3On','x3Hot','x3Horses','slideDeepHit','x3Hit',
   'headCandidates','band54to57','mid49to55','low46to49',
-  'protectedHorses','final','result','resultRanks'
+  'protectedHorses','final','result','resultRanks',
+  'x2Collapse','x2Gate','x2Mode','x2DeepRanksA','x2DeepRanksB','x2DeepA','x2DeepB','x2SecondCore','x2SecondSupport','wallAfterRole'
  ];
 
  const labels=[
@@ -1710,7 +1816,8 @@ async function exportCSV(){
   '3着S','3着Sサブ型','3着S名称','3着S危険度','基本3着帯',
   '深候補','X3','X3強','X3候補','深候補的中','X3的中',
   '頭候補','54_57','49_55','46_49',
-  '削除禁止','最終5頭','結果','結果コンピ順位'
+  '削除禁止','最終5頭','結果','結果コンピ順位',
+  'X2','X2_GATE','COLLAPSE_LANE','深頭A順位','深頭B順位','深頭A馬','深頭B馬','X2_2着本線','X2_2着補助','最大壁直後役割'
  ];
 
  const text='\ufeff'+labels.join(',')+'\n'+
@@ -1718,7 +1825,7 @@ async function exportCSV(){
 
  download(
   text,
-  `中央新P_V1.32_unified_log_${new Date().toISOString().slice(0,10)}.csv`,
+  `中央新P_V1.37_unified_log_${new Date().toISOString().slice(0,10)}.csv`,
   'text/csv;charset=utf-8'
  );
 }
@@ -1737,7 +1844,7 @@ async function importJSON(file){
  for(const old of arr)await put(old);
 
  await refreshAll();
- alert(`${arr.length}件読み込みました。\n旧版データならV1.23で全件再解析してください。`);
+ alert(`${arr.length}件読み込みました。\n旧版データならV1.37で全件再解析してください。`);
 }
 
 /* ==============================
@@ -1816,8 +1923,8 @@ $('#deleteAll').onclick=async()=>{
 
 
 /* =========================================================
-   V1.32 完全統合司令塔
-   V1.32純コンピ本体を壊さず、市場・タテ目監査を直接追加
+   V1.37 完全統合司令塔
+   V1.37純コンピ本体を壊さず、市場・タテ目監査を直接追加
    iframe/外部エンジンなし
    ========================================================= */
 function U32_num(x){ const n=Number(x); return Number.isFinite(n)?n:null; }
@@ -1998,7 +2105,7 @@ function U32_render(){
 
  box.innerHTML=`
  <div class="card unifiedCommander">
-  <div class="unifiedTitle">🧠 V1.32 完全統合司令塔</div>
+  <div class="unifiedTitle">🧠 V1.37 完全統合司令塔</div>
   <div class="unifiedGrid">
    <div class="unifiedK">1着本線</div><div class="unifiedV unifiedGood">${esc(headMain||'なし')}</div>
    <div class="unifiedK">逆転頭</div><div class="unifiedV">${esc(U32_fmt(reverse))}</div>
