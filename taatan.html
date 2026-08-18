@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>たーたんの掛け算</title>
+
+<style>
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
+  background: linear-gradient(#fff7cf, #ffe4ec);
+}
+
+.app {
+  width: 90%;
+  max-width: 600px;
+  background: white;
+  border-radius: 30px;
+  padding: 30px 20px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+h1 {
+  font-size: 42px;
+  color: #ff6b61;
+  margin-bottom: 20px;
+}
+
+.info {
+  font-size: 22px;
+  margin-bottom: 30px;
+}
+
+button {
+  font-size: 30px;
+  font-weight: bold;
+  padding: 18px 45px;
+  border: none;
+  border-radius: 40px;
+  background: #ff8a3d;
+  color: white;
+}
+
+#question {
+  font-size: 70px;
+  font-weight: bold;
+  margin: 50px 0;
+}
+
+#count {
+  font-size: 24px;
+  color: #666;
+}
+
+.answer {
+  color: #1681d4;
+}
+
+.hidden {
+  display: none;
+}
+
+.finish {
+  font-size: 48px;
+  font-weight: bold;
+  color: #ff6b61;
+  margin: 40px 0;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<div id="startScreen">
+
+<h1>たーたんの掛け算</h1>
+
+<div class="info">
+1×1から9×9まで<br>
+ランダムで20問！
+</div>
+
+<button onclick="startGame()">
+スタート
+</button>
+
+</div>
+
+
+<div id="gameScreen" class="hidden">
+
+<div id="count"></div>
+
+<div id="question"></div>
+
+<div class="info">
+3秒後に答えが出るよ
+</div>
+
+</div>
+
+
+<div id="finishScreen" class="hidden">
+
+<h1>たーたんの掛け算</h1>
+
+<div class="finish">
+20問おわり！ 🎉
+</div>
+
+<button onclick="startGame()">
+もう一回
+</button>
+
+</div>
+
+</div>
+
+
+<script>
+
+let problems = [];
+let current = 0;
+
+const totalQuestions = 20;
+
+
+// 問題を作る
+function makeProblems() {
+
+  let list = [];
+
+  for (let a = 1; a <= 9; a++) {
+
+    for (let b = 1; b <= 9; b++) {
+
+      list.push([a,b]);
+
+    }
+
+  }
+
+
+// ランダムに並び替える
+
+  for (let i = list.length - 1; i > 0; i--) {
+
+    let j =
+    Math.floor(
+      Math.random() * (i + 1)
+    );
+
+    [list[i], list[j]] =
+    [list[j], list[i]];
+
+  }
+
+
+// 20問だけ使う
+
+  problems =
+  list.slice(0,totalQuestions);
+
+}
+
+
+// スタート
+
+function startGame() {
+
+  makeProblems();
+
+  current = 0;
+
+  document
+  .getElementById("startScreen")
+  .classList.add("hidden");
+
+  document
+  .getElementById("finishScreen")
+  .classList.add("hidden");
+
+  document
+  .getElementById("gameScreen")
+  .classList.remove("hidden");
+
+  showQuestion();
+
+}
+
+
+// 問題表示
+
+function showQuestion() {
+
+  if (current >= totalQuestions) {
+
+    finishGame();
+
+    return;
+
+  }
+
+
+  const a =
+  problems[current][0];
+
+  const b =
+  problems[current][1];
+
+
+  document
+  .getElementById("count")
+  .textContent =
+  (current + 1) + " / 20";
+
+
+  const question =
+  document
+  .getElementById("question");
+
+
+  question.classList.remove("answer");
+
+
+  question.textContent =
+  a + " × " + b + " ＝";
+
+
+  // 3秒後に答え
+
+  setTimeout(function() {
+
+    question.classList.add("answer");
+
+    question.textContent =
+    a + " × " + b +
+    " ＝ " + (a*b);
+
+
+    // 答えを少し表示して次へ
+
+    setTimeout(function() {
+
+      current++;
+
+      showQuestion();
+
+    },1800);
+
+
+  },3000);
+
+}
+
+
+// 終了
+
+function finishGame() {
+
+  document
+  .getElementById("gameScreen")
+  .classList.add("hidden");
+
+  document
+  .getElementById("finishScreen")
+  .classList.remove("hidden");
+
+}
+
+</script>
+
+</body>
+</html>
