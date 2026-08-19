@@ -87,43 +87,37 @@ button {
 <div class="app">
 
 <div id="startScreen">
+  <h1>たーたんの掛け算</h1>
 
-<h1>たーたんの掛け算</h1>
+  <div class="info">
+    1×1から9×9まで<br>
+    ランダムで20問！
+  </div>
 
-<div class="info">
-1×1から9×9まで<br>
-ランダムで20問！
-</div>
-
-<button onclick="startGame()">
-スタート
-</button>
-
+  <button onclick="startGame()">スタート</button>
 </div>
 
 
 <div id="gameScreen" class="hidden">
 
-<div id="count"></div>
+  <div id="count"></div>
 
-<div id="question"></div>
+  <div id="question"></div>
 
-<div id="countdown"></div>
+  <div id="countdown"></div>
 
 </div>
 
 
 <div id="finishScreen" class="hidden">
 
-<h1>たーたんの掛け算</h1>
+  <h1>たーたんの掛け算</h1>
 
-<div class="finish">
-20問おわり！ 🎉
-</div>
+  <div class="finish">
+    20問おわり！ 🎉
+  </div>
 
-<button onclick="startGame()">
-もう一回
-</button>
+  <button onclick="startGame()">もう一回</button>
 
 </div>
 
@@ -137,16 +131,35 @@ let current = 0;
 
 const totalQuestions = 20;
 
+let audioCtx = null;
+let bgmTimer = null;
+let bgmStep = 0;
 
-// 音を鳴らす
-function beep(frequency = 700, duration = 120) {
 
-  const AudioContext =
-    window.AudioContext ||
-    window.webkitAudioContext;
+// 音の準備
+function initAudio() {
 
-  const audioCtx =
-    new AudioContext();
+  if (!audioCtx) {
+
+    const AudioContext =
+      window.AudioContext ||
+      window.webkitAudioContext;
+
+    audioCtx = new AudioContext();
+
+  }
+
+  if (audioCtx.state === "suspended") {
+    audioCtx.resume();
+  }
+
+}
+
+
+// 効果音
+function beep(frequency = 700, duration = 120, volume = 0.15) {
+
+  initAudio();
 
   const oscillator =
     audioCtx.createOscillator();
@@ -163,8 +176,13 @@ function beep(frequency = 700, duration = 120) {
   oscillator.type = "sine";
 
   gain.gain.setValueAtTime(
-    0.18,
+    volume,
     audioCtx.currentTime
+  );
+
+  gain.gain.exponentialRampToValueAtTime(
+    0.001,
+    audioCtx.currentTime + duration / 1000
   );
 
   oscillator.start();
@@ -173,6 +191,95 @@ function beep(frequency = 700, duration = 120) {
     audioCtx.currentTime +
     duration / 1000
   );
+
+}
+
+
+// BGMの音
+function bgmNote(frequency, duration = 180) {
+
+  initAudio();
+
+  const oscillator =
+    audioCtx.createOscillator();
+
+  const gain =
+    audioCtx.createGain();
+
+  oscillator.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  oscillator.type = "triangle";
+
+  oscillator.frequency.value =
+    frequency;
+
+  gain.gain.setValueAtTime(
+    0.025,
+    audioCtx.currentTime
+  );
+
+  gain.gain.exponentialRampToValueAtTime(
+    0.001,
+    audioCtx.currentTime + duration / 1000
+  );
+
+  oscillator.start();
+
+  oscillator.stop(
+    audioCtx.currentTime +
+    duration / 1000
+  );
+
+}
+
+
+// 明るいゲーム風BGM
+function startBGM() {
+
+  stopBGM();
+
+  const melody = [
+    523.25,
+    659.25,
+    783.99,
+    659.25,
+    587.33,
+    698.46,
+    880.00,
+    698.46,
+    659.25,
+    783.99,
+    987.77,
+    783.99
+  ];
+
+  bgmStep = 0;
+
+  bgmTimer = setInterval(function() {
+
+    const note =
+      melody[bgmStep % melody.length];
+
+    bgmNote(note, 220);
+
+    bgmStep++;
+
+  }, 320);
+
+}
+
+
+// BGM停止
+function stopBGM() {
+
+  if (bgmTimer) {
+
+    clearInterval(bgmTimer);
+
+    bgmTimer = null;
+
+  }
 
 }
 
@@ -193,13 +300,12 @@ function makeProblems() {
   }
 
 
-// ランダム並び替え
   for (let i = list.length - 1; i > 0; i--) {
 
     let j =
-    Math.floor(
-      Math.random() * (i + 1)
-    );
+      Math.floor(
+        Math.random() * (i + 1)
+      );
 
     [list[i], list[j]] =
     [list[j], list[i]];
@@ -207,9 +313,8 @@ function makeProblems() {
   }
 
 
-// 20問だけ使う
   problems =
-  list.slice(0,totalQuestions);
+    list.slice(0,totalQuestions);
 
 }
 
@@ -217,23 +322,27 @@ function makeProblems() {
 // スタート
 function startGame() {
 
+  initAudio();
+
   makeProblems();
 
   current = 0;
 
   document
-  .getElementById("startScreen")
-  .classList.add("hidden");
+    .getElementById("startScreen")
+    .classList.add("hidden");
 
   document
-  .getElementById("finishScreen")
-  .classList.add("hidden");
+    .getElementById("finishScreen")
+    .classList.add("hidden");
 
   document
-  .getElementById("gameScreen")
-  .classList.remove("hidden");
+    .getElementById("gameScreen")
+    .classList.remove("hidden");
 
-  beep(500,100);
+  beep(500,100,0.12);
+
+  startBGM();
 
   showQuestion();
 
@@ -265,8 +374,8 @@ function showQuestion() {
 
 
   document
-  .getElementById("count")
-  .textContent =
+    .getElementById("count")
+    .textContent =
     (current + 1) + " / 20";
 
 
@@ -276,30 +385,25 @@ function showQuestion() {
     a + " × " + b + " ＝";
 
 
-  countdown.textContent =
-    "2";
+  countdown.textContent = "2";
 
-  beep(650,120);
+  beep(650,120,0.12);
 
 
-  // 1秒後
   setTimeout(function() {
 
-    countdown.textContent =
-      "1";
+    countdown.textContent = "1";
 
-    beep(750,120);
+    beep(750,120,0.12);
 
   },1000);
 
 
-  // 2秒後に答え
   setTimeout(function() {
 
-    countdown.textContent =
-      "答え！";
+    countdown.textContent = "答え！";
 
-    beep(1000,180);
+    beep(1050,180,0.16);
 
     question.classList.add("answer");
 
@@ -308,7 +412,6 @@ function showQuestion() {
       " ＝ " + (a*b);
 
 
-    // 答えを1.5秒表示して次へ
     setTimeout(function() {
 
       current++;
@@ -326,19 +429,26 @@ function showQuestion() {
 // 終了
 function finishGame() {
 
-  beep(900,150);
+  stopBGM();
+
+  beep(800,150,0.15);
 
   setTimeout(function() {
-    beep(1100,180);
+    beep(1000,150,0.15);
   },180);
 
-  document
-  .getElementById("gameScreen")
-  .classList.add("hidden");
+  setTimeout(function() {
+    beep(1300,250,0.18);
+  },360);
+
 
   document
-  .getElementById("finishScreen")
-  .classList.remove("hidden");
+    .getElementById("gameScreen")
+    .classList.add("hidden");
+
+  document
+    .getElementById("finishScreen")
+    .classList.remove("hidden");
 
 }
 
