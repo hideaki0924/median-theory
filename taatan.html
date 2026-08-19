@@ -132,8 +132,10 @@ let current = 0;
 const totalQuestions = 20;
 
 let audioCtx = null;
-let bgmTimer = null;
-let bgmStep = 0;
+
+let bgmRunning = false;
+let bgmIndex = 0;
+let bgmTimeout = null;
 
 
 // 音の準備
@@ -157,9 +159,9 @@ function initAudio() {
 
 
 // 効果音
-function beep(frequency = 700, duration = 120, volume = 0.15) {
+function beep(frequency = 700, duration = 120, volume = 0.12) {
 
-  initAudio();
+  if (!audioCtx) return;
 
   const oscillator =
     audioCtx.createOscillator();
@@ -170,10 +172,12 @@ function beep(frequency = 700, duration = 120, volume = 0.15) {
   oscillator.connect(gain);
   gain.connect(audioCtx.destination);
 
-  oscillator.frequency.value =
-    frequency;
-
   oscillator.type = "sine";
+
+  oscillator.frequency.setValueAtTime(
+    frequency,
+    audioCtx.currentTime
+  );
 
   gain.gain.setValueAtTime(
     volume,
@@ -188,17 +192,20 @@ function beep(frequency = 700, duration = 120, volume = 0.15) {
   oscillator.start();
 
   oscillator.stop(
-    audioCtx.currentTime +
-    duration / 1000
+    audioCtx.currentTime + duration / 1000
   );
 
 }
 
 
-// BGMの音
-function bgmNote(frequency, duration = 180) {
+// BGMの1音
+function playBgmNote(frequency) {
 
-  initAudio();
+  if (!audioCtx || !bgmRunning) return;
+
+  if (audioCtx.state === "suspended") {
+    audioCtx.resume();
+  }
 
   const oscillator =
     audioCtx.createOscillator();
@@ -211,33 +218,34 @@ function bgmNote(frequency, duration = 180) {
 
   oscillator.type = "triangle";
 
-  oscillator.frequency.value =
-    frequency;
+  oscillator.frequency.setValueAtTime(
+    frequency,
+    audioCtx.currentTime
+  );
 
   gain.gain.setValueAtTime(
-    0.025,
+    0.035,
     audioCtx.currentTime
   );
 
   gain.gain.exponentialRampToValueAtTime(
     0.001,
-    audioCtx.currentTime + duration / 1000
+    audioCtx.currentTime + 0.22
   );
 
   oscillator.start();
 
   oscillator.stop(
-    audioCtx.currentTime +
-    duration / 1000
+    audioCtx.currentTime + 0.22
   );
 
 }
 
 
-// 明るいゲーム風BGM
-function startBGM() {
+// BGM
+function bgmLoop() {
 
-  stopBGM();
+  if (!bgmRunning) return;
 
   const melody = [
     523.25,
@@ -254,37 +262,47 @@ function startBGM() {
     783.99
   ];
 
-  bgmStep = 0;
+  playBgmNote(
+    melody[bgmIndex % melody.length]
+  );
 
-  bgmTimer = setInterval(function() {
+  bgmIndex++;
 
-    const note =
-      melody[bgmStep % melody.length];
-
-    bgmNote(note, 220);
-
-    bgmStep++;
-
-  }, 320);
+  bgmTimeout =
+    setTimeout(bgmLoop, 320);
 
 }
 
 
-// BGM停止
+function startBGM() {
+
+  stopBGM();
+
+  bgmRunning = true;
+
+  bgmIndex = 0;
+
+  bgmLoop();
+
+}
+
+
 function stopBGM() {
 
-  if (bgmTimer) {
+  bgmRunning = false;
 
-    clearInterval(bgmTimer);
+  if (bgmTimeout) {
 
-    bgmTimer = null;
+    clearTimeout(bgmTimeout);
+
+    bgmTimeout = null;
 
   }
 
 }
 
 
-// 問題を作る
+// 問題作成
 function makeProblems() {
 
   let list = [];
@@ -360,6 +378,11 @@ function showQuestion() {
 
   }
 
+  if (audioCtx && audioCtx.state === "suspended") {
+    audioCtx.resume();
+  }
+
+
   const a =
     problems[current][0];
 
@@ -387,23 +410,25 @@ function showQuestion() {
 
   countdown.textContent = "2";
 
-  beep(650,120,0.12);
+  beep(650,100,0.13);
 
 
+  // 0.75秒後
   setTimeout(function() {
 
     countdown.textContent = "1";
 
-    beep(750,120,0.12);
+    beep(780,100,0.13);
 
-  },1000);
+  },750);
 
 
+  // 1.5秒後に答え
   setTimeout(function() {
 
     countdown.textContent = "答え！";
 
-    beep(1050,180,0.16);
+    beep(1100,180,0.18);
 
     question.classList.add("answer");
 
@@ -412,6 +437,7 @@ function showQuestion() {
       " ＝ " + (a*b);
 
 
+    // 答えを1.5秒表示
     setTimeout(function() {
 
       current++;
@@ -421,7 +447,7 @@ function showQuestion() {
     },1500);
 
 
-  },2000);
+  },1500);
 
 }
 
@@ -438,7 +464,7 @@ function finishGame() {
   },180);
 
   setTimeout(function() {
-    beep(1300,250,0.18);
+    beep(1300,300,0.18);
   },360);
 
 
