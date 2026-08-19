@@ -50,7 +50,14 @@ button {
 #question {
   font-size: 70px;
   font-weight: bold;
-  margin: 50px 0;
+  margin: 35px 0 10px;
+}
+
+#countdown {
+  font-size: 42px;
+  font-weight: bold;
+  color: #ff8a3d;
+  min-height: 55px;
 }
 
 #count {
@@ -101,9 +108,7 @@ button {
 
 <div id="question"></div>
 
-<div class="info">
-3秒後に答えが出るよ
-</div>
+<div id="countdown"></div>
 
 </div>
 
@@ -133,6 +138,45 @@ let current = 0;
 const totalQuestions = 20;
 
 
+// 音を鳴らす
+function beep(frequency = 700, duration = 120) {
+
+  const AudioContext =
+    window.AudioContext ||
+    window.webkitAudioContext;
+
+  const audioCtx =
+    new AudioContext();
+
+  const oscillator =
+    audioCtx.createOscillator();
+
+  const gain =
+    audioCtx.createGain();
+
+  oscillator.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  oscillator.frequency.value =
+    frequency;
+
+  oscillator.type = "sine";
+
+  gain.gain.setValueAtTime(
+    0.18,
+    audioCtx.currentTime
+  );
+
+  oscillator.start();
+
+  oscillator.stop(
+    audioCtx.currentTime +
+    duration / 1000
+  );
+
+}
+
+
 // 問題を作る
 function makeProblems() {
 
@@ -149,8 +193,7 @@ function makeProblems() {
   }
 
 
-// ランダムに並び替える
-
+// ランダム並び替え
   for (let i = list.length - 1; i > 0; i--) {
 
     let j =
@@ -165,7 +208,6 @@ function makeProblems() {
 
 
 // 20問だけ使う
-
   problems =
   list.slice(0,totalQuestions);
 
@@ -173,7 +215,6 @@ function makeProblems() {
 
 
 // スタート
-
 function startGame() {
 
   makeProblems();
@@ -192,13 +233,14 @@ function startGame() {
   .getElementById("gameScreen")
   .classList.remove("hidden");
 
+  beep(500,100);
+
   showQuestion();
 
 }
 
 
 // 問題表示
-
 function showQuestion() {
 
   if (current >= totalQuestions) {
@@ -209,62 +251,86 @@ function showQuestion() {
 
   }
 
-
   const a =
-  problems[current][0];
+    problems[current][0];
 
   const b =
-  problems[current][1];
+    problems[current][1];
+
+  const question =
+    document.getElementById("question");
+
+  const countdown =
+    document.getElementById("countdown");
 
 
   document
   .getElementById("count")
   .textContent =
-  (current + 1) + " / 20";
-
-
-  const question =
-  document
-  .getElementById("question");
+    (current + 1) + " / 20";
 
 
   question.classList.remove("answer");
 
-
   question.textContent =
-  a + " × " + b + " ＝";
+    a + " × " + b + " ＝";
 
 
-  // 3秒後に答え
+  countdown.textContent =
+    "2";
 
+  beep(650,120);
+
+
+  // 1秒後
   setTimeout(function() {
+
+    countdown.textContent =
+      "1";
+
+    beep(750,120);
+
+  },1000);
+
+
+  // 2秒後に答え
+  setTimeout(function() {
+
+    countdown.textContent =
+      "答え！";
+
+    beep(1000,180);
 
     question.classList.add("answer");
 
     question.textContent =
-    a + " × " + b +
-    " ＝ " + (a*b);
+      a + " × " + b +
+      " ＝ " + (a*b);
 
 
-    // 答えを少し表示して次へ
-
+    // 答えを1.5秒表示して次へ
     setTimeout(function() {
 
       current++;
 
       showQuestion();
 
-    },1800);
+    },1500);
 
 
-  },3000);
+  },2000);
 
 }
 
 
 // 終了
-
 function finishGame() {
+
+  beep(900,150);
+
+  setTimeout(function() {
+    beep(1100,180);
+  },180);
 
   document
   .getElementById("gameScreen")
