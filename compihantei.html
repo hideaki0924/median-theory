@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>中央コンピ12R司令塔 V0.20</title>
+<title>中央コンピ12R司令塔 V0.21</title>
 <style>
 :root{--bg:#07101f;--panel:#0c1930;--panel2:#101f3a;--line:#274f88;--text:#f6f8ff;--muted:#9fb0cf;--green:#49df94;--yellow:#ffd166;--red:#ff6b78;--cyan:#5fddff;--blue:#6ca0ff}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#06101e,#0a1730 52%,#06101e);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",Meiryo,sans-serif}.wrap{max-width:980px;margin:auto;padding:14px 12px 48px}h1{font-size:25px;margin:5px 0 2px}.ver{color:#71ddff}.sub{font-size:13px;color:var(--muted);line-height:1.55}.panel{background:rgba(12,25,48,.96);border:1px solid #1b3d70;border-radius:18px;padding:14px;margin:12px 0;box-shadow:0 9px 30px rgba(0,0,0,.22)}textarea{width:100%;min-height:245px;resize:vertical;border:1px solid #31527e;background:#061325;color:#fff;border-radius:14px;padding:13px;line-height:1.55;font-size:15px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.btns{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px}button{border:0;border-radius:14px;padding:12px 16px;font-weight:900;font-size:16px}.primary{background:#568df8;color:#fff}.secondary{background:#243957;color:#fff}.copy{background:#f4aa2e;color:#101010}.danger{background:#85333c;color:#fff}.help{font-size:12px;color:var(--muted);line-height:1.6;margin-top:10px}.alert{border-radius:12px;padding:10px 12px;font-size:13px;margin-top:10px;background:#3c2026;border:1px solid #8d3d49;color:#ffd9df}.ok{background:#143429;border-color:#2b704d;color:#d8ffe9}.hidden{display:none}
@@ -13,7 +13,7 @@
 </style>
 </head>
 <body><div class="wrap">
-<h1>🏇 中央コンピ12R司令塔 <span class="ver">V0.20</span></h1>
+<h1>🏇 中央コンピ12R司令塔 <span class="ver">V0.21</span></h1>
 <div class="sub">日付・競馬場の入力は不要。12Rのコンピだけ貼れば、まず「どのレースを見るべきか」を上にまとめて、その後に1Rずつ大きく判定します。</div>
 
 <div class="panel">
@@ -25,12 +25,13 @@
 <div id="dash" class="hidden">
 <div class="panel hero"><div class="heroTitle">🎯 まずここだけ見ればOK</div>
 <div class="heroGrid"><div class="heroBox"><span>🟢 本命向き</span><b id="sSolid" class="green">0</b></div><div class="heroBox"><span>🟡 頭替わり</span><b id="sSwap" class="yellow">0</b></div><div class="heroBox"><span>🔴 荒れ警戒</span><b id="sChaos" class="red">0</b></div><div class="heroBox"><span>🚨 強サイン</span><b id="sSignal" class="cyan">0</b></div></div>
+<div id="prioritySummary" class="panel" style="margin:10px 0 0;background:#071528;border-color:#294c7a"></div>
 <div class="quick"><div class="q qSolid"><strong>🟢 軸から考えやすい</strong><div id="solidList" class="rlist green">—</div><small>PA/PB中心。1位優勢を先に見る。</small></div><div class="q qSwap"><strong>🟡 頭替わりを考える</strong><div id="swapList" class="rlist yellow">—</div><small>PC/PD中心。1位固定しすぎない。</small></div><div class="q qChaos"><strong>🔴 穴・崩れを監査</strong><div id="chaosList" class="rlist red">—</div><small>PE/PF・X2・崩壊系を優先。</small></div></div>
 </div>
 <div id="results"></div>
 </div>
 
-<div class="panel footer"><b>V0.20の変更点</b><br>・開催日と競馬場の入力欄を削除。<br>・上部に「本命向き／頭替わり／荒れ警戒」をレース番号で集約。<br>・各レースは「判定→上位3頭→重要な差→サイン」の順に統一。細かい数値は折りたたみに移しました。</div>
+<div class="panel footer"><b>V0.21の変更点</b><br>・開催日と競馬場の入力欄を削除。<br>・上部に「本命向き／頭替わり／荒れ警戒」をレース番号で集約。<br>・各レースは「判定→上位3頭→重要な差→サイン」の順に統一。細かい数値は折りたたみに移しました。</div>
 </div>
 <script>
 const $=id=>document.getElementById(id);
@@ -71,37 +72,48 @@ function calc(race){
  else if(p==='PE'){main='1位を疑って頭替わり';why=`1-2差${d12}P。1位の勝ち切りを過信しない。`}
  else if(p==='PF'){main='荒れ候補。深部まで見る';why=`上位3合計${sum3}。上位だけで収まらない前提で監査。`}
  else {main='標準混戦。上位5頭を基本';why='極端な一本被りでも全面崩壊でもない中間型。'}
- return{r:race.r,sorted,n,a,b,c,sum3,d12,d23,d13,maxWall,p,label,x2grade,pdCollapse,t3High,head,level,signals,main,why};
+ let priority='D',priorityLabel='混戦';
+ if(p==='PA') {priority='A';priorityLabel='本命向き'}
+ else if(p==='PB') {priority='B';priorityLabel='準本命'}
+ else if(p==='PE'||p==='PC') {priority='C';priorityLabel='頭替わり狙い'}
+ else if(p==='PF'||x2||pdCollapse) {priority='X';priorityLabel='荒れ狙い'}
+ let cautions=[];
+ if(p==='PB'&&sum3<=210)cautions.push('PBだが低合計注意');
+ if((p==='PA'||p==='PB')&&n>=14&&sum3<=210)cautions.push('多頭数＋低合計');
+ if(d12<=3)cautions.push('1位固定注意');
+ return{r:race.r,sorted,n,a,b,c,sum3,d12,d23,d13,maxWall,p,label,x2grade,pdCollapse,t3High,head,level,signals,main,why,priority,priorityLabel,cautions};
 }
 function analyze(){
  const races=parseInput($('input').value);
  if(!races.length){$('msg').innerHTML='<div class="alert">入力を読めませんでした。<b>1R 5:84 2:65 3:63 ...</b> の形で入れてください。</div>';$('dash').classList.add('hidden');return}
- const out=races.map(calc);window._last=out;localStorage.setItem('compi12_input_v020',$('input').value);
+ const out=races.map(calc);window._last=out;localStorage.setItem('compi12_input_v021',$('input').value);
  $('msg').innerHTML=races.length===12?'<div class="alert ok">12Rすべて読み込みました。</div>':`<div class="alert">${races.length}R分を読み込みました。12R全部なら不足Rを確認してください。</div>`;
  const solid=out.filter(x=>x.level==='solid'),swap=out.filter(x=>x.level==='swap'),chaos=out.filter(x=>x.level==='chaos');
  $('sSolid').textContent=solid.length;$('sSwap').textContent=swap.length;$('sChaos').textContent=chaos.length;$('sSignal').textContent=out.filter(x=>x.signals.some(s=>/X2|COLLAPSE|高指数|大壁|断層|ブロック/.test(s))).length;
  const ls=a=>a.length?a.map(x=>x.r+'R').join('・'):'なし';$('solidList').textContent=ls(solid);$('swapList').textContent=ls(swap);$('chaosList').textContent=ls(chaos);
+ const pg=k=>out.filter(x=>x.priority===k).map(x=>x.r+'R').join('・')||'なし';
+ $('prioritySummary').innerHTML=`<div style="font-weight:900;margin-bottom:7px">🏁 12R優先度一覧</div><div style="line-height:1.9"><b class="green">A 本命向き：</b>${pg('A')}<br><b style="color:#9ed0ff">B 準本命：</b>${pg('B')}<br><b class="yellow">C 頭替わり：</b>${pg('C')}<br><b class="cyan">D 混戦：</b>${pg('D')}<br><b class="red">X 荒れ狙い：</b>${pg('X')}</div>`;
  $('results').innerHTML=out.map(renderRace).join('');$('dash').classList.remove('hidden');
 }
 function renderRace(x){
  const v=x.level==='solid'?'vSolid':x.level==='swap'?'vSwap':'vChaos';
  const icon=x.level==='solid'?'🟢':x.level==='swap'?'🟡':'🔴';
  const sig=x.signals.length?x.signals.map(s=>`<span class="sig">${s}</span>`).join(''):'<span class="sig">特別サインなし</span>';
- return `<div class="panel race ${v}"><div class="raceHead"><h2>${icon} ${x.r}R</h2><span class="tag ${x.p}">${x.p} ${x.label}</span></div>
+ return `<div class="panel race ${v}"><div class="raceHead"><h2>${icon} ${x.r}R <span style="font-size:13px">【${x.priority} ${x.priorityLabel}】</span></h2><span class="tag ${x.p}">${x.p} ${x.label}</span></div>
  <div class="verdict"><div class="main">${x.main}</div><div class="why">${x.why}</div></div>
  <div class="top3"><div class="horse"><small>コンピ1位</small><b>${x.a.horse}番</b><em>${x.a.idx}P</em></div><div class="horse"><small>コンピ2位</small><b>${x.b.horse}番</b><em>${x.b.idx}P</em></div><div class="horse"><small>コンピ3位</small><b>${x.c.horse}番</b><em>${x.c.idx}P</em></div></div>
  <div class="keyline"><div class="key"><span>1→2の差</span><b>${x.d12}P</b></div><div class="key"><span>2→3の差</span><b>${x.d23}P</b></div><div class="key wide"><span>最大壁</span><b>${x.maxWall.pos}位後 ${x.maxWall.gap}P</b></div></div>
- <div class="signals"><b>重要サイン：</b>${sig}</div>
+ <div class="signals"><b>重要サイン：</b>${sig}${x.cautions.length?`<div style="margin-top:7px;color:#ffd166;font-weight:800">⚠️ ${x.cautions.join(" / ")}</div>`:""}</div>
  <div class="headbox"><strong>まず見る馬：</strong> ${x.head.join('・')}</div>
  <details><summary>細かい数値を見る</summary><div class="detailgrid"><div class="d">上位3合計<b>${x.sum3}</b></div><div class="d">1-3差<b>${x.d13}P</b></div><div class="d">頭数<b>${x.n}頭</b></div><div class="d">分類<b>${x.p}</b></div></div></details></div>`;
 }
 function copyResult(){
  if(!window._last){analyze();if(!window._last)return}
- let s='中央コンピ12R司令塔 V0.20\n';
- for(const x of window._last){s+=`\n${x.r}R ${x.p} ${x.label}\n判定=${x.main}\n上位=${x.a.horse}:${x.a.idx} ${x.b.horse}:${x.b.idx} ${x.c.horse}:${x.c.idx} / 合計${x.sum3}\n差=${x.d12}-${x.d23} / 最大壁=${x.maxWall.pos}位後${x.maxWall.gap}P / 見る馬=${x.head.join('・')}\nサイン=${x.signals.length?x.signals.join(', '):'なし'}\n`}
+ let s='中央コンピ12R司令塔 V0.21\n';
+ for(const x of window._last){s+=`\n${x.r}R ${x.p} ${x.label}\n判定=${x.main}\n上位=${x.a.horse}:${x.a.idx} ${x.b.horse}:${x.b.idx} ${x.c.horse}:${x.c.idx} / 合計${x.sum3}\n差=${x.d12}-${x.d23} / 最大壁=${x.maxWall.pos}位後${x.maxWall.gap}P / 見る馬=${x.head.join('・')}\nサイン=${x.signals.length?x.signals.join(', '):'なし'}${x.cautions.length?' / 注意='+x.cautions.join('・'):''}\n`}
  navigator.clipboard.writeText(s).then(()=>{$('msg').innerHTML='<div class="alert ok">解析結果をコピーしました。</div>'});
 }
 function loadSample(){$('input').value=['1R 5:84 2:65 3:63 1:60 7:55 4:54 6:40','2R 5:77 10:73 1:63 8:61 11:56 4:55 6:53 12:51 7:46 2:42 3:41 9:40','3R 11:88 1:67 7:60 12:56 8:55 5:54 4:53 9:52 2:50 3:47 6:42 10:41 13:40','4R 7:84 9:64 3:60 8:59 10:57 4:56 1:55 2:52 15:49 12:48 11:47 14:46 5:42 13:41 6:40','5R 3:73 16:68 18:62 1:61 9:60 13:55 7:53 12:52 10:51 11:50 15:49 8:48 6:45 14:44 4:43 17:42 5:41 2:40','6R 1:76 10:75 2:69 12:59 9:55 4:54 18:53 17:52 7:51 8:50 11:49 6:48 5:47 16:46 15:43 3:42 13:41 14:40','7R 6:79 18:76 8:58 3:57 16:56 1:55 9:53 14:52 15:51 17:50 7:49 10:48 13:47 12:46 11:43 5:42 2:41 4:40','8R 10:88 15:64 7:61 6:59 14:58 2:55 13:53 12:52 4:51 1:47 8:46 3:43 5:42 9:41 11:40','9R 1:78 6:73 14:62 13:58 12:57 8:56 11:53 4:51 2:50 7:49 15:48 9:47 3:46 5:41 10:40','10R 14:84 9:62 4:60 5:58 3:57 2:56 13:55 15:54 10:53 11:52 7:50 1:47 6:46 12:41 8:40','11R 3:80 5:69 6:63 8:58 9:56 2:55 12:51 11:50 10:48 7:47 4:46 1:40','12R 10:84 15:67 2:66 4:58 8:54 12:53 5:52 13:51 9:50 3:49 7:48 11:47 1:46 14:41 6:40'].join('\n')}
-function resetAll(){if(!confirm('入力を消しますか？'))return;$('input').value='';localStorage.removeItem('compi12_input_v020');$('results').innerHTML='';$('dash').classList.add('hidden');$('msg').innerHTML='';window._last=null}
-window.addEventListener('load',()=>{$('input').value=localStorage.getItem('compi12_input_v020')||''});
+function resetAll(){if(!confirm('入力を消しますか？'))return;$('input').value='';localStorage.removeItem('compi12_input_v021');$('results').innerHTML='';$('dash').classList.add('hidden');$('msg').innerHTML='';window._last=null}
+window.addEventListener('load',()=>{$('input').value=localStorage.getItem('compi12_input_v021')||''});
 </script></body></html>
