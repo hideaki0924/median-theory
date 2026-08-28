@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>競馬4エンジン統合アプリ V0.27</title>
+<title>競馬4エンジン統合アプリ V0.28</title>
 <style>
 :root{--bg:#f6f7fb;--card:#fff;--text:#1f2937;--muted:#6b7280;--line:#d9dee8;--accent:#2563eb;--good:#047857;--warn:#b45309;--bad:#b91c1c;--info:#1d4ed8}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif}
@@ -18,7 +18,7 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{border-bottom:1px
 </style>
 </head>
 <body>
-<header><div class="wrap"><h1>競馬4エンジン統合アプリ V0.27</h1><div class="small">安井式を軸ごとに独立表示。欠損軸はN/A、総合順位は3軸揃った馬だけ。</div></div></header>
+<header><div class="wrap"><h1>競馬4エンジン統合アプリ V0.28</h1><div class="small">最終予想を◎○▲★☆△で表示。安井式が部分判定でも、使える軸だけ統合に反映。</div></div></header>
 <main class="wrap"><div class="grid">
 
 <section class="card span12">
@@ -41,7 +41,7 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{border-bottom:1px
 </section>
 
 <section class="card span12">
-<h2>9. 最終統合</h2>
+<h2>9. 最終予想</h2>
 <div id="finalBox" class="result"></div>
 <div style="overflow:auto"><table id="mainTable"></table></div>
 </section>
@@ -141,15 +141,73 @@ function analyze(){
  sleiBox.innerHTML=s.status==="OK"?Object.entries(s.map).map(([n,v])=>`#${n} ${badge(v,v==="NONE"?"info":"warn")}`).join("<br>"):badge("未判定","warn");
  marketBox.innerHTML=mk.status==="OK"?`${badge("市場OK","good")} ${mk.confidence?`安心度 ${mk.confidence}`:""}<br>${mk.headSplit?`HEAD-SPLIT #${mk.headSplit}<br>`:""}${mk.headLift.length?`HEAD-LIFT ${mk.headLift.map(x=>"#"+x).join(" ")}<br>`:""}${mk.rescue.length?`RESCUE ${mk.rescue.map(x=>"#"+x).join(" ")}`:""}`:badge("未判定","warn");
 
- let formalReady=y.complete.length>0&&m.status==="OK";
- finalBox.innerHTML=formalReady?badge("最終統合可能","good"):badge("最終統合 保留","warn")+" 安井式の3軸揃い馬が不足";
- mainTable.innerHTML=`<tr><th>馬</th><th>COMPI</th><th>安井総合</th><th>見える</th><th>ICHIGEKI</th><th>スレイプニル</th><th>市場</th></tr>`+
- APP.horses.map(h=>{let n=String(h["馬番"]),yy=y.all.find(x=>x.num===n),mm=m.rows.find(x=>String(x["馬番"])===n);let mkTag=mk.rescue.includes(n)?"RESCUE":mk.headLift.includes(n)?"HEAD-LIFT":mk.headSplit===n?"HEAD-SPLIT":"-";return `<tr><td>${n} ${h["馬名"]}</td><td>${h.COMPI??"-"}</td><td>${yy?.overallRank??"N/A"}</td><td>${mm?.mo??"-"}</td><td>${i.roles[n]||"-"}</td><td>${s.map[n]||"-"}</td><td>${mkTag}</td></tr>`}).join("");
+ // V0.28 最終予想：途中ラベルを人間向けの印に変換
+ let horseMap={};
+ APP.horses.forEach(h=>{
+   let n=String(h["馬番"]), yy=y.all.find(x=>x.num===n), mm=m.rows.find(x=>String(x["馬番"])===n);
+   let score=0, reasons=[];
+   // COMPI
+   let compi=h.COMPI??null;
+   if(compi!==null){ if(compi>=75){score+=3;reasons.push("COMPI上位");} else if(compi>=65){score+=2;} else if(compi>=55){score+=1;} }
+   // 安井：総合がなくても各軸上位を使う
+   if(yy){
+     if(yy.overallRank===1){score+=4;reasons.push("安井総合1位");}
+     else if(yy.overallRank&&yy.overallRank<=3){score+=3;reasons.push("安井総合上位");}
+     let axisTop=[yy.speedRank,yy.staminaRank,yy.powerRank].filter(v=>v&&v<=3).length;
+     if(axisTop>=2){score+=3;reasons.push("安井MULTI");}
+     else if(axisTop===1){score+=1.5;reasons.push("安井1軸上位");}
+   }
+   // 見える男
+   if(mm){
+     if(mm.mo===1){score+=4;reasons.push("見える1位");}
+     else if(mm.mo<=3){score+=3;reasons.push("見える上位");}
+     else if(mm.mo<=6){score+=1.5;}
+   }
+   // ICHIGEKI
+   let role=i.roles[n]||"";
+   if(role==="HEAD"){score+=4;reasons.push("ICHIGEKI HEAD");}
+   else if(role==="REVERSE"){score+=3;reasons.push("ICHIGEKI逆転");}
+   else if(role==="HOLE-WIN"){score+=3;reasons.push("ICHIGEKI穴1着");}
+   else if(role==="SECOND"){score+=1.5;}
+   else if(role==="THIRD"){score+=0.8;}
+   // スレイプニル
+   let sl=s.map[n]||"";
+   if(sl==="BUY-SS"){score+=3;reasons.push("SLEIPNIR BUY-SS");}
+   else if(sl==="REST"){score+=2;}
+   else if(sl==="S"){score+=1.5;}
+   else if(sl==="A"){score+=1;}
+   // 市場
+   if(mk.headLift.includes(n)){score+=2.5;reasons.push("市場HEAD-LIFT");}
+   if(mk.rescue.includes(n)){score+=1.5;reasons.push("市場RESCUE");}
+   if(mk.headSplit===n){score-=2;reasons.push("市場HEAD-SPLIT");}
+   horseMap[n]={h,yy,mm,score,reasons,role,sl};
+ });
+ let ranked=Object.values(horseMap).sort((a,b)=>b.score-a.score || (b.h.COMPI??0)-(a.h.COMPI??0));
+ const marks=["◎","○","▲","★","☆","△"];
+ ranked.forEach((x,k)=>x.mark=k<marks.length?marks[k]:"");
+ let yasuiComplete=y.complete.length===APP.horses.length;
+ let mode=y.status==="UNJUDGED"?"安井未入力・暫定統合":(yasuiComplete?"正式統合":"安井部分判定・暫定統合");
+ let top=ranked.slice(0,6);
+ let head=ranked.filter(x=>["HEAD","REVERSE","HOLE-WIN"].includes(x.role)||x.mark==="◎").slice(0,4);
+ let second=ranked.filter(x=>["HEAD","REVERSE","SECOND","HOLE-WIN"].includes(x.role)||x.score>=ranked[4]?.score).slice(0,6);
+ let third=ranked.filter(x=>x.score>=ranked[Math.min(7,ranked.length-1)]?.score || ["THIRD","SECOND"].includes(x.role)).slice(0,8);
+ finalBox.innerHTML=
+   `${badge(mode,yasuiComplete?"good":"warn")}<br>`+
+   `<div style="font-size:22px;font-weight:800;margin:10px 0">${top.map(x=>`${x.mark}${x.h["馬番"]} ${x.h["馬名"]}`).join("　")}</div>`+
+   `<b>1着候補</b> ${head.map(x=>"#"+x.h["馬番"]).join("・")}<br>`+
+   `<b>2着候補</b> ${second.map(x=>"#"+x.h["馬番"]).join("・")}<br>`+
+   `<b>3着候補</b> ${third.map(x=>"#"+x.h["馬番"]).join("・")}<br>`+
+   `<span class="small">※HEAD/REVERSE等は内部材料。表では最終印に変換して表示します。</span>`;
+ mainTable.innerHTML=`<tr><th>印</th><th>馬</th><th>統合点</th><th>COMPI</th><th>安井</th><th>見える</th><th>主な根拠</th></tr>`+
+ ranked.map(x=>`<tr><td>${x.mark}</td><td>${x.h["馬番"]} ${x.h["馬名"]}</td><td>${x.score.toFixed(1)}</td><td>${x.h.COMPI??"-"}</td><td>${x.yy?.overallRank??"部分"}</td><td>${x.mm?.mo??"-"}</td><td style="text-align:left;white-space:normal">${x.reasons.join(" / ")}</td></tr>`).join("");
+ LAST.ranked=ranked; LAST.mode=mode;
  buildReturn();
 }
 function buildReturn(){
  let t=`CHATPY_APP_RESULT_V5\n[RACE]\n${APP.race.date||""},${APP.race.venue||""},${APP.race.race||""}R,${APP.race.surface||""},${APP.race.distance||""}m,${APP.race.field_size||APP.horses.length}頭\n\n[ENGINE_STATUS]\nYASUI=${LAST.y.status}\nMIERU=${LAST.m.status}\nICHIGEKI=${LAST.i.status}\nSLEIPNIR=${LAST.s.status}\nMARKET=${LAST.mk.status}\n\n[YASUI]\n馬番,SPEED,S順位,STAMINA,T順位,POWER,P順位,総合順位\n`;
  LAST.y.all.forEach(x=>t+=`${x.num},${x.speed??""},${x.speedRank??""},${x.stamina??""},${x.staminaRank??""},${x.power??""},${x.powerRank??""},${x.overallRank??""}\n`);
+ t+=`\n[FINAL_PREDICTION]\nMODE=${LAST.mode||""}\n印,馬番,馬名,統合点\n`;
+ (LAST.ranked||[]).slice(0,6).forEach(x=>t+=`${x.mark},${x.h["馬番"]},${x.h["馬名"]},${x.score.toFixed(1)}\n`);
  t+=`\n[HORSE_RESULT]\n馬番,馬名,COMPI,見える順位,ICHIGEKI,スレイプニル,市場\n`;
  APP.horses.forEach(h=>{let n=String(h["馬番"]),mm=LAST.m.rows.find(x=>String(x["馬番"])===n),mkTag=LAST.mk.rescue.includes(n)?"RESCUE":LAST.mk.headLift.includes(n)?"HEAD-LIFT":LAST.mk.headSplit===n?"HEAD-SPLIT":"";t+=`${n},${h["馬名"]},${h.COMPI??""},${mm?.mo??""},${LAST.i.roles[n]||""},${LAST.s.map[n]||""},${mkTag}\n`});
  returnData.value=t;
