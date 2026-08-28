@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>競馬4エンジン統合アプリ V0.30</title>
+<title>競馬4エンジン統合アプリ V0.31</title>
 <style>
 :root{--bg:#f6f7fb;--card:#fff;--text:#1f2937;--muted:#6b7280;--line:#d9dee8;--accent:#2563eb;--good:#047857;--warn:#b45309;--bad:#b91c1c;--info:#1d4ed8}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif}
@@ -18,7 +18,7 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{border-bottom:1px
 </style>
 </head>
 <body>
-<header><div class="wrap"><h1>競馬4エンジン統合アプリ V0.30</h1><div class="small">未判定を誤ってOKにしない安全版。安井式・スレイプニルの完成度を厳密判定。</div></div></header>
+<header><div class="wrap"><h1>競馬4エンジン統合アプリ V0.31</h1><div class="small">安井式＋見える男を主軸化。どちらか未入力なら最終予想を停止。</div></div></header>
 <main class="wrap"><div class="grid">
 
 <section class="card span12">
@@ -239,7 +239,8 @@ function analyze(){
  });
  let ranked=Object.values(horseMap).sort((a,b)=>b.score-a.score || (b.h.COMPI??0)-(a.h.COMPI??0));
  const marks=["◎","○","▲","★","☆","△"];
- ranked.forEach((x,k)=>x.mark=k<marks.length?marks[k]:"");
+ let mainReady=y.status!=="UNJUDGED" && m.status==="OK";
+ ranked.forEach((x,k)=>x.mark=mainReady && k<marks.length?marks[k]:"");
  let yasuiComplete=y.status==="OK";
  let missing=[];
  if(y.status!=="OK")missing.push(y.status==="UNJUDGED"?"安井式未判定":"安井式部分判定");
@@ -247,18 +248,19 @@ function analyze(){
  if(i.status!=="OK")missing.push("ICHIGEKI未判定");
  if(s.status!=="OK")missing.push(s.status==="UNJUDGED"?"スレイプニル未判定":"スレイプニル部分判定");
  if(mk.status!=="OK")missing.push("市場未判定");
- let mode=missing.length?`暫定統合（${missing.join("・")}）`:"正式統合";
+ let mode=!mainReady?"主軸未完成（安井式＋見える男が必要）":(missing.length?`暫定統合（${missing.join("・")}）`:"正式統合");
  let top=ranked.slice(0,6);
  let head=ranked.filter(x=>["HEAD","REVERSE","HOLE-WIN"].includes(x.role)||x.mark==="◎").slice(0,4);
  let second=ranked.filter(x=>["HEAD","REVERSE","SECOND","HOLE-WIN"].includes(x.role)||x.score>=ranked[4]?.score).slice(0,6);
  let third=ranked.filter(x=>x.score>=ranked[Math.min(7,ranked.length-1)]?.score || ["THIRD","SECOND"].includes(x.role)).slice(0,8);
  finalBox.innerHTML=
-   `${badge(mode,missing.length?"warn":"good")}<br>`+
-   `<div style="font-size:22px;font-weight:800;margin:10px 0">${top.map(x=>`${x.mark}${x.h["馬番"]} ${x.h["馬名"]}`).join("　")}</div>`+
+   `${badge(mode,(!mainReady||missing.length)?"warn":"good")}<br>`+
+   (!mainReady?`<div style="font-weight:800;margin:10px 0">最終予想停止：安井式＋見える男の両方が主軸です。</div>`:"")+
+   `<div style="font-size:22px;font-weight:800;margin:10px 0">${mainReady?top.map(x=>`${x.mark}${x.h["馬番"]} ${x.h["馬名"]}`).join("　"):""}</div>`+
    `<b>1着候補</b> ${head.map(x=>"#"+x.h["馬番"]).join("・")}<br>`+
    `<b>2着候補</b> ${second.map(x=>"#"+x.h["馬番"]).join("・")}<br>`+
    `<b>3着候補</b> ${third.map(x=>"#"+x.h["馬番"]).join("・")}<br>`+
-   `<span class="small">※未判定エンジンは得点に加えません。「正式統合」は全エンジン判定完了時だけ表示します。</span>`;
+   `<span class="small">※安井式＋見える男が主軸。どちらか未入力なら最終印を出しません。ICHIGEKI・スレイプニル・市場は補強材料です。</span>`;
  mainTable.innerHTML=`<tr><th>印</th><th>馬</th><th>統合点</th><th>COMPI</th><th>安井</th><th>見える</th><th>主な根拠</th></tr>`+
  ranked.map(x=>`<tr><td>${x.mark}</td><td>${x.h["馬番"]} ${x.h["馬名"]}</td><td>${x.score.toFixed(1)}</td><td>${x.h.COMPI??"-"}</td><td>${x.yy?.overallRank??(y.status==="UNJUDGED"?"未判定":"部分")}</td><td>${x.mm?.mo??"-"}</td><td style="text-align:left;white-space:normal">${x.reasons.join(" / ")}</td></tr>`).join("");
  LAST.ranked=ranked; LAST.mode=mode;
