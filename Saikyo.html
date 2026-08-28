@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>競馬4エンジン統合アプリ V0.2</title>
+<title>競馬4エンジン統合アプリ V0.21</title>
 <style>
 :root{
   --bg:#f6f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280; --line:#d9dee8;
-  --accent:#2563eb; --good:#047857; --warn:#b45309; --bad:#b91c1c;
+  --accent:#2563eb; --good:#047857; --warn:#b45309; --bad:#b91c1c; --info:#1d4ed8;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif}
@@ -18,12 +18,10 @@ h2{font-size:17px}
 .sub{font-size:12px;color:var(--muted)}
 .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
-.span12{grid-column:span 12}.span6{grid-column:span 6}.span4{grid-column:span 4}.span3{grid-column:span 3}
-@media(max-width:800px){.span6,.span4,.span3{grid-column:span 12}}
-label{display:block;font-size:12px;color:var(--muted);margin:8px 0 4px}
-input,select,textarea,button{font:inherit}
-input,select,textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px;background:#fff}
-textarea{min-height:290px;resize:vertical}
+.span12{grid-column:span 12}.span6{grid-column:span 6}
+@media(max-width:800px){.span6{grid-column:span 12}}
+textarea,button{font:inherit}
+textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px;background:#fff;min-height:290px;resize:vertical}
 button{border:0;border-radius:10px;padding:10px 14px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
 button.alt{background:#4b5563}
 button.light{background:#e5e7eb;color:#111827}
@@ -32,74 +30,43 @@ button.light{background:#e5e7eb;color:#111827}
 .badge.good{background:#ecfdf5;color:var(--good)}
 .badge.warn{background:#fffbeb;color:var(--warn)}
 .badge.bad{background:#fef2f2;color:var(--bad)}
+.badge.info{background:#eff6ff;color:var(--info)}
 table{width:100%;border-collapse:collapse;font-size:12px}
 th,td{border-bottom:1px solid var(--line);padding:7px 5px;text-align:center;white-space:nowrap}
 th{background:#f9fafb}
 .small{font-size:11px;color:var(--muted)}
 .result{font-size:14px;line-height:1.7}
-.score{font-size:24px;font-weight:800}
 .engine{border-left:4px solid var(--accent)}
-code{background:#f3f4f6;padding:2px 5px;border-radius:5px}
-pre{white-space:pre-wrap;word-break:break-word;background:#f9fafb;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:11px}
+.score{font-size:21px;font-weight:800}
 .footer{font-size:11px;color:var(--muted);padding:20px 0 40px}
-.hero{background:linear-gradient(180deg,#fff,#f8fbff)}
 </style>
 </head>
 <body>
 <header>
-  <div class="wrap">
-    <h1>競馬4エンジン統合アプリ V0.2</h1>
-    <div class="sub">チャッピーコードを貼るだけ。安井式 / 見える男 / ICHIGEKI / スレイプニルを固定順序で解析</div>
-  </div>
+<div class="wrap">
+  <h1>競馬4エンジン統合アプリ V0.21</h1>
+  <div class="sub">欠損値を0扱いしない修正版。未入力エンジンは「未判定」、最終統合は保留。</div>
+</div>
 </header>
 
 <main class="wrap">
 <div class="grid">
 
-<section class="card span12 hero">
-<h2>1. チャッピーコードを貼る</h2>
-<div class="small">
-出走表URL・COMPI画像・必要ならオッズURLをチャッピーに渡し、返ってきたコードをここへそのまま貼り付けます。
-</div>
+<section class="card span12">
+<h2>1. チャッピーコード</h2>
 <textarea id="masterCode" placeholder="CHATPY_RACE_V1
 [RACE]
-date=2026-08-09
-venue=中京
-race=7
-surface=芝
-distance=1200
-field_size=18
-blind=yes
+...
 
 [COMPI]
-3,72
-15,71
-7,70
 ...
-
-[NEWP]
-type=PC
-oldP3=213
-X=OFF
 
 [HORSES]
-馬番,馬名,人気,単勝,speed,stamina,power,timeScore,classHold,paceFit,memory,conditionGap,body,jockey,trainer,blood
-2,フロムダスク,12,35.1,22.9,12.4,44.4,2,2,1,2,2,1,1,0,0
-...
-
-[SLEIPNIR]
-馬番,LATE_A,LATE_S,LATE_REST,BODY_CHANGE
-2,1,1,1,3
-
-[MARKET]
-quinella_base=10.5
-quinella_vertical=18.8
-exacta_front=19.1
-exacta_reverse=19.5"></textarea>
+..."></textarea>
 <div class="row">
 <button onclick="importCode()">コード読込</button>
 <button class="alt" onclick="analyze()">4エンジン解析</button>
-<button class="light" onclick="loadSample()">サンプル</button>
+<button class="light" onclick="loadSample()">欠損サンプル</button>
 <button class="light" onclick="resetAll()">リセット</button>
 </div>
 <div id="importStatus" class="small" style="margin-top:8px">未読込</div>
@@ -141,47 +108,26 @@ exacta_reverse=19.5"></textarea>
 <div style="overflow:auto;margin-top:12px"><table id="resultTable"></table></div>
 </section>
 
-<section class="card span12">
-<h2>チャッピーコード仕様</h2>
-<div class="small">
-このV0.2では、アプリ側の手入力をほぼ廃止しました。チャッピーが作る1個のコードだけでレース情報・COMPI・各馬評価・スレイプニル・市場データを読み込みます。
-</div>
-<pre>必須セクション:
-[RACE]
-[COMPI]
-[HORSES]
-
-任意セクション:
-[NEWP]
-[SLEIPNIR]
-[MARKET]
-
-※ 不明データは空欄のまま。アプリは推測で補完しません。</pre>
-</section>
-
 </div>
 <div class="footer">
-V0.2: 「チャッピーが調査・コード化 → ユーザーはコピペ → アプリは固定ルールで判定」に変更。
+V0.21: 欠損データは未判定。空欄だけで順位・CUT・最終印を作らない。
 </div>
 </main>
 
 <script>
-let APP = {
-  race:{}, compi:[], newp:{}, horses:[], sleipnir:[], market:{}
-};
+let APP={race:{},compi:[],newp:{},horses:[],sleipnir:[],market:{}};
 
-const courseWeights = {
-  "中京|芝|1200": {speed:4, stamina:2, power:3}
+const courseWeights={
+  "中京|芝|1200":{speed:4,stamina:2,power:3}
 };
 
 function sectionize(text){
-  const out={};
-  let current="";
+  const out={}; let current="";
   text.split(/\r?\n/).forEach(raw=>{
     const line=raw.trim();
     if(!line) return;
     const m=line.match(/^\[([A-Z0-9_]+)\]$/i);
-    if(m){ current=m[1].toUpperCase(); out[current]=[]; return; }
+    if(m){current=m[1].toUpperCase();out[current]=[];return;}
     if(current) out[current].push(raw);
   });
   return out;
@@ -190,274 +136,338 @@ function parseKV(lines){
   const o={};
   (lines||[]).forEach(line=>{
     const idx=line.indexOf("=");
-    if(idx<0) return;
-    const k=line.slice(0,idx).trim();
-    const v=line.slice(idx+1).trim();
-    o[k]=v;
+    if(idx<0)return;
+    o[line.slice(0,idx).trim()]=line.slice(idx+1).trim();
   });
   return o;
 }
 function parseCSVLines(lines){
   const arr=(lines||[]).filter(x=>x.trim());
-  if(!arr.length) return [];
+  if(!arr.length)return[];
   const headers=arr[0].split(",").map(s=>s.trim());
   return arr.slice(1).map(line=>{
     const vals=line.split(",").map(s=>s.trim());
-    const o={}; headers.forEach((h,i)=>o[h]=vals[i]??""); return o;
+    const o={};headers.forEach((h,i)=>o[h]=vals[i]??"");return o;
   });
 }
-function n(v,d=0){ const x=parseFloat(v); return Number.isFinite(x)?x:d; }
-function badge(txt, cls=""){ return `<span class="badge ${cls}">${txt}</span>`; }
+function isFilled(v){ return v!==undefined && v!==null && String(v).trim()!==""; }
+function numOrNull(v){
+  if(!isFilled(v)) return null;
+  const x=Number(v); return Number.isFinite(x)?x:null;
+}
+function n(v,d=0){ const x=Number(v); return Number.isFinite(x)?x:d; }
+function badge(txt,cls=""){return `<span class="badge ${cls}">${txt}</span>`;}
 
 function importCode(){
   const raw=masterCode.value.trim();
-  if(!raw){ importStatus.innerHTML=badge("コードが空です","bad"); return; }
+  if(!raw){importStatus.innerHTML=badge("コードが空です","bad");return;}
   const sec=sectionize(raw);
-
   APP.race=parseKV(sec.RACE);
   APP.newp=parseKV(sec.NEWP);
   APP.market=parseKV(sec.MARKET);
-
   APP.compi=(sec.COMPI||[]).map(line=>{
     const [num,val]=line.split(",").map(s=>s.trim());
-    return {num, value:n(val,NaN)};
-  }).filter(x=>x.num && Number.isFinite(x.value));
-
+    const vv=numOrNull(val); return {num,value:vv};
+  }).filter(x=>x.num && x.value!==null);
   APP.horses=parseCSVLines(sec.HORSES);
   APP.sleipnir=parseCSVLines(sec.SLEIPNIR);
 
-  // COMPIを馬データへ結合
-  const cmap={}; APP.compi.forEach(x=>cmap[String(x.num)]=x.value);
-  APP.horses.forEach(h=>{ if(cmap[String(h["馬番"])]!=null) h.COMPI=cmap[String(h["馬番"])]; });
+  const cmap={};APP.compi.forEach(x=>cmap[String(x.num)]=x.value);
+  APP.horses.forEach(h=>{if(cmap[String(h["馬番"])]!=null)h.COMPI=cmap[String(h["馬番"])];});
 
-  importStatus.innerHTML = `${badge("読込成功","good")} 馬 ${APP.horses.length}頭 / COMPI ${APP.compi.length}頭`;
+  importStatus.innerHTML=`${badge("読込成功","good")} 馬 ${APP.horses.length}頭 / COMPI ${APP.compi.length}頭`;
   showRaceSummary();
 }
 
 function showRaceSummary(){
   const r=APP.race;
   const top3=[...APP.compi].sort((a,b)=>b.value-a.value).slice(0,3);
-  raceSummary.innerHTML =
-    `${r.date||"-"} ${r.venue||"-"} ${r.race? r.race+"R":""} ${r.surface||"-"}${r.distance||"-"}m / ${r.field_size||APP.horses.length||"-"}頭<br>`+
+  raceSummary.innerHTML=
+    `${r.date||"-"} ${r.venue||"-"} ${r.race?r.race+"R":""} ${r.surface||"-"}${r.distance||"-"}m / ${r.field_size||APP.horses.length||"-"}頭<br>`+
     `ブラインド: ${r.blind==="yes"?badge("結果未確認","good"):badge("参考再構成","warn")}<br>`+
-    `COMPI上位: ${top3.map(x=>`#${x.num}=${x.value}`).join(" / ")||"未入力"} / 新P ${APP.newp.type||"-"}`;
+    `COMPI上位: ${top3.map(x=>`#${x.num}=${x.value}`).join(" / ")||"未入力"} / 新P ${APP.newp.type||"未入力"}`;
 }
 
-function rank(rows,key,asc=true){
-  const arr=rows.map((r,i)=>({i,v:n(r[key],NaN)})).filter(x=>Number.isFinite(x.v));
+function rankValid(rows,key,asc=true){
+  const arr=rows.map((r,i)=>({i,v:numOrNull(r[key])})).filter(x=>x.v!==null);
+  if(!arr.length)return{};
   arr.sort((a,b)=>asc?a.v-b.v:b.v-a.v);
-  const out={}; arr.forEach((x,k)=>out[x.i]=k+1); return out;
+  const out={};arr.forEach((x,k)=>out[x.i]=k+1);return out;
 }
+
 function getCourseWeight(){
   const key=`${APP.race.venue||""}|${APP.race.surface||""}|${APP.race.distance||""}`;
-  return courseWeights[key] || {speed:1, stamina:1, power:1};
+  return courseWeights[key]||null;
 }
+
 function yasui(rows){
-  const sr=rank(rows,"speed",true), tr=rank(rows,"stamina",false), pr=rank(rows,"power",true);
+  // 厳格条件: 各馬に speed/stamina/power の3項目がすべて必要。
+  const eligible=rows.map((r,i)=>({
+    i,
+    ok:["speed","stamina","power"].every(k=>numOrNull(r[k])!==null)
+  })).filter(x=>x.ok).map(x=>x.i);
+
+  if(!eligible.length) return {status:"UNJUDGED",rows:[]};
+
+  const sr=rankValid(rows,"speed",true), tr=rankValid(rows,"stamina",false), pr=rankValid(rows,"power",true);
   const w=getCourseWeight();
+
   rows.forEach((r,i)=>{
-    let weighted=0, denom=0;
-    if(sr[i]){weighted+=w.speed*sr[i];denom+=w.speed}
-    if(tr[i]){weighted+=w.stamina*tr[i];denom+=w.stamina}
-    if(pr[i]){weighted+=w.power*pr[i];denom+=w.power}
-    r.yasuiScore=denom?weighted/denom:999;
-    r.sRank=sr[i]||null; r.tRank=tr[i]||null; r.pRank=pr[i]||null;
-    const topCnt=[r.sRank,r.tRank,r.pRank].filter(x=>x&&x<=3).length;
-    r.multi=topCnt>=2;
-    const pop=n(r["人気"],99);
-    const abilityRank=Math.min(r.sRank||99,r.tRank||99,r.pRank||99);
-    r.gap=(pop-abilityRank)>=4;
+    const complete=eligible.includes(i);
+    r.yasuiComplete=complete;
+    if(!complete){
+      r.yasuiOrder=null;r.yasuiScore=null;r.multi=false;r.gap=false;
+      r.sRank=null;r.tRank=null;r.pRank=null;
+      return;
+    }
+    r.sRank=sr[i]||null;r.tRank=tr[i]||null;r.pRank=pr[i]||null;
+    if(w){
+      const weighted=w.speed*r.sRank+w.stamina*r.tRank+w.power*r.pRank;
+      r.yasuiScore=weighted/(w.speed+w.stamina+w.power);
+    }else{
+      r.yasuiScore=(r.sRank+r.tRank+r.pRank)/3;
+    }
+    r.multi=[r.sRank,r.tRank,r.pRank].filter(x=>x<=3).length>=2;
+    const pop=numOrNull(r["人気"]);
+    const abilityRank=Math.min(r.sRank,r.tRank,r.pRank);
+    r.gap=pop!==null ? (pop-abilityRank)>=4 : false;
   });
-  const sorted=[...rows].sort((a,b)=>a.yasuiScore-b.yasuiScore);
+  const sorted=rows.filter(r=>r.yasuiComplete).sort((a,b)=>a.yasuiScore-b.yasuiScore);
   sorted.forEach((r,i)=>r.yasuiOrder=i+1);
-  return sorted;
+  return {status:"OK",rows:sorted,weight:w};
 }
+
 function mieru(rows){
+  const keys=["timeScore","classHold","paceFit","memory","conditionGap","body","jockey","trainer","blood"];
+  const anyInput=rows.some(r=>keys.some(k=>numOrNull(r[k])!==null));
+  if(!anyInput) return {status:"UNJUDGED",rows:[]};
+
   rows.forEach(r=>{
-    const score =
-      n(r.timeScore)*3 + n(r.classHold)*3 + n(r.paceFit)*2 +
-      n(r.memory)*3 + n(r.conditionGap)*2 + n(r.body) +
-      n(r.jockey)*0.8 + n(r.trainer)*0.8 + n(r.blood)*0.7;
+    const provided=keys.filter(k=>numOrNull(r[k])!==null);
+    if(!provided.length){
+      r.mieruScore=null;r.mieruRole="未判定";r.mieruOrder=null;return;
+    }
+    const val=k=>numOrNull(r[k])??0;
+    const score=val("timeScore")*3+val("classHold")*3+val("paceFit")*2+
+      val("memory")*3+val("conditionGap")*2+val("body")+
+      val("jockey")*.8+val("trainer")*.8+val("blood")*.7;
     r.mieruScore=score;
-    if(score>=16) r.mieruRole="HEAD";
-    else if(score>=12) r.mieruRole="CORE";
-    else if(score>=9) r.mieruRole="SECOND";
-    else if(score>=7) r.mieruRole="THIRD";
-    else if(score>=5) r.mieruRole="RESCUE";
+    if(score>=16)r.mieruRole="HEAD";
+    else if(score>=12)r.mieruRole="CORE";
+    else if(score>=9)r.mieruRole="SECOND";
+    else if(score>=7)r.mieruRole="THIRD";
+    else if(score>=5)r.mieruRole="RESCUE";
     else r.mieruRole="CUT";
   });
-  const sorted=[...rows].sort((a,b)=>b.mieruScore-a.mieruScore);
+  const sorted=rows.filter(r=>r.mieruScore!==null).sort((a,b)=>b.mieruScore-a.mieruScore);
   sorted.forEach((r,i)=>r.mieruOrder=i+1);
-  return sorted;
+  return {status:"OK",rows:sorted};
 }
+
 function ichigeki(){
+  if(APP.compi.length<3) return {status:"UNJUDGED"};
   const sorted=[...APP.compi].sort((a,b)=>b.value-a.value);
-  const a=sorted[0]?.value??0,b=sorted[1]?.value??0,c=sorted[2]?.value??0;
-  const fs=n(APP.race.field_size,APP.horses.length), sum=a+b+c, g12=a-b,g23=b-c,g13=a-c;
-  const np=APP.newp.type||"", xf=APP.newp.X||"", op3=n(APP.newp.oldP3,NaN);
+  const a=sorted[0].value,b=sorted[1].value,c=sorted[2].value;
+  const fs=numOrNull(APP.race.field_size)??APP.horses.length;
+  const sum=a+b+c,g12=a-b,g23=b-c,g13=a-c;
+  const np=APP.newp.type||"",xf=APP.newp.X||"",op3=numOrNull(APP.newp.oldP3);
   let tags=[];
-  if(fs>=14 && sum<=202) tags.push("X2-SS");
-  if(g23>=6 || ["PE","PF"].includes(np)) tags.push("X2-S");
-  if(np==="PD" && xf==="OFF" && fs>=15 && Number.isFinite(op3) && op3>=208 && op3<=211 && g12>=10 && g12<=14 && g23<=4) tags.push("PD-COLLAPSE");
+  if(fs>=14 && sum<=202)tags.push("X2-SS");
+  if(g23>=6 || ["PE","PF"].includes(np))tags.push("X2-S");
+  if(np==="PD" && xf==="OFF" && fs>=15 && op3!==null && op3>=208 && op3<=211 && g12>=10 && g12<=14 && g23<=4)tags.push("PD-COLLAPSE");
+
+  // X2だけでも構造注意は出す。ただし「COLLAPSE-WATCH」はX2単独に限定した表示にする。
   let structure="NORMAL";
-  if(tags.length) structure="COLLAPSE-WATCH";
-  else if(np==="PC") structure="UPPER-FLAT";
-  else if(np==="PA") structure="HEAD-STRONG";
-  else if(["PE","PF"].includes(np)) structure="HEAD-DANGER";
-  return {sum,g12,g23,g13,np,tags,structure};
+  if(tags.includes("PD-COLLAPSE"))structure="PD-COLLAPSE";
+  else if(tags.includes("X2-SS")||tags.includes("X2-S"))structure="X2-WATCH";
+  else if(np==="PC")structure="UPPER-FLAT";
+  else if(np==="PA")structure="HEAD-STRONG";
+  else if(["PE","PF"].includes(np))structure="HEAD-DANGER";
+  return {status:"OK",sum,g12,g23,g13,np,tags,structure};
 }
+
 function sleipnirMap(){
   const map={};
+  if(!APP.sleipnir.length)return {status:"UNJUDGED",map};
   APP.sleipnir.forEach(r=>{
-    const a=n(r.LATE_A), s=n(r.LATE_S), rest=n(r.LATE_REST), bc=Math.abs(n(r.BODY_CHANGE));
+    const a=numOrNull(r.LATE_A),s=numOrNull(r.LATE_S),rest=numOrNull(r.LATE_REST),bc=numOrNull(r.BODY_CHANGE);
+    if(a===null && s===null && rest===null && bc===null) return;
     let level="NONE";
-    if(rest && bc>=2) level="BUY-SS";
-    else if(rest) level="REST";
-    else if(s) level="S";
-    else if(a) level="A";
+    if(rest===1 && bc!==null && Math.abs(bc)>=2)level="BUY-SS";
+    else if(rest===1)level="REST";
+    else if(s===1)level="S";
+    else if(a===1)level="A";
     map[String(r["馬番"])]=level;
   });
-  return map;
+  return Object.keys(map).length?{status:"OK",map}:{status:"UNJUDGED",map:{}};
 }
+
 function marketAudit(){
   const m=APP.market;
-  const base=n(m.quinella_base,NaN), vert=n(m.quinella_vertical,NaN);
-  const ef=n(m.exacta_front,NaN), er=n(m.exacta_reverse,NaN);
+  const base=numOrNull(m.quinella_base),vert=numOrNull(m.quinella_vertical),
+        ef=numOrNull(m.exacta_front),er=numOrNull(m.exacta_reverse);
   let out=[];
-  if(Number.isFinite(base)&&Number.isFinite(vert)&&base>0){
+  if(base!==null&&vert!==null&&base>0){
     const q=vert/base;
     out.push(`馬連縦目倍率 ${q.toFixed(2)}倍 ${q>=4?badge("安心度高","good"):q<=2?badge("頭固定弱め","warn"):badge("中間")}`);
   }
-  if(Number.isFinite(ef)&&Number.isFinite(er)&&ef>0){
+  if(ef!==null&&er!==null&&ef>0){
     const r=er/ef;
     out.push(`馬単表裏比 ${r.toFixed(2)}倍 ${r<=1.3?badge("HEAD-FLAT","warn"):badge("HEAD差あり","good")}`);
   }
-  return out.length?out.join("<br>"):"市場データ未入力";
+  return out.length?{status:"OK",html:out.join("<br>")}:{status:"UNJUDGED",html:"市場データ未入力"};
 }
 
 function analyze(){
-  if(!APP.horses.length){ importCode(); }
-  if(!APP.horses.length){ alert("先にチャッピーコードを読み込んでください"); return; }
+  if(!APP.horses.length)importCode();
+  if(!APP.horses.length){alert("先にチャッピーコードを読み込んでください");return;}
 
   const rows=APP.horses.map(x=>({...x}));
-  const ys=yasui(rows), ms=mieru(rows), ich=ichigeki(), slMap=sleipnirMap();
-  const w=getCourseWeight();
+  const ys=yasui(rows);
+  const ms=mieru(rows);
+  const ich=ichigeki();
+  const sl=sleipnirMap();
+  const mk=marketAudit();
 
-  yasuiBox.innerHTML =
-    `重要度 SPEED ${w.speed} / STAMINA ${w.stamina} / POWER ${w.power}<br>`+
-    ys.slice(0,6).map(r=>`${r.yasuiOrder}位 #${r["馬番"]} ${r["馬名"]} ${r.multi?badge("MULTI","good"):""} ${r.gap?badge("GAP","warn"):""}`).join("<br>");
+  if(ys.status==="UNJUDGED"){
+    yasuiBox.innerHTML=`${badge("未判定","warn")} ラップデータ未入力（speed / stamina / power が揃っていません）`;
+  }else{
+    const w=ys.weight;
+    yasuiBox.innerHTML=
+      `${w?`重要度 SPEED ${w.speed} / STAMINA ${w.stamina} / POWER ${w.power}`:"コース★マスター未登録のため等重み"}<br>`+
+      ys.rows.slice(0,6).map(r=>`${r.yasuiOrder}位 #${r["馬番"]} ${r["馬名"]} ${r.multi?badge("MULTI","good"):""} ${r.gap?badge("GAP","warn"):""}`).join("<br>");
+  }
 
-  mieruBox.innerHTML =
-    ms.slice(0,7).map(r=>`${r.mieruOrder}位 #${r["馬番"]} ${r["馬名"]} ${badge(r.mieruRole,["HEAD","CORE"].includes(r.mieruRole)?"good":r.mieruRole==="CUT"?"bad":"warn")} ${r.mieruScore.toFixed(1)}`).join("<br>");
+  if(ms.status==="UNJUDGED"){
+    mieruBox.innerHTML=`${badge("未判定","warn")} TIME / MEMORY / CLASS / PACE 等の評価データ未入力`;
+  }else{
+    mieruBox.innerHTML=ms.rows.slice(0,7).map(r=>
+      `${r.mieruOrder}位 #${r["馬番"]} ${r["馬名"]} ${badge(r.mieruRole,["HEAD","CORE"].includes(r.mieruRole)?"good":r.mieruRole==="CUT"?"bad":"warn")} ${r.mieruScore.toFixed(1)}`
+    ).join("<br>");
+  }
 
-  ichigekiBox.innerHTML =
-    `上位3合計 ${ich.sum} / 1-2差 ${ich.g12} / 2-3差 ${ich.g23} / 1-3差 ${ich.g13}<br>`+
-    `構造 ${badge(ich.structure,ich.structure==="NORMAL"?"":"warn")} ${ich.tags.map(t=>badge(t,"warn")).join(" ")}`;
+  if(ich.status==="UNJUDGED"){
+    ichigekiBox.innerHTML=`${badge("未判定","warn")} COMPI上位3頭が不足`;
+  }else{
+    ichigekiBox.innerHTML=
+      `上位3合計 ${ich.sum} / 1-2差 ${ich.g12} / 2-3差 ${ich.g23} / 1-3差 ${ich.g13}<br>`+
+      `構造 ${badge(ich.structure,ich.structure==="NORMAL"?"":"warn")} ${ich.tags.map(t=>badge(t,"warn")).join(" ")}`;
+  }
 
-  const slRows=APP.sleipnir;
-  sleipnirBox.innerHTML = slRows.length ? slRows.map(r=>{
-    const lv=slMap[String(r["馬番"])]||"NONE";
-    return `#${r["馬番"]} ${badge(lv,lv==="BUY-SS"?"good":lv==="NONE"?"":"warn")}`;
-  }).join("<br>") : "LATE監査データなし";
+  if(sl.status==="UNJUDGED"){
+    sleipnirBox.innerHTML=`${badge("未判定","warn")} LATE監査データ未入力`;
+  }else{
+    sleipnirBox.innerHTML=Object.entries(sl.map).map(([num,lv])=>
+      `#${num} ${badge(lv,lv==="BUY-SS"?"good":lv==="NONE"?"":"warn")}`
+    ).join("<br>");
+  }
 
-  marketBox.innerHTML=marketAudit();
+  marketBox.innerHTML=mk.status==="UNJUDGED"?`${badge("未判定","warn")} ${mk.html}`:mk.html;
+
+  // 最終統合は「安井式・見える男」の両方が有効なときのみ。
+  // ICHIGEKI/スレイプニル/市場監査だけでは◎○▲を作らない。
+  const coreReady = ys.status==="OK" && ms.status==="OK";
+  if(!coreReady){
+    const reasons=[];
+    if(ys.status!=="OK")reasons.push("安井式");
+    if(ms.status!=="OK")reasons.push("見える男");
+    finalBox.innerHTML=
+      `<div class="score">${badge("最終統合 保留","warn")}</div>`+
+      `<div>${reasons.join("・")}が未判定のため、印は出しません。</div>`+
+      `<div class="small">COMPI/ICHIGEKIだけで◎を自動生成しない安全仕様です。</div>`;
+    resultTable.innerHTML=`<tr><th>馬番</th><th>馬名</th><th>COMPI</th><th>安井</th><th>見える男</th></tr>`+
+      rows.map(r=>`<tr><td>${r["馬番"]}</td><td>${r["馬名"]}</td><td>${r.COMPI??"-"}</td><td>${r.yasuiOrder??"未判定"}</td><td>${r.mieruRole??"未判定"}</td></tr>`).join("");
+    return;
+  }
 
   rows.forEach(r=>{
-    const slv=slMap[String(r["馬番"])]||"NONE";
+    const slv=sl.map[String(r["馬番"])]||"NONE";
     let bonus=0;
-    if(r.yasuiOrder<=3) bonus+=3;
-    else if(r.yasuiOrder<=5) bonus+=1.5;
-    if(r.multi) bonus+=1.5;
-    if(r.gap) bonus+=1.5;
-
-    if(r.mieruRole==="HEAD") bonus+=4;
-    else if(r.mieruRole==="CORE") bonus+=3;
-    else if(r.mieruRole==="SECOND") bonus+=2;
-    else if(r.mieruRole==="THIRD") bonus+=1.2;
-    else if(r.mieruRole==="RESCUE") bonus+=0.7;
-
-    if(slv==="BUY-SS") bonus+=2;
-    else if(["REST","S"].includes(slv)) bonus+=1;
-    else if(slv==="A") bonus+=0.5;
-
-    const compi=n(r.COMPI);
-    if(ich.structure==="HEAD-STRONG" && compi>=70) bonus+=1;
-    if(ich.structure==="COLLAPSE-WATCH" && compi<60) bonus+=0.5;
-
-    r.finalScore=bonus; r.sleipnir=slv;
+    if(r.yasuiOrder<=3)bonus+=3;
+    else if(r.yasuiOrder<=5)bonus+=1.5;
+    if(r.multi)bonus+=1.5;
+    if(r.gap)bonus+=1.5;
+    if(r.mieruRole==="HEAD")bonus+=4;
+    else if(r.mieruRole==="CORE")bonus+=3;
+    else if(r.mieruRole==="SECOND")bonus+=2;
+    else if(r.mieruRole==="THIRD")bonus+=1.2;
+    else if(r.mieruRole==="RESCUE")bonus+=0.7;
+    if(slv==="BUY-SS")bonus+=2;
+    else if(["REST","S"].includes(slv))bonus+=1;
+    else if(slv==="A")bonus+=0.5;
+    r.finalScore=bonus;r.sleipnir=slv;
   });
 
   const fin=[...rows].sort((a,b)=>b.finalScore-a.finalScore);
   const marks=["◎","○","▲","★","☆","△","△"];
-  const top=fin.slice(0,7).map((r,i)=>`${marks[i]||"△"} ${r["馬番"]}${r["馬名"]}`).join("　");
+  finalBox.innerHTML=
+    `<div class="score">${fin.slice(0,7).map((r,i)=>`${marks[i]||"△"} ${r["馬番"]}${r["馬名"]}`).join("　")}</div>`+
+    `<div class="small">安井式＋見える男が有効な場合のみ最終印を生成。</div>`;
 
-  finalBox.innerHTML =
-    `<div class="score">${top}</div>`+
-    `<div style="margin-top:6px">${APP.race.blind==="yes"?badge("正式ブラインド候補","good"):badge("参考再構成","warn")}</div>`+
-    `<div class="small">アプリは入力コードの数値を固定ルールで処理。欠損値は推測補完しません。</div>`;
-
-  let th=`<tr><th>順</th><th>印</th><th>馬</th><th>人気</th><th>COMPI</th><th>安井</th><th>S/T/P</th><th>見える</th><th>スレイプニル</th><th>統合点</th></tr>`;
-  fin.forEach((r,i)=>{
-    th+=`<tr>
-      <td>${i+1}</td><td>${marks[i]||""}</td><td>${r["馬番"]} ${r["馬名"]}</td>
-      <td>${r["人気"]||"-"}</td><td>${r.COMPI||"-"}</td>
-      <td>${r.yasuiOrder||"-"} ${r.multi?"M":""}${r.gap?"G":""}</td>
-      <td>${r.sRank||"-"}/${r.tRank||"-"}/${r.pRank||"-"}</td>
-      <td>${r.mieruRole} ${r.mieruScore.toFixed(1)}</td>
-      <td>${r.sleipnir}</td><td>${r.finalScore.toFixed(1)}</td>
-    </tr>`;
-  });
-  resultTable.innerHTML=th;
+  resultTable.innerHTML=`<tr><th>順</th><th>印</th><th>馬</th><th>COMPI</th><th>安井</th><th>見える男</th><th>スレイプニル</th><th>統合点</th></tr>`+
+    fin.map((r,i)=>`<tr><td>${i+1}</td><td>${marks[i]||""}</td><td>${r["馬番"]} ${r["馬名"]}</td><td>${r.COMPI??"-"}</td><td>${r.yasuiOrder??"-"}</td><td>${r.mieruRole}</td><td>${r.sleipnir}</td><td>${r.finalScore.toFixed(1)}</td></tr>`).join("");
 }
 
 function loadSample(){
 masterCode.value=`CHATPY_RACE_V1
 [RACE]
-date=2026-08-09
-venue=中京
-race=7
-surface=芝
-distance=1200
-field_size=18
-blind=no
+date=2026-08-29
+venue=札幌
+race=1
+surface=ダート
+distance=1700
+field_size=14
+blind=yes
 
 [COMPI]
-3,72
-15,71
-7,70
-17,59
-13,56
-14,53
-6,52
-12,51
-2,50
+9,74
+12,71
+13,64
+6,59
+14,56
+11,54
+10,53
+2,52
+4,49
+5,48
+8,47
+7,42
+1,41
+3,40
 
 [NEWP]
-type=PC
-oldP3=213
+type=
+oldP3=
 X=OFF
 
 [HORSES]
 馬番,馬名,人気,単勝,speed,stamina,power,timeScore,classHold,paceFit,memory,conditionGap,body,jockey,trainer,blood
-2,フロムダスク,12,35.1,22.9,12.4,44.4,2,2,1,2,2,1,1,0,0
-3,レイピア,2,4.9,23.1,12.5,44.8,2,1,2,2,1,0,1,1,0
-6,レッドエヴァンス,3,7.1,22.1,12.2,45.1,2,1,2,2,1,1,1,1,0
-7,ディアナザール,1,3.9,22.7,12.3,44.2,1,1,2,2,1,0,1,0,0
-15,アンクルクロス,4,8.0,23.0,12.2,44.7,1,1,1,1,1,0,0,0,0
+1,アズライトアスール,,,,,,,,,,,,,,,
+2,ロードステラート,,,,,,,,,,,,,,,
+3,アスコットダンス,,,,,,,,,,,,,,,
+4,ショウナンタヅナ,,,,,,,,,,,,,,,
+5,フロムザムーン,,,,,,,,,,,,,,,
+6,ワンダーアスク,,,,,,,,,,,,,,,
+7,ダリアフレイバー,,,,,,,,,,,,,,,
+8,アイムスティルミー,,,,,,,,,,,,,,,
+9,ゴールデンダガー,,,,,,,,,,,,,,,
+10,クールフィデル,,,,,,,,,,,,,,,
+11,メイショウタイザン,,,,,,,,,,,,,,,
+12,サンオブザサン,,,,,,,,,,,,,,,
+13,ベルアズーロ,,,,,,,,,,,,,,,
+14,アーデルブリックス,,,,,,,,,,,,,,,
 
 [SLEIPNIR]
 馬番,LATE_A,LATE_S,LATE_REST,BODY_CHANGE
-2,1,1,1,3
-7,1,0,0,1
 
 [MARKET]
-quinella_base=10.5
-quinella_vertical=18.8
-exacta_front=19.1
-exacta_reverse=19.5`;
+quinella_base=
+quinella_vertical=
+exacta_front=
+exacta_reverse=`;
 importCode();
 }
-function resetAll(){ location.reload(); }
+function resetAll(){location.reload();}
 </script>
 </body>
 </html>
