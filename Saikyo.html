@@ -2,233 +2,94 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>競馬4エンジン統合アプリ V0.25</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>競馬4エンジン統合アプリ V0.26</title>
 <style>
 :root{--bg:#f6f7fb;--card:#fff;--text:#1f2937;--muted:#6b7280;--line:#d9dee8;--accent:#2563eb;--good:#047857;--warn:#b45309;--bad:#b91c1c;--info:#1d4ed8}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif}
 header{position:sticky;top:0;z-index:10;background:rgba(246,247,251,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-.wrap{max-width:1180px;margin:auto;padding:14px}h1{font-size:20px;margin:0 0 4px}h2{font-size:17px}.sub,.small{font-size:12px;color:var(--muted)}
-.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.wrap{max-width:1180px;margin:auto;padding:14px}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}
 .span12{grid-column:span 12}.span6{grid-column:span 6}@media(max-width:800px){.span6{grid-column:span 12}}
-textarea,button{font:inherit}textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px;background:#fff;min-height:260px;resize:vertical}
-button{border:0;border-radius:10px;padding:10px 14px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}.alt{background:#4b5563!important}.light{background:#e5e7eb!important;color:#111827!important}
-.row{display:flex;gap:8px;flex-wrap:wrap}.badge{display:inline-block;padding:3px 8px;border-radius:999px;font-size:11px;background:#eef2ff;margin:2px}
-.good{background:#ecfdf5!important;color:var(--good)}.warn{background:#fffbeb!important;color:var(--warn)}.bad{background:#fef2f2!important;color:var(--bad)}.info{background:#eff6ff!important;color:var(--info)}
-.engine{border-left:4px solid var(--accent)}.result{font-size:14px;line-height:1.75}.score{font-size:21px;font-weight:800}
-table{width:100%;border-collapse:collapse;font-size:12px}th,td{border-bottom:1px solid var(--line);padding:7px 5px;text-align:center;white-space:nowrap}th{background:#f9fafb}
-.footer{font-size:11px;color:var(--muted);padding:20px 0 40px}.copyok{color:var(--good);font-weight:700}
+h1{font-size:20px;margin:0 0 4px}h2{font-size:17px}.small{font-size:12px;color:var(--muted)}textarea,button{font:inherit}
+textarea{width:100%;min-height:260px;border:1px solid var(--line);border-radius:10px;padding:9px}button{border:0;border-radius:10px;padding:10px 14px;background:var(--accent);color:#fff;font-weight:700}
+.alt{background:#4b5563}.light{background:#e5e7eb;color:#111827}.row{display:flex;gap:8px;flex-wrap:wrap}
+.badge{display:inline-block;padding:3px 8px;border-radius:999px;font-size:11px;background:#eef2ff;margin:2px}.good{background:#ecfdf5;color:var(--good)}.warn{background:#fffbeb;color:var(--warn)}.bad{background:#fef2f2;color:var(--bad)}.info{background:#eff6ff;color:var(--info)}
+.engine{border-left:4px solid var(--accent)}.result{font-size:14px;line-height:1.75}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border-bottom:1px solid var(--line);padding:7px 5px;text-align:center;white-space:nowrap}th{background:#f9fafb}
 </style>
 </head>
 <body>
-<header><div class="wrap">
-<h1>競馬4エンジン統合アプリ V0.25</h1>
-<div class="sub">安井式POWER正式計算マスター搭載。札幌ダ1700=SPEED4 / STAMINA3 / POWER4。</div>
-</div></header>
-
+<header><div class="wrap"><h1>競馬4エンジン統合アプリ V0.26</h1><div class="small">市場監査を表示・返却コードへ出力。HEAD-SPLIT / HEAD-LIFT / RESCUE / 6・10・15倍壁対応。</div></div></header>
 <main class="wrap"><div class="grid">
-<section class="card span12">
-<h2>1. チャッピーコード</h2>
-<textarea id="masterCode" placeholder="CHATPY_RACE_V2
-[RACE]
-date=2026-08-29
-venue=札幌
-race=1
-surface=ダート
-distance=1700
-field_size=14
-blind=yes
-
-[YASUI_HISTORY]
-馬番,年齢,着順,着差,last1F,last2F,last4F,class_corr,age_corr,馬場,surface,history_order
-..."></textarea>
-<div class="row">
-<button onclick="importCode()">コード読込</button>
-<button class="alt" onclick="analyze()">4エンジン解析</button>
-<button class="light" onclick="resetAll()">リセット</button>
-</div>
-<div id="importStatus" class="small" style="margin-top:8px">未読込</div>
-</section>
-
-<section class="card span12"><h2>2. 読み込んだレース</h2><div id="raceSummary" class="result small">未読込</div></section>
-<section class="card span6 engine"><h2>3. 安井式 V1.0</h2><div id="yasuiBox" class="result small">未解析</div></section>
-<section class="card span6 engine"><h2>4. 見える男 V1.0</h2><div id="mieruBox" class="result small">未解析</div></section>
-<section class="card span6 engine"><h2>5. ICHIGEKI V1.0</h2><div id="ichigekiBox" class="result small">未解析</div></section>
-<section class="card span6 engine"><h2>6. スレイプニル V0.90</h2><div id="sleipnirBox" class="result small">未解析</div></section>
-<section class="card span12"><h2>7. 市場監査</h2><div id="marketBox" class="result small">未解析</div></section>
-<section class="card span12"><h2>8. 最終統合</h2><div id="finalBox" class="result">未解析</div><div style="overflow:auto;margin-top:12px"><table id="resultTable"></table></div></section>
-
-<section class="card span12">
-<h2>9. チャッピーへ返すデータ</h2>
-<div class="row" style="margin:10px 0"><button onclick="copyReturnData()">結果データをコピー</button><button class="light" onclick="copyInputCode()">入力コードをコピー</button></div>
-<div id="copyStatus" class="small"></div><textarea id="returnData" readonly></textarea>
-</section>
-</div>
-<div class="footer">V0.25: POWER = 48.0 + (last4F + 着差 - 馬場補正) - 距離基準値。未登録距離は判定保留。</div>
-</main>
+<section class="card span12"><h2>1. チャッピーコード</h2><textarea id="masterCode"></textarea><div class="row"><button onclick="importCode()">コード読込</button><button class="alt" onclick="analyze()">4エンジン解析</button><button class="light" onclick="resetAll()">リセット</button></div><div id="status" class="small"></div></section>
+<section class="card span12"><h2>2. レース</h2><div id="raceBox" class="result"></div></section>
+<section class="card span6 engine"><h2>3. 安井式</h2><div id="yasuiBox" class="result"></div></section>
+<section class="card span6 engine"><h2>4. 見える男</h2><div id="mieruBox" class="result"></div></section>
+<section class="card span6 engine"><h2>5. ICHIGEKI</h2><div id="ichiBox" class="result"></div></section>
+<section class="card span6 engine"><h2>6. スレイプニル</h2><div id="sleiBox" class="result"></div></section>
+<section class="card span12"><h2>7. 市場監査</h2><div id="marketBox" class="result"></div></section>
+<section class="card span12"><h2>8. 最終統合</h2><div id="finalBox" class="result"></div><div style="overflow:auto"><table id="tbl"></table></div></section>
+<section class="card span12"><h2>9. チャッピーへ返すデータ</h2><div class="row"><button onclick="copyResult()">結果データをコピー</button><button class="light" onclick="copyInput()">入力コードをコピー</button></div><textarea id="returnData" readonly></textarea><div id="copyStatus" class="small"></div></section>
+</div></main>
 
 <script>
-let APP={race:{},yasuiHistory:[],compi:[],newp:{},horses:[],ichigekiHorses:[],sleipnir:[],market:{}};
-let LAST={};
-
-const COURSE_WEIGHTS={
-  "札幌|ダート|1700":{speed:4,stamina:3,power:4}
-};
-
-const POWER_BASE={
-  芝:{
-    1200:45.8,1300:46.3,1400:46.8,1500:47.3,1600:47.6,1800:48.8,2000:49.2,2200:49.9,2300:49.9,2400:49.9,2500:49.6,2600:50.1,2800:50.4,3000:50.4,3200:50.5,3400:50.5,3600:50.5
-  },
-  ダート:{
-    1000:47.5,1150:48.1,1200:48.8,1300:49.3,1400:49.4,1600:49.9,1700:50.5,1800:50.8,1900:50.7,2000:50.6,2100:51.1,2400:51.4,2500:51.1
-  }
-};
-
-const TRACK_CORR={
-  芝:{良:0.0,稍重:0.4,重:0.8,不良:1.2},
-  ダート:{良:0.0,稍重:-0.4,重:-0.8,不良:-1.2}
-};
-
-function sectionize(text){
- const out={};let cur="";
- text.split(/\r?\n/).forEach(raw=>{const line=raw.trim();if(!line)return;const m=line.match(/^\[([A-Z0-9_]+)\]$/i);if(m){cur=m[1].toUpperCase();out[cur]=[];return;}if(cur)out[cur].push(raw);});return out;
-}
-function parseKV(lines){const o={};(lines||[]).forEach(line=>{const i=line.indexOf("=");if(i>=0)o[line.slice(0,i).trim()]=line.slice(i+1).trim();});return o;}
-function parseCSVLines(lines){const a=(lines||[]).filter(x=>x.trim());if(!a.length)return[];const h=a[0].split(",").map(x=>x.trim());return a.slice(1).map(line=>{const v=line.split(",").map(x=>x.trim()),o={};h.forEach((k,i)=>o[k]=v[i]??"");return o;});}
-function isFilled(v){return v!==undefined&&v!==null&&String(v).trim()!==""}
-function num(v){if(!isFilled(v))return null;const x=Number(v);return Number.isFinite(x)?x:null}
+let APP={race:{},horses:[],compi:[],market:{},ichigekiHorses:[],sleipnir:[],yasuiHistory:[],newp:{}}, LAST={};
+function sec(t){let o={},c="";t.split(/\r?\n/).forEach(r=>{let l=r.trim();if(!l)return;let m=l.match(/^\[([A-Z0-9_]+)\]$/i);if(m){c=m[1].toUpperCase();o[c]=[];return}if(c)o[c].push(r)});return o}
+function kv(a){let o={};(a||[]).forEach(l=>{let i=l.indexOf("=");if(i>=0)o[l.slice(0,i).trim()]=l.slice(i+1).trim()});return o}
+function csv(a){a=(a||[]).filter(x=>x.trim());if(!a.length)return[];let h=a[0].split(",").map(x=>x.trim());return a.slice(1).map(l=>{let v=l.split(",").map(x=>x.trim()),o={};h.forEach((k,i)=>o[k]=v[i]??"");return o})}
+function filled(v){return v!==undefined&&v!==null&&String(v).trim()!==""}
+function num(v){if(!filled(v))return null;let x=Number(v);return Number.isFinite(x)?x:null}
 function badge(t,c=""){return `<span class="badge ${c}">${t}</span>`}
-
 function importCode(){
- const sec=sectionize(masterCode.value.trim());
- APP.race=parseKV(sec.RACE);APP.yasuiHistory=parseCSVLines(sec.YASUI_HISTORY);
- APP.newp=parseKV(sec.NEWP);APP.market=parseKV(sec.MARKET);APP.horses=parseCSVLines(sec.HORSES);
- APP.ichigekiHorses=parseCSVLines(sec.ICHIGEKI_HORSES);APP.sleipnir=parseCSVLines(sec.SLEIPNIR);
- APP.compi=(sec.COMPI||[]).map(line=>{const [n,v]=line.split(",").map(s=>s.trim());return {num:n,value:num(v)}}).filter(x=>x.num&&x.value!==null);
- const cmap={};APP.compi.forEach(x=>cmap[String(x.num)]=x.value);APP.horses.forEach(h=>{if(cmap[String(h["馬番"])]!=null)h.COMPI=cmap[String(h["馬番"])]});
- importStatus.innerHTML=`${badge("読込成功","good")} 馬 ${APP.horses.length}頭 / 安井履歴 ${APP.yasuiHistory.length}件`;
- showRaceSummary();
+ let s=sec(masterCode.value);APP.race=kv(s.RACE);APP.market=kv(s.MARKET);APP.newp=kv(s.NEWP);APP.horses=csv(s.HORSES);APP.ichigekiHorses=csv(s.ICHIGEKI_HORSES);APP.sleipnir=csv(s.SLEIPNIR);APP.yasuiHistory=csv(s.YASUI_HISTORY);
+ APP.compi=(s.COMPI||[]).map(l=>{let [n,v]=l.split(",");return {num:n?.trim(),value:num(v)}}).filter(x=>x.num&&x.value!==null);
+ let cm={};APP.compi.forEach(x=>cm[x.num]=x.value);APP.horses.forEach(h=>{if(cm[String(h["馬番"])]!=null)h.COMPI=cm[String(h["馬番"])]});
+ status.innerHTML=badge("読込成功","good");showRace();
 }
-function showRaceSummary(){
- const r=APP.race,top=[...APP.compi].sort((a,b)=>b.value-a.value).slice(0,3);
- const w=COURSE_WEIGHTS[`${r.venue||""}|${r.surface||""}|${r.distance||""}`];
- raceSummary.innerHTML=`${r.date||"-"} ${r.venue||"-"} ${r.race?r.race+"R":""} ${r.surface||"-"}${r.distance||"-"}m / ${r.field_size||APP.horses.length||"-"}頭<br>`+
- `COMPI上位: ${top.map(x=>`#${x.num}=${x.value}`).join(" / ")||"未入力"}<br>`+
- `安井コース重要度: ${w?`SPEED ${w.speed} / STAMINA ${w.stamina} / POWER ${w.power}`:"未登録"}`;
-}
+function showRace(){let r=APP.race,top=[...APP.compi].sort((a,b)=>b.value-a.value).slice(0,3);raceBox.innerHTML=`${r.date||""} ${r.venue||""} ${r.race||""}R ${r.surface||""}${r.distance||""}m / ${r.field_size||APP.horses.length}頭<br>COMPI ${top.map(x=>`#${x.num}=${x.value}`).join(" / ")}`}
 
-function powerValue(row){
- const surface=row.surface||APP.race.surface;
- const dist=num(row.distance)??num(APP.race.distance);
- const base=POWER_BASE[surface]?.[dist];
- const l4=num(row.last4F);
- if(base===undefined||l4===null)return null;
- const finish=num(row["着順"]),margin=num(row["着差"])??0;
- const track=row["馬場"]||"良";
- const corr=TRACK_CORR[surface]?.[track];
- if(corr===undefined)return null;
- const raw=l4+(finish===1?0:margin);
- const adjusted=raw-corr;
- return 48.0+adjusted-base;
+function marketAudit(){
+ let m=APP.market;
+ if(!Object.values(m).some(filled))return {status:"UNJUDGED",tags:[],rescue:[]};
+ let tags=[];
+ if(m.favorite_confidence)tags.push(`安心度:${m.favorite_confidence}`);
+ if(m.head_split)tags.push(`HEAD-SPLIT:#${m.head_split}`);
+ if(m.head_lift)tags.push(`HEAD-LIFT:${m.head_lift.split("|").map(x=>"#"+x).join(" ")}`);
+ if(m.place_6wall)tags.push(`6倍壁:${m.place_6wall.split("|").map(x=>"#"+x).join(" ")}`);
+ if(m.place_10wall)tags.push(`10倍壁:${m.place_10wall.split("|").map(x=>"#"+x).join(" ")}`);
+ if(m.place_15wall)tags.push(`15倍壁:${m.place_15wall.split("|").map(x=>"#"+x).join(" ")}`);
+ let qr=num(m.quinella_vertical_ratio);
+ if(qr!==null)tags.push(`馬連縦目:${qr.toFixed(3)}倍`);
+ let rescue=(m.market_rescue||"").split("|").filter(Boolean);
+ return {status:"OK",tags,rescue};
 }
-
-function calcYasui(){
- const rows=APP.yasuiHistory;
- if(!rows.length)return {status:"UNJUDGED",reason:"YASUI_HISTORY未入力",horses:[]};
- const by={};rows.forEach(r=>{const k=String(r["馬番"]);(by[k]??=[]).push(r)});
- const out=[];
- Object.entries(by).forEach(([horseNum,rr])=>{
-   const target=APP.race.surface||"";
-   rr=rr.filter(x=>!isFilled(x.surface)||x.surface===target);
-   const age=num(rr[0]?.["年齢"]);
-   if(age!==null&&age>=4){
-     rr=[...rr].sort((a,b)=>(num(a.history_order)??999)-(num(b.history_order)??999)).slice(0,4);
-   }
-   const staminaC=rr.filter(x=>[1,2].includes(num(x["着順"]))&&num(x.last1F)!==null).map(x=>num(x.last1F)+(num(x.class_corr)??0)+(num(x.age_corr)??0));
-   const speedC=rr.filter(x=>num(x.last2F)!==null).map(x=>num(x.last2F)+((num(x["着順"])===1)?0:(num(x["着差"])??0)));
-   const powerC=rr.map(powerValue).filter(x=>x!==null);
-   out.push({
-     num:horseNum,
-     stamina:staminaC.length?Math.max(...staminaC):null,
-     speed:speedC.length?Math.min(...speedC):null,
-     power:powerC.length?Math.min(...powerC):null
-   });
- });
- const valid=out.filter(x=>x.stamina!==null&&x.speed!==null&&x.power!==null);
- if(!valid.length)return {status:"UNJUDGED",reason:"3軸が揃う馬なし",horses:out};
- const key=`${APP.race.venue||""}|${APP.race.surface||""}|${APP.race.distance||""}`,w=COURSE_WEIGHTS[key];
- if(!w)return {status:"PROVISIONAL",reason:"コース重要度未登録",horses:valid};
- function rank(key,asc){const a=[...valid].sort((x,y)=>asc?x[key]-y[key]:y[key]-x[key]);const m={};a.forEach((x,i)=>m[x.num]=i+1);return m}
- const rs=rank("speed",true),rt=rank("stamina",false),rp=rank("power",true);
- valid.forEach(x=>{x.speedRank=rs[x.num];x.staminaRank=rt[x.num];x.powerRank=rp[x.num];x.score=(w.speed*x.speedRank+w.stamina*x.staminaRank+w.power*x.powerRank)/(w.speed+w.stamina+w.power)});
- valid.sort((a,b)=>a.score-b.score);valid.forEach((x,i)=>x.order=i+1);
- return {status:"OK",horses:valid,weights:w};
-}
-
-function calcMieru(rows){
- const keys=["timeScore","classHold","paceFit","memory","conditionGap","body","jockey","trainer","blood"];
- if(!rows.some(r=>keys.some(k=>num(r[k])!==null)))return {status:"UNJUDGED",rows:[]};
- rows.forEach(r=>{const v=k=>num(r[k])??0;r.mieruScore=v("timeScore")*3+v("classHold")*3+v("paceFit")*2+v("memory")*3+v("conditionGap")*2+v("body")+v("jockey")*.8+v("trainer")*.8+v("blood")*.7});
- const s=[...rows].sort((a,b)=>b.mieruScore-a.mieruScore);s.forEach((r,i)=>r.mieruOrder=i+1);return {status:"OK",rows:s};
-}
-function calcIchi(){
- if(APP.compi.length<3)return {status:"UNJUDGED"};
- const s=[...APP.compi].sort((a,b)=>b.value-a.value),a=s[0].value,b=s[1].value,c=s[2].value,fs=num(APP.race.field_size)??APP.horses.length;
- const sum=a+b+c,g12=a-b,g23=b-c,g13=a-c,t=[];if(fs>=14&&sum<=202)t.push("X2-SS");if(g23>=6||["PE","PF"].includes(APP.newp.type||""))t.push("X2-S");
- const roles={};APP.ichigekiHorses.forEach(r=>roles[String(r["馬番"])]=r.ROLE||r.role||"");
- return {status:"OK",sum,g12,g23,g13,tags:t,roles};
-}
-function calcSleipnir(){
- if(!APP.sleipnir.length)return {status:"UNJUDGED",map:{}};
- const map={};APP.sleipnir.forEach(r=>{const a=num(r.LATE_A),s=num(r.LATE_S),rest=num(r.LATE_REST),bc=num(r.BODY_CHANGE);if(a===null&&s===null&&rest===null&&bc===null)return;let lv="NONE";if(rest===1&&bc!==null&&Math.abs(bc)>=2)lv="BUY-SS";else if(rest===1)lv="REST";else if(s===1)lv="S";else if(a===1)lv="A";map[String(r["馬番"])]=lv});return Object.keys(map).length?{status:"OK",map}:{status:"UNJUDGED",map:{}};
-}
-function calcMarket(){return Object.values(APP.market).some(isFilled)?{status:"OK"}:{status:"UNJUDGED"}}
-
 function analyze(){
- if(!APP.horses.length)importCode();
- const rows=APP.horses.map(x=>({...x})),y=calcYasui(),m=calcMieru(rows),i=calcIchi(),s=calcSleipnir(),mk=calcMarket();LAST={yasui:y,mieru:m,ich:i,sleipnir:s,market:mk};
-
- if(y.status==="UNJUDGED")yasuiBox.innerHTML=`${badge("未判定","warn")} ${y.reason}`;
- else{
-   const w=y.weights;
-   yasuiBox.innerHTML=`${badge(y.status,y.status==="OK"?"good":"warn")} ${w?`重要度 S=${w.speed} / T=${w.stamina} / P=${w.power}`:""}<br>`+
-   y.horses.slice(0,8).map(x=>`${x.order??"-"}位 #${x.num} SPEED ${x.speed.toFixed(1)} / STAMINA ${x.stamina.toFixed(1)} / POWER ${x.power.toFixed(1)}`).join("<br>");
- }
- mieruBox.innerHTML=m.status==="OK"?m.rows.slice(0,8).map(r=>`${r.mieruOrder}位 #${r["馬番"]} ${r["馬名"]} ${r.mieruScore.toFixed(1)}`).join("<br>"):`${badge("未判定","warn")} データ未入力`;
- if(i.status==="OK"){
-   const rl=Object.entries(i.roles).length?"<br>"+Object.entries(i.roles).map(([n,r])=>`#${n} ${badge(r,"info")}`).join("<br>"):"";
-   ichigekiBox.innerHTML=`上位3合計 ${i.sum} / 1-2差 ${i.g12} / 2-3差 ${i.g23} / 1-3差 ${i.g13}<br>${i.tags.map(t=>badge(t,"warn")).join(" ")}${rl}`;
- }else ichigekiBox.innerHTML=`${badge("未判定","warn")} COMPI不足`;
- sleipnirBox.innerHTML=s.status==="OK"?Object.entries(s.map).map(([n,v])=>`#${n} ${badge(v,v==="BUY-SS"?"good":"warn")}`).join("<br>"):`${badge("未判定","warn")} LATE監査未入力`;
- marketBox.innerHTML=mk.status==="OK"?badge("市場データあり","good"):`${badge("未判定","warn")} オッズは後から追加可能`;
-
- if(y.status!=="OK"||m.status!=="OK"){
-   finalBox.innerHTML=`${badge("最終統合 保留","warn")} ${y.status!=="OK"?"安井式が正式判定前。 ":""}${m.status!=="OK"?"見える男未判定。":""}`;
- }else{
-   const ym={};y.horses.forEach(x=>ym[x.num]=x.order);
-   rows.forEach(r=>{
-     const yn=ym[String(r["馬番"])]??99,mi=r.mieruOrder??99,sl=s.map[String(r["馬番"])]||"NONE";
-     let sc=(yn<=3?3:yn<=5?1.5:0)+(mi===1?3:mi<=3?2:mi<=6?1:0)+(sl==="BUY-SS"?2:["REST","S"].includes(sl)?1:sl==="A"?.5:0);
-     r.finalScore=sc;r.yasuiOrder=yn===99?null:yn;r.sleipnir=sl;
-   });
-   const fin=[...rows].sort((a,b)=>b.finalScore-a.finalScore),marks=["◎","○","▲","★","☆","△","△"];
-   finalBox.innerHTML=`<div class="score">${fin.slice(0,7).map((r,k)=>`${marks[k]} ${r["馬番"]}${r["馬名"]}`).join("　")}</div>`;
- }
- resultTable.innerHTML=`<tr><th>馬番</th><th>馬名</th><th>COMPI</th><th>安井</th><th>見える男</th><th>ICHIGEKI</th><th>スレイプニル</th></tr>`+
- rows.map(r=>{const yy=y.horses?.find(x=>x.num===String(r["馬番"]));return `<tr><td>${r["馬番"]}</td><td>${r["馬名"]}</td><td>${r.COMPI??"-"}</td><td>${yy?.order??"-"}</td><td>${r.mieruOrder??"-"}</td><td>${i.roles?.[String(r["馬番"])]||"-"}</td><td>${s.map?.[String(r["馬番"])]||"-"}</td></tr>`}).join("");
- buildReturnData(rows);
+ let rows=APP.horses.map(x=>({...x}));
+ let keys=["timeScore","classHold","paceFit","memory","conditionGap","body","jockey","trainer","blood"];
+ let mieruOK=rows.some(r=>keys.some(k=>num(r[k])!==null));
+ if(mieruOK){rows.forEach(r=>{let v=k=>num(r[k])??0;r.ms=v("timeScore")*3+v("classHold")*3+v("paceFit")*2+v("memory")*3+v("conditionGap")*2+v("body")+v("jockey")*.8+v("trainer")*.8+v("blood")*.7});rows.sort((a,b)=>b.ms-a.ms);rows.forEach((r,i)=>r.mo=i+1)}
+ let ichi={status:APP.compi.length>=3?"OK":"UNJUDGED",roles:{},tags:[]};
+ APP.ichigekiHorses.forEach(r=>ichi.roles[String(r["馬番"])]=r.ROLE||"");
+ if(ichi.status==="OK"){let s=[...APP.compi].sort((a,b)=>b.value-a.value);ichi.sum=s[0].value+s[1].value+s[2].value;ichi.g12=s[0].value-s[1].value;ichi.g23=s[1].value-s[2].value;ichi.g13=s[0].value-s[2].value;if(ichi.g23>=6)ichi.tags.push("X2-S")}
+ let slei={status:APP.sleipnir.length?"OK":"UNJUDGED",map:{}};APP.sleipnir.forEach(r=>{let a=num(r.LATE_A),s=num(r.LATE_S),re=num(r.LATE_REST),bc=num(r.BODY_CHANGE),lv="NONE";if(re===1&&bc!==null&&Math.abs(bc)>=2)lv="BUY-SS";else if(re===1)lv="REST";else if(s===1)lv="S";else if(a===1)lv="A";slei.map[String(r["馬番"])]=lv});
+ let market=marketAudit(), yasuiStatus=APP.yasuiHistory.length?"DATA_PRESENT":"UNJUDGED";
+ LAST={rows,market,ichi,slei,mieruOK,yasuiStatus};
+ yasuiBox.innerHTML=yasuiStatus==="UNJUDGED"?badge("未判定","warn")+" YASUI_HISTORY未入力":badge("履歴あり","info")+" V0.25安井計算用データあり";
+ mieruBox.innerHTML=mieruOK?rows.slice(0,8).map(r=>`${r.mo}位 #${r["馬番"]} ${r["馬名"]} ${r.ms.toFixed(1)}`).join("<br>"):badge("未判定","warn");
+ ichiBox.innerHTML=ichi.status==="OK"?`上位3合計 ${ichi.sum} / 差 ${ichi.g12}-${ichi.g23}-${ichi.g13}<br>${ichi.tags.map(x=>badge(x,"warn")).join(" ")}<br>${Object.entries(ichi.roles).map(([n,r])=>`#${n} ${badge(r,"info")}`).join("<br>")}`:badge("未判定","warn");
+ sleiBox.innerHTML=slei.status==="OK"?Object.entries(slei.map).map(([n,v])=>`#${n} ${badge(v,v==="BUY-SS"?"good":"warn")}`).join("<br>"):badge("未判定","warn");
+ marketBox.innerHTML=market.status==="OK"?market.tags.map(x=>badge(x,x.includes("LOW")||x.includes("SPLIT")?"warn":"info")).join("<br>")+"<br>"+(market.rescue.length?`RESCUE ${market.rescue.map(x=>"#"+x).join(" ")}`:""):badge("未判定","warn");
+ finalBox.innerHTML=badge("最終統合 保留","warn")+" 安井式が未判定のため印はまだ出しません。";
+ tbl.innerHTML=`<tr><th>馬</th><th>COMPI</th><th>見える</th><th>ICHIGEKI</th><th>スレイプニル</th><th>市場</th></tr>`+APP.horses.map(h=>{let n=String(h["馬番"]),r=rows.find(x=>String(x["馬番"])===n);return `<tr><td>${n} ${h["馬名"]}</td><td>${h.COMPI??"-"}</td><td>${r?.mo??"-"}</td><td>${ichi.roles[n]||"-"}</td><td>${slei.map[n]||"-"}</td><td>${market.rescue.includes(n)?"RESCUE":(mktTag(n))}</td></tr>`}).join("");
+ buildReturn();
 }
-
-function buildReturnData(rows){
- let t=`CHATPY_APP_RESULT_V3\n[RACE]\n${APP.race.date||""},${APP.race.venue||""},${APP.race.race||""}R,${APP.race.surface||""},${APP.race.distance||""}m,${APP.race.field_size||APP.horses.length}頭\n\n[ENGINE_STATUS]\nYASUI=${LAST.yasui.status}\nMIERU=${LAST.mieru.status}\nICHIGEKI=${LAST.ich.status}\nSLEIPNIR=${LAST.sleipnir.status}\nMARKET=${LAST.market.status}\n\n`;
- if(LAST.yasui.horses?.length){t+=`[YASUI]\n馬番,順位,SPEED,STAMINA,POWER\n`;LAST.yasui.horses.forEach(x=>t+=`${x.num},${x.order??""},${x.speed},${x.stamina},${x.power}\n`);t+="\n";}
- if(LAST.ich.status==="OK")t+=`[ICHIGEKI]\nSUM3=${LAST.ich.sum}\nGAP12=${LAST.ich.g12}\nGAP23=${LAST.ich.g23}\nGAP13=${LAST.ich.g13}\nTAGS=${LAST.ich.tags.join("|")}\n\n`;
- t+=`[HORSE_RESULT]\n馬番,馬名,COMPI,見える男順位,ICHIGEKI,スレイプニル\n`;rows.forEach(r=>t+=`${r["馬番"]},${r["馬名"]},${r.COMPI??""},${r.mieruOrder??""},${LAST.ich.roles?.[String(r["馬番"])]||""},${LAST.sleipnir.map?.[String(r["馬番"])]||""}\n`);
+function mktTag(n){let m=APP.market;if(String(m.head_split)===n)return"HEAD-SPLIT";if((m.head_lift||"").split("|").includes(n))return"HEAD-LIFT";return"-"}
+function buildReturn(){
+ let m=APP.market, t=`CHATPY_APP_RESULT_V4\n[RACE]\n${APP.race.date||""},${APP.race.venue||""},${APP.race.race||""}R,${APP.race.surface||""},${APP.race.distance||""}m,${APP.race.field_size||APP.horses.length}頭\n\n[ENGINE_STATUS]\nYASUI=${LAST.yasuiStatus==="UNJUDGED"?"UNJUDGED":"DATA_PRESENT"}\nMIERU=${LAST.mieruOK?"OK":"UNJUDGED"}\nICHIGEKI=${LAST.ichi.status}\nSLEIPNIR=${LAST.slei.status}\nMARKET=${LAST.market.status}\n\n[MARKET_AUDIT]\nFAVORITE_CONFIDENCE=${m.favorite_confidence||""}\nHEAD_SPLIT=${m.head_split||""}\nHEAD_LIFT=${m.head_lift||""}\nMARKET_RESCUE=${m.market_rescue||""}\nPLACE_6WALL=${m.place_6wall||""}\nPLACE_10WALL=${m.place_10wall||""}\nPLACE_15WALL=${m.place_15wall||""}\nQUINELLA_VERTICAL_RATIO=${m.quinella_vertical_ratio||""}\n\n[HORSE_RESULT]\n馬番,馬名,COMPI,見える順位,ICHIGEKI,スレイプニル,市場\n`;
+ APP.horses.forEach(h=>{let n=String(h["馬番"]),r=LAST.rows.find(x=>String(x["馬番"])===n);t+=`${n},${h["馬名"]},${h.COMPI??""},${r?.mo??""},${LAST.ichi.roles[n]||""},${LAST.slei.map[n]||""},${mktTag(n)}${LAST.market.rescue.includes(n)?"|RESCUE":""}\n`});
  returnData.value=t;
 }
-async function copyReturnData(){if(!returnData.value.trim())analyze();try{await navigator.clipboard.writeText(returnData.value);copyStatus.innerHTML='<span class="copyok">結果データをコピーしました</span>'}catch(e){returnData.select();document.execCommand("copy")}}
-async function copyInputCode(){try{await navigator.clipboard.writeText(masterCode.value);copyStatus.innerHTML='<span class="copyok">入力コードをコピーしました</span>'}catch(e){masterCode.select();document.execCommand("copy")}}
+async function copyResult(){if(!returnData.value.trim())analyze();try{await navigator.clipboard.writeText(returnData.value);copyStatus.textContent="結果データをコピーしました"}catch(e){returnData.select();document.execCommand("copy")}}
+async function copyInput(){try{await navigator.clipboard.writeText(masterCode.value);copyStatus.textContent="入力コードをコピーしました"}catch(e){masterCode.select();document.execCommand("copy")}}
 function resetAll(){location.reload()}
 </script>
-</body>
-</html>
+</body></html>
