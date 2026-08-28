@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#fff7f2" />
+<title>3年生 漢字れんしゅう</title>
+<style>
+  :root{
+    --bg:#fff8f3; --card:#ffffff; --ink:#493d37; --accent:#ffb8a8;
+    --accent2:#b9e7dc; --yellow:#ffe39a; --line:#e9ddd6; --soft:#fff0ea;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{
+    margin:0;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+    background:linear-gradient(180deg,#fff8f3,#fffdf8);color:var(--ink);
+    min-height:100vh;
+  }
+  .wrap{max-width:900px;margin:0 auto;padding:14px}
+  .top{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    margin-bottom:12px
+  }
+  h1{font-size:24px;margin:0}
+  .mascot{font-size:32px;letter-spacing:4px}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:22px;
+    box-shadow:0 6px 18px rgba(80,60,40,.07);padding:16px;margin-bottom:12px
+  }
+  .modebar{display:flex;gap:8px;flex-wrap:wrap}
+  button,select{
+    border:0;border-radius:14px;padding:12px 14px;font-size:16px;font-weight:700;
+    color:var(--ink);background:#f5eee8
+  }
+  button.primary{background:var(--accent)}
+  button.good{background:var(--accent2)}
+  button.warn{background:var(--yellow)}
+  button:active{transform:scale(.98)}
+  .question{text-align:center;padding:8px 6px 14px}
+  .qsmall{font-size:16px;color:#806f67}
+  .reading{font-size:34px;font-weight:900;margin:4px 0}
+  .sentence{font-size:18px;line-height:1.6}
+  .canvasbox{
+    position:relative;width:min(78vw,520px);aspect-ratio:1/1;margin:0 auto;
+    border:3px solid #d9c8be;border-radius:18px;background:#fff;
+    overflow:hidden;touch-action:none
+  }
+  .guide{
+    position:absolute;inset:0;pointer-events:none;
+    background:
+      linear-gradient(to right,transparent 49.7%,#eee 49.7%,#eee 50.3%,transparent 50.3%),
+      linear-gradient(to bottom,transparent 49.7%,#eee 49.7%,#eee 50.3%,transparent 50.3%);
+  }
+  canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+  .answer{
+    text-align:center;font-size:72px;font-weight:900;padding:8px;min-height:95px;
+    color:#604d43
+  }
+  .hidden{visibility:hidden}
+  .controls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+  .progress{
+    height:12px;background:#f1e7e1;border-radius:999px;overflow:hidden;margin:8px 0 2px
+  }
+  .progress>div{height:100%;background:var(--accent);width:0%}
+  .stats{display:flex;justify-content:space-between;font-size:14px;color:#786a62}
+  .result{text-align:center}
+  .score{font-size:54px;font-weight:900}
+  .mistakes{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .chip{background:#fff1eb;border-radius:12px;padding:8px 10px;font-weight:800}
+  .footer{font-size:12px;color:#9a8b82;text-align:center;padding:4px 8px 20px}
+  .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:560px){.settings-grid{grid-template-columns:1fr}h1{font-size:20px}.reading{font-size:30px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>3年生 漢字れんしゅう</h1>
+      <div style="font-size:13px;color:#89766c">iPad・Apple Pencil対応</div>
+    </div>
+    <div class="mascot">🐹 🐰 ⭐️</div>
+  </div>
+
+  <div class="card" id="homeCard">
+    <div class="settings-grid">
+      <div>
+        <div style="font-weight:800;margin-bottom:6px">出題モード</div>
+        <select id="mode" style="width:100%">
+          <option value="reading">読み → 漢字を書く</option>
+          <option value="kanji">漢字を見て練習</option>
+        </select>
+      </div>
+      <div>
+        <div style="font-weight:800;margin-bottom:6px">問題数</div>
+        <select id="count" style="width:100%">
+          <option value="5">5問</option>
+          <option value="10" selected>10問</option>
+          <option value="20">20問</option>
+        </select>
+      </div>
+    </div>
+    <p style="line-height:1.7;margin-bottom:10px">
+      まずは教材写真から確認できた漢字を中心に入れた試作版。まちがえた漢字は自動で「にがて」に残ります。
+    </p>
+    <div class="modebar">
+      <button class="primary" onclick="startQuiz(false)">▶ 10問テストをはじめる</button>
+      <button class="warn" onclick="startQuiz(true)">⭐ にがてだけ練習</button>
+    </div>
+  </div>
+
+  <div class="card" id="quizCard" style="display:none">
+    <div class="stats">
+      <span id="counter">1 / 10</span>
+      <span id="scoreText">○ 0</span>
+    </div>
+    <div class="progress"><div id="bar"></div></div>
+
+    <div class="question">
+      <div class="qsmall" id="qLabel">つぎの読みを漢字で書こう</div>
+      <div class="reading" id="qMain">えき</div>
+      <div class="sentence" id="qSentence">電車が（えき）につく。</div>
+    </div>
+
+    <div class="canvasbox" id="canvasBox">
+      <div class="guide"></div>
+      <canvas id="drawCanvas"></canvas>
+    </div>
+
+    <div class="controls">
+      <button onclick="clearCanvas()">ぜんぶ消す</button>
+      <button class="warn" onclick="toggleAnswer()">答えを見る</button>
+    </div>
+
+    <div id="answer" class="answer hidden">駅</div>
+
+    <div class="controls" id="judgeButtons" style="display:none">
+      <button class="good" onclick="judge(true)">○ できた！</button>
+      <button class="primary" onclick="judge(false)">△ もう一回</button>
+    </div>
+  </div>
+
+  <div class="card result" id="resultCard" style="display:none">
+    <div class="mascot">🎉 🐹 ⭐️</div>
+    <h2>おつかれさま！</h2>
+    <div class="score" id="finalScore">8 / 10</div>
+    <div id="message" style="font-size:18px;font-weight:800;margin:8px 0 16px"></div>
+    <div id="mistakeArea">
+      <h3>もう一回やる漢字</h3>
+      <div class="mistakes" id="mistakes"></div>
+    </div>
+    <div class="controls" style="margin-top:18px">
+      <button class="primary" onclick="startQuiz(false)">もう一度</button>
+      <button class="warn" onclick="startQuiz(true)">にがてだけ</button>
+      <button onclick="goHome()">ホーム</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    家庭学習用の試作版です。キャラクター画像は使わず、オリジナルの絵文字で構成しています。
+  </div>
+</div>
+
+<script>
+const DATA = [
+ {k:"悪",r:"わるい",s:"（わるい）ことをしない。"},
+ {k:"安",r:"やすい",s:"ねだんが（やすい）。"},
+ {k:"暗",r:"くらい",s:"へやが（くらい）。"},
+ {k:"医",r:"いしゃ",s:"（いしゃ）にみてもらう。"},
+ {k:"委",r:"いいん",s:"学級（いいん）になる。"},
+ {k:"意",r:"いみ",s:"ことばの（いみ）を考える。"},
+ {k:"育",r:"そだてる",s:"花を（そだてる）。"},
+ {k:"員",r:"てんいん",s:"お店の（てんいん）。"},
+ {k:"院",r:"びょういん",s:"（びょういん）へ行く。"},
+ {k:"飲",r:"のむ",s:"水を（のむ）。"},
+ {k:"運",r:"はこぶ",s:"にもつを（はこぶ）。"},
+ {k:"泳",r:"およぐ",s:"プールで（およぐ）。"},
+ {k:"駅",r:"えき",s:"電車が（えき）につく。"},
+ {k:"央",r:"ちゅうおう",s:"町の（ちゅうおう）。"},
+ {k:"横",r:"よこ",s:"つくえの（よこ）に立つ。"},
+ {k:"屋",r:"やね",s:"家の（やね）を見る。"},
+ {k:"温",r:"あたたかい",s:"（あたたかい）スープ。"},
+ {k:"化",r:"へんか",s:"ようすが（へんか）する。"},
+ {k:"荷",r:"にもつ",s:"（にもつ）を持つ。"},
+ {k:"界",r:"せかい",s:"広い（せかい）。"},
+ {k:"開",r:"あける",s:"ドアを（あける）。"},
+ {k:"階",r:"かいだん",s:"（かいだん）を上る。"},
+ {k:"寒",r:"さむい",s:"今日は（さむい）。"},
+ {k:"漢",r:"かんじ",s:"（かんじ）を書く。"},
+ {k:"館",r:"としょかん",s:"（としょかん）へ行く。"},
+ {k:"岸",r:"きし",s:"川の（きし）に立つ。"},
+ {k:"起",r:"おきる",s:"朝早く（おきる）。"},
+ {k:"期",r:"がっき",s:"二（がっき）が始まる。"},
+ {k:"客",r:"きゃく",s:"お（きゃく）さんが来る。"},
+ {k:"究",r:"けんきゅう",s:"生き物を（けんきゅう）する。"},
+ {k:"急",r:"いそぐ",s:"学校へ（いそぐ）。"},
+ {k:"級",r:"きゅう",s:"一（きゅう）上がる。"},
+ {k:"宮",r:"じんぐう",s:"（じんぐう）へ行く。"},
+ {k:"球",r:"きゅう",s:"ボールの（きゅう）を投げる。"},
+ {k:"去",r:"きょねん",s:"（きょねん）の夏。"},
+ {k:"橋",r:"はし",s:"川の（はし）をわたる。"},
+ {k:"業",r:"じゅぎょう",s:"（じゅぎょう）が始まる。"},
+ {k:"曲",r:"きょく",s:"すきな（きょく）を聞く。"},
+ {k:"局",r:"ゆうびんきょく",s:"（ゆうびんきょく）へ行く。"},
+ {k:"銀",r:"ぎん",s:"（ぎん）色のメダル。"},
+ {k:"苦",r:"くるしい",s:"（くるしい）ときもがんばる。"},
+ {k:"具",r:"どうぐ",s:"（どうぐ）をそろえる。"},
+ {k:"君",r:"きみ",s:"（きみ）の番だよ。"},
+ {k:"係",r:"かかり",s:"そうじ（かかり）になる。"}
+];
+
+let quiz=[], idx=0, good=0, wrong=[];
+const canvas = document.getElementById("drawCanvas");
+const ctx = canvas.getContext("2d");
+let drawing=false, last=null;
+
+function resizeCanvas(){
+  const box = document.getElementById("canvasBox");
+  const rect = box.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.round(rect.width*dpr);
+  canvas.height = Math.round(rect.height*dpr);
+  canvas.style.width = rect.width+"px";
+  canvas.style.height = rect.height+"px";
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.lineCap="round";
+  ctx.lineJoin="round";
+  ctx.strokeStyle="#413731";
+  ctx.lineWidth=8;
+}
+window.addEventListener("resize",()=>{ resizeCanvas(); });
+
+function pos(e){
+  const r=canvas.getBoundingClientRect();
+  return {x:e.clientX-r.left,y:e.clientY-r.top};
+}
+canvas.addEventListener("pointerdown", e=>{
+  e.preventDefault(); drawing=true; last=pos(e);
+  try{canvas.setPointerCapture(e.pointerId)}catch(_){}
+});
+canvas.addEventListener("pointermove", e=>{
+  if(!drawing)return;
+  e.preventDefault();
+  const p=pos(e);
+  let width=8;
+  if(e.pointerType==="pen" && e.pressure>0) width=5+e.pressure*8;
+  ctx.lineWidth=width;
+  ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(p.x,p.y); ctx.stroke();
+  last=p;
+});
+["pointerup","pointercancel","pointerout"].forEach(ev=>canvas.addEventListener(ev,e=>{drawing=false;last=null;}));
+
+function clearCanvas(){
+  const r=canvas.getBoundingClientRect();
+  ctx.clearRect(0,0,r.width,r.height);
+}
+function shuffle(a){ return [...a].sort(()=>Math.random()-.5); }
+
+function startQuiz(weakOnly){
+  const n=Number(document.getElementById("count").value);
+  let pool=DATA;
+  if(weakOnly){
+    const saved=JSON.parse(localStorage.getItem("kanjiWeak")||"[]");
+    const found=DATA.filter(x=>saved.includes(x.k));
+    if(found.length) pool=found;
+    else alert("まだ「にがて漢字」がないので、全体から出します。");
+  }
+  quiz=shuffle(pool).slice(0,Math.min(n,pool.length));
+  idx=0;good=0;wrong=[];
+  document.getElementById("homeCard").style.display="none";
+  document.getElementById("resultCard").style.display="none";
+  document.getElementById("quizCard").style.display="block";
+  setTimeout(()=>{resizeCanvas();showQuestion();},50);
+}
+
+function showQuestion(){
+  const q=quiz[idx], mode=document.getElementById("mode").value;
+  document.getElementById("counter").textContent=`${idx+1} / ${quiz.length}`;
+  document.getElementById("scoreText").textContent=`○ ${good}`;
+  document.getElementById("bar").style.width=`${(idx/quiz.length)*100}%`;
+  document.getElementById("answer").textContent=q.k;
+  document.getElementById("answer").classList.add("hidden");
+  document.getElementById("judgeButtons").style.display="none";
+  clearCanvas();
+
+  if(mode==="kanji"){
+    document.getElementById("qLabel").textContent="この漢字を大きく書いてみよう";
+    document.getElementById("qMain").textContent=q.k;
+    document.getElementById("qSentence").textContent=q.s;
+  }else{
+    document.getElementById("qLabel").textContent="（　）の読みを漢字で書こう";
+    document.getElementById("qMain").textContent=q.r;
+    document.getElementById("qSentence").textContent=q.s;
+  }
+}
+function toggleAnswer(){
+  document.getElementById("answer").classList.remove("hidden");
+  document.getElementById("judgeButtons").style.display="flex";
+}
+function judge(ok){
+  const q=quiz[idx];
+  if(ok) good++; else wrong.push(q.k);
+  idx++;
+  if(idx>=quiz.length){finish();return;}
+  showQuestion();
+}
+function finish(){
+  document.getElementById("quizCard").style.display="none";
+  document.getElementById("resultCard").style.display="block";
+  document.getElementById("finalScore").textContent=`${good} / ${quiz.length}`;
+  const rate=good/quiz.length;
+  document.getElementById("message").textContent=
+    rate===1?"ぜんもんせいかい！すごい！ ⭐️⭐️⭐️":
+    rate>=.8?"かなりできてる！あと少し！ ⭐️⭐️":
+    rate>=.6?"いい感じ！にがてだけもう一回 ⭐️":"少しずつでOK！もう一回やってみよう 🌱";
+
+  const weak = new Set(JSON.parse(localStorage.getItem("kanjiWeak")||"[]"));
+  wrong.forEach(k=>weak.add(k));
+  quiz.filter(q=>!wrong.includes(q.k)).forEach(q=>weak.delete(q.k));
+  localStorage.setItem("kanjiWeak",JSON.stringify([...weak]));
+
+  const box=document.getElementById("mistakes");
+  box.innerHTML="";
+  const area=document.getElementById("mistakeArea");
+  if(wrong.length===0){ area.style.display="none"; }
+  else{
+    area.style.display="block";
+    [...new Set(wrong)].forEach(k=>{
+      const s=document.createElement("span");s.className="chip";s.textContent=k;box.appendChild(s);
+    });
+  }
+}
+function goHome(){
+  document.getElementById("resultCard").style.display="none";
+  document.getElementById("quizCard").style.display="none";
+  document.getElementById("homeCard").style.display="block";
+}
+</script>
+</body>
+</html>
