@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>競馬4エンジン統合アプリ V0.28</title>
+<title>競馬4エンジン統合アプリ V0.29</title>
 <style>
 :root{--bg:#f6f7fb;--card:#fff;--text:#1f2937;--muted:#6b7280;--line:#d9dee8;--accent:#2563eb;--good:#047857;--warn:#b45309;--bad:#b91c1c;--info:#1d4ed8}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif}
@@ -18,7 +18,7 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{border-bottom:1px
 </style>
 </head>
 <body>
-<header><div class="wrap"><h1>競馬4エンジン統合アプリ V0.28</h1><div class="small">最終予想を◎○▲★☆△で表示。安井式が部分判定でも、使える軸だけ統合に反映。</div></div></header>
+<header><div class="wrap"><h1>競馬4エンジン統合アプリ V0.29</h1><div class="small">表示を日本語化・小数第1位に統一。最終予想は◎○▲★☆△で表示。</div></div></header>
 <main class="wrap"><div class="grid">
 
 <section class="card span12">
@@ -67,6 +67,28 @@ function csv(a){a=(a||[]).filter(x=>x.trim());if(!a.length)return[];let h=a[0].s
 function filled(v){return v!==undefined&&v!==null&&String(v).trim()!==""}
 function num(v){if(!filled(v))return null;let x=Number(v);return Number.isFinite(x)?x:null}
 function badge(t,c=""){return `<span class="badge ${c}">${t}</span>`}
+function fmt1(v){
+  if(v===null||v===undefined||v==="") return "";
+  let x=Number(v);
+  return Number.isFinite(x)?x.toFixed(1):String(v);
+}
+function jpRole(v){
+  const m={
+    "HEAD":"頭候補",
+    "REVERSE":"逆転候補",
+    "SECOND":"2着候補",
+    "THIRD":"3着候補",
+    "HOLE-WIN":"穴1着候補",
+    "NONE":"該当なし",
+    "BUY-SS":"買いSS",
+    "REST":"休養注目",
+    "S":"S候補",
+    "A":"A候補",
+    "X2-S":"上位崩れ警戒 S",
+    "X2-SS":"上位崩れ警戒 SS"
+  };
+  return m[v]||v;
+}
 
 function importCode(){
  let s=sec(masterCode.value);APP.race=kv(s.RACE);APP.market=kv(s.MARKET);APP.newp=kv(s.NEWP);APP.horses=csv(s.HORSES);APP.ichigekiHorses=csv(s.ICHIGEKI_HORSES);APP.sleipnir=csv(s.SLEIPNIR);APP.yasuiHistory=csv(s.YASUI_HISTORY);
@@ -134,11 +156,11 @@ function analyze(){
  y.complete.length?`総合順位対象 ${y.complete.length}頭`:`総合順位対象なし（3軸揃い待ち）`;
 
  yasuiTable.innerHTML=`<tr><th>馬</th><th>SPEED</th><th>S順位</th><th>STAMINA</th><th>T順位</th><th>POWER</th><th>P順位</th><th>総合</th></tr>`+
- y.all.map(x=>`<tr><td>${x.num} ${x.name}</td><td>${x.speed??"N/A"}</td><td>${x.speedRank??"-"}</td><td>${x.stamina??"N/A"}</td><td>${x.staminaRank??"-"}</td><td>${x.power??"N/A"}</td><td>${x.powerRank??"-"}</td><td>${x.overallRank??"N/A"}</td></tr>`).join("");
+ y.all.map(x=>`<tr><td>${x.num} ${x.name}</td><td>${x.speed===null?"N/A":fmt1(x.speed)}</td><td>${x.speedRank??"-"}</td><td>${x.stamina===null?"N/A":fmt1(x.stamina)}</td><td>${x.staminaRank??"-"}</td><td>${x.power===null?"N/A":fmt1(x.power)}</td><td>${x.powerRank??"-"}</td><td>${x.overallRank??"N/A"}</td></tr>`).join("");
 
  mieruBox.innerHTML=m.status==="OK"?m.rows.slice(0,8).map(r=>`${r.mo}位 #${r["馬番"]} ${r["馬名"]} ${r.ms.toFixed(1)}`).join("<br>"):badge("未判定","warn");
- ichiBox.innerHTML=i.status==="OK"?`上位3合計 ${i.sum} / 差 ${i.g12}-${i.g23}-${i.g13}<br>${i.tags.map(t=>badge(t,"warn")).join(" ")}<br>${Object.entries(i.roles).map(([n,r])=>`#${n} ${badge(r,"info")}`).join("<br>")}`:badge("未判定","warn");
- sleiBox.innerHTML=s.status==="OK"?Object.entries(s.map).map(([n,v])=>`#${n} ${badge(v,v==="NONE"?"info":"warn")}`).join("<br>"):badge("未判定","warn");
+ ichiBox.innerHTML=i.status==="OK"?`上位3合計 ${i.sum} / 差 ${i.g12}-${i.g23}-${i.g13}<br>${i.tags.map(t=>badge(jpRole(t),"warn")).join(" ")}<br>${Object.entries(i.roles).map(([n,r])=>`#${n} ${badge(jpRole(r),"info")}`).join("<br>")}`:badge("未判定","warn");
+ sleiBox.innerHTML=s.status==="OK"?Object.entries(s.map).map(([n,v])=>`#${n} ${badge(jpRole(v),v==="NONE"?"info":"warn")}`).join("<br>"):badge("未判定","warn");
  marketBox.innerHTML=mk.status==="OK"?`${badge("市場OK","good")} ${mk.confidence?`安心度 ${mk.confidence}`:""}<br>${mk.headSplit?`HEAD-SPLIT #${mk.headSplit}<br>`:""}${mk.headLift.length?`HEAD-LIFT ${mk.headLift.map(x=>"#"+x).join(" ")}<br>`:""}${mk.rescue.length?`RESCUE ${mk.rescue.map(x=>"#"+x).join(" ")}`:""}`:badge("未判定","warn");
 
  // V0.28 最終予想：途中ラベルを人間向けの印に変換
@@ -205,7 +227,7 @@ function analyze(){
 }
 function buildReturn(){
  let t=`CHATPY_APP_RESULT_V5\n[RACE]\n${APP.race.date||""},${APP.race.venue||""},${APP.race.race||""}R,${APP.race.surface||""},${APP.race.distance||""}m,${APP.race.field_size||APP.horses.length}頭\n\n[ENGINE_STATUS]\nYASUI=${LAST.y.status}\nMIERU=${LAST.m.status}\nICHIGEKI=${LAST.i.status}\nSLEIPNIR=${LAST.s.status}\nMARKET=${LAST.mk.status}\n\n[YASUI]\n馬番,SPEED,S順位,STAMINA,T順位,POWER,P順位,総合順位\n`;
- LAST.y.all.forEach(x=>t+=`${x.num},${x.speed??""},${x.speedRank??""},${x.stamina??""},${x.staminaRank??""},${x.power??""},${x.powerRank??""},${x.overallRank??""}\n`);
+ LAST.y.all.forEach(x=>t+=`${x.num},${x.speed===null?"":fmt1(x.speed)},${x.speedRank??""},${x.stamina===null?"":fmt1(x.stamina)},${x.staminaRank??""},${x.power===null?"":fmt1(x.power)},${x.powerRank??""},${x.overallRank??""}\n`);
  t+=`\n[FINAL_PREDICTION]\nMODE=${LAST.mode||""}\n印,馬番,馬名,統合点\n`;
  (LAST.ranked||[]).slice(0,6).forEach(x=>t+=`${x.mark},${x.h["馬番"]},${x.h["馬名"]},${x.score.toFixed(1)}\n`);
  t+=`\n[HORSE_RESULT]\n馬番,馬名,COMPI,見える順位,ICHIGEKI,スレイプニル,市場\n`;
