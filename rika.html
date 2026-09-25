@@ -2,207 +2,47 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>小3理科 チョウのかんさつ</title>
 <style>
-  :root{--bg:#f5fbff;--card:#fff;--ink:#1f2937;--accent:#2563eb;--ok:#15803d;--ng:#b91c1c;--line:#dbeafe;}
-  *{box-sizing:border-box}
-  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;background:var(--bg);color:var(--ink)}
-  .wrap{max-width:820px;margin:auto;padding:18px 14px 70px}
-  h1{font-size:clamp(25px,5vw,38px);margin:6px 0 4px}
-  .sub{font-size:17px;margin:0 0 18px;color:#475569}
-  .card{background:var(--card);border-radius:22px;padding:20px;margin:14px 0;box-shadow:0 6px 22px rgba(15,23,42,.08);border:2px solid #e5eefc}
-  .qno{display:inline-block;font-weight:800;color:var(--accent);margin-bottom:8px}
-  .q{font-size:23px;line-height:1.55;font-weight:700}
-  .choices{display:grid;gap:10px;margin-top:14px}
-  button.choice{font-size:22px;padding:16px 14px;border-radius:16px;border:2px solid #bfdbfe;background:#eff6ff;color:#111827;text-align:left}
-  button.choice.selected{border-color:var(--accent);background:#dbeafe;font-weight:800}
-  input.text{width:100%;font-size:24px;padding:15px;border-radius:15px;border:2px solid #cbd5e1;margin-top:12px}
-  .stage{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;font-size:32px;margin:16px 0}
-  .stage span{background:#fff7ed;border:2px solid #fed7aa;border-radius:16px;padding:10px 14px}
-  .arrow{font-size:25px}
-  .actions{position:sticky;bottom:0;background:rgba(245,251,255,.94);backdrop-filter:blur(8px);padding:10px 0 4px;display:flex;gap:10px}
-  .mainbtn{flex:1;font-size:22px;font-weight:800;padding:16px;border:0;border-radius:16px;background:var(--accent);color:white}
-  .reset{background:#64748b}
-  .result{display:none;background:white;border-radius:22px;padding:20px;margin-top:16px;border:3px solid #bfdbfe}
-  .score{font-size:34px;font-weight:900}
-  .review{margin-top:12px;font-size:18px;line-height:1.6}
-  .ok{color:var(--ok);font-weight:800}.ng{color:var(--ng);font-weight:800}
-  .tiny{font-size:14px;color:#64748b;margin-top:8px}
+:root{--bg:#f3fbff;--card:#fff;--ink:#263238;--blue:#4f8cff;--green:#43b66a;--red:#ef6461}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;background:linear-gradient(#eaf8ff,#fff7e8);color:var(--ink);min-height:100vh}.wrap{max-width:820px;margin:auto;padding:16px 14px 40px}.hero{text-align:center}.hero h1{margin:4px 0;font-size:clamp(28px,7vw,44px)}.hero p{margin:4px 0 10px;font-size:18px}.progressWrap{background:#d9ebff;border-radius:999px;overflow:hidden;height:18px;margin:12px 0 8px}.progress{height:100%;width:0;background:linear-gradient(90deg,#59c173,#4f8cff);transition:.3s}.counter{text-align:center;font-weight:800;font-size:18px;margin-bottom:10px}.card{background:#fff;border-radius:26px;box-shadow:0 10px 30px rgba(35,75,120,.12);padding:24px 18px;min-height:420px;display:flex;flex-direction:column;justify-content:center}.icon{font-size:72px;text-align:center;margin-bottom:8px}.q{font-size:clamp(24px,5.5vw,34px);line-height:1.55;font-weight:900;text-align:center;margin:8px 0 18px}.choices{display:grid;gap:12px}.choice{width:100%;border:3px solid #cfe2ff;background:#f7fbff;border-radius:20px;padding:17px 16px;font-size:clamp(21px,4.6vw,28px);font-weight:800;text-align:left;color:#1f2937}.choice.selected{border-color:var(--blue);background:#e9f2ff}.choice.correct{border-color:var(--green);background:#eaf9ef}.choice.wrong{border-color:var(--red);background:#fff0ef}.textAnswer{width:100%;font-size:28px;padding:18px;border:3px solid #cfe2ff;border-radius:18px;outline:none}.feedback{min-height:48px;text-align:center;font-size:23px;font-weight:900;margin-top:14px}.ok{color:#23894b}.ng{color:#cf3f3f}.actions{display:flex;gap:10px;margin-top:16px}.btn{flex:1;border:0;border-radius:18px;padding:17px;font-size:22px;font-weight:900;color:white;background:var(--blue)}.btn.secondary{background:#6c7a89}.result{display:none;background:white;border-radius:28px;padding:28px 20px;text-align:center;box-shadow:0 10px 30px rgba(35,75,120,.12)}.score{font-size:54px;font-weight:1000;margin:8px 0}.stars{font-size:52px;margin:8px 0}.resultMsg{font-size:25px;font-weight:900;line-height:1.5}.review{text-align:left;margin-top:20px;background:#fff9db;border-radius:18px;padding:14px;font-size:18px;line-height:1.7}.small{font-size:14px;color:#667085;text-align:center;margin-top:8px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>🦋 小3理科「チョウのかんさつ」</h1>
-  <p class="sub">タブレットれんしゅうテスト／全12問</p>
-
-  <form id="quiz">
-    <div class="card" data-name="q1" data-answer="1">
-      <div class="qno">もんだい 1</div>
-      <div class="q">モンシロチョウの「たまご」は、育つじゅんばんで何ばんめ？</div>
-      <div class="choices">
-        <button type="button" class="choice" data-v="1">① 1ばんめ</button>
-        <button type="button" class="choice" data-v="2">② 2ばんめ</button>
-        <button type="button" class="choice" data-v="3">③ 3ばんめ</button>
-        <button type="button" class="choice" data-v="4">④ 4ばんめ</button>
-      </div>
-    </div>
-
-    <div class="card" data-name="q2" data-answer="2">
-      <div class="qno">もんだい 2</div>
-      <div class="q">たまごからかえったあとの、小さな青虫のころを何といいますか。</div>
-      <div class="choices">
-        <button type="button" class="choice" data-v="1">① 成虫（せいちゅう）</button>
-        <button type="button" class="choice" data-v="2">② よう虫</button>
-        <button type="button" class="choice" data-v="3">③ さなぎ</button>
-      </div>
-    </div>
-
-    <div class="card" data-name="q3" data-answer="3">
-      <div class="qno">もんだい 3</div>
-      <div class="q">よう虫のつぎのすがたを何といいますか。</div>
-      <div class="choices">
-        <button type="button" class="choice" data-v="1">① たまご</button>
-        <button type="button" class="choice" data-v="2">② 成虫</button>
-        <button type="button" class="choice" data-v="3">③ さなぎ</button>
-      </div>
-    </div>
-
-    <div class="card" data-name="q4" data-answer="4">
-      <div class="qno">もんだい 4</div>
-      <div class="q">チョウになったすがたを何といいますか。</div>
-      <div class="choices">
-        <button type="button" class="choice" data-v="1">① よう虫</button>
-        <button type="button" class="choice" data-v="2">② さなぎ</button>
-        <button type="button" class="choice" data-v="4">③ 成虫（せいちゅう）</button>
-      </div>
-    </div>
-
-    <div class="card" data-name="q5" data-answer="たまご,よう虫,さなぎ,成虫">
-      <div class="qno">もんだい 5</div>
-      <div class="q">正しい育つじゅんばんはどれ？</div>
-      <div class="stage"><span>🥚 たまご</span><b class="arrow">→</b><span>🐛 よう虫</span><b class="arrow">→</b><span>🟤 さなぎ</span><b class="arrow">→</b><span>🦋 成虫</span></div>
-      <div class="choices">
-        <button type="button" class="choice" data-v="たまご,よう虫,さなぎ,成虫">① たまご → よう虫 → さなぎ → 成虫</button>
-        <button type="button" class="choice" data-v="たまご,さなぎ,よう虫,成虫">② たまご → さなぎ → よう虫 → 成虫</button>
-        <button type="button" class="choice" data-v="よう虫,たまご,さなぎ,成虫">③ よう虫 → たまご → さなぎ → 成虫</button>
-      </div>
-    </div>
-
-    <div class="card" data-name="q6" data-answer="キャベツ">
-      <div class="qno">もんだい 6</div>
-      <div class="q">モンシロチョウのよう虫には、何の葉をあたえますか。</div>
-      <input class="text" type="text" inputmode="text" placeholder="ここに書こう">
-    </div>
-
-    <div class="card" data-name="q7" data-answer="むね">
-      <div class="qno">もんだい 7</div>
-      <div class="q">チョウの「あし」は、からだのどこについていますか。</div>
-      <div class="choices">
-        <button type="button" class="choice" data-v="あたま">① あたま</button>
-        <button type="button" class="choice" data-v="むね">② むね</button>
-        <button type="button" class="choice" data-v="はら">③ はら</button>
-      </div>
-    </div>
-
-    <div class="card" data-name="q8" data-answer="6">
-      <div class="qno">もんだい 8</div>
-      <div class="q">チョウのあしは、ぜんぶで何本ですか。</div>
-      <div class="choices">
-        <button type="button" class="choice" data-v="4">① 4本</button>
-        <button type="button" class="choice" data-v="6">② 6本</button>
-        <button type="button" class="choice" data-v="8">③ 8本</button>
-      </div>
-    </div>
-
-    <div class="card" data-name="q9" data-answer="こん虫">
-      <div class="qno">もんだい 9</div>
-      <div class="q">チョウのように、からだが「あたま・むね・はら」に分かれ、あしが6本あるなかまを何といいますか。</div>
-      <div class="choices">
-        <button type="button" class="choice" data-v="こん虫">① こん虫</button>
-        <button type="button" class="choice" data-v="魚">② 魚</button>
-        <button type="button" class="choice" data-v="鳥">③ 鳥</button>
-      </div>
-    </div>
-
-    <div class="card" data-name="q10" data-answer="パセリ">
-      <div class="qno">もんだい 10</div>
-      <div class="q">キアゲハのよう虫が食べる葉として、このテストで出てきた植物はどれ？</div>
-      <div class="choices">
-        <button type="button" class="choice" data-v="ホウセンカ">① ホウセンカ</button>
-        <button type="button" class="choice" data-v="キャベツ">② キャベツ</button>
-        <button type="button" class="choice" data-v="パセリ">③ パセリ</button>
-      </div>
-    </div>
-
-    <div class="card" data-name="q11" data-answer="食べる">
-      <div class="qno">もんだい 11</div>
-      <div class="q">チョウが決まった植物の葉にたまごをうむのは、たまごからかえったよう虫が、その植物の葉をどうするから？</div>
-      <input class="text" type="text" inputmode="text" placeholder="○○から。">
-      <div class="tiny">「食べる」「たべる」どちらでも正解です。</div>
-    </div>
-
-    <div class="card" data-name="q12" data-answer="同じ">
-      <div class="qno">もんだい 12</div>
-      <div class="q">キアゲハとモンシロチョウの育つじゅんばんは、同じですか、ちがいますか。</div>
-      <div class="choices">
-        <button type="button" class="choice" data-v="同じ">① 同じ</button>
-        <button type="button" class="choice" data-v="ちがう">② ちがう</button>
-      </div>
-    </div>
-  </form>
-
-  <div id="result" class="result"></div>
-
-  <div class="actions">
-    <button class="mainbtn" id="grade" type="button">✅ こたえあわせ</button>
-    <button class="mainbtn reset" id="reset" type="button">↻ もういちど</button>
-  </div>
+<div class="hero"><div style="font-size:52px">🦋</div><h1>チョウのかんさつ</h1><p>小学校3年生 理科</p></div>
+<div id="quizArea"><div class="progressWrap"><div id="progress" class="progress"></div></div><div id="counter" class="counter"></div><div class="card"><div id="icon" class="icon"></div><div id="question" class="q"></div><div id="answerArea"></div><div id="feedback" class="feedback"></div><div class="actions"><button id="checkBtn" class="btn">こたえる</button><button id="nextBtn" class="btn" style="display:none">つぎへ ▶</button></div></div><div class="small">大きなボタンをタップして答えてね</div></div>
+<div id="result" class="result"><div style="font-size:64px">🏆</div><div class="score" id="scoreText"></div><div class="stars" id="stars"></div><div class="resultMsg" id="resultMsg"></div><div class="review" id="review"></div><div class="actions" style="margin-top:18px"><button class="btn" id="retryWrong">まちがえた問題だけ</button><button class="btn secondary" id="restart">もういちど全部</button></div></div>
 </div>
-
 <script>
-const state = {};
-document.querySelectorAll('.card').forEach(card=>{
-  card.querySelectorAll('.choice').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      card.querySelectorAll('.choice').forEach(x=>x.classList.remove('selected'));
-      btn.classList.add('selected');
-      state[card.dataset.name]=btn.dataset.v;
-    });
-  });
-  const inp=card.querySelector('.text');
-  if(inp){
-    inp.addEventListener('input', ()=> state[card.dataset.name]=inp.value.trim());
-  }
-});
-function norm(s){
-  return (s||'').trim().replace(/[ 　]/g,'')
-    .replace(/たべる/g,'食べる').replace(/昆虫/g,'こん虫')
-    .replace(/幼虫/g,'よう虫').replace(/成虫/g,'成虫');
-}
-document.getElementById('grade').addEventListener('click', ()=>{
-  let score=0; const misses=[];
-  document.querySelectorAll('.card').forEach((card,i)=>{
-    const ans=norm(card.dataset.answer), got=norm(state[card.dataset.name]);
-    const ok = got===ans;
-    if(ok) score++;
-    else misses.push(`${i+1}：正解は「${card.dataset.answer}」`);
-  });
-  const total=document.querySelectorAll('.card').length;
-  const r=document.getElementById('result');
-  r.style.display='block';
-  r.innerHTML=`<div class="score">${score} / ${total} 点</div>
-    <div class="${score===total?'ok':'ng'}">${score===total?'🎉 ぜんもんせいかい！':'あと '+(total-score)+' 問！'}</div>
-    <div class="review">${misses.length?'<b>まちがえたところ</b><br>'+misses.join('<br>'):'よくできました！'}</div>`;
-  r.scrollIntoView({behavior:'smooth',block:'center'});
-});
-document.getElementById('reset').addEventListener('click', ()=>{
-  Object.keys(state).forEach(k=>delete state[k]);
-  document.querySelectorAll('.choice').forEach(x=>x.classList.remove('selected'));
-  document.querySelectorAll('.text').forEach(x=>x.value='');
-  document.getElementById('result').style.display='none';
-  window.scrollTo({top:0,behavior:'smooth'});
-});
+const allQuestions=[
+{icon:"🥚",q:"モンシロチョウが いちばん はじめの すがたは どれ？",type:"choice",choices:["たまご","よう虫","さなぎ","成虫"],answer:"たまご"},
+{icon:"🐛",q:"たまごから かえった あとの すがたを なんと いう？",type:"choice",choices:["よう虫","さなぎ","成虫"],answer:"よう虫"},
+{icon:"🟤",q:"よう虫の つぎの すがたは どれ？",type:"choice",choices:["たまご","さなぎ","成虫"],answer:"さなぎ"},
+{icon:"🦋",q:"チョウに なった すがたを なんと いう？",type:"choice",choices:["よう虫","さなぎ","成虫"],answer:"成虫"},
+{icon:"🔁",q:"そだつ じゅんばんで ただしいのは どれ？",type:"choice",choices:["たまご → よう虫 → さなぎ → 成虫","たまご → さなぎ → よう虫 → 成虫","よう虫 → たまご → さなぎ → 成虫"],answer:"たまご → よう虫 → さなぎ → 成虫"},
+{icon:"🥬",q:"モンシロチョウの よう虫には、なんの はを あたえる？",type:"choice",choices:["キャベツ","パセリ","ホウセンカ"],answer:"キャベツ"},
+{icon:"🧩",q:"チョウの からだは、いくつの ぶぶんに わかれている？",type:"choice",choices:["2つ","3つ","4つ"],answer:"3つ"},
+{icon:"🧠",q:"チョウの からだの 3つの ぶぶんは？",type:"choice",choices:["あたま・むね・はら","あたま・せなか・おなか","かお・むね・しっぽ"],answer:"あたま・むね・はら"},
+{icon:"🦵",q:"チョウの あしは、からだの どこに ついている？",type:"choice",choices:["あたま","むね","はら"],answer:"むね"},
+{icon:"6️⃣",q:"チョウの あしは ぜんぶで なんぼん？",type:"choice",choices:["4本","6本","8本"],answer:"6本"},
+{icon:"🐞",q:"チョウのように、からだが『あたま・むね・はら』に わかれ、あしが6本ある なかまを なんという？",type:"choice",choices:["こん虫","魚","鳥"],answer:"こん虫"},
+{icon:"🌿",q:"キアゲハの よう虫が たべる はは どれ？",type:"choice",choices:["パセリ","キャベツ","ホウセンカ"],answer:"パセリ"},
+{icon:"🍽️",q:"チョウが きまった しょくぶつの はに たまごを うむのは、よう虫が その はを どうするから？",type:"choice",choices:["たべるから","ねるから","かくれるから"],answer:"たべるから"},
+{icon:"🦋🦋",q:"キアゲハと モンシロチョウの そだつ じゅんばんは？",type:"choice",choices:["おなじ","ちがう"],answer:"おなじ"},
+{icon:"📝",q:"『よう虫』の つぎに なる すがたを ひらがなで かこう。",type:"text",answer:"さなぎ"}
+];
+let questions=[...allQuestions],index=0,selected=null,checked=false,wrongItems=[];
+const questionEl=document.getElementById('question'),iconEl=document.getElementById('icon'),answerArea=document.getElementById('answerArea'),counter=document.getElementById('counter'),progress=document.getElementById('progress'),feedback=document.getElementById('feedback'),checkBtn=document.getElementById('checkBtn'),nextBtn=document.getElementById('nextBtn');
+function render(){checked=false;selected=null;feedback.textContent='';feedback.className='feedback';checkBtn.style.display='';nextBtn.style.display='none';const item=questions[index];counter.textContent=`${index+1} / ${questions.length} もん`;progress.style.width=`${(index/questions.length)*100}%`;iconEl.textContent=item.icon;questionEl.textContent=item.q;answerArea.innerHTML='';if(item.type==='choice'){const box=document.createElement('div');box.className='choices';item.choices.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='choice';b.textContent=`${['①','②','③','④'][i]||''} ${c}`;b.dataset.value=c;b.onclick=()=>{if(checked)return;[...box.children].forEach(x=>x.classList.remove('selected'));b.classList.add('selected');selected=c};box.appendChild(b)});answerArea.appendChild(box)}else{const inp=document.createElement('input');inp.id='textInput';inp.className='textAnswer';inp.placeholder='ここに かこう';inp.autocomplete='off';inp.spellcheck=false;inp.oninput=()=>selected=inp.value.trim();answerArea.appendChild(inp)}}
+function normalize(s){return(s||'').replace(/[ 　]/g,'').trim()}
+checkBtn.onclick=()=>{if(!selected){feedback.textContent='こたえを えらんでね 😊';feedback.className='feedback ng';return}const item=questions[index];checked=true;const ok=normalize(selected)===normalize(item.answer);if(item.type==='choice'){document.querySelectorAll('.choice').forEach(btn=>{if(btn.dataset.value===item.answer)btn.classList.add('correct');if(btn.dataset.value===selected&&!ok)btn.classList.add('wrong');btn.disabled=true})}else{const inp=document.getElementById('textInput');inp.disabled=true;inp.style.borderColor=ok?'#43b66a':'#ef6461'}if(ok){feedback.textContent='せいかい！ 🎉';feedback.className='feedback ok'}else{feedback.textContent=`おしい！ せいかいは「${item.answer}」`;feedback.className='feedback ng';wrongItems.push(item)}checkBtn.style.display='none';nextBtn.style.display=''};
+nextBtn.onclick=()=>{index++;if(index<questions.length)render();else showResult()};
+function showResult(){progress.style.width='100%';document.getElementById('quizArea').style.display='none';const result=document.getElementById('result');result.style.display='block';const correct=questions.length-wrongItems.length;const score=Math.round(correct/questions.length*100);document.getElementById('scoreText').textContent=`${score}てん`;let stars='⭐',msg='よく がんばったね！';if(score===100){stars='⭐⭐⭐';msg='ぜんもん せいかい！ すごい！ 🎉'}else if(score>=80){stars='⭐⭐⭐';msg='とっても よくできました！'}else if(score>=60){stars='⭐⭐';msg='あと すこし！ もう1かい やってみよう！'}document.getElementById('stars').textContent=stars;document.getElementById('resultMsg').textContent=msg;const review=document.getElementById('review');if(wrongItems.length===0){review.innerHTML='まちがいは ありません。かんぺき！';document.getElementById('retryWrong').style.display='none'}else{review.innerHTML='<b>もう1かい やってみる もんだい</b><br>'+wrongItems.map((x,i)=>`${i+1}. ${x.q}`).join('<br>');document.getElementById('retryWrong').style.display=''}}
+document.getElementById('retryWrong').onclick=()=>{questions=[...wrongItems];wrongItems=[];index=0;document.getElementById('result').style.display='none';document.getElementById('quizArea').style.display='';render()};
+document.getElementById('restart').onclick=()=>{questions=[...allQuestions];wrongItems=[];index=0;document.getElementById('result').style.display='none';document.getElementById('quizArea').style.display='';render()};
+render();
 </script>
 </body>
 </html>
