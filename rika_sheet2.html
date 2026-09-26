@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>理科② かくにんシート</title>
+<style>
+:root{
+  --bg1:#eef9ff; --bg2:#fff7ea; --card:#ffffff; --ink:#23303b;
+  --blue:#4f8cff; --green:#35b56a; --red:#ef6461; --yellow:#ffd95a;
+  --line:#d9e8ff;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+  color:var(--ink);
+  background:linear-gradient(var(--bg1),var(--bg2));
+  min-height:100vh;
+}
+.wrap{max-width:860px;margin:0 auto;padding:16px 14px 40px}
+.hero{text-align:center;margin-bottom:12px}
+.hero .emoji{font-size:54px}
+.hero h1{margin:6px 0 2px;font-size:clamp(28px,6vw,42px)}
+.hero p{margin:4px 0 10px;font-size:18px}
+.progressWrap{height:18px;background:#d7e7ff;border-radius:999px;overflow:hidden;margin:10px 0 8px}
+.progress{height:100%;width:0;background:linear-gradient(90deg,#5aca72,#5b8dff);transition:.25s}
+.counter{text-align:center;font-size:18px;font-weight:900;margin:4px 0 10px}
+.card{
+  background:var(--card);border-radius:26px;padding:22px 18px;min-height:420px;
+  box-shadow:0 12px 30px rgba(35,75,120,.12);display:flex;flex-direction:column;justify-content:center
+}
+.icon{font-size:72px;text-align:center;margin-bottom:8px}
+.q{font-size:clamp(23px,5.2vw,33px);line-height:1.55;font-weight:900;text-align:center;margin:4px 0 18px}
+.qimg{display:block;max-width:100%;max-height:200px;margin:0 auto 14px;border-radius:18px}
+.choices{display:grid;gap:12px}
+.choice{
+  width:100%;border:3px solid #cfe0ff;background:#f7fbff;border-radius:20px;
+  padding:16px 15px;font-size:clamp(20px,4.6vw,28px);font-weight:900;
+  text-align:left;color:#1f2937;touch-action:manipulation
+}
+.choice.selected{border-color:var(--blue);background:#eaf2ff}
+.choice.correct{border-color:var(--green);background:#ebf9ef}
+.choice.wrong{border-color:var(--red);background:#fff0ef}
+.choice:active{transform:scale(.99)}
+.textAnswer{
+  width:100%;font-size:28px;padding:18px;border-radius:18px;
+  border:3px solid #cfe0ff;outline:none
+}
+.textAnswer:focus{border-color:var(--blue)}
+.feedback{min-height:48px;text-align:center;font-size:23px;font-weight:1000;margin-top:14px}
+.ok{color:#22884b}.ng{color:#cf4040}
+.actions{display:flex;gap:10px;margin-top:16px}
+.btn{
+  flex:1;border:0;border-radius:18px;padding:17px;font-size:22px;
+  font-weight:1000;color:white;background:var(--blue)
+}
+.btn.secondary{background:#6c7a89}
+.btn.home{background:#f59e0b}
+.btn:disabled{opacity:.45}
+.small{font-size:14px;color:#667085;text-align:center;margin-top:8px}
+.result{
+  display:none;background:white;border-radius:28px;padding:28px 20px;text-align:center;
+  box-shadow:0 12px 30px rgba(35,75,120,.12)
+}
+.score{font-size:54px;font-weight:1000;margin:8px 0}
+.stars{font-size:52px;margin:8px 0}
+.resultMsg{font-size:25px;font-weight:1000;line-height:1.5}
+.review{
+  text-align:left;margin-top:20px;background:#fff9db;border-radius:18px;
+  padding:14px;font-size:18px;line-height:1.7
+}
+.menu{display:grid;gap:14px}
+.tile{
+  display:block;text-decoration:none;background:white;border-radius:24px;padding:22px 18px;
+  color:var(--ink);box-shadow:0 12px 30px rgba(35,75,120,.12);border:3px solid #e4eefc
+}
+.tile .big{font-size:42px}
+.tile h2{margin:6px 0 8px;font-size:28px}
+.tile p{margin:0;font-size:18px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="emoji">🔬</div>
+    <h1>理科② かくにんシート</h1>
+    <p>植物・チョウ・こん虫</p>
+  </div>
+
+  <div id="quizArea">
+    <div class="progressWrap"><div id="progress" class="progress"></div></div>
+    <div id="counter" class="counter"></div>
+
+    <div class="card">
+      <div id="icon" class="icon"></div>
+      <img id="qimg" class="qimg" style="display:none" alt="">
+      <div id="question" class="q"></div>
+      <div id="answerArea"></div>
+      <div id="feedback" class="feedback"></div>
+      <div class="actions">
+        <button id="checkBtn" class="btn">こたえる</button>
+        <button id="nextBtn" class="btn" style="display:none">つぎへ ▶</button>
+      </div>
+    </div>
+    <div class="small">大きなボタンをタップして答えてね</div>
+  </div>
+
+  <div id="result" class="result">
+    <div style="font-size:64px">🏆</div>
+    <div class="score" id="scoreText"></div>
+    <div class="stars" id="stars"></div>
+    <div class="resultMsg" id="resultMsg"></div>
+    <div class="review" id="review"></div>
+    <div class="actions" style="margin-top:18px">
+      <button class="btn" id="retryWrong">まちがえた問題だけ</button>
+      <button class="btn secondary" id="restart">もういちど全部</button>
+      <button class='btn home' id='homeBtn'>ホーム</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+function createQuiz(allQuestions, opts={}){
+  let questions = [...allQuestions];
+  let index = 0;
+  let selected = null;
+  let checked = false;
+  let wrongItems = [];
+
+  const questionEl = document.getElementById("question");
+  const iconEl = document.getElementById("icon");
+  const imageEl = document.getElementById("qimg");
+  const answerArea = document.getElementById("answerArea");
+  const counter = document.getElementById("counter");
+  const progress = document.getElementById("progress");
+  const feedback = document.getElementById("feedback");
+  const checkBtn = document.getElementById("checkBtn");
+  const nextBtn = document.getElementById("nextBtn");
+
+  function normalize(s){
+    return (s||"").toString().replace(/[ 　]/g,"").trim()
+      .replace(/あおむし/g,"よう虫")
+      .replace(/チョウ/g,"ちょう")
+      .replace(/こんちゅう/g,"こん虫")
+      .replace(/はっぱ/g,"葉")
+      .replace(/くき/g,"くき")
+      .replace(/ねっこ/g,"ね")
+      .replace(/さいちゅう/g,"成虫");
+  }
+
+  function render(){
+    checked = false;
+    selected = null;
+    feedback.textContent = "";
+    feedback.className = "feedback";
+    checkBtn.style.display = "";
+    nextBtn.style.display = "none";
+
+    const item = questions[index];
+    counter.textContent = `${index+1} / ${questions.length} もん`;
+    progress.style.width = `${(index/questions.length)*100}%`;
+    iconEl.textContent = item.icon || "📘";
+    questionEl.textContent = item.q;
+    if(item.img){
+      imageEl.src = item.img;
+      imageEl.style.display = "block";
+    }else{
+      imageEl.style.display = "none";
+      imageEl.removeAttribute("src");
+    }
+
+    answerArea.innerHTML = "";
+    if(item.type === "choice"){
+      const box = document.createElement("div");
+      box.className = "choices";
+      item.choices.forEach((c,i)=>{
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "choice";
+        b.textContent = `${["①","②","③","④"][i]||""} ${c}`;
+        b.dataset.value = c;
+        b.onclick = ()=>{
+          if(checked) return;
+          [...box.children].forEach(x=>x.classList.remove("selected"));
+          b.classList.add("selected");
+          selected = c;
+        };
+        box.appendChild(b);
+      });
+      answerArea.appendChild(box);
+    }else{
+      const inp = document.createElement("input");
+      inp.id = "textInput";
+      inp.className = "textAnswer";
+      inp.placeholder = item.placeholder || "ここに かこう";
+      inp.autocomplete = "off";
+      inp.spellcheck = false;
+      inp.oninput = ()=> selected = inp.value.trim();
+      answerArea.appendChild(inp);
+    }
+  }
+
+  function isCorrect(item, selected){
+    if(Array.isArray(item.answer)){
+      return item.answer.map(normalize).includes(normalize(selected));
+    }
+    return normalize(selected) === normalize(item.answer);
+  }
+
+  function answerLabel(item){
+    if(Array.isArray(item.answer)) return item.answer[0];
+    return item.answer;
+  }
+
+  checkBtn.onclick = ()=>{
+    if(!selected){
+      feedback.textContent = "こたえを えらんでね 😊";
+      feedback.className = "feedback ng";
+      return;
+    }
+    const item = questions[index];
+    checked = true;
+    const ok = isCorrect(item, selected);
+
+    if(item.type === "choice"){
+      document.querySelectorAll(".choice").forEach(btn=>{
+        if(isCorrect(item, btn.dataset.value)) btn.classList.add("correct");
+        if(btn.dataset.value === selected && !ok) btn.classList.add("wrong");
+        btn.disabled = true;
+      });
+    }else{
+      const inp = document.getElementById("textInput");
+      inp.disabled = true;
+      inp.style.borderColor = ok ? "#35b56a" : "#ef6461";
+    }
+
+    if(ok){
+      feedback.textContent = "せいかい！ 🎉";
+      feedback.className = "feedback ok";
+    }else{
+      feedback.textContent = `おしい！ せいかいは「${answerLabel(item)}」`;
+      feedback.className = "feedback ng";
+      wrongItems.push(item);
+    }
+    checkBtn.style.display = "none";
+    nextBtn.style.display = "";
+  };
+
+  nextBtn.onclick = ()=>{
+    index++;
+    if(index < questions.length){
+      render();
+    }else{
+      showResult();
+    }
+  };
+
+  function showResult(){
+    progress.style.width = "100%";
+    document.getElementById("quizArea").style.display = "none";
+    const result = document.getElementById("result");
+    result.style.display = "block";
+
+    const correct = questions.length - wrongItems.length;
+    const score = Math.round((correct/questions.length)*100);
+    document.getElementById("scoreText").textContent = `${score}てん`;
+
+    let stars = "⭐";
+    let msg = "よく がんばったね！";
+    if(score === 100){ stars="⭐⭐⭐"; msg="ぜんもん せいかい！ すごい！ 🎉"; }
+    else if(score >= 80){ stars="⭐⭐⭐"; msg="とっても よくできました！"; }
+    else if(score >= 60){ stars="⭐⭐"; msg="あと すこし！ もう1かい やってみよう！"; }
+
+    document.getElementById("stars").textContent = stars;
+    document.getElementById("resultMsg").textContent = msg;
+    const review = document.getElementById("review");
+    const retry = document.getElementById("retryWrong");
+    if(wrongItems.length === 0){
+      review.innerHTML = "まちがいは ありません。かんぺき！";
+      retry.style.display = "none";
+    }else{
+      review.innerHTML = "<b>もう1かい やってみる もんだい</b><br>" +
+        wrongItems.map((x,i)=>`${i+1}. ${x.q}`).join("<br>");
+      retry.style.display = "";
+    }
+  }
+
+  document.getElementById("retryWrong").onclick = ()=>{
+    questions = [...wrongItems];
+    wrongItems = [];
+    index = 0;
+    document.getElementById("result").style.display = "none";
+    document.getElementById("quizArea").style.display = "";
+    render();
+  };
+
+  document.getElementById("restart").onclick = ()=>{
+    questions = [...allQuestions];
+    wrongItems = [];
+    index = 0;
+    document.getElementById("result").style.display = "none";
+    document.getElementById("quizArea").style.display = "";
+    render();
+  };
+
+  const homeBtn = document.getElementById("homeBtn");
+  if(homeBtn){
+    homeBtn.onclick = ()=> location.href = opts.home || "gakushu_home.html";
+  }
+  render();
+}
+
+const allQuestions = [
+  {
+    "icon": "🔍",
+    "q": "動かせるものを見るときは、何を目の近くにもつ？",
+    "type": "choice",
+    "choices": [
+      "虫めがね",
+      "ものさし",
+      "ぼうえんきょう"
+    ],
+    "answer": "虫めがね"
+  },
+  {
+    "icon": "🌿",
+    "q": "ホウセンカの上の広いぶぶんを何という？",
+    "type": "choice",
+    "choices": [
+      "葉",
+      "くき",
+      "ね"
+    ],
+    "answer": "葉"
+  },
+  {
+    "icon": "🌿",
+    "q": "ホウセンカのまんなかの長いぶぶんを何という？",
+    "type": "choice",
+    "choices": [
+      "葉",
+      "くき",
+      "ね"
+    ],
+    "answer": "くき"
+  },
+  {
+    "icon": "🌿",
+    "q": "ホウセンカの土の中にあるぶぶんを何という？",
+    "type": "choice",
+    "choices": [
+      "葉",
+      "くき",
+      "ね"
+    ],
+    "answer": "ね"
+  },
+  {
+    "icon": "🌱",
+    "q": "ホウセンカは、たねまきのあと、まず何が出る？",
+    "type": "choice",
+    "choices": [
+      "め",
+      "花",
+      "実"
+    ],
+    "answer": "め"
+  },
+  {
+    "icon": "🌱",
+    "q": "葉が出たあと、何の数がふえる？",
+    "type": "choice",
+    "choices": [
+      "葉",
+      "花",
+      "たね"
+    ],
+    "answer": "葉"
+  },
+  {
+    "icon": "🌸",
+    "q": "葉の形や大きさは、植物のしゅるいによってどうなる？",
+    "type": "choice",
+    "choices": [
+      "ちがう",
+      "おなじ",
+      "かわらない"
+    ],
+    "answer": "ちがう"
+  },
+  {
+    "icon": "🥚",
+    "q": "モンシロチョウの最初のころはどれ？",
+    "type": "choice",
+    "choices": [
+      "たまご",
+      "よう虫",
+      "さなぎ"
+    ],
+    "answer": "たまご"
+  },
+  {
+    "icon": "🐛",
+    "q": "たまごのつぎはどれ？",
+    "type": "choice",
+    "choices": [
+      "よう虫",
+      "さなぎ",
+      "ちょう"
+    ],
+    "answer": "よう虫"
+  },
+  {
+    "icon": "🟤",
+    "q": "よう虫のつぎはどれ？",
+    "type": "choice",
+    "choices": [
+      "さなぎ",
+      "たまご",
+      "ちょう"
+    ],
+    "answer": "さなぎ"
+  },
+  {
+    "icon": "🦋",
+    "q": "さいごにチョウになったすがたを何という？",
+    "type": "choice",
+    "choices": [
+      "ちょう",
+      "よう虫",
+      "さなぎ"
+    ],
+    "answer": [
+      "ちょう",
+      "成虫"
+    ]
+  },
+  {
+    "icon": "🦋",
+    "q": "チョウの体の一ばん上のぶぶんは何？",
+    "type": "choice",
+    "choices": [
+      "あたま",
+      "むね",
+      "はら"
+    ],
+    "answer": "あたま"
+  },
+  {
+    "icon": "🦋",
+    "q": "チョウのまんなかのぶぶんは何？",
+    "type": "choice",
+    "choices": [
+      "あたま",
+      "むね",
+      "はら"
+    ],
+    "answer": "むね"
+  },
+  {
+    "icon": "🦋",
+    "q": "チョウの下のぶぶんは何？",
+    "type": "choice",
+    "choices": [
+      "あたま",
+      "むね",
+      "はら"
+    ],
+    "answer": "はら"
+  },
+  {
+    "icon": "🦵",
+    "q": "チョウのせい虫のあしは、体のどこについている？",
+    "type": "choice",
+    "choices": [
+      "あたま",
+      "むね",
+      "はら"
+    ],
+    "answer": "むね"
+  },
+  {
+    "icon": "6️⃣",
+    "q": "チョウのせい虫のあしは、何本ついている？",
+    "type": "choice",
+    "choices": [
+      "4本",
+      "6本",
+      "8本"
+    ],
+    "answer": "6本"
+  },
+  {
+    "icon": "🐞",
+    "q": "このような体のつくりの生きものを何という？",
+    "type": "choice",
+    "choices": [
+      "こん虫",
+      "魚",
+      "鳥"
+    ],
+    "answer": "こん虫"
+  }
+];
+createQuiz(allQuestions, {home:"gakushu_home.html"});
+</script>
+</body>
+</html>
