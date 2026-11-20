@@ -52,7 +52,12 @@
 <p class="muted">列：date,venue,race_no,bet_type,combination,odds,captured_at。券種＝単勝、複勝、馬連、馬単、ワイド、三連複、三連単。発売状況・組合せ点数が欠ける券種はHOLD。</p>
 <p><button type="button" id="v96Run">正式メジアン・オッズ集中度を計算</button></p>
 <div id="v96Status" class="warn" aria-live="polite">未実行。V90からレース台帳を転送し、発走前の単複CSVを読み込んでください。</div><div id="v96Results"></div>
-<p class="muted">複勝P6とP15→P6の壁直前候補は構造上重複し得るため、独立した得点として加算しません。100円馬券の提案は最終監査・期待値算定後のみ。</p></section><section class="card" id="v89Today" style="border:2px solid #67d8a4">
+<p class="muted">複勝P6とP15→P6の壁直前候補は構造上重複し得るため、独立した得点として加算しません。100円馬券の提案は最終監査・期待値算定後のみ。</p></section><section class="card" id="v98Preflight" style="border:2px solid #5cc7c1">
+<h2>V98｜入力CSVの事前診断（すべて端末内）</h2>
+<p class="muted">V90・V91・V92で選択済みのCSVを使用し、開催日・馬番重複・TARGET必須列・調教馬名／日付・黄金SOURCEの列構成を検査。ファイル内容を公開GitHubに送信しません。未選択は未検証として明記します。</p>
+<p><button id="v98Check" type="button">CSVと選択レースの入力診断</button></p>
+<div id="v98Status" class="warn" aria-live="polite">未検証。先に開催日・競馬場・Rを選択し、手元のCSVを読み込んでください。</div><div id="v98Results"></div>
+<p class="muted">診断PASSは入力形式のみの確認。正式な全頭10走・調教・直前オッズ・馬券判定の合格を意味しません。</p></section><section class="card" id="v89Today" style="border:2px solid #67d8a4">
 <h2>V89｜今日の出走馬を選択して全頭10走へ</h2>
 <p><strong>2026年11月21日（土）・JRA公式確認済みの出馬表</strong>から、馬番・馬名・距離・クラスを自動設定。手入力不要。</p>
 <p><label>分析するレース <select id="v89Race"><option value="fukushima11">福島11R・福島記念（芝2000m・16頭）</option></select></label></p>
@@ -2640,4 +2645,4 @@ $('v88Build').click();$('v88NameBridge').scrollIntoView({behavior:'smooth'});
 }
 $('v90Load').addEventListener('click',load);
 })();
-</script><script src="./training-v91.js"></script><script src="./training-v92-official.js"></script><script src="./ability-training-v93.js"></script><script src="./pace-fatigue-v94.js"></script><script src="./evidence-dashboard-v95.js"></script><script src="./market-median-v96.js"></script></body></html>
+</script><script src="./training-v91.js"></script><script src="./training-v92-official.js"></script><script src="./ability-training-v93.js"></script><script src="./pace-fatigue-v94.js"></script><script src="./evidence-dashboard-v95.js"></script><script src="./market-median-v96.js"></script><script src="./preflight-v98.js"></script></body></html>
