@@ -19,6 +19,14 @@
 <p><button type="button" id="v91Run">全頭の直近調教・前回比較を照合</button></p>
 <div id="v91Status" class="warn" aria-live="polite">未実行。CSVの列構成を確認し、馬名・調教日と4F〜1F時計を照合します。正式な双子・黄金評価は今後統合します。</div>
 <div id="v91Results"></div>
+</section><section class="card" id="v92Training" style="border:2px solid #8ab4f8">
+<h2>V92｜正式SOURCE 黄金フラグ・双子調教</h2>
+<p class="muted">正式調教原票の確定済みフラグを<strong>再定義せず</strong>読み込みます。双子D=√(0.2ΔL4²+0.5ΔL3²+1.0ΔL2²+1.2ΔL1²)。正式判定の閾値は勝手に設定しません。入力データは端末内だけで処理します。</p>
+<p><label>正式SOURCE調教フラグCSV <input id="v92Official" type="file" accept=".csv,text/csv"></label></p>
+<p><label>双子比較用の実測L4〜L1＋過去好走基準CSV（任意） <input id="v92Twin" type="file" accept=".csv,text/csv"></label></p>
+<p class="muted">フラグCSVの必須列：馬名、調教日、DUAL_END、SUSTAINED_DRIVE、LONG_SUSTAIN、HIDDEN_KICK。双子比較用CSVでは L4,L3,L2,L1 と、好走調教を示す GOOD_RUN_REFERENCE=1 を指定。閾値未確定時はDのみ表示。</p>
+<p><button type="button" id="v92Run">正式SOURCEの黄金・双子因子を照合</button></p>
+<div class="warn" id="v92Status" aria-live="polite">未実行。正式SOURCEを入力するまで判定HOLD。</div><div id="v92Results"></div>
 </section><section class="card" id="v89Today" style="border:2px solid #67d8a4">
 <h2>V89｜今日の出走馬を選択して全頭10走へ</h2>
 <p><strong>2026年11月21日（土）・JRA公式確認済みの出馬表</strong>から、馬番・馬名・距離・クラスを自動設定。手入力不要。</p>
@@ -2607,4 +2615,4 @@ $('v88Build').click();$('v88NameBridge').scrollIntoView({behavior:'smooth'});
 }
 $('v90Load').addEventListener('click',load);
 })();
-</script><script src="./training-v91.js"></script></body></html>
+</script><script src="./training-v91.js"></script><script src="./training-v92-official.js"></script></body></html>
