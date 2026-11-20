@@ -18,6 +18,7 @@ async function run(){
 const btn=$('v92Run');btn.disabled=true;out.replaceChildren();stat.textContent='正式SOURCEフラグと双子原点式を監査中…';
 try{
 const cutoff=$('v90Date').value;if(!/^\d{4}-\d{2}-\d{2}$/.test(cutoff))throw Error('開催日が不正です');
+if($('v88Date')?.value!==$('v90Date')?.value||$('v88Venue')?.value!==$('v90Venue')?.value||Number($('v88RaceNo')?.value)!==Number($('v90Race')?.value))throw Error('出馬表のレースが現在のV90選択と一致しません。対象レースを再転送してください');
 const hs=horses();if(hs.length<2)throw Error('先にV90の出馬表を読み込んでください');
 const official=await load($('v92Official').files[0]);if(!official)throw Error('正式SOURCEから書き出した調教フラグCSVを選んでください');
 const hi=c(official.h,idAliases),di=c(official.h,dateAliases),fi=fields.map(f=>c(official.h,[f]));
