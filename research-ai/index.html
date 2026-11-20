@@ -11,6 +11,14 @@
 <p><button type="button" id="v90Load">このレースを全頭10走監査へ転送</button></p>
 <div id="v90Status" class="warn" aria-live="polite">福島11Rは既存V89確定出馬表を使用可能。他レースは出馬表CSVが必要。調教・直前オッズ未照合の間は買い目HOLD。</div>
 <p class="muted">出馬表CSV例：date,venue,race_no,surface,distance_m,class_name,horse_number,horse_name,horse_id。馬名から正式IDを既存V88で照合するため、9列中horse_idは任意です。全頭分がない場合はHOLD。</p>
+</section><section class="card" id="v91Training" style="border:2px solid #6699bb">
+<h2>V91｜全頭調教CSV照合（端末内だけで分析）</h2>
+<p class="muted">先にV90からレースを転送。対象出走馬と、発走日より前のウッド・坂路調教を馬名で照合します。公開サーバーにCSV内容は送信しません。</p>
+<p><label>ウッドCSV <input id="v91Wood" type="file" accept=".csv,text/csv"></label></p>
+<p><label>坂路CSV <input id="v91Hill" type="file" accept=".csv,text/csv"></label></p>
+<p><button type="button" id="v91Run">全頭の直近調教・前回比較を照合</button></p>
+<div id="v91Status" class="warn" aria-live="polite">未実行。CSVの列構成を確認し、馬名・調教日と4F〜1F時計を照合します。正式な双子・黄金評価は今後統合します。</div>
+<div id="v91Results"></div>
 </section><section class="card" id="v89Today" style="border:2px solid #67d8a4">
 <h2>V89｜今日の出走馬を選択して全頭10走へ</h2>
 <p><strong>2026年11月21日（土）・JRA公式確認済みの出馬表</strong>から、馬番・馬名・距離・クラスを自動設定。手入力不要。</p>
@@ -2599,4 +2607,4 @@ $('v88Build').click();$('v88NameBridge').scrollIntoView({behavior:'smooth'});
 }
 $('v90Load').addEventListener('click',load);
 })();
-</script></body></html>
+</script><script src="./training-v91.js"></script></body></html>
