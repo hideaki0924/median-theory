@@ -1,4 +1,4 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>競馬研究AI V85｜能力4位×間隔の前向き固定監査</title><style>:root{color-scheme:dark}body{margin:0;background:#0c1727;color:#edf5ff;font:16px -apple-system,BlinkMacSystemFont,'Noto Sans JP',sans-serif;line-height:1.6}main{max-width:750px;margin:auto;padding:16px}h1{font-size:25px}h2{font-size:19px;margin:0 0 10px}.card{background:#192a40;border:1px solid #33465c;border-radius:15px;padding:16px;margin:14px 0}textarea{width:100%;box-sizing:border-box;min-height:170px;background:#101e30;color:#fff;border:1px solid #587189;border-radius:9px;padding:12px;font-size:16px}button,.btn{background:#38c8a7;color:#09251f;border:0;border-radius:9px;padding:13px;font-weight:800;font-size:16px;margin:7px 5px 7px 0}input{max-width:100%}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid #42566c;padding:8px 4px;text-align:left}th{color:#a8e9da}.scroll{overflow-x:auto}.muted{color:#b4c5d6;font-size:13px}.warn{color:#ffd18a}.ok{color:#7be3c8}a{color:#81e9d1}summary{color:#81e9d1;cursor:pointer}#status{font-weight:bold}code{overflow-wrap:anywhere} .pill{display:inline-block;background:#28425a;border-radius:6px;padding:3px 7px;margin:2px}</style></head><body><main><h1>🏇 競馬研究AI V84｜全頭10走・過去走研究</h1><p class="muted">現在の公開版：V84（V83までの全研究を継続収録）</p><p class="muted">GitHub Pagesで公開するための単一HTML版。端末内で計算し、PC常時起動不要。ChatGPT内のプレビューでは動作しません。</p><section class="card" id="v67RaceCard">
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>競馬研究AI V86｜新規出馬表ローカル連携</title><style>:root{color-scheme:dark}body{margin:0;background:#0c1727;color:#edf5ff;font:16px -apple-system,BlinkMacSystemFont,'Noto Sans JP',sans-serif;line-height:1.6}main{max-width:750px;margin:auto;padding:16px}h1{font-size:25px}h2{font-size:19px;margin:0 0 10px}.card{background:#192a40;border:1px solid #33465c;border-radius:15px;padding:16px;margin:14px 0}textarea{width:100%;box-sizing:border-box;min-height:170px;background:#101e30;color:#fff;border:1px solid #587189;border-radius:9px;padding:12px;font-size:16px}button,.btn{background:#38c8a7;color:#09251f;border:0;border-radius:9px;padding:13px;font-weight:800;font-size:16px;margin:7px 5px 7px 0}input{max-width:100%}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid #42566c;padding:8px 4px;text-align:left}th{color:#a8e9da}.scroll{overflow-x:auto}.muted{color:#b4c5d6;font-size:13px}.warn{color:#ffd18a}.ok{color:#7be3c8}a{color:#81e9d1}summary{color:#81e9d1;cursor:pointer}#status{font-weight:bold}code{overflow-wrap:anywhere} .pill{display:inline-block;background:#28425a;border-radius:6px;padding:3px 7px;margin:2px}</style></head><body><main><h1>🏇 競馬研究AI V86｜全頭10走・過去走研究</h1><p class="muted">現在の公開版：V86（V85までの全研究を継続収録）</p><p class="muted">GitHub Pagesで公開するための単一HTML版。端末内で計算し、PC常時起動不要。ChatGPT内のプレビューでは動作しません。</p><section class="card" id="v67RaceCard">
 <h2>V69｜中央競馬・全頭10走と根拠比較（TARGET正式ID）</h2>
 <p class="muted">2026年の過去レースを選び、全頭の過去10走を既存④〜各研究へ送ります。TARGETのデータはこのブラウザ内だけで処理し、送信・GitHub公開はしません。<strong>現在の未来レースやリアルタイム出馬表は取得できません。</strong></p>
 <p><label>プライベート台帳（JSON）<input id="v67PrivateFile" type="file" accept=".json,application/json"></label></p>
@@ -1794,6 +1794,24 @@ $('v67PrivateFile').addEventListener('change',async e=>{book=null;byKey.clear();
 book=x;options(dateSel,[...byDate.keys()].sort().reverse().map(k=>[k,k]));out.className='ok';out.textContent=`${byKey.size}レース読み込み完了（2026年の過去開催）。日付→競馬場→Rを選択して。`;
 }catch(err){error(err.message);}});
 dateSel.addEventListener('change',venueForDay);venueSel.addEventListener('change',racesForVenue);raceSel.addEventListener('change',summary);
+window.addEventListener('v86-upcoming-import',e=>{try{
+ if(!book)throw Error('先にV68の個人専用台帳を読み込んでください');
+ const x=e.detail;
+ if(x.schema!=='TARGET_V86_UPCOMING_RACE_V1'||!x.race||!Array.isArray(x.past_fields))throw Error('V86の新規レースJSONではありません');
+ if(JSON.stringify(x.past_fields)!==JSON.stringify(book.past_fields))throw Error('過去走の列定義が既存台帳と一致しません');
+ const r=x.race;
+ if(!/^20\d\d-\d\d-\d\d$/.test(r.date)||!r.venue||!r.race_no||!r.distance_m||!r.surface||!Array.isArray(r.horses)||!r.horses.length)throw Error('出馬表の必須情報が欠損');
+ if(r.horses.length!==r.horse_count||new Set(r.horses.map(h=>h[0])).size!==r.horses.length||new Set(r.horses.map(h=>h[2])).size!==r.horses.length)throw Error('全頭・馬番・馬IDに不一致');
+ if(byKey.has(r.id))throw Error('同じレースIDが登録済み。再読み込みの場合は個人台帳を選び直してください');
+ const today=new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Tokyo'});
+ if(r.date<today)throw Error('過去開催を新規の発走前レースとして取り込めません');
+ for(const h of r.horses){if(!Number.isInteger(h[0])||!h[1]||!h[2]||h[5]!==h[8].length||h[8].length>10)throw Error('馬・履歴の不整合');for(const row of h[8]){if(row[book.past_fields.indexOf('date')]>=r.date||row[book.past_fields.indexOf('source_status')]!=='STRICT_ID_MATCH')throw Error('未来・未照合過去走は取り込み不可：'+h[1]);}}
+ book.races.push(r);byKey.set(r.id,r);if(!byDate.has(r.date))byDate.set(r.date,[]);byDate.get(r.date).push(r);
+ const kv=r.date+'|'+r.venue;if(!byDayVenue.has(kv))byDayVenue.set(kv,[]);byDayVenue.get(kv).push(r);
+ options(dateSel,[...byDate.keys()].sort().reverse().map(k=>[k,k]));dateSel.value=r.date;venueForDay();venueSel.value=r.venue;racesForVenue();raceSel.value=r.id;summary();go.click();
+ $('v86Status').textContent=`${r.date} ${r.venue}${r.race_no}R ${r.horse_count}頭を読み込み。全頭を監査へ転送。最新走・登録変更・出馬表の正式SOURCEを別途確認するまで購入HOLD。`;
+ }catch(err){$('v86Status').textContent='HOLD：'+err.message;}});
+
 go.addEventListener('click',()=>{try{if(!book)throw Error('プライベート台帳を読み込んで');const r=byKey.get(raceSel.value);if(!r)throw Error('レースを選んで');if(new Set(r.horses.map(h=>h[0])).size!==r.horses.length)throw Error('重複馬番');const f=Object.fromEntries(book.past_fields.map((k,i)=>[k,i]));const entries=[['horse_id','horse_number','horse_name','full_career_confirmed','source_audit_status']];const past=[['horse_id','date','distance_m','finish_position','corner_1','corner_2','corner_3','corner_4','race_id','racecourse','class_name','going','margin_sec','finish_time_seconds','last3f_seconds','surface','weight_kg','jockey','trainer','body_weight_kg','field_size']];for(const h of r.horses){const careerOk=!!(h[9]&&h[9].basis==='JRA_NEWCOMER_DEBUT_AND_ALL_LINKED_RACES');entries.push([h[2],h[0],h[1],careerOk?'true':'false',careerOk?'全キャリア新馬起点正式ID照合完了_能力等未監査':h[3]]);for(const rec of h[8]){if(rec.length!==book.past_fields.length)throw Error('過去走の列数が不正');const get=k=>rec[f[k]]??'';if(get('date')>=r.date)throw Error('発走後走の混入を防止：'+h[1]);if(get('source_status')!=='STRICT_ID_MATCH')throw Error('未確定履歴混入：'+h[1]);past.push([h[2],get('date'),get('distance_m'),get('finish_position'),get('corner_1'),get('corner_2'),get('corner_3'),get('corner_4'),get('race_id'),get('racecourse'),get('class_name'),get('going'),get('margin_sec'),get('finish_time_seconds'),get('last3f_seconds'),get('surface'),get('weight_kg'),get('jockey'),get('trainer'),get('body_weight_kg'),get('field_size')]);}}
 $('entriesText').value=mkcsv(entries);$('historyText').value=mkcsv(past);$('raceDate').value=r.date;$('targetDistance').value=r.distance_m;$('targetCourse').value=r.venue;$('targetClass').value=r.class_name;/* Going is known for historical races only; not used as prediction when future going unknown. */ $('targetGoing').value='';
 /* Never preserve template/demo odds after selecting an actual race. */$('data').value='';
@@ -2410,6 +2428,24 @@ $('v85Export').addEventListener('click',async()=>{
  }catch(e){status('HOLD：'+e.message)}
 });
 window.addEventListener('v69-race-loaded',e=>{try{render(e.detail.race,e.detail.past_fields)}catch(err){state=null;$('v85Status').textContent='HOLD：'+err.message;$('v85Table').replaceChildren()}});
+})();
+</script>
+
+<section class="card" id="v86Upcoming">
+<h2>V86｜新規中央競馬・出馬表のローカル連携</h2>
+<p class="muted">パソコンで作成したV86レースJSONを読み込み、V68の個人台帳に一時追加して、④全頭10走監査・V69以降の因子評価へ自動転送します。<strong>先にページ上部のV68プライベート台帳JSONを読み込んでください。</strong>レースJSONは端末内のみで処理され、GitHubに保存されません。</p>
+<p><label>今後の出走馬＋過去走（V86 JSON） <input id="v86RaceFile" type="file" accept=".json,application/json"></label></p>
+<button type="button" id="v86Import">新規レースを全頭監査へ転送</button>
+<div id="v86Status" class="warn" aria-live="polite">未読込。TARGETの出走馬一覧からV86レースJSONをPCで作成してください。</div>
+<p class="warn">重要：取得済み成績は2026年11月15日まで。未取得の最新走がある馬・10走未満で全キャリア証明がない馬・出走変更や取消・調教・今回斤量・当日オッズの未確認はHOLD。確定着順と確定オッズを発走前予測へ混ぜません。V85の仮説・買い目も自動採用しません。</p>
+<details><summary>PC側の作成手順とCSV必須列</summary><p class="muted">付属の <code>build_upcoming.py</code> をPCで実行。<code>TARGET_2023_2026_成績固定統合.csv</code> と、新しい出走馬一覧CSV（UTF-8/Shift-JIS、列名：date,venue,race_no,surface,distance_m,class_name,horse_number,horse_name,horse_id）を指定。馬IDはTARGETの血統登録番号を10桁表記に統一。生成したV86レースJSONをここで選択してください。コマンド手順はZIP内READMEを参照。</p></details>
+</section>
+<script>
+(function(){'use strict';
+const box=document.getElementById('v86Status');
+document.getElementById('v86Import').addEventListener('click',async()=>{
+ try{const f=document.getElementById('v86RaceFile').files[0];if(!f)throw Error('V86レースJSONを選択してください');if(f.size>8e6)throw Error('ファイルが大きすぎます');const x=JSON.parse(await f.text());if(x.schema!=='TARGET_V86_UPCOMING_RACE_V1'||!x.race||!Array.isArray(x.past_fields))throw Error('JSON形式の不一致');box.textContent='SOURCE整合性・時系列を検査しています';window.dispatchEvent(new CustomEvent('v86-upcoming-import',{detail:x}));}catch(e){box.textContent='HOLD：'+e.message;}
+});
 })();
 </script>
 </body></html>
