@@ -43,7 +43,16 @@
 <p><button type="button" id="v95Run">全頭の研究因子を統合表示</button></p>
 <div class="warn" id="v95Status" aria-live="polite">未実行。まずV90でレースとTARGETの履歴を読み込みます。</div>
 <div id="v95Results"></div>
-<p class="muted">前向き研究のため当該レース結果は使用しません。市場オッズだけでは「過小評価」を証明できず、能力確率モデルと期待値検証が必要です。買い目HOLDを維持します。</p></section><section class="card" id="v89Today" style="border:2px solid #67d8a4">
+<p class="muted">前向き研究のため当該レース結果は使用しません。市場オッズだけでは「過小評価」を証明できず、能力確率モデルと期待値検証が必要です。買い目HOLDを維持します。</p></section><section class="card" id="v96Median" style="border:2px solid #c68edb">
+<h2>V96｜単複メジアン・7券種オッズ占有率（研究参考）</h2>
+<p class="muted">正式P6/P15壁を使い単勝・複勝の中央馬を検出。7券種はオッズ組合せの逆数集中度を参考表示します。売上占有率・荒れる確率とは異なり、未検証の閾値で強制判定しません。</p>
+<p><label>単勝・複勝上限CSV <input type="file" id="v96Single" accept=".csv,text/csv"></label></p>
+<p class="muted">列：date,venue,race_no,horse_number,win_odds,place_upper,captured_at。全出走馬・同一取得時刻が必須。複勝は<strong>上限</strong>を使用。</p>
+<p><label>7券種オッズCSV（任意） <input type="file" id="v96Multi" accept=".csv,text/csv"></label></p>
+<p class="muted">列：date,venue,race_no,bet_type,combination,odds,captured_at。券種＝単勝、複勝、馬連、馬単、ワイド、三連複、三連単。発売状況・組合せ点数が欠ける券種はHOLD。</p>
+<p><button type="button" id="v96Run">正式メジアン・オッズ集中度を計算</button></p>
+<div id="v96Status" class="warn" aria-live="polite">未実行。V90からレース台帳を転送し、発走前の単複CSVを読み込んでください。</div><div id="v96Results"></div>
+<p class="muted">複勝P6とP15→P6の壁直前候補は構造上重複し得るため、独立した得点として加算しません。100円馬券の提案は最終監査・期待値算定後のみ。</p></section><section class="card" id="v89Today" style="border:2px solid #67d8a4">
 <h2>V89｜今日の出走馬を選択して全頭10走へ</h2>
 <p><strong>2026年11月21日（土）・JRA公式確認済みの出馬表</strong>から、馬番・馬名・距離・クラスを自動設定。手入力不要。</p>
 <p><label>分析するレース <select id="v89Race"><option value="fukushima11">福島11R・福島記念（芝2000m・16頭）</option></select></label></p>
@@ -2631,4 +2640,4 @@ $('v88Build').click();$('v88NameBridge').scrollIntoView({behavior:'smooth'});
 }
 $('v90Load').addEventListener('click',load);
 })();
-</script><script src="./training-v91.js"></script><script src="./training-v92-official.js"></script><script src="./ability-training-v93.js"></script><script src="./pace-fatigue-v94.js"></script><script src="./evidence-dashboard-v95.js"></script></body></html>
+</script><script src="./training-v91.js"></script><script src="./training-v92-official.js"></script><script src="./ability-training-v93.js"></script><script src="./pace-fatigue-v94.js"></script><script src="./evidence-dashboard-v95.js"></script><script src="./market-median-v96.js"></script></body></html>
