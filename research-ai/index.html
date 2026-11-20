@@ -80,7 +80,12 @@
 <p class="muted">10走に満たない馬は実際に最古の記録まで遡る。最古が新馬戦であった事実と、全キャリア確認が完了したかどうかを<strong>区別</strong>して表示します。欠けた過去走や地方・海外出走歴は推測で補いません。</p>
 <p><button id="v102Run" type="button">全頭の過去走収録範囲を確認</button></p>
 <div id="v102Status" class="warn" aria-live="polite">未実行。V90からレースとTARGET過去走を読み込んでください。</div><div id="v102Results"></div>
-<p class="muted">新馬起点は「最古のレースが新馬」であることの観測事実。最新走・転厩・地方戦・海外戦の履歴不足がない証明とは異なります。正式な全キャリア監査前はHOLD。</p></section><section class="card" id="v89Today" style="border:2px solid #67d8a4">
+<p class="muted">新馬起点は「最古のレースが新馬」であることの観測事実。最新走・転厩・地方戦・海外戦の履歴不足がない証明とは異なります。正式な全キャリア監査前はHOLD。</p></section><section class="card" id="v103HorseCards" style="border:2px solid #93d5a3">
+<h2>V103｜全頭10走の詳細カード・穴馬の好走材料</h2>
+<p class="muted">TARGETの正式IDで照合した直近10走（10走未満は取得済み全走）を馬ごとに表示。全頭の着順だけでなく、コース・クラス・馬場・着差・時計・上り・1〜4角通過順・斤量・騎手・厩舎・馬体重・当時単勝まで確認できます。新馬まで観測しただけではキャリア完全性を断定しません。</p>
+<p><button id="v103Run" type="button">全頭の過去10走個票を作成</button></p>
+<div id="v103Status" class="warn" aria-live="polite">未実行。まずV90で開催日・競馬場・RとTARGET成績を読み込んでください。</div><div id="v103Results"></div>
+<p class="muted">個別の馬名行を押すと全過去走を展開。「好走根拠」は探索上の観測で、正式な勝率・期待値や購入推奨ではありません。馬券判定は別途全頭監査を完了するまでHOLD。</p></section><section class="card" id="v89Today" style="border:2px solid #67d8a4">
 <h2>V89｜今日の出走馬を選択して全頭10走へ</h2>
 <p><strong>2026年11月21日（土）・JRA公式確認済みの出馬表</strong>から、馬番・馬名・距離・クラスを自動設定。手入力不要。</p>
 <p><label>分析するレース <select id="v89Race"><option value="fukushima11">福島11R・福島記念（芝2000m・16頭）</option></select></label></p>
@@ -2678,4 +2683,4 @@ $('v88Build').click();$('v88NameBridge').scrollIntoView({behavior:'smooth'});
 }
 $('v90Load').addEventListener('click',load);
 })();
-</script><script src="./training-v91.js"></script><script src="./training-v92-official.js"></script><script src="./ability-training-v93.js"></script><script src="./pace-fatigue-v94.js"></script><script src="./evidence-dashboard-v95.js"></script><script src="./market-median-v96.js"></script><script src="./preflight-v98.js"></script><script src="./shared-import-v99.js"></script><script src="./race-safety-v100.js"></script><script src="./full-career-v102.js"></script></body></html>
+</script><script src="./training-v91.js"></script><script src="./training-v92-official.js"></script><script src="./ability-training-v93.js"></script><script src="./pace-fatigue-v94.js"></script><script src="./evidence-dashboard-v95.js"></script><script src="./market-median-v96.js"></script><script src="./preflight-v98.js"></script><script src="./shared-import-v99.js"></script><script src="./race-safety-v100.js"></script><script src="./full-career-v102.js"></script><script src="./horse-cards-v103.js"></script></body></html>
