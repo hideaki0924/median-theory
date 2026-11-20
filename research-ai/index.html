@@ -31,7 +31,11 @@
 <p class="muted">V90から出馬表・TARGET履歴を取り込み、V92の正式SOURCE黄金調教フラグと突き合わせます。直近5走の3着内、同芝ダ・同距離、前走日数、4角位置率を全頭表示。正式SOURCEを使わず独自の黄金閾値を作ることはしません。</p>
 <p><button id="v93Run" type="button">全頭10走 × 黄金調教を統合表示</button></p>
 <div id="v93Status" class="warn" aria-live="polite">未実行。V90からレースを転送し、V92の正式SOURCE CSVを選択してください。</div><div id="v93Results"></div>
-<p class="muted">「直近5走3着内2回以上」は研究中の補助因子で、確定された買い条件ではありません。4角位置率は4角通過順÷頭数（小さいほど前方）。調教・能力・市場を統合した回収率優位はまだ未検証です。</p></section><section class="card" id="v89Today" style="border:2px solid #67d8a4">
+<p class="muted">「直近5走3着内2回以上」は研究中の補助因子で、確定された買い条件ではありません。4角位置率は4角通過順÷頭数（小さいほど前方）。調教・能力・市場を統合した回収率優位はまだ未検証です。</p></section><section class="card" id="v94Audit" style="border:2px solid #b6b6e9"><h2>V94｜展開・位置取り・疲労の実測監査</h2>
+<p class="muted">TARGETの全頭過去10走から、1角→4角の位置変化と短期連戦を集計する。正式な展開・疲労指数の数式を推測で補完しない。時計・距離・クラス等を補正した確定指数ではありません。</p>
+<p><button type="button" id="v94Run">全頭10走の展開・連戦パターンを計算</button></p>
+<div class="warn" id="v94Status" aria-live="polite">未実行。先にV90から対象レースの出馬表・過去走を転送してください。</div><div id="v94Results"></div>
+<p class="muted">4角位置率=4角順位÷出走頭数（小さいほど先頭）。脚質は固定しない。表示する14日以内の短期連戦回数は、疲労の確定診断ではありません。</p></section><section class="card" id="v89Today" style="border:2px solid #67d8a4">
 <h2>V89｜今日の出走馬を選択して全頭10走へ</h2>
 <p><strong>2026年11月21日（土）・JRA公式確認済みの出馬表</strong>から、馬番・馬名・距離・クラスを自動設定。手入力不要。</p>
 <p><label>分析するレース <select id="v89Race"><option value="fukushima11">福島11R・福島記念（芝2000m・16頭）</option></select></label></p>
@@ -2619,4 +2623,4 @@ $('v88Build').click();$('v88NameBridge').scrollIntoView({behavior:'smooth'});
 }
 $('v90Load').addEventListener('click',load);
 })();
-</script><script src="./training-v91.js"></script><script src="./training-v92-official.js"></script><script src="./ability-training-v93.js"></script></body></html>
+</script><script src="./training-v91.js"></script><script src="./training-v92-official.js"></script><script src="./ability-training-v93.js"></script><script src="./pace-fatigue-v94.js"></script></body></html>
