@@ -40,7 +40,7 @@ if(listener)window.removeEventListener('v86-upcoming-import',listener);
 listener=e=>{
 const data=e.detail?.race;if(!data||data.date!==race.date||data.venue!==race.venue||String(data.race_no)!==race.no)return;
 finish();
-for(const id of ['v91Run','v92Run','v93Run','v94Run','v95Run','v96Run','v98Check','v102Run','v103Run','v104Run','v105Run'])trigger(id);
+for(const id of ['v91Run','v92Run','v93Run','v94Run','v95Run','v96Run','v98Check','v102Run','v103Run','v104Run','v105Run','v106Run'])trigger(id);
 update('全頭10走データを受信。V91～V98の研究監査を起動しました。各カードのHOLDと不足SOURCEを確認してください。買い目HOLD。');
 };
 window.addEventListener('v86-upcoming-import',listener);
