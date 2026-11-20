@@ -2,14 +2,14 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id),status=$('v100Status'),results=$('v100Results');
 if(!status||!results)return;
-const sourceNames=[['V88 正式ID・全頭10走','v88Status'],['V91 ウッド・坂路','v91Status'],['V92 正式黄金・双子','v92Status'],['V93 能力×調教','v93Status'],['V94 位置取り・連戦','v94Status'],['V95 能力・市場一覧','v95Status'],['V96 メジアン・7券種','v96Status'],['V98 CSV診断','v98Status'],['V102 10走未満・新馬起点','v102Status'],['V103 全頭10走個票','v103Status'],['V104 時計・クラス・距離','v104Status'],['V105 条件変更・巻き返し','v105Status'],['V106 位置変化・距離短縮','v106Status']];
+const sourceNames=[['V88 正式ID・全頭10走','v88Status'],['V91 ウッド・坂路','v91Status'],['V92 正式黄金・双子','v92Status'],['V93 能力×調教','v93Status'],['V94 位置取り・連戦','v94Status'],['V95 能力・市場一覧','v95Status'],['V96 メジアン・7券種','v96Status'],['V98 CSV診断','v98Status'],['V102 10走未満・新馬起点','v102Status'],['V103 全頭10走個票','v103Status'],['V104 時計・クラス・距離','v104Status'],['V105 条件変更・巻き返し','v105Status'],['V106 位置変化・距離短縮','v106Status'],['V107 全頭横断監査','v107Status']];
 let observedKey=null, importedKey=null;
 const key=()=>[$('v90Date')?.value,$('v90Venue')?.value,$('v90Race')?.value].join('|');
 const active=()=>key()===$('v88Date')?.value+'|'+$('v88Venue')?.value+'|'+$('v88RaceNo')?.value;
 function clear(reason){
- const stale=['v91Results','v92Results','v93Results','v94Results','v95Results','v96Results','v98Results','v102Results','v103Results','v104Results','v105Results','v106Results'];
+ const stale=['v91Results','v92Results','v93Results','v94Results','v95Results','v96Results','v98Results','v102Results','v103Results','v104Results','v105Results','v106Results','v107Results'];
  stale.forEach(id=>$(id)?.replaceChildren());
- for(const id of ['v91Status','v92Status','v93Status','v94Status','v95Status','v96Status','v98Status','v102Status','v103Status','v104Status','v105Status','v106Status']){
+ for(const id of ['v91Status','v92Status','v93Status','v94Status','v95Status','v96Status','v98Status','v102Status','v103Status','v104Status','v105Status','v106Status','v107Status']){
   if($(id))$(id).textContent='未実行：レース選択変更。新しいレースのデータを転送してください。';
  }
  results.replaceChildren();importedKey=null;
