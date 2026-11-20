@@ -1,4 +1,4 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>競馬研究AI V84｜能力4位の好走・敗因診断</title><style>:root{color-scheme:dark}body{margin:0;background:#0c1727;color:#edf5ff;font:16px -apple-system,BlinkMacSystemFont,'Noto Sans JP',sans-serif;line-height:1.6}main{max-width:750px;margin:auto;padding:16px}h1{font-size:25px}h2{font-size:19px;margin:0 0 10px}.card{background:#192a40;border:1px solid #33465c;border-radius:15px;padding:16px;margin:14px 0}textarea{width:100%;box-sizing:border-box;min-height:170px;background:#101e30;color:#fff;border:1px solid #587189;border-radius:9px;padding:12px;font-size:16px}button,.btn{background:#38c8a7;color:#09251f;border:0;border-radius:9px;padding:13px;font-weight:800;font-size:16px;margin:7px 5px 7px 0}input{max-width:100%}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid #42566c;padding:8px 4px;text-align:left}th{color:#a8e9da}.scroll{overflow-x:auto}.muted{color:#b4c5d6;font-size:13px}.warn{color:#ffd18a}.ok{color:#7be3c8}a{color:#81e9d1}summary{color:#81e9d1;cursor:pointer}#status{font-weight:bold}code{overflow-wrap:anywhere} .pill{display:inline-block;background:#28425a;border-radius:6px;padding:3px 7px;margin:2px}</style></head><body><main><h1>🏇 競馬研究AI V84｜全頭10走・過去走研究</h1><p class="muted">現在の公開版：V84（V83までの全研究を継続収録）</p><p class="muted">GitHub Pagesで公開するための単一HTML版。端末内で計算し、PC常時起動不要。ChatGPT内のプレビューでは動作しません。</p><section class="card" id="v67RaceCard">
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>競馬研究AI V85｜能力4位×間隔の前向き固定監査</title><style>:root{color-scheme:dark}body{margin:0;background:#0c1727;color:#edf5ff;font:16px -apple-system,BlinkMacSystemFont,'Noto Sans JP',sans-serif;line-height:1.6}main{max-width:750px;margin:auto;padding:16px}h1{font-size:25px}h2{font-size:19px;margin:0 0 10px}.card{background:#192a40;border:1px solid #33465c;border-radius:15px;padding:16px;margin:14px 0}textarea{width:100%;box-sizing:border-box;min-height:170px;background:#101e30;color:#fff;border:1px solid #587189;border-radius:9px;padding:12px;font-size:16px}button,.btn{background:#38c8a7;color:#09251f;border:0;border-radius:9px;padding:13px;font-weight:800;font-size:16px;margin:7px 5px 7px 0}input{max-width:100%}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid #42566c;padding:8px 4px;text-align:left}th{color:#a8e9da}.scroll{overflow-x:auto}.muted{color:#b4c5d6;font-size:13px}.warn{color:#ffd18a}.ok{color:#7be3c8}a{color:#81e9d1}summary{color:#81e9d1;cursor:pointer}#status{font-weight:bold}code{overflow-wrap:anywhere} .pill{display:inline-block;background:#28425a;border-radius:6px;padding:3px 7px;margin:2px}</style></head><body><main><h1>🏇 競馬研究AI V84｜全頭10走・過去走研究</h1><p class="muted">現在の公開版：V84（V83までの全研究を継続収録）</p><p class="muted">GitHub Pagesで公開するための単一HTML版。端末内で計算し、PC常時起動不要。ChatGPT内のプレビューでは動作しません。</p><section class="card" id="v67RaceCard">
 <h2>V69｜中央競馬・全頭10走と根拠比較（TARGET正式ID）</h2>
 <p class="muted">2026年の過去レースを選び、全頭の過去10走を既存④〜各研究へ送ります。TARGETのデータはこのブラウザ内だけで処理し、送信・GitHub公開はしません。<strong>現在の未来レースやリアルタイム出馬表は取得できません。</strong></p>
 <p><label>プライベート台帳（JSON）<input id="v67PrivateFile" type="file" accept=".json,application/json"></label></p>
@@ -2314,6 +2314,102 @@ function render(r,keys){
  $('v79Table').innerHTML='<table><thead><tr><th>馬番・馬名</th><th>SOURCE</th><th>暫定点 / 順位</th><th>同距離3着内</th><th>同クラス3着内</th><th>直近追上げ</th><th>同距離6着以下</th><th>同距離最良着差</th><th>同距離速度参考</th></tr></thead><tbody>'+horses.map(x=>`<tr><td>${x.h[0]} ${esc(x.h[1])}</td><td>${x.pass?'PASS':'HOLD'}</td><td>${x.pass?x.score+'点 / '+x.rank+'位':'— / 対象外'}</td><td>${x.sameGood.length}</td><td>${x.classGood.length}</td><td>${x.advances.length}</td><td>${x.badSame.length}</td><td>${x.bestMargin.length?Math.min(...x.bestMargin).toFixed(1)+'秒':'未確認'}</td><td>${x.speeds.length?Math.max(...x.speeds).toFixed(2)+'km/h':'未確認'}</td></tr>`).join('')+'</tbody></table>'+horses.map(x=>`<details><summary>${x.h[0]}番 ${esc(x.h[1])}｜${x.pass?x.score+'点・暫定'+x.rank+'位':'SOURCE HOLD'}｜証拠＋反証</summary><p class="muted">${esc(x.notes.join('／'))}。根拠点内訳：${x.points.join(' + ')} − ${x.penalty}点。時計・速度は同距離過去走の参考値。過去${x.hist.length}走すべて表示。</p><table><thead><tr><th>日付</th><th>条件</th><th>着順</th><th>走破秒</th><th>時速</th><th>4角→着順</th><th>着差</th></tr></thead><tbody>${x.hist.map(z=>{let t=num(z.finish_time_seconds),d=num(z.distance_m),v=t>0&&d>0?(d/t*3.6).toFixed(2):'欠損';return `<tr><td>${esc(z.date)}</td><td>${esc(z.racecourse)} ${esc(z.surface)}${esc(z.distance_m)}m ${esc(z.class_name)}</td><td>${esc(f(num(z.finish_position)))}</td><td>${esc(f(t))}</td><td>${v}</td><td>${esc(f(num(z.corner_4)))}→${esc(f(num(z.finish_position)))}</td><td>${esc(f(num(z.margin_sec)))}</td></tr>`}).join('')}</tbody></table></details>`).join('');
 }
 window.addEventListener('v69-race-loaded',e=>{try{render(e.detail.race,e.detail.past_fields)}catch(err){$('v79Status').textContent='HOLD：V79監査失敗：'+err.message;$('v79Table').replaceChildren()}});
+})();
+</script>
+
+<section class="card" id="v85Prospective">
+<h2>V85｜能力点4位 × 前走間隔15〜35日：前向き固定監査</h2>
+<p class="muted">V84の探索結果（207件・15勝、間隔15〜35日78件中8勝／その他129件中7勝）を<strong>仮説として固定</strong>。V79の点数式と同点順位を変更せず、SOURCE PASS・暫定4位・15〜35日を判定します。最新の発走前単勝オッズ10.0〜19.9倍は人が確認して入力する必要があります。</p>
+<p class="warn">過去開催の個人台帳は診断のみ。2026-11-15以前のレースを新規前向き実証として保存できません。実戦採用・買い目はHOLD。今後の発走前SOURCE、馬番、今回斤量、調教、正式メジアン等の追加監査は未完了です。</p>
+<div id="v85Status" class="warn" aria-live="polite">レース台帳を読み込み、対象レースを選択してください。</div>
+<div id="v85Table" class="scroll"></div>
+<p><label>発走前オッズ確認日時 <input id="v85OddsTime" type="datetime-local"></label> <label>発走予定日時 <input id="v85PostTime" type="datetime-local"></label></p>
+<p><label>馬番,発走前単勝オッズ（1行1頭。未確認は空欄のまま）<textarea id="v85Odds" spellcheck="false" style="min-height:95px" placeholder="4,14.2&#10;7,18.6"></textarea></label></p>
+<p><label><input type="checkbox" id="v85RunnerCheck"> 出走馬全頭と取消・変更を発走前に照合した（SOURCE HOLDは残す）</label></p>
+<button type="button" id="v85Preview">暫定条件と入力オッズを照合</button>
+<button type="button" id="v85Export">発走前監査記録をJSON保存（購入HOLD）</button>
+<div id="v85Result" class="scroll" aria-live="polite"></div>
+<p class="warn">保存するのは候補とその根拠のみ。レース結果・確定配当は保存しません。SHA-256は内容の改変検査用で発走前時刻の第三者証明ではありません。V76の既存固定記録と併用してください。</p>
+</section>
+
+<script>
+(function(){'use strict';
+const $=id=>document.getElementById(id),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const number=x=>(x===null||x===undefined||String(x).trim()==='')?null:(Number.isFinite(+x)?+x:null);
+const top3=x=>number(x.finish_position)!==null&&number(x.finish_position)>=1&&number(x.finish_position)<=3;
+const timezoneDate=x=>{const n=Date.parse(x+'T00:00:00');return Number.isFinite(n)?n:null};
+let state=null;
+function analyze(r,keys){
+ const fields=['date','surface','distance_m','racecourse','class_name','finish_position','margin_sec','corner_4','finish_time_seconds','source_status'];
+ for(const k of fields)if(!keys.includes(k))throw Error('必須列欠損: '+k);
+ if(!Array.isArray(r.horses)||!r.date||!r.surface||!r.distance_m)throw Error('レース台帳の形式が不正');
+ if(new Set(r.horses.map(h=>h[0])).size!==r.horses.length)throw Error('馬番重複');
+ const horses=r.horses.map(h=>{
+  if(!Array.isArray(h[8])||h[5]!==h[8].length||h[8].length>10)throw Error('過去走の件数矛盾: '+h[1]);
+  const hist=h[8].map(a=>Object.fromEntries(keys.map((k,i)=>[k,a[i]]))).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  if(hist.some(x=>x.date>=r.date||x.source_status!=='STRICT_ID_MATCH'))throw Error('過去走の日付または正式IDに異常: '+h[1]);
+  const pass=h[3]==='10走正式ID照合完了_能力等未監査'||h[9]?.basis==='JRA_NEWCOMER_DEBUT_AND_ALL_LINKED_RACES';
+  const same=hist.filter(x=>String(x.surface)===String(r.surface)&&number(x.distance_m)===number(r.distance_m));
+  const sameGood=same.filter(top3), classGood=hist.filter(x=>x.class_name===r.class_name&&top3(x));
+  const close=same.filter(x=>{const m=number(x.margin_sec);return m!==null&&Math.max(0,m)<=.3});
+  const recent=hist.slice(0,3);
+  const advances=recent.filter(x=>{const c=number(x.corner_4),p=number(x.finish_position);return c!==null&&p!==null&&c>0&&c-p>=2});
+  const recentGood=recent.filter(top3),venueGood=hist.filter(x=>x.racecourse===r.venue&&x.surface===r.surface&&top3(x));
+  const badSame=same.filter(x=>{const p=number(x.finish_position);return p!==null&&p>=6});
+  const heavyLoss=recent.filter(x=>{const m=number(x.margin_sec);return m!==null&&m>1});
+  const points=[Math.min(2,sameGood.length)*12.5,Math.min(2,classGood.length)*10,Math.min(2,close.length)*10,Math.min(2,advances.length)*7.5,Math.min(2,recentGood.length)*5,Math.min(2,venueGood.length)*5];
+  const penalty=(badSame.length>=2?10:0)+(heavyLoss.length>=2?10:0);
+  const score=Math.max(0,points.reduce((a,b)=>a+b,0)-penalty);
+  const last=hist[0]?.date||null;
+  const days=last&&timezoneDate(last)!==null&&timezoneDate(r.date)!==null?Math.round((timezoneDate(r.date)-timezoneDate(last))/86400000):null;
+  return {number:h[0],name:h[1],score,pass,days,history_count:hist.length,rank:null,flags:{sameGood:sameGood.length,classGood:classGood.length,close:close.length,advances:advances.length,badSame:badSame.length,heavyLoss:heavyLoss.length}};
+ });
+ const ranked=horses.filter(h=>h.pass);
+ for(const x of ranked)x.rank=ranked.filter(y=>y.score>x.score).length+1;
+ return horses.sort((a,b)=>a.number-b.number);
+}
+function status(msg){$('v85Result').textContent=msg}
+function render(r,keys){
+ const horses=analyze(r,keys);state={r,horses};
+ const n=horses.filter(x=>x.pass&&x.rank===4&&x.days!==null&&x.days>=15&&x.days<=35).length;
+ $('v85Status').textContent=`${r.date} ${r.venue}${r.race_no}R：全${horses.length}頭・暫定条件の対象${n}頭。現在の台帳は過去開催のため前向き固定の対象外。買い目HOLD。`;
+ $('v85Table').innerHTML='<table><thead><tr><th>馬番・馬名</th><th>SOURCE</th><th>V79点数</th><th>暫定順位（同点含む）</th><th>前走間隔</th><th>固定仮説</th><th>根拠・反証</th></tr></thead><tbody>'+horses.map(h=>`<tr><td>${h.number} ${esc(h.name)}</td><td>${h.pass?'PASS':'HOLD'}</td><td>${h.pass?h.score:'—'}</td><td>${h.rank??'—'}</td><td>${h.days===null?'未確認':h.days+'日'}</td><td>${h.pass&&h.rank===4&&h.days>=15&&h.days<=35?'対象／市場監査待ち':'非該当・HOLD'}</td><td>同距離好走${h.flags.sameGood}／同級好走${h.flags.classGood}／近走追上${h.flags.advances}／同距離大敗${h.flags.badSame}／近走1秒超負け${h.flags.heavyLoss}</td></tr>`).join('')+'</tbody></table>';
+ $('v85RunnerCheck').checked=false;$('v85Odds').value='';$('v85OddsTime').value='';$('v85PostTime').value='';status('候補の算出は完了。発走前オッズは未入力。');
+}
+function preview(){
+ if(!state)throw Error('先に個人用レース台帳を読み込んでください');
+ const map=new Map();
+ for(const l of $('v85Odds').value.split(/\r?\n/).filter(x=>x.trim())){
+  const [a,b,...rest]=l.split(',');const k=number(a),v=number(b);
+  if(rest.length||!Number.isInteger(k)||k<1||map.has(k)||v===null||v<1)throw Error('オッズ形式・重複を確認: '+l);
+  if(!state.horses.some(x=>x.number===k))throw Error('存在しない馬番: '+k);
+  map.set(k,v);
+ }
+ const h=state.horses.map(x=>{
+  const odds=map.has(x.number)?map.get(x.number):null;
+  return {...x,odds,condition:x.pass&&x.rank===4&&x.days!==null&&x.days>=15&&x.days<=35&&odds!==null&&odds>=10&&odds<20};
+ });
+ const candidates=h.filter(x=>x.condition);
+ $('v85Result').innerHTML=`<p class="warn">暫定条件＋入力オッズ該当${candidates.length}頭。オッズ未入力${h.filter(x=>x.odds===null).length}頭。購入HOLD。</p>`+'<table><thead><tr><th>馬番・馬名</th><th>単勝（入力）</th><th>固定仮説</th></tr></thead><tbody>'+h.map(x=>`<tr><td>${x.number} ${esc(x.name)}</td><td>${x.odds===null?'未入力':x.odds}</td><td>${x.condition?'仮説該当（未検証）':'非該当・HOLD'}</td></tr>`).join('')+'</tbody></table>';
+ return {h,candidates};
+}
+$('v85Preview').addEventListener('click',()=>{try{preview()}catch(e){status('HOLD：'+e.message)}});
+$('v85Export').addEventListener('click',async()=>{
+ try{
+  const {h}=preview();const r=state.r;
+  const now=Date.now(),raceDate=timezoneDate(r.date),post=Date.parse($('v85PostTime').value),oddsTime=Date.parse($('v85OddsTime').value);
+  if(!Number.isFinite(raceDate)||raceDate<timezoneDate('2026-11-21'))throw Error('過去の台帳は発走前実証として保存できません');
+  if(!Number.isFinite(post)||!Number.isFinite(oddsTime)||!(oddsTime<post)||!(oddsTime<=now)||!(now<post))throw Error('発走前の実時刻とオッズ取得時刻を確認してください');
+  if($('v85PostTime').value.slice(0,10)!==r.date)throw Error('台帳のレース日と発走予定日が一致しません');
+  if(!$('v85RunnerCheck').checked)throw Error('全頭の確認が未チェック');
+  if(h.some(x=>x.odds===null))throw Error('全頭の発走前単勝オッズが未入力');
+  const payload={version:'V85',kind:'PROSPECTIVE_HYPOTHESIS_ONLY',rule:'V79固定点数・同点同順位・SOURCE_PASS・4位・前走15〜35日・入力単勝10以上20未満',race:{date:r.date,venue:r.venue,race_no:r.race_no,surface:r.surface,distance_m:r.distance_m},post_time:$('v85PostTime').value,odds_observed_at:$('v85OddsTime').value,recorded_at:new Date().toISOString(),horses:h,decision:'HOLD',notices:['探索済み仮説・回収率未確認','外部タイムスタンプ証明なし','全頭10走と市場の完全監査は別途必要']};
+  const plain=JSON.stringify(payload);const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(plain)))).map(v=>v.toString(16).padStart(2,'0')).join('');
+  const blob=new Blob([JSON.stringify({sha256:hash,payload},null,2)],{type:'application/json;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='V85_forward_'+r.date.replace(/-/g,'')+'_'+r.race_no+'R.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);
+  status('固定用JSONを作成。SHA-256は内容検査のみ。購入判定HOLD。');
+ }catch(e){status('HOLD：'+e.message)}
+});
+window.addEventListener('v69-race-loaded',e=>{try{render(e.detail.race,e.detail.past_fields)}catch(err){state=null;$('v85Status').textContent='HOLD：'+err.message;$('v85Table').replaceChildren()}});
 })();
 </script>
 </body></html>
