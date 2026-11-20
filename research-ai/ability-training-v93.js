@@ -31,7 +31,7 @@ const valid=hist.filter(x=>{const z=n(x.finish_position);return z!==null&&z>=1&&
 const top3=valid.filter(x=>n(x.finish_position)<=3).length;
 const same=valid.filter(x=>n(x.distance_m)===n(r.distance_m)&&norm(x.surface)===norm(r.surface));
 const sameTop3=same.filter(x=>n(x.finish_position)<=3).length;
-const last5=valid.slice(0,5),last5Top3=last5.filter(x=>n(x.finish_position)<=3).length;
+const last5=hist.slice(0,5),last5Top3=last5.filter(x=>{const pos=n(x.finish_position);return pos!==null&&pos>=1&&pos<=3;}).length;
 const recent=hist[0]?.date||null,days=recent?dayDiff(recent,r.date):null;
 const early=valid.map(x=>n(x.corner_1)).filter(x=>x!==null),late=valid.map(x=>n(x.corner_4)).filter(x=>x!==null);
 const q=valid.filter(x=>n(x.field_size)>0&&n(x.corner_4)>0&&n(x.corner_4)<=n(x.field_size)).map(x=>n(x.corner_4)/n(x.field_size));
