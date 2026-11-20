@@ -1,4 +1,20 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>競馬研究AI V89｜土曜の実戦レースを選択</title><style>:root{color-scheme:dark}body{margin:0;background:#0c1727;color:#edf5ff;font:16px -apple-system,BlinkMacSystemFont,'Noto Sans JP',sans-serif;line-height:1.6}main{max-width:750px;margin:auto;padding:16px}h1{font-size:25px}h2{font-size:19px;margin:0 0 10px}.card{background:#192a40;border:1px solid #33465c;border-radius:15px;padding:16px;margin:14px 0}textarea{width:100%;box-sizing:border-box;min-height:170px;background:#101e30;color:#fff;border:1px solid #587189;border-radius:9px;padding:12px;font-size:16px}button,.btn{background:#38c8a7;color:#09251f;border:0;border-radius:9px;padding:13px;font-weight:800;font-size:16px;margin:7px 5px 7px 0}input{max-width:100%}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid #42566c;padding:8px 4px;text-align:left}th{color:#a8e9da}.scroll{overflow-x:auto}.muted{color:#b4c5d6;font-size:13px}.warn{color:#ffd18a}.ok{color:#7be3c8}a{color:#81e9d1}summary{color:#81e9d1;cursor:pointer}#status{font-weight:bold}code{overflow-wrap:anywhere} .pill{display:inline-block;background:#28425a;border-radius:6px;padding:3px 7px;margin:2px}</style></head><body><main><section class="card" id="v90Picker" style="border:2px solid #38c8a7">
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>競馬研究AI V89｜土曜の実戦レースを選択</title><style>:root{color-scheme:dark}body{margin:0;background:#0c1727;color:#edf5ff;font:16px -apple-system,BlinkMacSystemFont,'Noto Sans JP',sans-serif;line-height:1.6}main{max-width:750px;margin:auto;padding:16px}h1{font-size:25px}h2{font-size:19px;margin:0 0 10px}.card{background:#192a40;border:1px solid #33465c;border-radius:15px;padding:16px;margin:14px 0}textarea{width:100%;box-sizing:border-box;min-height:170px;background:#101e30;color:#fff;border:1px solid #587189;border-radius:9px;padding:12px;font-size:16px}button,.btn{background:#38c8a7;color:#09251f;border:0;border-radius:9px;padding:13px;font-weight:800;font-size:16px;margin:7px 5px 7px 0}input{max-width:100%}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid #42566c;padding:8px 4px;text-align:left}th{color:#a8e9da}.scroll{overflow-x:auto}.muted{color:#b4c5d6;font-size:13px}.warn{color:#ffd18a}.ok{color:#7be3c8}a{color:#81e9d1}summary{color:#81e9d1;cursor:pointer}#status{font-weight:bold}code{overflow-wrap:anywhere} .pill{display:inline-block;background:#28425a;border-radius:6px;padding:3px 7px;margin:2px}</style></head><body><main><section class="card" id="v99Shared" style="border:2px solid #43d4b4">
+<h2>V99｜CSVを一度選んで全研究へ渡す</h2>
+<p class="muted">この端末内で選択したファイルを、従来の各研究画面に共有します。データの自動アップロード・サーバー保存・永続保存は行いません。Safariで再読み込みすると選び直しが必要です。</p>
+<div class="scroll"><table>
+<tr><td>出馬表</td><td><input id="v99Entries" type="file" accept=".csv,text/csv"></td></tr>
+<tr><td>TARGET過去成績</td><td><input id="v99History" type="file" accept=".csv,text/csv"></td></tr>
+<tr><td>ウッド調教</td><td><input id="v99Wood" type="file" accept=".csv,text/csv"></td></tr>
+<tr><td>坂路調教</td><td><input id="v99Hill" type="file" accept=".csv,text/csv"></td></tr>
+<tr><td>黄金正式SOURCE</td><td><input id="v99Gold" type="file" accept=".csv,text/csv"></td></tr>
+<tr><td>双子比較SOURCE</td><td><input id="v99Twin" type="file" accept=".csv,text/csv"></td></tr>
+<tr><td>単勝・複勝上限</td><td><input id="v99Single" type="file" accept=".csv,text/csv"></td></tr>
+<tr><td>単勝オッズ</td><td><input id="v99Win" type="file" accept=".csv,text/csv"></td></tr>
+<tr><td>7券種オッズ</td><td><input id="v99Multi" type="file" accept=".csv,text/csv"></td></tr>
+</table></div>
+<p class="muted">開催日・競馬場・Rは下のV90で選択してください。データがない研究は未検証／HOLDとして表示します。正式SOURCE・オッズの不足を推測で補完しません。</p>
+<p><button id="v99Run" type="button">選択レースを全研究へ一括転送・監査</button></p>
+<div id="v99Status" class="warn" aria-live="polite">未実行。ファイルを選ぶと各研究に割り当てます。</div><div id="v99Summary"></div></section><section class="card" id="v90Picker" style="border:2px solid #38c8a7">
 <h2>V90｜開催日・競馬場・レース選択</h2>
 <p class="muted">既存V89以前の研究を保持。公開サイトにTARGETや調教の個人データを保存・送信しません。分析はブラウザ内で実行します。</p>
 <div class="scroll"><table>
@@ -2645,4 +2661,4 @@ $('v88Build').click();$('v88NameBridge').scrollIntoView({behavior:'smooth'});
 }
 $('v90Load').addEventListener('click',load);
 })();
-</script><script src="./training-v91.js"></script><script src="./training-v92-official.js"></script><script src="./ability-training-v93.js"></script><script src="./pace-fatigue-v94.js"></script><script src="./evidence-dashboard-v95.js"></script><script src="./market-median-v96.js"></script><script src="./preflight-v98.js"></script></body></html>
+</script><script src="./training-v91.js"></script><script src="./training-v92-official.js"></script><script src="./ability-training-v93.js"></script><script src="./pace-fatigue-v94.js"></script><script src="./evidence-dashboard-v95.js"></script><script src="./market-median-v96.js"></script><script src="./preflight-v98.js"></script><script src="./shared-import-v99.js"></script></body></html>
