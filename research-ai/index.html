@@ -35,7 +35,15 @@
 <p class="muted">TARGETの全頭過去10走から、1角→4角の位置変化と短期連戦を集計する。正式な展開・疲労指数の数式を推測で補完しない。時計・距離・クラス等を補正した確定指数ではありません。</p>
 <p><button type="button" id="v94Run">全頭10走の展開・連戦パターンを計算</button></p>
 <div class="warn" id="v94Status" aria-live="polite">未実行。先にV90から対象レースの出馬表・過去走を転送してください。</div><div id="v94Results"></div>
-<p class="muted">4角位置率=4角順位÷出走頭数（小さいほど先頭）。脚質は固定しない。表示する14日以内の短期連戦回数は、疲労の確定診断ではありません。</p></section><section class="card" id="v89Today" style="border:2px solid #67d8a4">
+<p class="muted">4角位置率=4角順位÷出走頭数（小さいほど先頭）。脚質は固定しない。表示する14日以内の短期連戦回数は、疲労の確定診断ではありません。</p></section><section class="card" id="v95Dashboard" style="border:2px solid #e6b868">
+<h2>V95｜全頭10走・展開・調教・単勝市場を一画面で監査</h2>
+<p class="muted">V90でレースを選択しTARGET履歴を転送。V92の正式黄金SOURCEがあれば型フラグを結合。単勝CSVは任意で、同一レース全頭の単勝オッズを照合します。いずれもブラウザ内だけで処理し、公開GitHubに個人データを保存しません。</p>
+<p><label>発走前の単勝オッズCSV（任意） <input type="file" id="v95Odds" accept=".csv,text/csv"></label></p>
+<p class="muted">必要な列：date,venue,race_no,horse_number,win_odds。取得時刻列 captured_at を推奨（全頭で同一時刻）。複勝・馬連・ワイド・三連系の占有率は未実装です。</p>
+<p><button type="button" id="v95Run">全頭の研究因子を統合表示</button></p>
+<div class="warn" id="v95Status" aria-live="polite">未実行。まずV90でレースとTARGETの履歴を読み込みます。</div>
+<div id="v95Results"></div>
+<p class="muted">前向き研究のため当該レース結果は使用しません。市場オッズだけでは「過小評価」を証明できず、能力確率モデルと期待値検証が必要です。買い目HOLDを維持します。</p></section><section class="card" id="v89Today" style="border:2px solid #67d8a4">
 <h2>V89｜今日の出走馬を選択して全頭10走へ</h2>
 <p><strong>2026年11月21日（土）・JRA公式確認済みの出馬表</strong>から、馬番・馬名・距離・クラスを自動設定。手入力不要。</p>
 <p><label>分析するレース <select id="v89Race"><option value="fukushima11">福島11R・福島記念（芝2000m・16頭）</option></select></label></p>
@@ -2623,4 +2631,4 @@ $('v88Build').click();$('v88NameBridge').scrollIntoView({behavior:'smooth'});
 }
 $('v90Load').addEventListener('click',load);
 })();
-</script><script src="./training-v91.js"></script><script src="./training-v92-official.js"></script><script src="./ability-training-v93.js"></script><script src="./pace-fatigue-v94.js"></script></body></html>
+</script><script src="./training-v91.js"></script><script src="./training-v92-official.js"></script><script src="./ability-training-v93.js"></script><script src="./pace-fatigue-v94.js"></script><script src="./evidence-dashboard-v95.js"></script></body></html>
