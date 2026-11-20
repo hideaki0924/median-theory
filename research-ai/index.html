@@ -1,4 +1,4 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>競馬研究AI V76｜発走前固定ログ・独立検証</title><style>:root{color-scheme:dark}body{margin:0;background:#0c1727;color:#edf5ff;font:16px -apple-system,BlinkMacSystemFont,'Noto Sans JP',sans-serif;line-height:1.6}main{max-width:750px;margin:auto;padding:16px}h1{font-size:25px}h2{font-size:19px;margin:0 0 10px}.card{background:#192a40;border:1px solid #33465c;border-radius:15px;padding:16px;margin:14px 0}textarea{width:100%;box-sizing:border-box;min-height:170px;background:#101e30;color:#fff;border:1px solid #587189;border-radius:9px;padding:12px;font-size:16px}button,.btn{background:#38c8a7;color:#09251f;border:0;border-radius:9px;padding:13px;font-weight:800;font-size:16px;margin:7px 5px 7px 0}input{max-width:100%}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid #42566c;padding:8px 4px;text-align:left}th{color:#a8e9da}.scroll{overflow-x:auto}.muted{color:#b4c5d6;font-size:13px}.warn{color:#ffd18a}.ok{color:#7be3c8}a{color:#81e9d1}summary{color:#81e9d1;cursor:pointer}#status{font-weight:bold}code{overflow-wrap:anywhere} .pill{display:inline-block;background:#28425a;border-radius:6px;padding:3px 7px;margin:2px}</style></head><body><main><h1>🏇 競馬研究AI V76｜全頭10走・過去走研究</h1><p class="muted">現在の公開版：V76（V75までの全研究を継続収録）</p><p class="muted">GitHub Pagesで公開するための単一HTML版。端末内で計算し、PC常時起動不要。ChatGPT内のプレビューでは動作しません。</p><section class="card" id="v67RaceCard">
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>競馬研究AI V77｜全頭データ自動転記・独立検証</title><style>:root{color-scheme:dark}body{margin:0;background:#0c1727;color:#edf5ff;font:16px -apple-system,BlinkMacSystemFont,'Noto Sans JP',sans-serif;line-height:1.6}main{max-width:750px;margin:auto;padding:16px}h1{font-size:25px}h2{font-size:19px;margin:0 0 10px}.card{background:#192a40;border:1px solid #33465c;border-radius:15px;padding:16px;margin:14px 0}textarea{width:100%;box-sizing:border-box;min-height:170px;background:#101e30;color:#fff;border:1px solid #587189;border-radius:9px;padding:12px;font-size:16px}button,.btn{background:#38c8a7;color:#09251f;border:0;border-radius:9px;padding:13px;font-weight:800;font-size:16px;margin:7px 5px 7px 0}input{max-width:100%}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid #42566c;padding:8px 4px;text-align:left}th{color:#a8e9da}.scroll{overflow-x:auto}.muted{color:#b4c5d6;font-size:13px}.warn{color:#ffd18a}.ok{color:#7be3c8}a{color:#81e9d1}summary{color:#81e9d1;cursor:pointer}#status{font-weight:bold}code{overflow-wrap:anywhere} .pill{display:inline-block;background:#28425a;border-radius:6px;padding:3px 7px;margin:2px}</style></head><body><main><h1>🏇 競馬研究AI V77｜全頭10走・過去走研究</h1><p class="muted">現在の公開版：V77（V76までの全研究を継続収録）</p><p class="muted">GitHub Pagesで公開するための単一HTML版。端末内で計算し、PC常時起動不要。ChatGPT内のプレビューでは動作しません。</p><section class="card" id="v67RaceCard">
 <h2>V69｜中央競馬・全頭10走と根拠比較（TARGET正式ID）</h2>
 <p class="muted">2026年の過去レースを選び、全頭の過去10走を既存④〜各研究へ送ります。TARGETのデータはこのブラウザ内だけで処理し、送信・GitHub公開はしません。<strong>現在の未来レースやリアルタイム出馬表は取得できません。</strong></p>
 <p><label>プライベート台帳（JSON）<input id="v67PrivateFile" type="file" accept=".json,application/json"></label></p>
@@ -1997,6 +1997,14 @@ render();
 <section class="card" id="v75LossAudit"><h2>V75｜同距離好走91件・負けた88件の条件監査</h2><p class="muted">V74の対象135件から、過去に同芝・ダート／同距離で好走した91件のみ再確認。今回の勝ちは3件、未勝利88件。クラス・馬場・休養・着差・近3走凡走・同コース時計証拠の有無を比較。<b>同じ既知期間の事後分析であり、新しい未使用OOSではありません。</b></p><div id="v75Summary"></div><div class="scroll" id="v75Table"></div><p class="warn">今回の斤量は個人専用台帳にないため斤量差は計算しません。クラス名の文字列一致は昇降級判定ではありません。独立検証・発走前オッズ検証前の購入はHOLD。V70〜V74の不採用結果やメジアン、調教の研究は削除しません。</p></section>
 <script>(function(){'use strict';const d={"scope":"V74対象135件中、同芝ダート・同距離好走歴を持つ91件の事後敗因診断","n":91,"wins":3,"losses":88,"rows":[{"segment":"全体（同距離好走あり）","n":91,"wins":3,"losses":88,"top3":19,"win_pct":3.3,"top3_pct":20.88,"dates":8},{"segment":"好走時のクラス名が今回と完全一致","n":86,"wins":3,"losses":83,"top3":17,"win_pct":3.49,"top3_pct":19.77,"dates":8},{"segment":"好走時のクラス名が今回と完全一致しない","n":5,"wins":0,"losses":5,"top3":2,"win_pct":0.0,"top3_pct":40.0,"dates":5},{"segment":"好走時に今回と同じ競馬場も含む","n":51,"wins":1,"losses":50,"top3":10,"win_pct":1.96,"top3_pct":19.61,"dates":8},{"segment":"好走時に今回と同じ競馬場がない","n":40,"wins":2,"losses":38,"top3":9,"win_pct":5.0,"top3_pct":22.5,"dates":8},{"segment":"好走時に今回と同じ馬場状態あり","n":55,"wins":2,"losses":53,"top3":12,"win_pct":3.64,"top3_pct":21.82,"dates":7},{"segment":"好走時に今回と同じ馬場状態なし","n":36,"wins":1,"losses":35,"top3":7,"win_pct":2.78,"top3_pct":19.44,"dates":8},{"segment":"最終出走から14日以内","n":25,"wins":0,"losses":25,"top3":5,"win_pct":0.0,"top3_pct":20.0,"dates":7},{"segment":"最終出走から15〜35日","n":49,"wins":3,"losses":46,"top3":10,"win_pct":6.12,"top3_pct":20.41,"dates":8},{"segment":"最終出走から36〜70日","n":15,"wins":0,"losses":15,"top3":4,"win_pct":0.0,"top3_pct":26.67,"dates":7},{"segment":"最終出走から71日以上","n":2,"wins":0,"losses":2,"top3":0,"win_pct":0.0,"top3_pct":0.0,"dates":2},{"segment":"同距離好走時の最小着差0.3秒以内","n":54,"wins":3,"losses":51,"top3":13,"win_pct":5.56,"top3_pct":24.07,"dates":8},{"segment":"同距離好走時の最小着差0.3秒超・欠損","n":37,"wins":0,"losses":37,"top3":6,"win_pct":0.0,"top3_pct":16.22,"dates":8},{"segment":"近3走に8着以下が2回以上","n":11,"wins":1,"losses":10,"top3":2,"win_pct":9.09,"top3_pct":18.18,"dates":6},{"segment":"近3走に8着以下が2回未満","n":80,"wins":2,"losses":78,"top3":17,"win_pct":2.5,"top3_pct":21.25,"dates":8},{"segment":"競馬場・芝ダート・距離・馬場一致の好走歴あり","n":29,"wins":1,"losses":28,"top3":6,"win_pct":3.45,"top3_pct":20.69,"dates":7},{"segment":"競馬場・芝ダート・距離・馬場一致の好走歴なし","n":62,"wins":2,"losses":60,"top3":13,"win_pct":3.23,"top3_pct":20.97,"dates":8}]};const e=x=>String(x??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const a=document.getElementById('v75Summary');if(a)a.textContent='対象 '+d.n+'件｜勝利 '+d.wins+'件｜未勝利 '+d.losses+'件｜同じ既知期間の事後診断・未採用';const t=document.getElementById('v75Table');if(t)t.innerHTML='<table><thead><tr><th>切り口（重複あり）</th><th>対象</th><th>1着</th><th>非1着</th><th>3着内</th><th>1着率%</th><th>3着内率%</th><th>開催日数</th></tr></thead><tbody>'+d.rows.map(r=>'<tr><td>'+e(r.segment)+'</td><td>'+r.n+'</td><td>'+r.wins+'</td><td>'+r.losses+'</td><td>'+r.top3+'</td><td>'+e(r.win_pct)+'</td><td>'+e(r.top3_pct)+'</td><td>'+r.dates+'</td></tr>').join('')+'</tbody></table>';})();</script>
 
+<section class="card" id="v77AutoTransfer">
+<h2>V77｜個人専用台帳から全頭記録を自動転記</h2>
+<p class="muted">ページ上部のV68プライベート台帳（JSON）を選び、開催日・競馬場・レースを選択後「このレースの全頭10走を監査へ渡す」を押すと、下のV76記録欄へ馬番・馬名・監査・同芝ダート同距離好走・着差・前走間隔を転記する。<strong>過去の結果・確定オッズは転記しない</strong>。この台帳の2026年過去開催は練習・既知レース診断専用で、前向き検証には登録できない。</p>
+<button type="button" id="v77TransferBtn" disabled>最後に選択したレースをもう一度転記</button>
+<div id="v77Status" class="warn" aria-live="polite">個人専用台帳を読み込み、レースを選択して上部の「全頭10走を監査へ渡す」を押してください。</div>
+<div id="v77Preview" class="scroll"></div>
+<p class="warn">要確認：全キャリア証明、同条件好走の定義、欠損、発走前の出走馬とレース情報、最新の単勝オッズと取得時刻。全頭確認チェックは自動で入れません。前走の斤量は今回の斤量ではありません。</p>
+</section>
 <section class="card" id="v76ForwardLock">
 <h2>V76｜発走前に条件と全頭記録を固定 → 結果は別照合</h2>
 <p class="muted">V75の探索条件（同芝ダート・同距離好走、最小着差0.3秒以内、前走から15〜35日）を<strong>変更せず前向き検証</strong>するための専用記録。オッズ10〜49.9倍は<strong>入力した発走前の単勝オッズ</strong>のみで判定します。条件を満たしても買い目推奨ではありません。V70〜V75の既知レースを新しいOOSとして扱わない設計です。</p>
@@ -2029,6 +2037,7 @@ const download=(name,content,type)=>{const u=URL.createObjectURL(new Blob([conte
 const csvRow=row=>row.map(v=>{const s=String(v??'');return /[",\r\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}).join(',');
 const fields=['number','horse','audit','same_distance_good','best_margin','days_since_last','win_odds','notes'];
 function read(){
+ if($('v76Entries').dataset.v77HistoricalRace)throw Error('V77で転記した過去開催のデータは前向き検証として保存不可。新規開催は別途発走前情報で入力してください');
  const race=norm($('v76RaceName').value),post=norm($('v76PostTime').value),ot=norm($('v76OddsTime').value),sz=number($('v76FieldSize').value);
  if(!race||!post||!ot)throw Error('レース名・発走予定日時・オッズ確認日時を入力して');
  const postMs=new Date(post).getTime(),oddsMs=new Date(ot).getTime(),now=Date.now();
@@ -2069,6 +2078,74 @@ $('v76SettleBtn').addEventListener('click',()=>{try{if(!imported)throw Error('�
  const rows=[['race','scheduled_post','horse_number','horse','audit','frozen_candidate','odds_pre','finish_position','payout_100yen','stake_if_candidate','return_if_candidate','source_sha256'],...d.horses.map(h=>{const x=rs.get(h.number);return [d.race,d.scheduled_post,h.number,h.horse,h.audit,h.eligible?'EXPLORATORY':'NO',h.win_odds??'',x.position,x.payout,h.eligible?100:0,h.eligible?x.payout:0,imported.sha256]})];
  download('Keiba_V76_Result_'+d.scheduled_post.slice(0,10)+'.csv','\ufeff'+rows.map(csvRow).join('\r\n'),'text/csv;charset=utf-8');$('v76Status').textContent='照合結果：事前候補'+selected.length+'頭／1着'+wins.length+'頭／仮に各100円購入すると投資'+stake+'円・払戻'+ret+'円・回収率'+(stake?((ret/stake)*100).toFixed(1)+'%':'算出不可')+'。実際の購入記録ではなく参考計算。結果CSV保存済み。';
  }catch(e){$('v76Status').textContent='HOLD：'+e.message}});
+})();
+</script>
+<script>
+(function(){'use strict';
+const $=id=>document.getElementById(id);
+let last=null;
+const pretty=v=>v===null||v===undefined||v===''?'未確認':String(v);
+const dayDiff=(a,b)=>{
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(a)||!/^\d{4}-\d{2}-\d{2}$/.test(b))return null;
+ const t1=Date.parse(a+'T00:00:00Z'),t2=Date.parse(b+'T00:00:00Z');
+ const n=Math.round((t2-t1)/86400000);
+ return Number.isInteger(n)&&n>=0?n:null;
+};
+const csvField=s=>String(s??'').replace(/[\r\n]+/g,' ').replace(/,/g,'、').trim();
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function build(r,pastFields){
+ if(!r||!Array.isArray(r.horses)||!Array.isArray(pastFields))throw Error('台帳データが不足');
+ const idx=Object.fromEntries(pastFields.map((x,i)=>[x,i]));
+ for(const k of ['date','distance_m','finish_position','surface','margin_sec','source_status'])if(!Number.isInteger(idx[k]))throw Error('過去走の必須列がない：'+k);
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(r.date)||!r.surface||!Number.isFinite(Number(r.distance_m)))throw Error('レースの日付・芝ダート・距離が不正');
+ if(new Set(r.horses.map(h=>h[0])).size!==r.horses.length)throw Error('馬番の重複');
+ const rows=r.horses.map(h=>{
+  if(!Array.isArray(h[8])||h[5]!==h[8].length)throw Error('過去走件数不一致：'+h[1]);
+  const career=h[9]?.basis==='JRA_NEWCOMER_DEBUT_AND_ALL_LINKED_RACES';
+  const pass=h[3]==='10走正式ID照合完了_能力等未監査'||career;
+  const hist=h[8].map(rec=>Object.fromEntries(Object.keys(idx).map(k=>[k,rec[idx[k]]])));
+  if(hist.some(x=>x.date>=r.date||x.source_status!=='STRICT_ID_MATCH'))throw Error('不正な過去走が混入：'+h[1]);
+  const mostRecent=hist.length?hist.reduce((x,y)=>x.date>y.date?x:y):null;
+  const days=mostRecent?dayDiff(mostRecent.date,r.date):null;
+  const same=hist.filter(x=>String(x.surface)===String(r.surface)&&Number(x.distance_m)===Number(r.distance_m));
+  const good=same.filter(x=>Number(x.finish_position)>=1&&Number(x.finish_position)<=3);
+  const margins=good.map(x=>x.margin_sec===''?NaN:Number(x.margin_sec)).filter(Number.isFinite).map(x=>Math.max(0,x)); // winner can have negative signed margin: normalize to 0 for V76
+  const best=margins.length?Math.min(...margins):null;
+  // With missing margins, never claim the strict 0.3sec criterion as proven.
+  const sd=good.length>0?1:0;
+  let reasons=[];
+  if(!pass)reasons.push('監査HOLD');
+  if(good.length&&!margins.length)reasons.push('好走着差欠損');
+  if(!hist.length)reasons.push('過去走なし');
+  if(days===null)reasons.push('前走日付不明');
+  const notes=[`V77台帳自動転記`, `過去${hist.length}走`, `同条件3着内${good.length}走`, ...reasons].join('／');
+  return {number:h[0],name:h[1],pass,sd,best,days,notes,looked:hist.length};
+ }).sort((a,b)=>a.number-b.number);
+ return rows;
+}
+function transfer(r,fields){
+ const rows=build(r,fields);
+ $('v76RaceName').value=`${r.venue}${r.race_no}R ${r.surface}${r.distance_m}m`;
+ $('v76PostTime').value=''; // historical racebook has no trustworthy scheduled start time
+ $('v76OddsTime').value='';
+ $('v76FieldSize').value=String(rows.length);
+ $('v76Entries').dataset.v77HistoricalRace=r.date;
+ $('v76Entries').value=rows.map(x=>[x.number,csvField(x.name),x.pass?'PASS':'HOLD',x.sd,x.best===null?'':x.best,x.days===null?'':x.days,'',csvField(x.notes)].join(',')).join('\n');
+ $('v76AllRunners').checked=false; // human must review all runners
+ $('v76Preview').replaceChildren();
+ $('v76Status').textContent='V77自動転記済み（発走前オッズと時刻は未入力）。過去開催を前向き検証には登録できません。';
+ const pass=rows.filter(x=>x.pass).length,good=rows.filter(x=>x.sd).length;
+ $('v77Status').textContent=`${r.date} ${r.venue}${r.race_no}R：全${rows.length}頭をV76に転記。監査PASS ${pass}／HOLD ${rows.length-pass}、同条件3着内記録あり${good}頭。今回の確定結果・事後単勝オッズは未転記。`;
+ $('v77Preview').innerHTML='<table><thead><tr><th>馬</th><th>過去走</th><th>監査</th><th>同条件3着内</th><th>最小着差</th><th>前走間隔</th></tr></thead><tbody>'+rows.map(x=>`<tr><td>${x.number} ${esc(x.name)}</td><td>${x.looked}</td><td>${x.pass?'PASS':'HOLD'}</td><td>${x.sd?'あり':'なし'}</td><td>${pretty(x.best)}</td><td>${pretty(x.days)}日</td></tr>`).join('')+'</tbody></table>';
+}
+window.addEventListener('v69-race-loaded',e=>{
+ try{last=e.detail;transfer(last.race,last.past_fields);$('v77TransferBtn').disabled=false;}
+ catch(err){$('v77Status').textContent='HOLD：自動転記できません：'+err.message;last=null;$('v77TransferBtn').disabled=true;}
+});
+$('v77TransferBtn').addEventListener('click',()=>{
+ if(!last)return;
+ try{transfer(last.race,last.past_fields);}catch(err){$('v77Status').textContent='HOLD：'+err.message;}
+});
 })();
 </script>
 </body></html>
