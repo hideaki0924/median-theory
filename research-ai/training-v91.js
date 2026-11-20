@@ -28,6 +28,7 @@ $('v91Run').addEventListener('click',async()=>{
 const b=$('v91Run');b.disabled=true;status.textContent='調教CSVを読み取り中…';$('v91Results').replaceChildren();
 try{
 const cutoff=$('v90Date').value;if(!/^\d{4}-\d{2}-\d{2}$/.test(cutoff))throw Error('先に開催日を選択してください');
+if($('v88Date')?.value!==$('v90Date')?.value||$('v88Venue')?.value!==$('v90Venue')?.value||Number($('v88RaceNo')?.value)!==Number($('v90Race')?.value))throw Error('出馬表のレースが現在のV90選択と一致しません。対象レースを再転送してください');
 const horses=horseList();if(horses.length<2)throw Error('先に出馬表をV90から全頭10走へ転送してください（馬名照合が必要です）');
 const wood=$('v91Wood').files[0],hill=$('v91Hill').files[0];if(!wood&&!hill)throw Error('ウッド・坂路のいずれかのCSVを選択してください');
 const [w,h]=await Promise.all([parse(wood,'ウッド',cutoff),parse(hill,'坂路',cutoff)]);
