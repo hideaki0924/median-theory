@@ -95,7 +95,10 @@
 <p class="muted">全頭の直近10走（10走未満は取得済み全走）から前走→今回の距離短縮・延長、前走比クラス、同距離・同場の好走歴、過去の馬場別実績を抽出。着順が悪い馬でも過去に条件が合った実走証拠を探します。</p>
 <p><button type="button" id="v105Run">全頭の巻き返し材料を確認</button></p>
 <div id="v105Status" class="warn" aria-live="polite">未実行。まずV90からレースとTARGET過去走を読み込んでください。</div><div id="v105Results"></div>
-<p class="muted">クラス変更は名称による探索的分類のみ。短縮・下降を一律プラスにしません。今回の馬場・斤量・相手関係・調教・オッズまで未監査のため、勝率・期待値・買い目はHOLD。</p></section><section class="card" id="v89Today" style="border:2px solid #67d8a4">
+<p class="muted">クラス変更は名称による探索的分類のみ。短縮・下降を一律プラスにしません。今回の馬場・斤量・相手関係・調教・オッズまで未監査のため、勝率・期待値・買い目はHOLD。</p></section><section class="card" id="v106Position" style="border:2px solid #bba2ed"><h2>V106｜先行失速・道中進出・距離変更の実走因子</h2>
+<p class="muted">全頭の直近10走について1角〜4角の通過順、4角から確定着順への位置変化を分けて表示。前走の先行後退と今回の距離短縮が重なる馬、後方から4角までに進出した馬を抽出します。通過順の欠損は推測で埋めません。</p>
+<p><button type="button" id="v106Run">全頭の展開・位置変化を監査</button></p><div id="v106Status" class="warn" aria-live="polite">未実行。V90から同一レースの過去走を読み込んでください。</div><div id="v106Results"></div>
+<p class="muted">20ポイント以上の位置変化は探索上の記述基準。意図的な距離短縮準備、正式疲労指数、今回のペースや勝率を証明しません。独自の加点や買い目への自動反映は行いません。</p></section><section class="card" id="v89Today" style="border:2px solid #67d8a4">
 <h2>V89｜今日の出走馬を選択して全頭10走へ</h2>
 <p><strong>2026年11月21日（土）・JRA公式確認済みの出馬表</strong>から、馬番・馬名・距離・クラスを自動設定。手入力不要。</p>
 <p><label>分析するレース <select id="v89Race"><option value="fukushima11">福島11R・福島記念（芝2000m・16頭）</option></select></label></p>
@@ -2693,4 +2696,4 @@ $('v88Build').click();$('v88NameBridge').scrollIntoView({behavior:'smooth'});
 }
 $('v90Load').addEventListener('click',load);
 })();
-</script><script src="./training-v91.js"></script><script src="./training-v92-official.js"></script><script src="./ability-training-v93.js"></script><script src="./pace-fatigue-v94.js"></script><script src="./evidence-dashboard-v95.js"></script><script src="./market-median-v96.js"></script><script src="./preflight-v98.js"></script><script src="./shared-import-v99.js"></script><script src="./race-safety-v100.js"></script><script src="./full-career-v102.js"></script><script src="./horse-cards-v103.js"></script><script src="./ability-conditions-v104.js"></script><script src="./condition-recovery-v105.js"></script></body></html>
+</script><script src="./training-v91.js"></script><script src="./training-v92-official.js"></script><script src="./ability-training-v93.js"></script><script src="./pace-fatigue-v94.js"></script><script src="./evidence-dashboard-v95.js"></script><script src="./market-median-v96.js"></script><script src="./preflight-v98.js"></script><script src="./shared-import-v99.js"></script><script src="./race-safety-v100.js"></script><script src="./full-career-v102.js"></script><script src="./horse-cards-v103.js"></script><script src="./ability-conditions-v104.js"></script><script src="./condition-recovery-v105.js"></script><script src="./position-turn-v106.js"></script></body></html>
