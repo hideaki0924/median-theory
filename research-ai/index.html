@@ -1,4 +1,4 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>競馬研究AI V79｜全頭能力根拠の数値比較</title><style>:root{color-scheme:dark}body{margin:0;background:#0c1727;color:#edf5ff;font:16px -apple-system,BlinkMacSystemFont,'Noto Sans JP',sans-serif;line-height:1.6}main{max-width:750px;margin:auto;padding:16px}h1{font-size:25px}h2{font-size:19px;margin:0 0 10px}.card{background:#192a40;border:1px solid #33465c;border-radius:15px;padding:16px;margin:14px 0}textarea{width:100%;box-sizing:border-box;min-height:170px;background:#101e30;color:#fff;border:1px solid #587189;border-radius:9px;padding:12px;font-size:16px}button,.btn{background:#38c8a7;color:#09251f;border:0;border-radius:9px;padding:13px;font-weight:800;font-size:16px;margin:7px 5px 7px 0}input{max-width:100%}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid #42566c;padding:8px 4px;text-align:left}th{color:#a8e9da}.scroll{overflow-x:auto}.muted{color:#b4c5d6;font-size:13px}.warn{color:#ffd18a}.ok{color:#7be3c8}a{color:#81e9d1}summary{color:#81e9d1;cursor:pointer}#status{font-weight:bold}code{overflow-wrap:anywhere} .pill{display:inline-block;background:#28425a;border-radius:6px;padding:3px 7px;margin:2px}</style></head><body><main><h1>🏇 競馬研究AI V79｜全頭10走・過去走研究</h1><p class="muted">現在の公開版：V79（V78までの全研究を継続収録）</p><p class="muted">GitHub Pagesで公開するための単一HTML版。端末内で計算し、PC常時起動不要。ChatGPT内のプレビューでは動作しません。</p><section class="card" id="v67RaceCard">
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>競馬研究AI V80｜V79能力根拠点の実績検証</title><style>:root{color-scheme:dark}body{margin:0;background:#0c1727;color:#edf5ff;font:16px -apple-system,BlinkMacSystemFont,'Noto Sans JP',sans-serif;line-height:1.6}main{max-width:750px;margin:auto;padding:16px}h1{font-size:25px}h2{font-size:19px;margin:0 0 10px}.card{background:#192a40;border:1px solid #33465c;border-radius:15px;padding:16px;margin:14px 0}textarea{width:100%;box-sizing:border-box;min-height:170px;background:#101e30;color:#fff;border:1px solid #587189;border-radius:9px;padding:12px;font-size:16px}button,.btn{background:#38c8a7;color:#09251f;border:0;border-radius:9px;padding:13px;font-weight:800;font-size:16px;margin:7px 5px 7px 0}input{max-width:100%}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid #42566c;padding:8px 4px;text-align:left}th{color:#a8e9da}.scroll{overflow-x:auto}.muted{color:#b4c5d6;font-size:13px}.warn{color:#ffd18a}.ok{color:#7be3c8}a{color:#81e9d1}summary{color:#81e9d1;cursor:pointer}#status{font-weight:bold}code{overflow-wrap:anywhere} .pill{display:inline-block;background:#28425a;border-radius:6px;padding:3px 7px;margin:2px}</style></head><body><main><h1>🏇 競馬研究AI V80｜全頭10走・過去走研究</h1><p class="muted">現在の公開版：V80（V79までの全研究を継続収録）</p><p class="muted">GitHub Pagesで公開するための単一HTML版。端末内で計算し、PC常時起動不要。ChatGPT内のプレビューでは動作しません。</p><section class="card" id="v67RaceCard">
 <h2>V69｜中央競馬・全頭10走と根拠比較（TARGET正式ID）</h2>
 <p class="muted">2026年の過去レースを選び、全頭の過去10走を既存④〜各研究へ送ります。TARGETのデータはこのブラウザ内だけで処理し、送信・GitHub公開はしません。<strong>現在の未来レースやリアルタイム出馬表は取得できません。</strong></p>
 <p><label>プライベート台帳（JSON）<input id="v67PrivateFile" type="file" accept=".json,application/json"></label></p>
@@ -2011,6 +2011,24 @@ render();
 <div id="v78Status" class="warn" aria-live="polite">個人専用JSONを読み込み、上部でレースを選択して「このレースの全頭10走を監査へ渡す」を押してください。</div>
 <div id="v78Table" class="scroll"></div>
 <p class="warn">判定注意：今回レースの斤量・時計・着順・確定オッズは使用しません。過去走の着差0.0は勝利（過去着順1着）と同義ではありません。欠損は0に変換しません。今回の馬場状態は適合判断に使用しません。全頭の能力・調教・期待値・買い目の最終監査は別工程で、購入はHOLD。</p>
+</section>
+<section class="card" id="v80ScoreValidation">
+<h2>V80｜V79暫定能力点・時系列での成績照合</h2>
+<p class="muted">2026年の中央競馬3,066レース／42,185件の出走履歴について、<strong>V79の配点・減点を変更せず</strong>、対象日より前の最大10走だけで再計算。レースごとにSOURCE PASS馬の中で暫定順位を付け、後から着順だけを正式IDで結合しました。<strong>レース結果や確定オッズを根拠点の計算に使っていません。</strong></p>
+<p><strong>後半期間の集計（2026-08-16〜2026-11-15、30開催日）</strong>。点数は確率ではなく参考順位、同点は同順位です。順位群・点数帯の件数は各カテゴリの定義によって重複します。</p>
+<div class="scroll"><table><thead><tr><th>区分</th><th>出走件数</th><th>1着</th><th>3着内</th><th>1着率</th><th>3着内率</th><th>開催日数</th></tr></thead><tbody><tr><td>SOURCE PASS全体</td><td>8,238</td><td>650</td><td>1984</td><td>7.89%</td><td>24.08%</td><td>30</td></tr>
+<tr><td>V79暫定1位(同点含む)</td><td>864</td><td>154</td><td>381</td><td>17.82%</td><td>44.10%</td><td>30</td></tr>
+<tr><td>V79暫定1〜3位(同点含む)</td><td>2,566</td><td>341</td><td>968</td><td>13.29%</td><td>37.72%</td><td>30</td></tr>
+<tr><td>V79暫定4位以下</td><td>5,672</td><td>309</td><td>1016</td><td>5.45%</td><td>17.91%</td><td>30</td></tr>
+<tr><td>根拠点0〜24.9</td><td>4,692</td><td>258</td><td>889</td><td>5.50%</td><td>18.95%</td><td>30</td></tr>
+<tr><td>根拠点25〜49.9</td><td>1,939</td><td>193</td><td>543</td><td>9.95%</td><td>28.00%</td><td>30</td></tr>
+<tr><td>根拠点50〜74.9</td><td>1,363</td><td>155</td><td>438</td><td>11.37%</td><td>32.13%</td><td>30</td></tr>
+<tr><td>根拠点75〜100</td><td>244</td><td>44</td><td>114</td><td>18.03%</td><td>46.72%</td><td>30</td></tr></tbody></table></div>
+<details><summary>検証の定義と限界</summary>
+<p class="muted">全97開催日を時系列で70%／30%に分割し、後半30日だけを上表に表示。V79の根拠点は研究期間で新たに選び直していません。正式IDでの結果照合は42,185／42,185件、SOURCE入力監査PASSは30,935件。判定対象の10走未満馬は、中央新馬からの履歴照合がある場合にのみSOURCE PASSとしています。</p>
+<p class="muted">過去のV71〜V75などで2026年の結果が研究に利用されているため、後半期間を「研究全体としての完全な独立OOS」と呼ぶことはできません。V79の配点も未校正です。各レースは複数頭を含み、単純な出走件数比較では標本独立性が保証されません。TARGETの事後オッズ・配当を使った馬券回収率の証明でもありません。</p>
+</details>
+<p class="warn">検証結果：V79の順位には成績の序列が見られる一方、過小評価馬・期待値・買い目は未検証。今後の発走前記録と実際のオッズの組み合わせによる前向き検証が必要。購入はHOLD。V79以前の全頭10走、メジアン、双子調教・黄金調教などの研究は変更しません。</p>
 </section>
 <section class="card" id="v79AbilityEvidence">
 <h2>V79｜全頭10走・能力根拠の数値比較（暫定）</h2>
