@@ -38,7 +38,7 @@ if(race.date!==$('v90Date').value||race.venue!==$('v90Venue').value||Number(race
 if(race.horse_count!==race.horses.length)throw Error('出走頭数不一致');
 const all=race.horses.map(h=>({horse:h,stats:calculate(h,fields,race)})).sort((a,b)=>a.horse[0]-b.horse[0]);
 const table=el('table',''),header=el('tr','');
-for(const title of ['馬番・馬名','過去走','先行率','位置上昇/後退','平均4角位置率','レース間隔','短期連戦','観測上の注意'])header.append(el('th',title));table.append(header);
+for(const title of ['馬番・馬名','過去走','先行回数','位置上昇/後退','平均4角位置率','レース間隔','短期連戦','観測上の注意'])header.append(el('th',title));table.append(header);
 const details=[];
 for(const {horse:h,stats:s} of all){
 const row=el('tr','');
@@ -50,7 +50,7 @@ vals.forEach(v=>row.append(el('td',String(v))));table.append(row);
 details.push({horse_number:h[0],horse_name:h[1],...s});
 }
 const wrap=el('div','');wrap.className='scroll';wrap.append(table);output.append(wrap);
-status.textContent='全'+all.length+'頭の展開・連戦観測値を表示。先行率＝1角順位/頭数が上位1/3の出現回数。位置上昇/後退＝1角→4角の順位率が20pt以上変化した回数。短期連戦＝過去のレース間隔14日以内の回数。すべて探索的な記述統計で、正式な疲労指数・展開得点の代替ではありません。距離・クラス・馬場の調整、先行圧、当日情報、調教総合判定は未完了。買い目HOLD。';
+status.textContent='全'+all.length+'頭の展開・連戦観測値を表示。先行回数＝1角順位/頭数が上位1/3の出現回数。位置上昇/後退＝1角→4角の順位率が20pt以上変化した回数。短期連戦＝過去のレース間隔14日以内の回数。すべて探索的な記述統計で、正式な疲労指数・展開得点の代替ではありません。距離・クラス・馬場の調整、先行圧、当日情報、調教総合判定は未完了。買い目HOLD。';
 window.__v94LastAudit={race:{date:race.date,venue:race.venue,race_no:race.race_no},details};
 }catch(e){status.textContent='HOLD：'+e.message;}
 });
