@@ -38,7 +38,7 @@ const ix=new Map(fields.map((n,i)=>[n,i]));
 const hist=rows.map(row=>Object.fromEntries(fields.map((k,i)=>[k,row[i]]))).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
 if(hist.some(x=>!x.date||x.date>=race.date||x.source_status!=='STRICT_ID_MATCH'))throw Error('未来走・未照合履歴：'+h[1]);
 const scored=hist.filter(x=>{const p=num(x.finish_position);return p!==null&&p>=1&&p<=28});
-const last5=scored.slice(0,5),top5=last5.filter(x=>num(x.finish_position)<=3).length;
+const last5=hist.slice(0,5),top5=last5.filter(x=>{const pos=num(x.finish_position);return pos!==null&&pos>=1&&pos<=3;}).length;
 const same=scored.filter(x=>normalize(x.surface)===normalize(race.surface)&&num(x.distance_m)===num(race.distance_m));
 const sameTop=same.filter(x=>num(x.finish_position)<=3).length;
 const po=scored.filter(x=>{const a=num(x.corner_1),b=num(x.corner_4),f=num(x.field_size);return a!==null&&b!==null&&f!==null&&f>=2&&a>=1&&b>=1&&a<=f&&b<=f;});
