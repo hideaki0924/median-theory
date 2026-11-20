@@ -90,6 +90,7 @@ if(r.horse_count!==r.horses.length)throw Error('全頭数不一致');
 const required=['date','distance_m','finish_position','surface','corner_1','corner_4','field_size','race_id','source_status'];
 if(required.some(k=>!x.past_fields?.includes(k)))throw Error('過去走の必須列不足');
 const [gold,odds]=await Promise.all([official(r.date),market(r)]);
+if(audit!==x||key(r)!==selected())throw Error('CSV読込中にレースが変更されました。旧結果を破棄します');
 const table=element('table');
 addRow(table,['馬番・馬名','走歴・直近5走3着内','今回同距離3着内','過去の位置変化','前走失速×今回短縮','正式黄金SOURCE','メジアン重複（参考）','単勝','資料状態'],true);
 let goldYes=0,overlap=0,missing=0;
