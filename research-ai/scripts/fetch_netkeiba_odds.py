@@ -108,6 +108,7 @@ def main():
         path = FEED/(race_id+".json")
         try:
             item = fetch(race_id)
+            item["date"] = config.get("race_dates", {}).get(race_id, "")
             # Only overwrite if the provider yielded usable odds.
             path.write_text(json.dumps(item, ensure_ascii=False, indent=2)+"\n",encoding="utf8")
             print(race_id, item["status"], len(item["odds"]), item["official_datetime"])
