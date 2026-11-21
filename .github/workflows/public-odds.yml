@@ -8,8 +8,9 @@ on:
       - "research-ai/scripts/fetch_sportsnavi_odds.py"
       - ".github/workflows/public-odds.yml"
   schedule:
-    # 09:00-17:59 JST Sat/Sun, roughly once every 10 minutes.
-    - cron: "*/10 0-8 * * 6,0"
+    # 09:00-17:59 JST Sat/Sun/Mon (holiday races can run on Monday).
+    # Expired targets are skipped in the fetch script.
+    - cron: "*/10 0-8 * * 6,0,1"
 permissions:
   contents: write
 concurrency:
