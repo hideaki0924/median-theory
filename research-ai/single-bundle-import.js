@@ -8,6 +8,18 @@ const accepted=['wood_csv','hill_csv','official_csv','twin_csv','wood_scout_csv'
 const targets={wood_csv:['v91Wood'],hill_csv:['v91Hill'],official_csv:['v92Official'],twin_csv:['v92Twin'],wood_scout_csv:['v109Scout'],win_odds_csv:['v95Odds'],single_odds_csv:['v96Single'],multi_odds_csv:['v96Multi']};
 const fileName={wood_csv:'wood.csv',hill_csv:'hill.csv',official_csv:'official.csv',twin_csv:'twin.csv',wood_scout_csv:'wood-scout-v010.csv',win_odds_csv:'win_odds.csv',single_odds_csv:'single_odds.csv',multi_odds_csv:'multi_odds.csv'};
 const study=['v91Run','v92Run','v93Run','v94Run','v95Run','v96Run','v98Check','v102Run','v103Run','v104Run','v105Run','v106Run','v107Run'];
+/* Private bundle is cached only in this browser (IndexedDB), never uploaded to GitHub. */
+const CACHE_DB='horse-research-private-bundle-v1',CACHE_STORE='bundle',CACHE_KEY='latest';
+function openCache(){return new Promise((resolve,reject)=>{if(!('indexedDB' in window))return reject(Error('このブラウザは端末保存に非対応'));const req=indexedDB.open(CACHE_DB,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(CACHE_STORE))req.result.createObjectStore(CACHE_STORE)};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error||Error('端末保存DBを開けません'));});}
+async function cacheWrite(value){const db=await openCache();try{await new Promise((resolve,reject)=>{const tx=db.transaction(CACHE_STORE,'readwrite');tx.objectStore(CACHE_STORE).put(value,CACHE_KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||Error('端末保存に失敗'));tx.onabort=()=>reject(tx.error||Error('端末保存中断'));});}finally{db.close();}}
+async function cacheRead(){const db=await openCache();try{return await new Promise((resolve,reject)=>{const tx=db.transaction(CACHE_STORE,'readonly');const req=tx.objectStore(CACHE_STORE).get(CACHE_KEY);req.onsuccess=()=>resolve(req.result||null);req.onerror=()=>reject(req.error||Error('端末データ読込失敗'));});}finally{db.close();}}
+async function cacheDelete(){const db=await openCache();try{await new Promise((resolve,reject)=>{const tx=db.transaction(CACHE_STORE,'readwrite');tx.objectStore(CACHE_STORE).delete(CACHE_KEY);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||Error('削除失敗'));});}finally{db.close();}}
+function installBundle(value,origin){bundle=readBundle(value);clearSelect(venue);clearSelect(race);
+const venues=[...new Set(bundle.races.map(x=>x.data.race.venue))];for(const v of venues)option(venue,v,v);
+if(bundle.races.length){venue.value=bundle.races[0].data.race.venue;selection();race.value=bundle.races[0].data.race.date+'|'+bundle.races[0].data.race.race_no;}
+go.disabled=false;
+busy(origin+'：'+bundle.races.length+'レース。競馬場・Rを選んで分析できます。個人データはこの端末内だけで保持します。');
+}
 function clearSelect(select){select.replaceChildren();}
 function option(select,value,label){const e=document.createElement('option');e.value=String(value);e.textContent=label;select.append(e);}
 function busy(text){status.textContent=text;}
@@ -38,12 +50,22 @@ input.addEventListener('change',async()=>{
 go.disabled=true;bundle=null;clearSelect(venue);clearSelect(race);
 try{
 const file=input.files?.[0];if(!file)throw Error('統合データファイルを選択してください');
-busy('統合データを端末内で読み込んでいます…');const json=JSON.parse(await file.text());bundle=readBundle(json);
-for(const v of [...new Set(bundle.races.map(x=>x.data.race.venue))])option(venue,v,v);
-selection();if(bundle.races.length){venue.value=bundle.races[0].data.race.venue;selection();race.value=bundle.races[0].data.race.date+'|'+bundle.races[0].data.race.race_no;}go.disabled=false;
-busy('統合データを読み込みました：'+bundle.races.length+'レース。競馬場とRを選んで「分析」を押してください。');
+if(file.size>16e6)throw Error('ファイルが16MBを超えています。分割が必要です');
+busy('統合データを端末内で読み込んでいます…');
+const json=JSON.parse(await file.text());
+installBundle(json,'統合データ読込完了');
+try{await cacheWrite(json);busy('保存完了：次回からこの端末の同じブラウザで自動復元します。'+bundle.races.length+'レース。');}
+catch(e){busy('分析用データは読込済み。ただし自動保存できません：'+e.message+'。次回は再選択が必要です。');}
 }catch(e){busy('HOLD：'+e.message)}
 });
+/* Reopen existing private data automatically on the same device, without a server fetch. */
+(async()=>{if(input.files?.length||bundle)return;
+try{const value=await cacheRead();if(!value||input.files?.length||bundle)return;installBundle(value,'端末保存データを自動復元');}
+catch(e){busy('端末保存データを復元できません：'+e.message+'。統合JSONを選択してください。');}
+})();
+const clearButton=document.createElement('button');clearButton.type='button';clearButton.id='bundleForget';clearButton.textContent='この端末の保存データを消去';clearButton.style.background='#33465c';clearButton.style.color='#edf5ff';clearButton.style.fontSize='13px';
+clearButton.addEventListener('click',async()=>{if(!window.confirm('この端末に保存した統合データを消去しますか？ 公開GitHub上のデータには影響しません。'))return;try{await cacheDelete();bundle=null;go.disabled=true;input.value='';clearSelect(venue);clearSelect(race);busy('端末保存データを消去しました。次回利用時は統合JSONを読み込んでください。');}catch(e){busy('削除できません：'+e.message)}});
+status.parentElement.append(clearButton);
 venue.addEventListener('change',selection);
 go.addEventListener('click',()=>{
 if(!bundle)return busy('HOLD：統合データ未選択');
