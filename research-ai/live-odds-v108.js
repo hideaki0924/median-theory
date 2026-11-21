@@ -71,8 +71,9 @@ message.textContent='netkeibaレースID '+id+' の公開オッズを確認中�
 const url='./odds-live/'+id+'.json?nocache='+Date.now();
 const response=await fetch(url,{cache:'no-store'});
 if(ticket!==requestSerial)return;
-if(!response.ok)throw Error('オッズ自動取得の公開データがありません（HTTP '+response.status+'）。GitHub側の取得は未成功です');
+if(!response.ok)throw Error('GitHub側に単複オッズの公開データがまだ生成されていません（HTTP '+response.status+'）。取得処理の実行成功は未確認です');
 const feed=await response.json();if(ticket!==requestSerial)return;
+if(feed?.status==='unavailable')throw Error('GitHub側はnetkeibaの実オッズを取得できていません。取得元の応答：'+String(feed.reason||'詳細不明').slice(0,130)+'。予想オッズには置換しません');
 const verified=validate(feed,id,r);
 createOddsFile(feed,r,verified.official);
 const t=txt('table','');const th=txt('tr','');
