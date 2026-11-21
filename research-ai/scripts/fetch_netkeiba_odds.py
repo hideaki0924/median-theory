@@ -105,6 +105,20 @@ def main():
     for race_id in targets:
         if not isinstance(race_id,str) or not VALID_ID.fullmatch(race_id):
             raise ValueError("invalid race_id")
+        scheduled_date = config.get("race_dates", {}).get(race_id)
+        if not scheduled_date:
+            print(race_id, "HOLD: race date not registered", file=sys.stderr)
+            continue
+        try:
+            race_day = dt.date.fromisoformat(scheduled_date)
+        except ValueError:
+            print(race_id, "HOLD: invalid date", file=sys.stderr)
+            continue
+        local_day = dt.datetime.now(JST).date()
+        # Request a race only on the day before or the exact race day.
+        # Retain existing old snapshots, but stop wasteful repeated requests for expired races.
+        if race_day < local_day or race_day > local_day + dt.timedelta(days=1):
+            continue
         path = FEED/(race_id+".json")
         try:
             try:
