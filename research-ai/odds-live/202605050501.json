@@ -3,7 +3,7 @@
   "race_id": "202605050501",
   "date": "2026-11-22",
   "status": "unavailable",
-  "fetched_at": "2026-11-21T18:21:46+09:00",
+  "fetched_at": "2026-11-21T18:22:57+09:00",
   "horse_count": 0,
   "odds": [],
   "reason": "ValueError: netkeiba=netkeiba API status='yoso' reason='history odds empty'; SportsNavi=win/place labels missing"
