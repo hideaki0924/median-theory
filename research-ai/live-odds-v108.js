@@ -61,18 +61,18 @@ requestSerial++;output.replaceChildren();message.textContent='レースのオッ
 window.addEventListener('v86-upcoming-import',event=>{
 const r=event.detail?.race;if(!r)return;
 current=r;clear();
-if(r.date==='2026-11-21'&&r.venue==='京都'&&Number(r.race_no)===5){
-input.value='https://race.sp.netkeiba.com/race/shutuba.html?race_id=202608050505&rf=live';
-}
+const auto=window.v111RaceId?.resolve(r);
+if(auto){input.value='https://race.sp.netkeiba.com/race/shutuba.html?race_id='+auto+'&rf=live';message.textContent='レースID '+auto+' を開催表から自動設定。オッズ未取得なら安全にHOLDします。';}
+else{input.value='';message.textContent='この開催日の正式レースIDはまだ登録されていません。netkeibaの出馬表URLを入力して取得できます。';}
 });
-for(const id of ['v90Date','v90Venue','v90Race'])$(id)?.addEventListener('change',()=>{current=null;clear()});
+for(const id of ['v90Date','v90Venue','v90Race'])$(id)?.addEventListener('change',()=>{current=null;clear();input.value='';});
 go.addEventListener('click',async()=>{
 const ticket=++requestSerial;go.disabled=true;output.replaceChildren();
 try{
-const id=raceId(input.value),r=current;
+const r=current,id=window.v111RaceId?.resolve(r)||raceId(input.value);
 if(!r)throw Error('先に統合ファイルを選び、対象のレースを一括分析してください');
 if(!matchesRace(id,r))throw Error('リンク先と選択レースが違います。URLの競馬場・レース番号を確認してください');
-message.textContent='netkeibaレースID '+id+' の公開オッズを確認中…';
+message.textContent='レースID '+id+' の公開オッズを確認中…';
 const url='./odds-live/'+id+'.json?nocache='+Date.now();
 const response=await fetch(url,{cache:'no-store'});
 if(ticket!==requestSerial)return;
