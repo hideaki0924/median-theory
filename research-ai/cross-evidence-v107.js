@@ -80,7 +80,7 @@ const a=byType[0];
 const clocks=a.clock.map((v,i)=>['4F','3F','2F','1F'][i]+' '+(v===null?'―':v.toFixed(1))).join('／');
 const prev=byType.find(x=>x.date<a.date&&x.course===a.course&&x.clock[3]!==null);
 const delta=a.clock[3]!==null&&prev?+(a.clock[3]-prev.clock[3]).toFixed(1):null;
-results.push(type+'：'+a.date+' '+a.course+'｜'+clocks+'｜前回同コース1F比 '+(delta===null?'比較不可':(delta>0?'+':'')+delta.toFixed(1)+'秒')+'（'+byType.length+'記録）');
+results.push(type+'：'+a.date+' '+a.course+'｜'+clocks+'｜前回1F差 '+(delta===null?'比較不可':(delta>0?'+':'')+delta.toFixed(1)+'秒')+'、今回4F '+(a.clock[0]===null?'不明':a.clock[0].toFixed(1))+'秒／前回4F '+(prev&&prev.clock[0]!==null?prev.clock[0].toFixed(1):'不明')+'秒。回り・負荷の一致は未確認、差を能力上昇とみなさない（'+byType.length+'記録）');
 }
 const hill=matched.filter(x=>x.type==='坂路'&&x.interval?.length===4&&x.interval.every(v=>v!==null&&v>0));
 const latest=hill[0],prior=hill.find(x=>latest&&x.date<latest.date&&x.course===latest.course);
@@ -154,14 +154,14 @@ const x=audit,r=x?.race;if(!r||key(r)!==selected())throw Error('V90から同一�
 if(r.horse_count!==r.horses.length)throw Error('全頭数不一致');
 const required=['date','distance_m','finish_position','surface','corner_1','corner_4','field_size','race_id','source_status'];
 if(required.some(k=>!x.past_fields?.includes(k)))throw Error('過去走の必須列不足');
-const [gold,odds,training]=await Promise.all([official(r.date),market(r),rawTraining(r.date)]);
+const [gold,odds,training,scoutData]=await Promise.all([official(r.date),market(r),rawTraining(r.date),window.v109Scout?window.v109Scout.load(r.date):Promise.resolve({present:false,byId:new Map()})]);
 if(audit!==x||key(r)!==selected())throw Error('CSV読込中にレースが変更されました。旧結果を破棄します');
 const table=element('table');
 const mobileCards=element('div');mobileCards.className='v107MobileCards';
 addRow(table,['馬番・馬名','走歴・直近5走3着内','今回同距離3着内','過去の位置変化','前走失速×今回短縮','過去黄金SOURCE','メジアン重複（参考）','単勝','資料状態'],true);
-let goldYes=0,overlap=0,missing=0,trainingCovered=0;
+let goldYes=0,overlap=0,missing=0,trainingCovered=0,scoutCovered=0,scoutPositive=0;
 for(const horse of [...r.horses].sort((a,b)=>a[0]-b[0])){
-const z=factors(horse,x.past_fields,r),raw=trainingForHorse(training,horse);if(raw.has)trainingCovered++;
+const z=factors(horse,x.past_fields,r),raw=trainingForHorse(training,horse),scout=window.v109Scout?window.v109Scout.forHorse(scoutData,horse):{matched:false,positive:false,label:'WOOD SCOUT V0.10処理未接続'};if(raw.has)trainingCovered++;if(scout.matched)scoutCovered++;if(scout.positive)scoutPositive++;
 const candidate=gold.byId.get(String(horse[2]));
 const flag=candidate&&candidate.name===nameKey(horse[1])&&candidate.trainer===nameKey(horse[9]?.trainer)?candidate:null;
 const matched=flag?GOLD.filter((_,i)=>flag.flags[i]):[];
@@ -188,6 +188,7 @@ const fieldsForCard=[
 ['過去の位置変化','先行→後退 '+z.frontDrop+'回／道中進出 '+z.move+'回'],
 ['前走失速×今回短縮',z.cutFront?'該当':z.cut?'短縮のみ':'該当なし'],
 ['生調教（実測・正式黄金判定とは別）',raw.text],
+['WOOD SCOUT V0.10 固定式再計算（11/15〜19）',scout.label],
 ['正式黄金SOURCE（過去10/31〜11/13）',goldLabel],
 ['単勝・メジアン',price?price.win.toFixed(1)+'倍／'+(m.join('・')||'該当なし'):'単勝市場未入力'],
 ['未確認事項',sources.join('／')||'最終の期待値・馬体重は未確認']
@@ -196,7 +197,7 @@ for(const [label,value] of fieldsForCard){const field=element('p');const bold=el
 mobileCards.append(card);
 }
 const scroll=element('div');scroll.className='scroll v107WideTable';scroll.append(table);root.append(scroll);root.append(mobileCards);
-status.textContent=r.date+' '+r.venue+r.race_no+'R 全'+r.horse_count+'頭を横断表示。10/31〜11/13の過去黄金SOURCEフラグ該当'+goldYes+'頭／過去走・位置変化・過去黄金SOURCEのうち2領域以上で観測'+overlap+'頭／生調教照合'+trainingCovered+'頭／資料不足'+missing+'頭。単勝市場：'+(odds.available?odds.time:'未入力')+'。過去黄金SOURCEは10/31〜11/13の記録で11/14以降の最新正式判定ではありません。生調教の時計と前回同コース比は別扱いです。重複の独立加点はせず、能力勝率・期待値・馬体重/直前オッズ未照合のため馬券HOLD。';
+status.textContent=r.date+' '+r.venue+r.race_no+'R 全'+r.horse_count+'頭を横断表示。10/31〜11/13の過去黄金SOURCEフラグ該当'+goldYes+'頭／過去走・位置変化・過去黄金SOURCEのうち2領域以上で観測'+overlap+'頭／生調教照合'+trainingCovered+'頭／WOOD SCOUT固定式再計算'+scoutCovered+'頭・該当'+scoutPositive+'頭／資料不足'+missing+'頭。単勝市場：'+(odds.available?odds.time:'未入力')+'。過去黄金SOURCEは10/31〜11/13の記録で11/14以降の最新正式判定ではありません。生調教の時計と前回同コース比は別扱いです。重複の独立加点はせず、能力勝率・期待値・馬体重/直前オッズ未照合のため馬券HOLD。';
 }catch(e){status.textContent='HOLD：'+e.message}finally{button.disabled=false}
 });
 })();
