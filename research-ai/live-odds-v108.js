@@ -55,8 +55,21 @@ const dt=new DataTransfer();dt.items.add(new File([content],name,{type:'text/csv
 assign('v96Single','live-single-place.csv',lines.join('\n'));
 assign('v95Odds','live-win.csv',winLines.join('\n'));
 }
+function invalidatePreviousLiveOdds(){
+let cleared=false;
+for(const id of ['v96Single','v95Odds']){
+const input=$(id);
+const name=input?.files?.[0]?.name||'';
+if(name.startsWith('live-')){input.value='';cleared=true;}
+}
+if(cleared){
+const status=$('v96Status');if(status)status.textContent='HOLD：以前取得した速報オッズは無効化しました。新しい全頭・発走前時刻の取得確認待ち。';
+const result=$('v96Results');if(result)result.replaceChildren();
+}
+return cleared;
+}
 function clear(){
-requestSerial++;output.replaceChildren();message.textContent='レースのオッズをまだ取得していません。'; // input is preserved for re-checking, but checked per race.
+requestSerial++;invalidatePreviousLiveOdds();output.replaceChildren();message.textContent='レースのオッズをまだ取得していません。';
 }
 window.addEventListener('v86-upcoming-import',event=>{
 const r=event.detail?.race;if(!r)return;
@@ -68,6 +81,8 @@ else{input.value='';message.textContent='この開催日の正式レースIDは�
 for(const id of ['v90Date','v90Venue','v90Race'])$(id)?.addEventListener('change',()=>{current=null;clear();input.value='';});
 go.addEventListener('click',async()=>{
 const ticket=++requestSerial;go.disabled=true;output.replaceChildren();
+const invalidated=invalidatePreviousLiveOdds();
+if(invalidated){const b=$('v107Run');if(b&&!b.disabled)b.click();}
 try{
 const r=current,id=window.v111RaceId?.resolve(r)||raceId(input.value);
 if(!r)throw Error('先に統合ファイルを選び、対象のレースを一括分析してください');
