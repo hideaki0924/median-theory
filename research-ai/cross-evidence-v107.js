@@ -170,7 +170,7 @@ const goldAge=goldDate?Math.round((new Date(r.date+'T00:00:00Z')-new Date(goldDa
 const goldLabel=!gold.available?'正式SOURCE未入力（陰性ではない）':matched.length?matched.join('／')+'｜過去SOURCE '+goldDate+'（発走'+goldAge+'日前、最終追切判定ではない）':'過去SOURCE内に該当なし（11/14以降未監査、陰性未確定）';
 const m=odds.medians.get(horse[0])||[],price=odds.byNumber.get(horse[0]);
 if(matched.length)goldYes++;
-const evidence=['同距離好走','位置変化','黄金'].filter(a=>a==='同距離好走'?z.sameTop>0:a==='位置変化'?z.frontDrop>0||z.move>0:matched.length>0);
+const evidence=['同距離好走','位置変化','過去黄金SOURCE'].filter(a=>a==='同距離好走'?z.sameTop>0:a==='位置変化'?z.frontDrop>0||z.move>0:matched.length>0);
 if(evidence.length>=2)overlap++;
 const sources=[];
 if(!z.complete)sources.push('全キャリア未確定');
@@ -196,7 +196,7 @@ for(const [label,value] of fieldsForCard){const field=element('p');const bold=el
 mobileCards.append(card);
 }
 const scroll=element('div');scroll.className='scroll v107WideTable';scroll.append(table);root.append(scroll);root.append(mobileCards);
-status.textContent=r.date+' '+r.venue+r.race_no+'R 全'+r.horse_count+'頭を横断表示。10/31〜11/13の過去黄金SOURCEフラグ該当'+goldYes+'頭／過去走・位置変化・黄金のうち2領域以上で観測'+overlap+'頭／生調教照合'+trainingCovered+'頭／資料不足'+missing+'頭。単勝市場：'+(odds.available?odds.time:'未入力')+'。過去黄金SOURCEは10/31〜11/13の記録で11/14以降の最新正式判定ではありません。生調教の時計と前回同コース比は別扱いです。重複の独立加点はせず、能力勝率・期待値・馬体重/直前オッズ未照合のため馬券HOLD。';
+status.textContent=r.date+' '+r.venue+r.race_no+'R 全'+r.horse_count+'頭を横断表示。10/31〜11/13の過去黄金SOURCEフラグ該当'+goldYes+'頭／過去走・位置変化・過去黄金SOURCEのうち2領域以上で観測'+overlap+'頭／生調教照合'+trainingCovered+'頭／資料不足'+missing+'頭。単勝市場：'+(odds.available?odds.time:'未入力')+'。過去黄金SOURCEは10/31〜11/13の記録で11/14以降の最新正式判定ではありません。生調教の時計と前回同コース比は別扱いです。重複の独立加点はせず、能力勝率・期待値・馬体重/直前オッズ未照合のため馬券HOLD。';
 }catch(e){status.textContent='HOLD：'+e.message}finally{button.disabled=false}
 });
 })();
