@@ -35,7 +35,7 @@ def number(x):
 def parse_api(payload, race_id, now=None):
     now = now or dt.datetime.now(JST)
     if not isinstance(payload, dict) or payload.get("status") not in ("result", "OK", "ok"):
-        raise ValueError("netkeiba API did not return a usable result status")
+        raise ValueError("netkeiba API status=" + repr(payload.get("status"))[:80] + " reason=" + repr(payload.get("reason"))[:100])
     data = payload.get("data")
     if not isinstance(data, dict) or not isinstance(data.get("odds"), dict):
         raise ValueError("netkeiba API odds are missing")
@@ -118,7 +118,7 @@ def main():
         except Exception as ex:
             # Never invent odds; publish an error record to avoid unexplained 404.
             print(race_id,"UNAVAILABLE",type(ex).__name__,str(ex)[:200],file=sys.stderr)
-            if not path.exists():
+            if (not path.exists()) or json.loads(path.read_text(encoding="utf8")).get("status") == "unavailable":
                 record = {
                     "schema": "NETKEIBA_LIVE_ODDS_V1",
                     "race_id": race_id,
