@@ -134,7 +134,28 @@ def main():
                     item["status"] = "unverified_time"
                     item["note"] = "Unable to verify odds timestamp relative to scheduled start."
             item["race_start_at"] = off_raw or ""
-            # Only overwrite if the provider yielded usable odds.
+            # Preserve one independent last VERIFIED pre-race odds snapshot.
+            # The public current-state file may later become 'post_start';
+            # the retrospective snapshot must never be replaced by post-off data.
+            if off_raw and item.get("status") == "available" and official_raw:
+                try:
+                    source_time = dt.datetime.fromisoformat(official_raw.replace(" ", "T"))
+                    source_time = source_time.replace(tzinfo=JST) if source_time.tzinfo is None else source_time
+                    cutoff = dt.datetime.fromisoformat(off_raw)
+                    if source_time < cutoff and dt.datetime.now(JST) < cutoff:
+                        frozen = FEED / (race_id + ".prerace.json")
+                        previous_at = None
+                        if frozen.exists():
+                            previous = json.loads(frozen.read_text(encoding="utf8"))
+                            old_raw = previous.get("official_datetime", "")
+                            if old_raw:
+                                previous_at = dt.datetime.fromisoformat(old_raw.replace(" ", "T"))
+                                previous_at = previous_at.replace(tzinfo=JST) if previous_at.tzinfo is None else previous_at
+                        if previous_at is None or source_time > previous_at:
+                            frozen.write_text(json.dumps(item, ensure_ascii=False, indent=2)+"\n",encoding="utf8")
+                            print(race_id,"PREFLIGHT_SNAPSHOT_SAVED",source_time.isoformat())
+                except (ValueError, TypeError, json.JSONDecodeError) as invalid:
+                    print(race_id,"PREFLIGHT_SNAPSHOT_HOLD",str(invalid)[:140],file=sys.stderr)
             path.write_text(json.dumps(item, ensure_ascii=False, indent=2)+"\n",encoding="utf8")
             print(race_id, item["status"], len(item["odds"]), item["official_datetime"])
             any_good = True
