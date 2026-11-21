@@ -1,0 +1,10 @@
+{
+  "schema": "NETKEIBA_LIVE_ODDS_V1",
+  "race_id": "202608050505",
+  "date": "2026-11-21",
+  "status": "unavailable",
+  "fetched_at": "2026-11-21T12:17:44+09:00",
+  "horse_count": 0,
+  "odds": [],
+  "reason": "ValueError: netkeiba API did not return a usable result status"
+}
