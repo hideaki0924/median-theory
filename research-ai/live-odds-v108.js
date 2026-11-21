@@ -11,7 +11,7 @@ const txt=(tag,value)=>{const e=document.createElement(tag);e.textContent=String
 const fail=msg=>{message.textContent='HOLD：'+msg;};
 function raceId(source){
 let u;
-try{u=new URL(source)}catch(e){throw Error('netkeibaの出馬表URLを貼り付けてください')}
+try{u=new URL(source)}catch(e){throw Error('netkeibaのレースURLを貼り付けてください')}
 if(!['race.netkeiba.com','race.sp.netkeiba.com'].includes(u.hostname)||u.protocol!=='https:')throw Error('netkeibaのHTTPSリンクだけを受け付けます');
 const id=u.searchParams.get('race_id');
 if(!/^20\d{10}$/.test(id||'')||!venueCodes[id.slice(4,6)])throw Error('12桁のJRAレースIDをURLから取得できません');
@@ -73,15 +73,34 @@ const response=await fetch(url,{cache:'no-store'});
 if(ticket!==requestSerial)return;
 if(!response.ok)throw Error('GitHub側に単複オッズの公開データがまだ生成されていません（HTTP '+response.status+'）。取得処理の実行成功は未確認です');
 const feed=await response.json();if(ticket!==requestSerial)return;
-if(feed?.status==='unavailable')throw Error('GitHub側はnetkeibaの実オッズを取得できていません。取得元の応答：'+String(feed.reason||'詳細不明').slice(0,130)+'。予想オッズには置換しません');
-const verified=validate(feed,id,r);
-createOddsFile(feed,r,verified.official);
+if(feed?.status==='unavailable')throw Error('netkeiba・スポーツナビとも取得できていません：'+String(feed.reason||'理由未確認').slice(0,160));
+if(feed?.schema!=='NETKEIBA_LIVE_ODDS_V1'||feed.race_id!==id||feed.date!==r.date)throw Error('取得データのレース・開催日が一致しません');
+if(!Array.isArray(feed.odds)||feed.odds.length!==r.horse_count||feed.horse_count!==r.horse_count)throw Error('単勝・複勝が全頭揃っていません：'+(feed.odds?.length||0)+'/'+r.horse_count);
+const expected=new Map(r.horses.map(h=>[Number(h[0]),String(h[1]).normalize('NFKC').trim()])),seen=new Set();
+for(const x of feed.odds){
+const n=Number(x.horse_number),low=Number(x.place_lower),high=Number(x.place_upper);
+if(!expected.has(n)||seen.has(n)||!(Number(x.win_odds)>=1)||!(low>=1)||!(high>=low))throw Error('馬番またはオッズ欠落・重複のため採用不可');
+if(x.horse_name&&String(x.horse_name).normalize('NFKC').trim()!==expected.get(n))throw Error('馬番'+n+'の馬名が出走台帳と不一致。オッズを採用しません');
+seen.add(n);
+}
 const t=txt('table','');const th=txt('tr','');
 for(const name of ['馬番','単勝','複勝下限','複勝上限'])th.append(txt('th',name));t.append(th);
 for(const x of feed.odds){const tr=txt('tr','');for(const v of [x.horse_number,x.win_odds,x.place_lower,x.place_upper])tr.append(txt('td',v));t.append(tr);}
 output.append(t);
+const source=feed.source==='sports_yahoo_co_jp'?'スポーツナビ':feed.source==='netkeiba_jra_odds_api'?'netkeiba':'公開オッズ';
+if(feed.status!=='available'){
+message.textContent='参考表示のみ：'+source+'、原典のオッズ時刻 '+(feed.official_datetime||'未確認')+'／状態 '+feed.status+'。発走後・古いオッズはメジアンや実戦予想へ反映しません。';
+return;
+}
+let verified;
+try{verified=validate(feed,id,r)}
+catch(err){
+message.textContent='参考表示のみ：'+source+'、原典のオッズ時刻 '+(feed.official_datetime||'未確認')+'。'+err.message+'。自動メジアンには反映していません。';
+return;
+}
+createOddsFile(feed,r,verified.official);
 for(const target of ['v95Run','v96Run','v107Run']){const b=$(target);if(b&&!b.disabled)b.click()}
-message.textContent='実オッズ '+feed.odds.length+'頭を統合。取得時刻 '+verified.official+'（'+Math.round(verified.age)+'分前）。単複メジアン・V107を再実行しました。結果と発走時刻は最終確認してください。';
+message.textContent='取得成功：'+source+'の単勝・複勝'+feed.odds.length+'頭を照合。原典時刻 '+verified.official+'（'+Math.round(verified.age)+'分前）。メジアンとV107を更新。JRA公式確定値ではありません。';
 }catch(error){if(ticket===requestSerial)fail(error.message)}finally{if(ticket===requestSerial)go.disabled=false}
 });
 })();
