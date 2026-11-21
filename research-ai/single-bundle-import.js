@@ -40,7 +40,7 @@ try{
 const file=input.files?.[0];if(!file)throw Error('統合データファイルを選択してください');
 busy('統合データを端末内で読み込んでいます…');const json=JSON.parse(await file.text());bundle=readBundle(json);
 for(const v of [...new Set(bundle.races.map(x=>x.data.race.venue))])option(venue,v,v);
-selection();go.disabled=false;
+selection();if(bundle.races.length){venue.value=bundle.races[0].data.race.venue;selection();}go.disabled=false;
 busy('統合データを読み込みました：'+bundle.races.length+'レース。競馬場とRを選んで「分析」を押してください。');
 }catch(e){busy('HOLD：'+e.message)}
 });
