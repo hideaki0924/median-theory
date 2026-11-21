@@ -119,6 +119,23 @@ def main():
         # Retain existing old snapshots, but stop wasteful repeated requests for expired races.
         if race_day < local_day or race_day > local_day + dt.timedelta(days=1):
             continue
+        # Limit each 10-minute run to races beginning within 75 minutes.
+        # This avoids 24 x 2 network timeouts exhausting the 4-minute job.
+        scheduled_off = config.get("race_start_times", {}).get(race_id)
+        if not scheduled_off:
+            print(race_id, "HOLD: confirmed scheduled time absent", file=sys.stderr)
+            continue
+        try:
+            scheduled_at = dt.datetime.fromisoformat(scheduled_off)
+            if scheduled_at.tzinfo is None:
+                raise ValueError("missing timezone")
+        except ValueError:
+            print(race_id, "HOLD: invalid scheduled time", file=sys.stderr)
+            continue
+        now_jst = dt.datetime.now(JST)
+        minutes_until = (scheduled_at - now_jst).total_seconds() / 60
+        if minutes_until <= 0 or minutes_until > 75:
+            continue
         path = FEED/(race_id+".json")
         try:
             try:
