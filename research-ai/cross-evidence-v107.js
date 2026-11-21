@@ -27,6 +27,50 @@ const old=byName.get(who)||[false,false,false,false];flags.forEach((i,j)=>{old[j
 }
 return {available:true,byName,future,badDates};
 }
+
+/* Real wood/hill CSV observations already embedded in the one-file private bundle.
+   This does NOT infer official GOLD/TWIN flags. */
+async function rawTraining(cutoff){
+if(!window.v87Bridge?.decodeCSV)throw Error('調教CSVパーサ未接続');
+const samples=new Map(),issues=[],types=[['ウッド','v91Wood'],['坂路','v91Hill']];
+let total=0;
+for(const [type,id] of types){
+const file=$(id)?.files?.[0];if(!file){issues.push(type+'未入力');continue;}
+const csv=await window.v87Bridge.decodeCSV(file);
+if(!csv?.length){issues.push(type+'CSV空');continue;}
+const heads=csv[0].map(v=>String(v??'').replace(/^\uFEFF/,'').trim());
+const horse=idx(heads,['馬名','horse_name','horse','name']),day=idx(heads,['年月日','日付','調教日','date','workout_date']),trainer=idx(heads,['調教師','trainer']),course=idx(heads,['コース','course']);
+const laps=['4F','3F','2F','1F'].map(v=>idx(heads,[v]));
+if(horse<0||day<0||laps.every(x=>x<0))throw Error(type+'：馬名・調教日・時計列がありません');
+for(const r of csv.slice(1)){
+const name=nameKey(r[horse]),d=date(r[day]);if(!name||!d||d>=cutoff)continue;
+const clock=laps.map(i=>i<0?null:number(r[i]));
+if(clock.every(v=>v===null))continue;
+const a={date:d,type,trainer:trainer<0?'':nameKey(r[trainer]),course:course<0?'':String(r[course]||''),clock};
+if(!samples.has(name))samples.set(name,[]);samples.get(name).push(a);total++;
+}
+}
+for(const a of samples.values())a.sort((x,y)=>y.date.localeCompare(x.date)||x.type.localeCompare(y.type));
+return {samples,issues,total};
+}
+function trainingForHorse(training,h){
+const found=training.samples.get(nameKey(h[1]))||[];
+const expected=nameKey(h[9]?.trainer);
+const matched=found.filter(x=>!expected||!x.trainer||expected===x.trainer);
+const excluded=found.length-matched.length;
+const results=[];
+for(const type of ['ウッド','坂路']){
+const byType=matched.filter(x=>x.type===type);
+if(!byType.length){results.push(type+'：照合記録なし');continue;}
+const a=byType[0];
+const clocks=a.clock.map((v,i)=>['4F','3F','2F','1F'][i]+' '+(v===null?'―':v.toFixed(1))).join('／');
+const prev=byType.find(x=>x.date<a.date&&x.course===a.course&&x.clock[3]!==null);
+const delta=a.clock[3]!==null&&prev?+(a.clock[3]-prev.clock[3]).toFixed(1):null;
+results.push(type+'：'+a.date+' '+a.course+'｜'+clocks+'｜前回同コース1F比 '+(delta===null?'比較不可':(delta>0?'+':'')+delta.toFixed(1)+'秒')+'（'+byType.length+'記録）');
+}
+return {text:results.join('\n'),count:matched.length,excluded,trainerVerified:!!expected&&matched.every(x=>!!x.trainer),has:matched.length>0};
+}
+
 async function market(race){
 const file=$('v96Single')?.files?.[0];if(!file)return {available:false,byNumber:new Map(),medians:new Map()};
 if(!window.v87Bridge?.decodeCSV)throw Error('単複CSVパーサがありません');
@@ -89,14 +133,14 @@ const x=audit,r=x?.race;if(!r||key(r)!==selected())throw Error('V90から同一�
 if(r.horse_count!==r.horses.length)throw Error('全頭数不一致');
 const required=['date','distance_m','finish_position','surface','corner_1','corner_4','field_size','race_id','source_status'];
 if(required.some(k=>!x.past_fields?.includes(k)))throw Error('過去走の必須列不足');
-const [gold,odds]=await Promise.all([official(r.date),market(r)]);
+const [gold,odds,training]=await Promise.all([official(r.date),market(r),rawTraining(r.date)]);
 if(audit!==x||key(r)!==selected())throw Error('CSV読込中にレースが変更されました。旧結果を破棄します');
 const table=element('table');
 const mobileCards=element('div');mobileCards.className='v107MobileCards';
 addRow(table,['馬番・馬名','走歴・直近5走3着内','今回同距離3着内','過去の位置変化','前走失速×今回短縮','正式黄金SOURCE','メジアン重複（参考）','単勝','資料状態'],true);
-let goldYes=0,overlap=0,missing=0;
+let goldYes=0,overlap=0,missing=0,trainingCovered=0;
 for(const horse of [...r.horses].sort((a,b)=>a[0]-b[0])){
-const z=factors(horse,x.past_fields,r),flag=gold.byName.get(nameKey(horse[1])),matched=flag?GOLD.filter((_,i)=>flag[i]):[],m=odds.medians.get(horse[0])||[],price=odds.byNumber.get(horse[0]);
+const z=factors(horse,x.past_fields,r),raw=trainingForHorse(training,horse);if(raw.has)trainingCovered++;const flag=gold.byName.get(nameKey(horse[1])),matched=flag?GOLD.filter((_,i)=>flag[i]):[],m=odds.medians.get(horse[0])||[],price=odds.byNumber.get(horse[0]);
 if(matched.length)goldYes++;
 const evidence=['同距離好走','位置変化','黄金'].filter(a=>a==='同距離好走'?z.sameTop>0:a==='位置変化'?z.frontDrop>0||z.move>0:matched.length>0);
 if(evidence.length>=2)overlap++;
@@ -115,6 +159,7 @@ const fieldsForCard=[
 ['同芝ダ・同距離',z.sameTop+'/'+z.sameN+'走が3着内'],
 ['過去の位置変化','先行→後退 '+z.frontDrop+'回／道中進出 '+z.move+'回'],
 ['前走失速×今回短縮',z.cutFront?'該当':z.cut?'短縮のみ':'該当なし'],
+['生調教（実測・正式黄金判定とは別）',raw.text],
 ['正式黄金SOURCE',!gold.available?'未入力（陰性ではない）':!flag?'照合なし（陰性とは未確定）':matched.join('／')||'入力SOURCE上フラグ陽性なし'],
 ['単勝・メジアン',price?price.win.toFixed(1)+'倍／'+(m.join('・')||'該当なし'):'単勝市場未入力'],
 ['未確認事項',sources.join('／')||'最終の期待値・馬体重は未確認']
@@ -123,7 +168,7 @@ for(const [label,value] of fieldsForCard){const field=element('p');const bold=el
 mobileCards.append(card);
 }
 const scroll=element('div');scroll.className='scroll v107WideTable';scroll.append(table);root.append(scroll);root.append(mobileCards);
-status.textContent=r.date+' '+r.venue+r.race_no+'R 全'+r.horse_count+'頭を横断表示。正式黄金フラグ陽性'+goldYes+'頭／過去走・位置変化・黄金のうち2領域以上で観測'+overlap+'頭／資料不足'+missing+'頭。単勝市場：'+(odds.available?odds.time:'未入力')+'。重複は探索用であり、独立性のない因子を加点しません。能力勝率・期待値・最終調教/馬体重/オッズ未照合のため馬券HOLD。';
+status.textContent=r.date+' '+r.venue+r.race_no+'R 全'+r.horse_count+'頭を横断表示。正式黄金フラグ陽性'+goldYes+'頭／過去走・位置変化・黄金のうち2領域以上で観測'+overlap+'頭／生調教照合'+trainingCovered+'頭／資料不足'+missing+'頭。単勝市場：'+(odds.available?odds.time:'未入力')+'。調教は実測の時計と前回同コース比を表示し、正式黄金SOURCEとは別扱いです。重複の独立加点はせず、能力勝率・期待値・馬体重/直前オッズ未照合のため馬券HOLD。';
 }catch(e){status.textContent='HOLD：'+e.message}finally{button.disabled=false}
 });
 })();
