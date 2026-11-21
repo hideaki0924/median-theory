@@ -5,6 +5,7 @@ on:
     paths:
       - "research-ai/odds-live/targets.json"
       - "research-ai/scripts/fetch_netkeiba_odds.py"
+      - "research-ai/scripts/fetch_sportsnavi_odds.py"
       - ".github/workflows/public-odds.yml"
   schedule:
     # 09:00-17:59 JST Sat/Sun, roughly once every 10 minutes.
