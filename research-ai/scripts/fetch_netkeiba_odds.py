@@ -72,14 +72,13 @@ def parse_api(payload, race_id, now=None):
             "odds":entries, "horse_count":len(entries),
             "note":"Public netkeiba odds; not JRA official. Check full field and capture time before use."}
 
-def fetch(race_id):
+def fetch(race_id, action="init"):
     if not VALID_ID.fullmatch(race_id) or race_id[4:6] not in VENUES:
         raise ValueError("invalid JRA race ID")
     query = urllib.parse.urlencode({"race_id": race_id, "type":"1",
-                                    "action":"update","sort":"odds","compress":"0",
-                                    "output":"json"})
+                                    "action":action})
     req = urllib.request.Request(API+"?"+query, headers={
-        "User-Agent":"Mozilla/5.0 (compatible; RacingResearch/1.0)",
+        "User-Agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
         "Referer":"https://race.netkeiba.com/odds/index.html?race_id="+race_id,
         "Accept":"application/json, text/javascript, */*"})
     with urllib.request.urlopen(req, timeout=18) as resp:
@@ -107,14 +106,29 @@ def main():
             raise ValueError("invalid race_id")
         path = FEED/(race_id+".json")
         try:
-            item = fetch(race_id)
+            try:
+                item = fetch(race_id, "init")
+            except Exception:
+                item = fetch(race_id, "update")
             item["date"] = config.get("race_dates", {}).get(race_id, "")
             # Only overwrite if the provider yielded usable odds.
             path.write_text(json.dumps(item, ensure_ascii=False, indent=2)+"\n",encoding="utf8")
             print(race_id, item["status"], len(item["odds"]), item["official_datetime"])
             any_good = True
-        except (Exception) as ex:
+        except Exception as ex:
+            # Never invent odds; publish an error record to avoid unexplained 404.
             print(race_id,"UNAVAILABLE",type(ex).__name__,str(ex)[:200],file=sys.stderr)
+            if not path.exists():
+                record = {
+                    "schema": "NETKEIBA_LIVE_ODDS_V1",
+                    "race_id": race_id,
+                    "date": config.get("race_dates", {}).get(race_id, ""),
+                    "status": "unavailable",
+                    "fetched_at": dt.datetime.now(JST).isoformat(timespec="seconds"),
+                    "horse_count": 0, "odds": [],
+                    "reason": type(ex).__name__ + ": " + str(ex)[:180]
+                }
+                path.write_text(json.dumps(record, ensure_ascii=False, indent=2) + "\n", encoding="utf8")
     return 0 if any_good else 0  # Action may have no new odds; keep previous snapshot with original timestamp.
 
 if __name__ == "__main__":
