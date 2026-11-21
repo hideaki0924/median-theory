@@ -13,6 +13,7 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
+from fetch_sportsnavi_odds import fetch as sportsnavi_fetch
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 FEED = ROOT / "odds-live"
@@ -108,8 +109,15 @@ def main():
         try:
             try:
                 item = fetch(race_id, "init")
-            except Exception:
-                item = fetch(race_id, "update")
+            except Exception as first_error:
+                try:
+                    item = fetch(race_id, "update")
+                except Exception as second_error:
+                    try:
+                        item = sportsnavi_fetch(race_id)
+                        print(race_id, "SPORTSNAVI_BACKUP", item["status"], len(item["odds"]))
+                    except Exception as third_error:
+                        raise ValueError("netkeiba=" + str(second_error)[:110] + "; SportsNavi=" + str(third_error)[:120]) from third_error
             item["date"] = config.get("race_dates", {}).get(race_id, "")
             # Only overwrite if the provider yielded usable odds.
             path.write_text(json.dumps(item, ensure_ascii=False, indent=2)+"\n",encoding="utf8")
