@@ -1,12 +1,18 @@
 {
   "race_ids": [
-    "202608050505"
+    "202608050505",
+    "202608050601",
+    "202605050501"
   ],
-  "comment": "User supplied Kyoto 5R 2026-11-21. Only public odds, never private TARGET data.",
+  "comment": "Verified Nov21 Kyoto5 historical and Nov22 Kyoto1/Tokyo1 forward watches. Public odds only; no private TARGET/training uploads.",
   "race_dates": {
-    "202608050505": "2026-11-21"
+    "202608050505": "2026-11-21",
+    "202608050601": "2026-11-22",
+    "202605050501": "2026-11-22"
   },
   "race_start_times": {
-    "202608050505": "2026-11-21T12:20:00+09:00"
+    "202608050505": "2026-11-21T12:20:00+09:00",
+    "202608050601": "2026-11-22T10:05:00+09:00",
+    "202605050501": "2026-11-22T09:50:00+09:00"
   }
 }
