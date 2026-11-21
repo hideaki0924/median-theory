@@ -119,6 +119,21 @@ def main():
                     except Exception as third_error:
                         raise ValueError("netkeiba=" + str(second_error)[:110] + "; SportsNavi=" + str(third_error)[:120]) from third_error
             item["date"] = config.get("race_dates", {}).get(race_id, "")
+            # A bookmaker timestamp after scheduled start is never pre-race evidence.
+            official_raw = item.get("official_datetime", "")
+            off_raw = config.get("race_start_times", {}).get(race_id)
+            if off_raw and official_raw:
+                try:
+                    quote_at = dt.datetime.fromisoformat(official_raw.replace(" ", "T"))
+                    quote_at = quote_at.replace(tzinfo=JST) if quote_at.tzinfo is None else quote_at
+                    off_at = dt.datetime.fromisoformat(off_raw)
+                    if quote_at > off_at:
+                        item["status"] = "post_start"
+                        item["note"] = "Odds timestamp is later than race scheduled start; research display ONLY, not pre-race analysis."
+                except ValueError:
+                    item["status"] = "unverified_time"
+                    item["note"] = "Unable to verify odds timestamp relative to scheduled start."
+            item["race_start_at"] = off_raw or ""
             # Only overwrite if the provider yielded usable odds.
             path.write_text(json.dumps(item, ensure_ascii=False, indent=2)+"\n",encoding="utf8")
             print(race_id, item["status"], len(item["odds"]), item["official_datetime"])
