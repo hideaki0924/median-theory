@@ -624,7 +624,7 @@ window.addEventListener('horseAuditCompleted',e=>{audited=e.detail.result;render
 })();
 </script>
 
-<section class="card" id="twinTraining"><h2>⑳ 双子調教｜確定式による類似度照合</h2>
+<section class="card" id="twinTraining"><h2>⑳ 双子調教｜確定式による類似度照合（旧・手入力研究画面）</h2><p class="warn">⚠️ この画面は旧研究用の手入力欄です。統合ファイルで分析する場合、ここには貼り付け不要。上部の「統合データで分析」→V107の馬別カード内「生調教」から双子原点式の実測ラップ形状差を確認してください。過去好走調教との正式双子照合は別途SOURCEが必要です。</p>
 <p class="muted">確定済み原点式 D = √(0.2ΔL4² + 0.5ΔL3² + 1.0ΔL2² + 1.2ΔL1²) を変更せず使用。L4〜L1の単位・定義が揃う坂路時計だけを比較します。Dが小さいほど形状が近いことを示しますが、好走確率や買い判定ではありません。</p>
 <details><summary>CSV入力形式・サンプル</summary><p class="muted">必須列：horse_name,date,L4,L3,L2,L1,role。roleは current（今回）または reference（過去好走時の調教）。任意列：horse_id,course,source,reference_finish_position。referenceは今回より前の日付に限定。時計の区間定義・計測コースが違う記録は比較しません。サンプルは架空データです。</p><button type="button" id="twinDemo">架空サンプルを入力</button></details>
 <textarea id="twinCsv" spellcheck="false" placeholder="horse_name,date,L4,L3,L2,L1,role,horse_id,course,source,reference_finish_position"></textarea>
