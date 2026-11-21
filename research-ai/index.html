@@ -7,9 +7,9 @@
 <div class="warn" id="bundleStatus" aria-live="polite">統合データ未選択。まず私が作成したHORSE_RESEARCH_BUNDLE_V1のJSONを選んでください。</div>
 <p class="muted">このファイルはブラウザの端末内で処理し、GitHubにアップロードしません。統合ファイルにないレースは選択できません。</p>
 </section><p><button type="button" id="legacyToggle" onclick="document.body.classList.toggle(&quot;showLegacy&quot;);this.textContent=document.body.classList.contains(&quot;showLegacy&quot;)?&quot;旧入力欄・研究詳細を閉じる&quot;:&quot;旧入力欄・研究詳細を開く（必要な場合のみ）&quot;">旧入力欄・研究詳細を開く（必要な場合のみ）</button></p><section class="card" id="liveOdds" style="border:2px solid #9ac9ff;background:#182d46">
-<h2>📈 発走前オッズ｜netkeibaのURLで更新</h2>
-<p class="muted">統合データを読み込んでレースを選んだ後、netkeibaの出馬表URLを指定。GitHub側で取得できた単勝・複勝上限を検証して、全頭一致かつ取得30分以内のときだけメジアン分析へ反映します。予想オッズで代用しません。</p>
-<p><label for="liveOddsUrl">オッズを確認するレースURL</label><input id="liveOddsUrl" type="url" style="width:100%;box-sizing:border-box;font-size:15px" value="https://race.sp.netkeiba.com/race/shutuba.html?race_id=202608050505&amp;rf=live"></p>
+<h2>📈 発走前オッズ｜レース選択から自動照合</h2>
+<p class="muted">統合データから選んだレースの正式IDを自動設定します（確認済みの開催日）。GitHub側で取得できた単複を、全頭一致・原典時刻・発走前の条件で検証し、条件を満たした場合のみメジアンへ反映します。オッズ未取得・発走後は参考表示またはHOLD。予想オッズで代用しません。</p>
+<p><label for="liveOddsUrl">正式ID未登録のときだけレースURLを入力（通常は不要）</label><input id="liveOddsUrl" type="url" style="width:100%;box-sizing:border-box;font-size:15px" value="https://race.sp.netkeiba.com/race/shutuba.html?race_id=202608050505&amp;rf=live"></p>
 <p><button type="button" id="liveOddsRefresh">単勝・複勝オッズを取得して分析に反映</button></p>
 <div id="liveOddsStatus" class="warn" aria-live="polite">未取得。まず上で対象レースの統合分析を実行してください。自動取得が成功していない場合はHOLDになります。</div><div id="liveOddsRows" class="scroll"></div>
 <p class="muted">netkeibaのオッズ公開APIをサーバー側で確認する方式です。サイト側の制限・更新遅延により取得できない場合があります。JRA公式確定値ではありません。</p>
@@ -2734,4 +2734,4 @@ $('v88Build').click();$('v88NameBridge').scrollIntoView({behavior:'smooth'});
 }
 $('v90Load').addEventListener('click',load);
 })();
-</script><script src="./training-v91.js"></script><script src="./training-v92-official.js"></script><script src="./ability-training-v93.js"></script><script src="./pace-fatigue-v94.js"></script><script src="./evidence-dashboard-v95.js"></script><script src="./market-median-v96.js"></script><script src="./preflight-v98.js"></script><script src="./shared-import-v99.js"></script><script src="./race-safety-v100.js"></script><script src="./full-career-v102.js"></script><script src="./horse-cards-v103.js"></script><script src="./ability-conditions-v104.js"></script><script src="./condition-recovery-v105.js"></script><script src="./position-turn-v106.js"></script><script src="./cross-evidence-v107.js"></script><script src="./quick-launch.js"></script><script src="./single-bundle-import.js"></script><script src="./live-odds-v108.js"></script><script src="./wood-scout-v109.js"></script></body></html>
+</script><script src="./training-v91.js"></script><script src="./training-v92-official.js"></script><script src="./ability-training-v93.js"></script><script src="./pace-fatigue-v94.js"></script><script src="./evidence-dashboard-v95.js"></script><script src="./market-median-v96.js"></script><script src="./preflight-v98.js"></script><script src="./shared-import-v99.js"></script><script src="./race-safety-v100.js"></script><script src="./full-career-v102.js"></script><script src="./horse-cards-v103.js"></script><script src="./ability-conditions-v104.js"></script><script src="./condition-recovery-v105.js"></script><script src="./position-turn-v106.js"></script><script src="./cross-evidence-v107.js"></script><script src="./quick-launch.js"></script><script src="./single-bundle-import.js"></script><script src="./race-id-v111.js"></script><script src="./live-odds-v108.js"></script><script src="./wood-scout-v109.js"></script></body></html>
