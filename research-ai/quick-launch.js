@@ -48,7 +48,7 @@ const msg=$('v88Status')?.textContent||'';
 if(msg.startsWith('HOLD')||!$('v88Build')?.disabled){
 cancel();state.textContent='HOLD：'+(msg||'全頭台帳を受信できませんでした。出馬表・TARGET CSVを確認してください。');
 }
-},12000);
+},60000);
 }catch(e){cancel();state.textContent='HOLD：'+e.message;}
 });
 $('quickLineup')?.addEventListener('paste',()=>{state.textContent='馬番・馬名を貼り付けました。全頭が含まれているか確認してください。';});
