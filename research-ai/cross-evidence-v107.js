@@ -92,6 +92,7 @@ if(required.some(k=>!x.past_fields?.includes(k)))throw Error('過去走の必須
 const [gold,odds]=await Promise.all([official(r.date),market(r)]);
 if(audit!==x||key(r)!==selected())throw Error('CSV読込中にレースが変更されました。旧結果を破棄します');
 const table=element('table');
+const mobileCards=element('div');mobileCards.className='v107MobileCards';
 addRow(table,['馬番・馬名','走歴・直近5走3着内','今回同距離3着内','過去の位置変化','前走失速×今回短縮','正式黄金SOURCE','メジアン重複（参考）','単勝','資料状態'],true);
 let goldYes=0,overlap=0,missing=0;
 for(const horse of [...r.horses].sort((a,b)=>a[0]-b[0])){
@@ -105,8 +106,23 @@ if(!gold.available)sources.push('調教SOURCE未入力');else if(!flag)sources.p
 if(!odds.available)sources.push('単複市場未入力');
 if(sources.length)missing++;
 addRow(table,[horse[0]+' '+horse[1],z.hist+'走・'+z.top5+'/'+z.denom,z.sameTop+'/'+z.sameN,'先行→後退'+z.frontDrop+'／道中進出'+z.move,z.cutFront?'観測あり':z.cut?'短縮のみ':'該当なし',!gold.available?'未入力':!flag?'照合なし':matched.join('／')||'フラグ陽性なし',m.length?m.join('／'):'該当なし',price?price.win.toFixed(1)+'倍':'未入力',sources.join('／')||'情報あり・期待値HOLD']);
+const card=element('details');card.className='v107MobileHorse';
+const summary=element('summary',horse[0]+'番 '+horse[1]+'｜過去'+z.hist+'走｜同距離3着内'+z.sameTop+'回');
+card.append(summary);
+const evidenceLine=element('p',evidence.length?'観測材料：'+evidence.join('・'):'条件が重なる好走材料は未確認');evidenceLine.className='v107Highlight';card.append(evidenceLine);
+const fieldsForCard=[
+['過去走',z.hist+'走／直近5走の3着内 '+z.top5+'/'+z.denom],
+['同芝ダ・同距離',z.sameTop+'/'+z.sameN+'走が3着内'],
+['過去の位置変化','先行→後退 '+z.frontDrop+'回／道中進出 '+z.move+'回'],
+['前走失速×今回短縮',z.cutFront?'該当':z.cut?'短縮のみ':'該当なし'],
+['正式黄金SOURCE',!gold.available?'未入力（陰性ではない）':!flag?'照合なし（陰性とは未確定）':matched.join('／')||'入力SOURCE上フラグ陽性なし'],
+['単勝・メジアン',price?price.win.toFixed(1)+'倍／'+(m.join('・')||'該当なし'):'単勝市場未入力'],
+['未確認事項',sources.join('／')||'最終の期待値・馬体重は未確認']
+];
+for(const [label,value] of fieldsForCard){const field=element('p');const bold=element('strong',label+'：');field.append(bold,document.createTextNode(value));card.append(field)}
+mobileCards.append(card);
 }
-const scroll=element('div');scroll.className='scroll';scroll.append(table);root.append(scroll);
+const scroll=element('div');scroll.className='scroll v107WideTable';scroll.append(table);root.append(scroll);root.append(mobileCards);
 status.textContent=r.date+' '+r.venue+r.race_no+'R 全'+r.horse_count+'頭を横断表示。正式黄金フラグ陽性'+goldYes+'頭／過去走・位置変化・黄金のうち2領域以上で観測'+overlap+'頭／資料不足'+missing+'頭。単勝市場：'+(odds.available?odds.time:'未入力')+'。重複は探索用であり、独立性のない因子を加点しません。能力勝率・期待値・最終調教/馬体重/オッズ未照合のため馬券HOLD。';
 }catch(e){status.textContent='HOLD：'+e.message}finally{button.disabled=false}
 });
