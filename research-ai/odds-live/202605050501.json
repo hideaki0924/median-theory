@@ -1,0 +1,10 @@
+{
+  "schema": "NETKEIBA_LIVE_ODDS_V1",
+  "race_id": "202605050501",
+  "date": "2026-11-22",
+  "status": "unavailable",
+  "fetched_at": "2026-11-21T17:56:09+09:00",
+  "horse_count": 0,
+  "odds": [],
+  "reason": "ValueError: netkeiba=netkeiba API status='yoso' reason='history odds empty'; SportsNavi=win/place labels missing"
+}
