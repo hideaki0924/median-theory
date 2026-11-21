@@ -41,12 +41,14 @@ if(!csv?.length){issues.push(type+'CSV空');continue;}
 const heads=csv[0].map(v=>String(v??'').replace(/^\uFEFF/,'').trim());
 const horse=idx(heads,['馬名','horse_name','horse','name']),day=idx(heads,['年月日','日付','調教日','date','workout_date']),trainer=idx(heads,['調教師','trainer']),course=idx(heads,['コース','course']);
 const laps=['4F','3F','2F','1F'].map(v=>idx(heads,[v]));
+const intervalLaps=['L4','L3','L2','L1'].map(v=>idx(heads,[v,'lap'+v.slice(1)]));
 if(horse<0||day<0||laps.every(x=>x<0))throw Error(type+'：馬名・調教日・時計列がありません');
 for(const r of csv.slice(1)){
 const name=nameKey(r[horse]),d=date(r[day]);if(!name||!d||d>=cutoff)continue;
 const clock=laps.map(i=>i<0?null:number(r[i]));
 if(clock.every(v=>v===null))continue;
-const a={date:d,type,trainer:trainer<0?'':nameKey(r[trainer]),course:course<0?'':String(r[course]||''),clock};
+const interval=intervalLaps.map(i=>i<0?null:number(r[i]));
+const a={date:d,type,trainer:trainer<0?'':nameKey(r[trainer]),course:course<0?'':String(r[course]||''),clock,interval};
 if(!samples.has(name))samples.set(name,[]);samples.get(name).push(a);total++;
 }
 }
@@ -68,6 +70,13 @@ const prev=byType.find(x=>x.date<a.date&&x.course===a.course&&x.clock[3]!==null)
 const delta=a.clock[3]!==null&&prev?+(a.clock[3]-prev.clock[3]).toFixed(1):null;
 results.push(type+'：'+a.date+' '+a.course+'｜'+clocks+'｜前回同コース1F比 '+(delta===null?'比較不可':(delta>0?'+':'')+delta.toFixed(1)+'秒')+'（'+byType.length+'記録）');
 }
+const hill=matched.filter(x=>x.type==='坂路'&&x.interval?.length===4&&x.interval.every(v=>v!==null&&v>0));
+const latest=hill[0],prior=hill.find(x=>latest&&x.date<latest.date&&x.course===latest.course);
+if(latest&&prior){
+const delta=latest.interval.map((v,i)=>v-prior.interval[i]);
+const D=Math.sqrt(0.2*delta[0]**2+0.5*delta[1]**2+1.0*delta[2]**2+1.2*delta[3]**2);
+results.push('双子原点式D：'+D.toFixed(3)+'（'+latest.date+'対'+prior.date+'、同馬・同コースの実測ラップ形状差）。過去好走調教との照合ではないため、双子「陽性」とは判定不可。');
+}else results.push('双子原点式：同コース・別日・L4〜L1がそろう坂路2記録がないため比較不可。正式好走基準未照合。');
 return {text:results.join('\n'),count:matched.length,excluded,trainerVerified:!!expected&&matched.every(x=>!!x.trainer),has:matched.length>0};
 }
 
