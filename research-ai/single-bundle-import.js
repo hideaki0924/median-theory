@@ -58,6 +58,9 @@ const missing=[];
 for(const name of accepted){const content=item[name];for(const id of targets[name]){const target=$(id);if(!target)continue;if(typeof content==='string'&&content.trim()){const dt=new DataTransfer();dt.items.add(new File([content],fileName[name],{type:'text/csv'}));target.files=dt.files;}else{target.value='';missing.push(name);}}}
 window.dispatchEvent(new CustomEvent('v86-upcoming-import',{detail:d}));
 for(const id of study){const b=$(id);if(b&&!b.disabled)b.click()}
+// Public odds refresh is separate and asynchronous; it never uploads bundle data.
+// Only attempt when verified race-ID mapping exists; URL input remains fallback.
+if(window.v111RaceId?.resolve(r))$('liveOddsRefresh')?.click();
 busy(r.date+' '+r.venue+r.race_no+'R／'+r.horse_count+'頭の研究監査を起動しました。不足SOURCE：'+([...new Set(missing)].join('、')||'なし')+'。分析結果を下のV107・V103で確認。直前情報・勝率・期待値が未検証なら馬券HOLD。');
 $('v107Cross')?.scrollIntoView({behavior:'smooth'});
 }catch(e){busy('HOLD：'+e.message)}finally{go.disabled=false}
