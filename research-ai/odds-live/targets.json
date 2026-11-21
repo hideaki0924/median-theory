@@ -2,5 +2,8 @@
   "race_ids": [
     "202608050505"
   ],
-  "comment": "User supplied Kyoto 5R 2026-11-21. Only public odds, never private TARGET data."
+  "comment": "User supplied Kyoto 5R 2026-11-21. Only public odds, never private TARGET data.",
+  "race_dates": {
+    "202608050505": "2026-11-21"
+  }
 }
