@@ -197,7 +197,7 @@ for(const [label,value] of fieldsForCard){const field=element('p');const bold=el
 mobileCards.append(card);
 }
 const scroll=element('div');scroll.className='scroll v107WideTable';scroll.append(table);root.append(scroll);root.append(mobileCards);
-status.textContent=r.date+' '+r.venue+r.race_no+'R 全'+r.horse_count+'頭を横断表示。10/31〜11/13の過去黄金SOURCEフラグ該当'+goldYes+'頭／過去走・位置変化・過去黄金SOURCEのうち2領域以上で観測'+overlap+'頭／生調教照合'+trainingCovered+'頭／WOOD SCOUT固定式再計算'+scoutCovered+'頭・該当'+scoutPositive+'頭／資料不足'+missing+'頭。単勝市場：'+(odds.available?odds.time:'未入力')+'。過去黄金SOURCEは10/31〜11/13の記録で11/14以降の最新正式判定ではありません。生調教の時計と前回同コース比は別扱いです。重複の独立加点はせず、能力勝率・期待値・馬体重/直前オッズ未照合のため馬券HOLD。';
+status.textContent=r.date+' '+r.venue+r.race_no+'R 全'+r.horse_count+'頭を横断表示。10/31〜11/13の過去黄金SOURCEフラグ該当'+goldYes+'頭／過去走・位置変化・過去黄金SOURCEのうち2領域以上で観測'+overlap+'頭／生調教照合'+trainingCovered+'頭／WOOD SCOUT固定式再計算'+scoutCovered+'頭・該当'+scoutPositive+'頭／資料不足'+missing+'頭。単勝市場：'+(odds.available?odds.time:'未入力')+'。過去黄金SOURCEは10/31〜11/13の記録で11/14以降の最新正式判定ではありません。生調教の前回1F差は、4F全体の時計・コースの回り・追い切り負荷が一致するか未確認の参考値です。重複の独立加点はせず、能力勝率・期待値・馬体重/直前オッズ未照合のため馬券HOLD。';
 }catch(e){status.textContent='HOLD：'+e.message}finally{button.disabled=false}
 });
 })();
