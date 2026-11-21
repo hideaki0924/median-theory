@@ -87,6 +87,14 @@ values.forEach(v=>td(tr,asText(v)));table.append(tr);
 }
 if(!past.length)details.append(elem('p','過去走なし（新馬か履歴未取得かは別途確認）。'));
 else{scroll.append(table);details.append(scroll);}
+const supplement=Array.isArray(career.supplementary_prior_runs)?career.supplementary_prior_runs:[];
+if(supplement.length){
+details.append(elem('p','保存済み補助過去走 '+supplement.length+'件（正式レースID・時計・通過順が欠損。上の正式ID照合済み10走には加算しません）'));
+const wrap=elem('div');wrap.className='scroll';const extraTable=elem('table');
+const th=elem('tr');['日付','競馬場','芝ダ','距離','クラス','着順','SOURCE着差補正','出典状態'].forEach(c=>td(th,c,true));extraTable.append(th);
+for(const x of supplement){const tr=elem('tr');[x.date,x.venue,x.surface,x.distance_m,x.class_name,x.finish_position,x.margin_corrected_source,'部分SOURCE：時計・通過順・レースID不足'].forEach(v=>td(tr,asText(v)));extraTable.append(tr);}
+wrap.append(extraTable);details.append(wrap);
+}
 fragment.append(details);
 }
 root.append(fragment);
