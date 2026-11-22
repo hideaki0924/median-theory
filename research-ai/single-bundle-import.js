@@ -66,6 +66,28 @@ catch(e){busy('端末保存データを復元できません：'+e.message+'。�
 const clearButton=document.createElement('button');clearButton.type='button';clearButton.id='bundleForget';clearButton.textContent='この端末の保存データを消去';clearButton.style.background='#33465c';clearButton.style.color='#edf5ff';clearButton.style.fontSize='13px';
 clearButton.addEventListener('click',async()=>{if(!window.confirm('この端末に保存した統合データを消去しますか？ 公開GitHub上のデータには影響しません。'))return;try{await cacheDelete();bundle=null;go.disabled=true;input.value='';clearSelect(venue);clearSelect(race);busy('端末保存データを消去しました。次回利用時は統合JSONを読み込んでください。');}catch(e){busy('削除できません：'+e.message)}});
 status.parentElement.append(clearButton);
+/* V35 additive, factual pre-race horse cards. No scoring, no new research rule. */
+const facts=document.createElement('section');facts.id='v35Facts';facts.setAttribute('aria-label','全頭過去走・調教基礎因子');
+facts.style.cssText='margin:14px 0;padding:12px;border:1px solid #58708b;border-radius:8px;background:#142234;color:#eef3f8;max-width:100%;overflow:auto';
+facts.hidden=true;status.parentElement.append(facts);
+function renderFacts(item){
+facts.replaceChildren();const r=item.data.race;
+const title=document.createElement('h3');title.textContent='V35 過去走×調教：'+r.venue+r.race_no+'R／全'+r.horses.length+'頭';facts.append(title);
+const note=document.createElement('p');note.textContent='発走前の実測・履歴のみ。双子／黄金調教の正式判定、勝率、購入判断ではありません。調教の馬ID未検証一致を確定扱いしません。';facts.append(note);
+const tbl=document.createElement('table');tbl.style.cssText='border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap';
+const names=['馬番','馬名','過去走','同距離','3着内','着差0.8秒以内','前走4角','前走着順','調教','坂路終い1F'];
+const tr=document.createElement('tr');for(const n of names){const th=document.createElement('th');th.textContent=n;th.style.cssText='border-bottom:1px solid #58708b;padding:6px;text-align:left';tr.append(th)}tbl.append(tr);
+const key=(x,k)=>x?.[k]??'';
+for(const h of r.horses){
+const m=h[9]||{},a=m.v35_factual_feature_card;
+if(!a)continue;
+const obs=m.training_20261121||[];let best=null;for(const w of obs)for(const t of w.hill||[]){const v=Number(t.Lap1);if(Number.isFinite(v)&&v>=9&&v<=35)best=best==null?v:Math.min(best,v)}
+const vals=[h[0],h[1],key(a,'過去走件数'),key(a,'同距離走数'),key(a,'直近7走3着以内回数'),key(a,'直近7走着差0.8秒以内回数'),key(a,'前走4角'),key(a,'前走着順'),m.training_status==='ID_VERIFIED_WOOD'?'馬ID検証':m.training_status==='NAME_TRAINER_MATCH_ID_UNVERIFIED'?'馬名＋厩舎':'未取得',best==null?'—':best.toFixed(1)];
+const row=document.createElement('tr');for(const v of vals){const td=document.createElement('td');td.textContent=String(v===''?'—':v);td.style.cssText='border-bottom:1px solid #304157;padding:5px';row.append(td)}tbl.append(row)
+}
+facts.append(tbl);facts.hidden=!tbl.querySelector('td');
+}
+
 venue.addEventListener('change',selection);
 go.addEventListener('click',()=>{
 if(!bundle)return busy('HOLD：統合データ未選択');
@@ -79,6 +101,7 @@ for(const id of ['v90Date','v90Venue','v90Race'])$(id)?.dispatchEvent(new Event(
 const missing=[];
 for(const name of accepted){const content=item[name];for(const id of targets[name]){const target=$(id);if(!target)continue;if(typeof content==='string'&&content.trim()){const dt=new DataTransfer();dt.items.add(new File([content],fileName[name],{type:'text/csv'}));target.files=dt.files;}else{target.value='';missing.push(name);}}}
 window.dispatchEvent(new CustomEvent('v86-upcoming-import',{detail:d}));
+renderFacts(item);
 for(const id of study){const b=$(id);if(b&&!b.disabled)b.click()}
 // Public odds refresh is separate and asynchronous; it never uploads bundle data.
 // Only attempt when verified race-ID mapping exists; URL input remains fallback.
