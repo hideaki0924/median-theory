@@ -1,0 +1,120 @@
+{
+  "schema": "NETKEIBA_LIVE_ODDS_V1",
+  "race_id": "202605050510",
+  "source": "sports_yahoo_co_jp",
+  "source_url": "https://sports.yahoo.co.jp/keiba/race/odds/tfw/2605050510",
+  "fetched_at": "2026-11-22T14:03:39+09:00",
+  "official_datetime": "2026-11-22 14:03:00",
+  "odds": [
+    {
+      "horse_number": 1,
+      "horse_name": "トラペジスト",
+      "win_odds": 46.4,
+      "place_lower": 7.5,
+      "place_upper": 11.6
+    },
+    {
+      "horse_number": 2,
+      "horse_name": "アルトゥーム",
+      "win_odds": 17.0,
+      "place_lower": 3.0,
+      "place_upper": 4.5
+    },
+    {
+      "horse_number": 3,
+      "horse_name": "ビップディラン",
+      "win_odds": 9.1,
+      "place_lower": 2.8,
+      "place_upper": 4.2
+    },
+    {
+      "horse_number": 4,
+      "horse_name": "ガリレア",
+      "win_odds": 12.0,
+      "place_lower": 3.3,
+      "place_upper": 5.0
+    },
+    {
+      "horse_number": 5,
+      "horse_name": "ジッピーチューン",
+      "win_odds": 3.5,
+      "place_lower": 1.6,
+      "place_upper": 2.0
+    },
+    {
+      "horse_number": 6,
+      "horse_name": "ウフドゥウフ",
+      "win_odds": 3.8,
+      "place_lower": 1.4,
+      "place_upper": 1.6
+    },
+    {
+      "horse_number": 7,
+      "horse_name": "ボーモンド",
+      "win_odds": 38.1,
+      "place_lower": 5.8,
+      "place_upper": 9.0
+    },
+    {
+      "horse_number": 8,
+      "horse_name": "フォルテム",
+      "win_odds": 28.3,
+      "place_lower": 4.8,
+      "place_upper": 7.4
+    },
+    {
+      "horse_number": 9,
+      "horse_name": "マルチャン",
+      "win_odds": 37.0,
+      "place_lower": 5.9,
+      "place_upper": 9.1
+    },
+    {
+      "horse_number": 10,
+      "horse_name": "レッドアトレーヴ",
+      "win_odds": 20.0,
+      "place_lower": 3.7,
+      "place_upper": 5.6
+    },
+    {
+      "horse_number": 11,
+      "horse_name": "プッシュオン",
+      "win_odds": 34.8,
+      "place_lower": 5.0,
+      "place_upper": 7.6
+    },
+    {
+      "horse_number": 12,
+      "horse_name": "コスモサガルマータ",
+      "win_odds": 10.7,
+      "place_lower": 2.8,
+      "place_upper": 4.2
+    },
+    {
+      "horse_number": 13,
+      "horse_name": "テウメッサ",
+      "win_odds": 75.4,
+      "place_lower": 13.5,
+      "place_upper": 21.0
+    },
+    {
+      "horse_number": 14,
+      "horse_name": "デンプシー",
+      "win_odds": 11.2,
+      "place_lower": 3.1,
+      "place_upper": 4.7
+    },
+    {
+      "horse_number": 15,
+      "horse_name": "ホウオウシェリー",
+      "win_odds": 12.5,
+      "place_lower": 3.0,
+      "place_upper": 4.4
+    }
+  ],
+  "horse_count": 15,
+  "status": "available",
+  "note": "SportsNavi intermediate odds (not JRA final). Source timestamp may be old.",
+  "date": "2026-11-22",
+  "race_start_at": "2026-11-22T14:45:00+09:00"
+}
