@@ -18,7 +18,9 @@ function installBundle(value,origin){bundle=readBundle(value);clearSelect(venue)
 const venues=[...new Set(bundle.races.map(x=>x.data.race.venue))];for(const v of venues)option(venue,v,v);
 if(bundle.races.length){venue.value=bundle.races[0].data.race.venue;selection();race.value=bundle.races[0].data.race.date+'|'+bundle.races[0].data.race.race_no;}
 go.disabled=false;
-busy(origin+'：'+bundle.races.length+'レース。競馬場・Rを選んで分析できます。個人データはこの端末内だけで保持します。');
+const settings=$('bundleSettings');if(settings)settings.open=false;
+busy(origin+'：'+bundle.races.length+'レースを読み込みました。');
+
 }
 function clearSelect(select){select.replaceChildren();}
 function option(select,value,label){const e=document.createElement('option');e.value=String(value);e.textContent=label;select.append(e);}
@@ -65,7 +67,7 @@ catch(e){busy('端末保存データを復元できません：'+e.message+'。�
 })();
 const clearButton=document.createElement('button');clearButton.type='button';clearButton.id='bundleForget';clearButton.textContent='この端末の保存データを消去';clearButton.style.background='#33465c';clearButton.style.color='#edf5ff';clearButton.style.fontSize='13px';
 clearButton.addEventListener('click',async()=>{if(!window.confirm('この端末に保存した統合データを消去しますか？ 公開GitHub上のデータには影響しません。'))return;try{await cacheDelete();bundle=null;go.disabled=true;input.value='';clearSelect(venue);clearSelect(race);busy('端末保存データを消去しました。次回利用時は統合JSONを読み込んでください。');}catch(e){busy('削除できません：'+e.message)}});
-status.parentElement.append(clearButton);
+$('bundleSettings')?.querySelector('.bundle-settings-inside')?.append(clearButton);
 
 
 /* Mobile race table V40 — presentation only; all historical research and calculation modules retained. */
@@ -159,7 +161,7 @@ dashboard.hidden=false;draw();
 venue.addEventListener('change',selection);
 race.addEventListener('change',()=>{const item=bundle?.races.find(x=>x.data.race.venue===venue.value&&x.data.race.date+'|'+x.data.race.race_no===race.value);if(item)renderFacts(item);});
 go.addEventListener('click',()=>{
-if(!bundle)return busy('HOLD：統合データ未選択');
+if(!bundle){$('bundleSettings').open=true;return busy('HOLD：統合データ未選択');}
 go.disabled=true;
 try{
 const item=bundle.races.find(x=>x.data.race.venue===venue.value&&x.data.race.date+'|'+x.data.race.race_no===race.value);
