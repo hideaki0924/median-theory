@@ -91,6 +91,13 @@ if(report){
 const p=document.createElement('p');p.textContent='V36 位置取り候補：前寄り'+report.front_candidate_n+'頭／中団'+report.middle_candidate_n+'頭／後方'+report.rear_candidate_n+'頭／過去位置情報不足'+report.position_insufficient_n+'頭。休み60日以上'+report.rest_60d_plus_n+'頭。これは過去走からの事実分類であり、正式なペース予測ではありません。';facts.insertBefore(p,tbl);
 const p2=document.createElement('p');p2.textContent='前寄り候補：'+(report.front_candidate_horses.length?report.front_candidate_horses.map(a=>a[0]+'番 '+a[1]).join('、'):'該当なし／情報不足に注意');facts.append(p2);
 }
+/* V37 original twin distances are diagnostic: never equate daily rank to V0.21 TT-S. */
+const twinSection=document.createElement('div');twinSection.style.cssText='padding:8px 0;margin-top:10px;border-top:1px solid #58708b';
+const twinTitle=document.createElement('h4');twinTitle.textContent='V37 双子調教・原点V0.10（当日CSVのみの参考判定）';twinSection.append(twinTitle);
+const twinInfo=document.createElement('p');twinInfo.textContent='原点式D=√(0.2ΔL4²+0.5ΔL3²+1.0ΔL2²+1.2ΔL1²)。11/21坂路2024有効セッションの上位101件を参考表示。V0.21 TT-Sや黄金正式型とは異なり、調教の馬ID未検証例を含みます。';twinSection.append(twinInfo);
+const twins=r.horses.map(h=>({h,t:h[9]?.v37_twin_origin_v010})).filter(x=>x.t?.best_origin?.top5_uploaded_day_research);
+const twinList=document.createElement('p');twinList.textContent=twins.length?twins.map(x=>x.h[0]+'番 '+x.h[1]+'／D='+x.t.best_origin.origin_mean_D.toFixed(3)+'・当日'+x.t.best_origin.full_uploaded_20261121_rank+'位'+(x.t.best_origin.strict_accel?'・連続加速':'・連続加速なし')).join('、'):'該当なし';twinSection.append(twinList);
+facts.append(twinSection);
 facts.hidden=!tbl.querySelector('td');
 }
 
