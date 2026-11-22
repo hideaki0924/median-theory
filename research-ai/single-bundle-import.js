@@ -81,6 +81,13 @@ function renderFacts(item){
 const r=item.data.race,hh=r.horses.slice().sort((a,b)=>Number(a[0])-Number(b[0]));
 const ix=Object.fromEntries(item.data.past_fields.map((f,i)=>[f,i]));
 dashboard.replaceChildren();
+const absentFeatures=r.horses.some(h=>!h[9]?.v35_factual_feature_card);
+if(absentFeatures){
+ const warning=document.createElement('div');warning.setAttribute('role','alert');warning.style.cssText='background:#4a321d;border:2px solid #f1bd61;color:#fff0cf;padding:12px;border-radius:10px;margin-bottom:10px;font-size:15px;line-height:1.45';
+ warning.textContent='⚠️ 古い統合データです。過去走の一部は見られますが、現在の「総合・能力・調教・展開」分析列が未収録のため「—」になります。V39以降の統合JSONを読み込み直してください。';
+ dashboard.append(warning);
+}
+
 const header=document.createElement('div');header.className='rt-header';
 header.append(cell('h2',r.venue+' '+r.race_no+'R｜全'+hh.length+'頭'));
 header.append(cell('p',(r.race_name||r.class_name||'')+'　'+(r.surface||'')+(r.distance_m||'')+'m','rt-sub'));
