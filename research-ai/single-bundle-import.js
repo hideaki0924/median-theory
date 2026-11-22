@@ -66,85 +66,54 @@ catch(e){busy('端末保存データを復元できません：'+e.message+'。�
 const clearButton=document.createElement('button');clearButton.type='button';clearButton.id='bundleForget';clearButton.textContent='この端末の保存データを消去';clearButton.style.background='#33465c';clearButton.style.color='#edf5ff';clearButton.style.fontSize='13px';
 clearButton.addEventListener('click',async()=>{if(!window.confirm('この端末に保存した統合データを消去しますか？ 公開GitHub上のデータには影響しません。'))return;try{await cacheDelete();bundle=null;go.disabled=true;input.value='';clearSelect(venue);clearSelect(race);busy('端末保存データを消去しました。次回利用時は統合JSONを読み込んでください。');}catch(e){busy('削除できません：'+e.message)}});
 status.parentElement.append(clearButton);
-/* V35 additive, factual pre-race horse cards. No scoring, no new research rule. */
-const facts=document.createElement('section');facts.id='v35Facts';facts.setAttribute('aria-label','全頭過去走・調教基礎因子');
-facts.style.cssText='margin:14px 0;padding:12px;border:1px solid #58708b;border-radius:8px;background:#142234;color:#eef3f8;max-width:100%;overflow:auto';
-facts.hidden=true;status.parentElement.append(facts);
-function renderFacts(item){
-facts.replaceChildren();const r=item.data.race;
-const title=document.createElement('h3');title.textContent='V35 過去走×調教：'+r.venue+r.race_no+'R／全'+r.horses.length+'頭';facts.append(title);
-const note=document.createElement('p');note.textContent='発走前の実測・履歴のみ。双子／黄金調教の正式判定、勝率、購入判断ではありません。調教の馬ID未検証一致を確定扱いしません。';facts.append(note);
-const tbl=document.createElement('table');tbl.style.cssText='border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap';
-const names=['馬番','馬名','過去走','同距離','3着内','着差0.8秒以内','前走4角','前走着順','調教','坂路終い1F'];
-const tr=document.createElement('tr');for(const n of names){const th=document.createElement('th');th.textContent=n;th.style.cssText='border-bottom:1px solid #58708b;padding:6px;text-align:left';tr.append(th)}tbl.append(tr);
-const key=(x,k)=>x?.[k]??'';
-for(const h of r.horses){
-const m=h[9]||{},a=m.v35_factual_feature_card;
-if(!a)continue;
-const obs=m.training_20261121||[];let best=null;for(const w of obs)for(const t of w.hill||[]){const v=Number(t.Lap1);if(Number.isFinite(v)&&v>=9&&v<=35)best=best==null?v:Math.min(best,v)}
-const vals=[h[0],h[1],key(a,'過去走件数'),key(a,'同距離走数'),key(a,'直近7走3着以内回数'),key(a,'直近7走着差0.8秒以内回数'),key(a,'前走4角'),key(a,'前走着順'),m.training_status==='ID_VERIFIED_WOOD'?'馬ID検証':m.training_status==='NAME_TRAINER_MATCH_ID_UNVERIFIED'?'馬名＋厩舎':'未取得',best==null?'—':best.toFixed(1)];
-const row=document.createElement('tr');for(const v of vals){const td=document.createElement('td');td.textContent=String(v===''?'—':v);td.style.cssText='border-bottom:1px solid #304157;padding:5px';row.append(td)}tbl.append(row)
-}
-facts.append(tbl);
-const report=item.v36_race_position_fatigue_summary;
-if(report){
-const p=document.createElement('p');p.textContent='V36 位置取り候補：前寄り'+report.front_candidate_n+'頭／中団'+report.middle_candidate_n+'頭／後方'+report.rear_candidate_n+'頭／過去位置情報不足'+report.position_insufficient_n+'頭。休み60日以上'+report.rest_60d_plus_n+'頭。これは過去走からの事実分類であり、正式なペース予測ではありません。';facts.insertBefore(p,tbl);
-const p2=document.createElement('p');p2.textContent='前寄り候補：'+(report.front_candidate_horses.length?report.front_candidate_horses.map(a=>a[0]+'番 '+a[1]).join('、'):'該当なし／情報不足に注意');facts.append(p2);
-}
-/* V37 original twin distances are diagnostic: never equate daily rank to V0.21 TT-S. */
-const twinSection=document.createElement('div');twinSection.style.cssText='padding:8px 0;margin-top:10px;border-top:1px solid #58708b';
-const twinTitle=document.createElement('h4');twinTitle.textContent='V37 双子調教・原点V0.10（当日CSVのみの参考判定）';twinSection.append(twinTitle);
-const twinInfo=document.createElement('p');twinInfo.textContent='原点式D=√(0.2ΔL4²+0.5ΔL3²+1.0ΔL2²+1.2ΔL1²)。11/21坂路2024有効セッションの上位101件を参考表示。V0.21 TT-Sや黄金正式型とは異なり、調教の馬ID未検証例を含みます。';twinSection.append(twinInfo);
-const twins=r.horses.map(h=>({h,t:h[9]?.v37_twin_origin_v010})).filter(x=>x.t?.best_origin?.top5_uploaded_day_research);
-const twinList=document.createElement('p');twinList.textContent=twins.length?twins.map(x=>x.h[0]+'番 '+x.h[1]+'／D='+x.t.best_origin.origin_mean_D.toFixed(3)+'・当日'+x.t.best_origin.full_uploaded_20261121_rank+'位'+(x.t.best_origin.strict_accel?'・連続加速':'・連続加速なし')).join('、'):'該当なし';twinSection.append(twinList);
-facts.append(twinSection);
-/* WOOD SCOUT V0.10: 4 independent confirmed historical SOURCE rules, source-matched horses only. */
-const goldSection=document.createElement('div');goldSection.style.cssText='padding:8px 0;margin-top:10px;border-top:1px solid #58708b';
-const gt=document.createElement('h4');gt.textContent='V38 黄金調教4型（WOOD SCOUT V0.10）';goldSection.append(gt);
-const gp=document.createElement('p');gp.textContent='11/15・17・18・19・21のウッド原票を同日×場所×回りで比較。4F中央値58秒以内のMAIN_WORKDAYに限定し、保存済みの4型条件を適用。馬ID＋馬名一致のみを確定照合。型該当だけで勝負馬認定はしません。';goldSection.append(gp);
-const gMatches=r.horses.map(h=>({h,g:h[9]?.v38_golden_wood_scout_v010})).filter(x=>x.g?.any_golden_v010);
-const gl=document.createElement('p');gl.textContent=gMatches.length?gMatches.map(x=>x.h[0]+'番 '+x.h[1]+'：'+Object.keys(x.g.types).filter(k=>x.g.types[k]).join('＋')+' ['+(x.g.strict_id_match?'ID照合':'ID未検証')+']').join('／'):'このレースの黄金4型該当なし（未取得馬はUNKNOWN）';goldSection.append(gl);
-facts.append(goldSection);
-/* ADD ONLY: V39 GOLDEN x PRE-RACE REAL PERFORMANCE EVIDENCE */
-const crossSection=document.createElement('div');crossSection.style.cssText='padding:8px 0;margin-top:10px;border-top:1px solid #58708b';
-const ct=document.createElement('h4');ct.textContent='V39 黄金調教 × 過去7走能力証拠';crossSection.append(ct);
-const cp=document.createElement('p');cp.textContent='現級・同芝ダ0.5秒以内／同距離同芝ダ3着内／直近5走3着内2回などを確認。過去のSOURCEの評価条件を勝手に加重せず、数字と根拠を表示。';crossSection.append(cp);
-const gt2=document.createElement('table');gt2.style.cssText='width:100%;border-collapse:collapse;font-size:12px';
-const cols=['馬番・馬名','黄金型','現級同面0.5秒以内','同距離同面3着内','近5走3着内','証拠・注意'];
-const head=document.createElement('tr');for(const v of cols){const th=document.createElement('th');th.textContent=v;th.style.cssText='padding:5px;border-bottom:1px solid #58708b;text-align:left';head.append(th)}gt2.append(head);
-let joined=0;
-for(const h of r.horses){const v=h[9]?.v39_gold_ability_crosscheck;if(!v?.golden_type_count)continue;joined++;
-const fields=[h[0]+' '+h[1],v.golden_types.join('＋'),String(v.same_class_surface_within_half_sec_7),String(v.same_distance_surface_top3_7),String(v.last5_top3_n),(v.positive_evidence?.join('、')||'該当証拠なし')+'／注意：'+(v.cautions?.join('、')||'特記なし')];
-const row=document.createElement('tr');for(const textValue of fields){const td=document.createElement('td');td.textContent=textValue;td.style.cssText='padding:5px;border-bottom:1px solid #304157';row.append(td)}gt2.append(row)}
-if(joined)crossSection.append(gt2);else{const p=document.createElement('p');p.textContent='このレースはV39の黄金4型一致馬なし';crossSection.append(p)}
-facts.append(crossSection);
-/* Today's practical first-screen dashboard: show all runners and per-horse evidence now. */
-const now=document.createElement('section');now.style.cssText='margin:12px 0;padding:12px;border:2px solid #38c8a7;border-radius:10px;background:#10283a';
-const nh=document.createElement('h3');nh.textContent='全頭研究結果｜'+r.venue+r.race_no+'R';now.append(nh);
-const np=document.createElement('p');np.textContent='334頭の統合SOURCEからこのレースを抽出。過去走・能力・展開・調教・黄金を並べて確認。指数・買い目ではなく検証済みの事実を表示。';now.append(np);
-const all=document.createElement('div');all.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:9px';
-const idx=Object.fromEntries(item.data.past_fields.map((x,i)=>[x,i]));
-function showValue(v){return v===null||v===undefined||v===''?'未取得':String(v)}
-for(const h of r.horses){
-const m=h[9]||{},a=m.v35_factual_feature_card||{},b=m.v36_pre_race_position_fatigue_audit||{},t=m.v37_twin_origin_v010||{},g=m.v38_golden_wood_scout_v010||{},c=m.v39_gold_ability_crosscheck||{};
-const card=document.createElement('details');card.style.cssText='border:1px solid #57758d;border-radius:8px;background:#1c3048;padding:9px';
-const heading=document.createElement('summary');heading.style.cssText='cursor:pointer;font-weight:700';
-const golden=Object.entries(g.types||{}).filter(x=>x[1]).map(x=>x[0]).join('＋');
-heading.textContent=h[0]+'番 '+h[1]+(golden?' 🟡黄金':'')+(t.best_origin?.top5_uploaded_day_research?' ◇双子原点':'');card.append(heading);
-const brief=document.createElement('p');brief.style.cssText='font-size:13px;margin:7px 0';
-brief.textContent='過去'+(h[8]?.length||0)+'走｜3着以内'+showValue(a['直近7走3着以内回数'])+'回｜同距離'+showValue(a['同距離走数'])+'走｜前走'+showValue(a['前走着順'])+'着';card.append(brief);
-const detail=document.createElement('div');detail.style.cssText='font-size:12px;white-space:normal';
-const txt='同距離3着内 '+showValue(c.same_distance_surface_top3_7)+'回／現級同面0.5秒内 '+showValue(c.same_class_surface_within_half_sec_7)+'回\n展開 '+showValue(b.position_category||b.position_profile||b.position_bucket)+'／休養 '+showValue(b.days_since_previous_run||b.rest_days)+'日\n黄金 '+(golden||'非該当・未検証')+'／坂路双子原点 '+(t.best_origin?'D='+t.best_origin.origin_mean_D.toFixed(3):'未取得')+'\n調教照合 '+showValue(m.training_status)+'\n注意 '+(c.cautions||[]).join('、');
-const lines=document.createElement('p');lines.style.whiteSpace='pre-line';lines.textContent=txt;detail.append(lines);
-const ttable=document.createElement('table');ttable.style.cssText='font-size:11px;width:100%;border-collapse:collapse';
-for(const v of ['日付','距離','着順','時計','4角','上がり']){const th=document.createElement('th');th.textContent=v;th.style.padding='2px';ttable.append(th)}
-for(const p of h[8]||[]){const row=document.createElement('tr');const fields=[p[idx.date],showValue(p[idx.surface])+showValue(p[idx.distance_m]),showValue(p[idx.finish_position]),showValue(p[idx.finish_time_seconds]),showValue(p[idx.corner_4]),showValue(p[idx.last3f_seconds])];for(const v of fields){const td=document.createElement('td');td.textContent=v;td.style.cssText='padding:2px;border-bottom:1px solid #33465c';row.append(td)}ttable.append(row)}
-detail.append(ttable);card.append(detail);all.append(card)
-}
-now.append(all);facts.insertBefore(now,facts.firstChild);
-facts.hidden=!tbl.querySelector('td');
-}
 
+/* Compact, mobile-first view. All validated source data and old studies remain untouched. */
+const dashboard=document.createElement('section');dashboard.id='researchDashboard';dashboard.hidden=true;
+$('singleBundle').insertAdjacentElement('afterend',dashboard);
+const dashStyle=document.createElement('style');dashStyle.textContent="#researchDashboard{margin:12px 0;color:#edf5ff}#researchDashboard .head{background:#153a4d;padding:14px;border-radius:13px;border:1px solid #477789}#researchDashboard h2{font-size:21px;margin:0}#researchDashboard .desc{font-size:13px;color:#c4d9e8;margin:4px 0}#researchDashboard .stats,#researchDashboard .filters{display:flex;flex-wrap:wrap;gap:7px;margin:11px 0}#researchDashboard .stats span{background:#254559;padding:7px 9px;border-radius:7px;font-size:13px}#researchDashboard .filters button{margin:0;background:#253d55;color:#dceefa;font-size:13px;padding:9px;border:1px solid #59738a}#researchDashboard .filters button[aria-pressed=true]{background:#38c8a7;color:#09251f}#researchDashboard .horses{display:grid;grid-template-columns:1fr;gap:8px}#researchDashboard details{background:#182d42;border:1px solid #4c6980;border-radius:12px;overflow:hidden}#researchDashboard details[open]{border-color:#38c8a7}#researchDashboard summary{padding:13px;display:flex;gap:10px;align-items:center;cursor:pointer;list-style:none;color:white}#researchDashboard summary::-webkit-details-marker{display:none}#researchDashboard .num{width:34px;height:34px;flex:0 0 34px;background:#31516c;display:grid;place-items:center;border-radius:8px;font-size:17px;font-weight:900}#researchDashboard .name{font-size:16px;font-weight:800;overflow-wrap:anywhere}#researchDashboard .badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}#researchDashboard .badge{font-size:11px;padding:2px 6px;border-radius:5px;background:#2d485f;color:#e0edf6}#researchDashboard .gold{background:#554b26;color:#ffde88}#researchDashboard .body{padding:0 13px 13px;font-size:13px}#researchDashboard .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:8px 0}#researchDashboard .cell{background:#102438;border-radius:6px;padding:8px}#researchDashboard small{display:block;color:#adc3d7}#researchDashboard strong{font-size:15px}#researchDashboard h4{font-size:14px;color:#94e7d5;margin:13px 0 5px}#researchDashboard .detail{white-space:pre-line;overflow-wrap:anywhere;font-size:13px}#researchDashboard .scroller{overflow-x:auto;-webkit-overflow-scrolling:touch}#researchDashboard table{min-width:490px;width:100%;font-size:12px}#researchDashboard td,#researchDashboard th{padding:6px 5px;white-space:nowrap}#researchDashboard .caution{background:#493a2d;color:#ffe1aa;border-radius:7px;padding:8px;font-size:12px}#researchDashboard .foot{font-size:12px;color:#b6cbd8;margin:12px 0}body:not(.showLegacy) main>section.card:not(#singleBundle){display:none!important}@media(min-width:800px){#researchDashboard .horses{grid-template-columns:repeat(2,minmax(0,1fr))}}";document.head.append(dashStyle);
+function node(tag,cls,val){const n=document.createElement(tag);if(cls)n.className=cls;if(val!==undefined)n.textContent=String(val);return n}
+function shown(x){return x===null||x===undefined||x===''?'—':String(x)}
+function renderFacts(item){
+const r=item.data.race,hs=r.horses,ix=Object.fromEntries(item.data.past_fields.map((f,i)=>[f,i]));
+dashboard.replaceChildren();
+const head=node('div','head');head.append(node('h2','',r.venue+' '+r.race_no+'R｜全頭研究'),node('p','desc',(r.race_name||r.class_name||'')+' '+(r.surface||'')+(r.distance_m||'')+'m　発走前SOURCE'));
+const stats=node('div','stats');
+const goldN=hs.filter(h=>h[9]?.v38_golden_wood_scout_v010?.any_golden_v010).length;
+const twinN=hs.filter(h=>h[9]?.v37_twin_origin_v010?.best_origin?.top5_uploaded_day_research).length;
+for(const v of ['全'+hs.length+'頭','黄金 '+goldN+'頭','双子原点 '+twinN+'頭','過去'+hs.reduce((n,h)=>n+(h[8]?.length||0),0)+'走'])stats.append(node('span','',v));
+head.append(stats);dashboard.append(head);
+const control=node('div','filters'),list=node('div','horses');let filter='all';
+const rows=hs.slice().sort((a,b)=>Number(a[0])-Number(b[0])).map(h=>{
+const meta=h[9]||{},f=meta.v35_factual_feature_card||{},p=meta.v36_pre_race_position_fatigue_audit||{},t=meta.v37_twin_origin_v010||{},g=meta.v38_golden_wood_scout_v010||{},a=meta.v39_gold_ability_crosscheck||{};
+const gold=!!g.any_golden_v010,twin=!!t.best_origin?.top5_uploaded_day_research,form=Number(a.last5_top3_n)>=2;
+const types=Object.keys(g.types||{}).filter(k=>g.types[k]);
+const card=node('details',''),title=node('summary',''),number=node('span','num',h[0]),label=node('div','');
+label.append(node('div','name',h[1]));const tags=node('div','badges');
+if(gold)tags.append(node('span','badge gold','黄金'+(types.length?' '+types.length+'型':'')));
+if(twin)tags.append(node('span','badge','◇ 双子原点'));
+if(form)tags.append(node('span','badge','近5走好走'));
+tags.append(node('span','badge','過去'+(h[8]?.length||0)+'走'));label.append(tags);
+title.append(number,label);card.append(title);
+const body=node('div','body'),grid=node('div','grid');
+for(const [k,v] of [['3着以内',shown(f['直近7走3着以内回数'])+'回'],['同距離',shown(f['同距離走数'])+'走'],['前走',shown(f['前走着順'])+'着'],['0.8秒内',shown(f['直近7走着差0.8秒以内回数'])+'回'],['同距離3着内',shown(a.same_distance_surface_top3_7)],['同級0.5秒内',shown(a.same_class_surface_within_half_sec_7)]]){const x=node('div','cell');x.append(node('small','',k),node('strong','',v));grid.append(x)}
+body.append(grid,node('h4','','調教・展開・疲労'));
+const record='黄金：'+(gold?types.join('＋'):'該当なし／未確認')+'\n双子原点：'+(t.best_origin?.origin_mean_D!=null?'D='+Number(t.best_origin.origin_mean_D).toFixed(3):'未取得')+'\n位置取り：'+shown(p.position_category||p.position_profile||p.position_bucket)+'　休み：'+shown(p.days_since_previous_run??p.rest_days)+'日\n調教照合：'+shown(meta.training_status);
+body.append(node('p','detail',record));
+if(a.positive_evidence?.length)body.append(node('p','detail','好材料：'+a.positive_evidence.join('、')));
+if(a.cautions?.length)body.append(node('p','caution','注意：'+a.cautions.join('、')));
+body.append(node('h4','','過去7走（横スクロール）'));
+if(!(h[8]||[]).length)body.append(node('p','detail','過去走なし／未出走'));
+else{const wrap=node('div','scroller'),tbl=node('table',''),tr=node('tr','');
+for(const v of ['日付','距離','着順','時計','4角','上がり'])tr.append(node('th','',v));tbl.append(tr);
+for(const past of h[8]){const line=node('tr','');
+for(const v of [past[ix.date],shown(past[ix.surface])+shown(past[ix.distance_m]),past[ix.finish_position],past[ix.finish_time_seconds],past[ix.corner_4],past[ix.last3f_seconds]])line.append(node('td','',shown(v)));tbl.append(line)}wrap.append(tbl);body.append(wrap)}
+card.append(body);return{card,gold,twin,form,unknown:!(h[8]?.length)}
+});
+const draw=()=>{list.replaceChildren();const selected=rows.filter(v=>filter==='all'||v[filter]);for(const v of selected)list.append(v.card);if(!selected.length)list.append(node('p','detail','該当馬なし'))};
+for(const [id,label] of [['all','全頭'],['gold','🟡黄金'],['twin','◇双子'],['form','近走好走'],['unknown','過去走なし']]){const btn=node('button','',label);btn.type='button';btn.setAttribute('aria-pressed',String(id===filter));btn.addEventListener('click',()=>{filter=id;for(const b of control.querySelectorAll('button'))b.setAttribute('aria-pressed',String(b===btn));draw()});control.append(btn)}
+dashboard.append(control,list,node('p','foot','まず全頭を一覧比較。馬名を押すと過去走・能力・調教・注意点を表示します。研究式は変更していません。勝率と買い目はこの一覧から自動決定しません。'));
+dashboard.hidden=false;draw();
+}
 venue.addEventListener('change',selection);
 race.addEventListener('change',()=>{const item=bundle?.races.find(x=>x.data.race.venue===venue.value&&x.data.race.date+'|'+x.data.race.race_no===race.value);if(item)renderFacts(item);});
 go.addEventListener('click',()=>{
