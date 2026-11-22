@@ -105,6 +105,19 @@ const gp=document.createElement('p');gp.textContent='11/15・17・18・19・21�
 const gMatches=r.horses.map(h=>({h,g:h[9]?.v38_golden_wood_scout_v010})).filter(x=>x.g?.any_golden_v010);
 const gl=document.createElement('p');gl.textContent=gMatches.length?gMatches.map(x=>x.h[0]+'番 '+x.h[1]+'：'+Object.keys(x.g.types).filter(k=>x.g.types[k]).join('＋')+' ['+(x.g.strict_id_match?'ID照合':'ID未検証')+']').join('／'):'このレースの黄金4型該当なし（未取得馬はUNKNOWN）';goldSection.append(gl);
 facts.append(goldSection);
+/* ADD ONLY: V39 GOLDEN x PRE-RACE REAL PERFORMANCE EVIDENCE */
+const crossSection=document.createElement('div');crossSection.style.cssText='padding:8px 0;margin-top:10px;border-top:1px solid #58708b';
+const ct=document.createElement('h4');ct.textContent='V39 黄金調教 × 過去7走能力証拠';crossSection.append(ct);
+const cp=document.createElement('p');cp.textContent='現級・同芝ダ0.5秒以内／同距離同芝ダ3着内／直近5走3着内2回などを確認。過去のSOURCEの評価条件を勝手に加重せず、数字と根拠を表示。';crossSection.append(cp);
+const gt2=document.createElement('table');gt2.style.cssText='width:100%;border-collapse:collapse;font-size:12px';
+const cols=['馬番・馬名','黄金型','現級同面0.5秒以内','同距離同面3着内','近5走3着内','証拠・注意'];
+const head=document.createElement('tr');for(const v of cols){const th=document.createElement('th');th.textContent=v;th.style.cssText='padding:5px;border-bottom:1px solid #58708b;text-align:left';head.append(th)}gt2.append(head);
+let joined=0;
+for(const h of r.horses){const v=h[9]?.v39_gold_ability_crosscheck;if(!v?.golden_type_count)continue;joined++;
+const fields=[h[0]+' '+h[1],v.golden_types.join('＋'),String(v.same_class_surface_within_half_sec_7),String(v.same_distance_surface_top3_7),String(v.last5_top3_n),(v.positive_evidence?.join('、')||'該当証拠なし')+'／注意：'+(v.cautions?.join('、')||'特記なし')];
+const row=document.createElement('tr');for(const textValue of fields){const td=document.createElement('td');td.textContent=textValue;td.style.cssText='padding:5px;border-bottom:1px solid #304157';row.append(td)}gt2.append(row)}
+if(joined)crossSection.append(gt2);else{const p=document.createElement('p');p.textContent='このレースはV39の黄金4型一致馬なし';crossSection.append(p)}
+facts.append(crossSection);
 facts.hidden=!tbl.querySelector('td');
 }
 
