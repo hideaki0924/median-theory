@@ -38,7 +38,7 @@ for(const past of h[8]){if(!Array.isArray(past)||past.length!==d.past_fields.len
 }
 return d;
 }
-function selection(){if(!bundle)return;clearSelect(race);const selected=bundle.races.filter(x=>x.data.race.venue===venue.value);for(const item of selected)option(race,item.data.race.date+'|'+item.data.race.race_no,item.data.race.date+' '+item.data.race.race_no+'R '+(item.data.race.race_name||item.data.race.class_name||''));}
+function selection(){if(!bundle)return;clearSelect(race);const selected=bundle.races.filter(x=>x.data.race.venue===venue.value);for(const item of selected)option(race,item.data.race.date+'|'+item.data.race.race_no,item.data.race.date+' '+item.data.race.race_no+'R '+(item.data.race.race_name||item.data.race.class_name||''));if(selected.length)renderFacts(selected[0]);}
 function readBundle(value){
 if(value?.schema!=='HORSE_RESEARCH_BUNDLE_V1'||!Array.isArray(value.races)||!value.races.length)throw Error('統合データの形式が違います。HORSE_RESEARCH_BUNDLE_V1が必要です');
 const used=new Set();
@@ -118,10 +118,35 @@ const fields=[h[0]+' '+h[1],v.golden_types.join('＋'),String(v.same_class_surfa
 const row=document.createElement('tr');for(const textValue of fields){const td=document.createElement('td');td.textContent=textValue;td.style.cssText='padding:5px;border-bottom:1px solid #304157';row.append(td)}gt2.append(row)}
 if(joined)crossSection.append(gt2);else{const p=document.createElement('p');p.textContent='このレースはV39の黄金4型一致馬なし';crossSection.append(p)}
 facts.append(crossSection);
+/* Today's practical first-screen dashboard: show all runners and per-horse evidence now. */
+const now=document.createElement('section');now.style.cssText='margin:12px 0;padding:12px;border:2px solid #38c8a7;border-radius:10px;background:#10283a';
+const nh=document.createElement('h3');nh.textContent='全頭研究結果｜'+r.venue+r.race_no+'R';now.append(nh);
+const np=document.createElement('p');np.textContent='334頭の統合SOURCEからこのレースを抽出。過去走・能力・展開・調教・黄金を並べて確認。指数・買い目ではなく検証済みの事実を表示。';now.append(np);
+const all=document.createElement('div');all.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:9px';
+const idx=Object.fromEntries(item.data.past_fields.map((x,i)=>[x,i]));
+function showValue(v){return v===null||v===undefined||v===''?'未取得':String(v)}
+for(const h of r.horses){
+const m=h[9]||{},a=m.v35_factual_feature_card||{},b=m.v36_pre_race_position_fatigue_audit||{},t=m.v37_twin_origin_v010||{},g=m.v38_golden_wood_scout_v010||{},c=m.v39_gold_ability_crosscheck||{};
+const card=document.createElement('details');card.style.cssText='border:1px solid #57758d;border-radius:8px;background:#1c3048;padding:9px';
+const heading=document.createElement('summary');heading.style.cssText='cursor:pointer;font-weight:700';
+const golden=Object.entries(g.types||{}).filter(x=>x[1]).map(x=>x[0]).join('＋');
+heading.textContent=h[0]+'番 '+h[1]+(golden?' 🟡黄金':'')+(t.best_origin?.top5_uploaded_day_research?' ◇双子原点':'');card.append(heading);
+const brief=document.createElement('p');brief.style.cssText='font-size:13px;margin:7px 0';
+brief.textContent='過去'+(h[8]?.length||0)+'走｜3着以内'+showValue(a['直近7走3着以内回数'])+'回｜同距離'+showValue(a['同距離走数'])+'走｜前走'+showValue(a['前走着順'])+'着';card.append(brief);
+const detail=document.createElement('div');detail.style.cssText='font-size:12px;white-space:normal';
+const txt='同距離3着内 '+showValue(c.same_distance_surface_top3_7)+'回／現級同面0.5秒内 '+showValue(c.same_class_surface_within_half_sec_7)+'回\n展開 '+showValue(b.position_category||b.position_profile||b.position_bucket)+'／休養 '+showValue(b.days_since_previous_run||b.rest_days)+'日\n黄金 '+(golden||'非該当・未検証')+'／坂路双子原点 '+(t.best_origin?'D='+t.best_origin.origin_mean_D.toFixed(3):'未取得')+'\n調教照合 '+showValue(m.training_status)+'\n注意 '+(c.cautions||[]).join('、');
+const lines=document.createElement('p');lines.style.whiteSpace='pre-line';lines.textContent=txt;detail.append(lines);
+const ttable=document.createElement('table');ttable.style.cssText='font-size:11px;width:100%;border-collapse:collapse';
+for(const v of ['日付','距離','着順','時計','4角','上がり']){const th=document.createElement('th');th.textContent=v;th.style.padding='2px';ttable.append(th)}
+for(const p of h[8]||[]){const row=document.createElement('tr');const fields=[p[idx.date],showValue(p[idx.surface])+showValue(p[idx.distance_m]),showValue(p[idx.finish_position]),showValue(p[idx.finish_time_seconds]),showValue(p[idx.corner_4]),showValue(p[idx.last3f_seconds])];for(const v of fields){const td=document.createElement('td');td.textContent=v;td.style.cssText='padding:2px;border-bottom:1px solid #33465c';row.append(td)}ttable.append(row)}
+detail.append(ttable);card.append(detail);all.append(card)
+}
+now.append(all);facts.insertBefore(now,facts.firstChild);
 facts.hidden=!tbl.querySelector('td');
 }
 
 venue.addEventListener('change',selection);
+race.addEventListener('change',()=>{const item=bundle?.races.find(x=>x.data.race.venue===venue.value&&x.data.race.date+'|'+x.data.race.race_no===race.value);if(item)renderFacts(item);});
 go.addEventListener('click',()=>{
 if(!bundle)return busy('HOLD：統合データ未選択');
 go.disabled=true;
