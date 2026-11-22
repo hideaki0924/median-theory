@@ -12,15 +12,44 @@ body:not(.showLegacy) main > :not(#singleBundle):not(#researchDashboard):not(#le
 #bundleStatus{font-size:12px;line-height:1.35;margin-top:9px;overflow-wrap:anywhere}
 #legacyToggleWrap{margin:5px 0}
 #legacyToggleWrap button{font-size:12px;padding:8px;margin:0;background:#273c50;color:#dbeafa;border:1px solid #587189}
-</style></head><body><main><section class="card" id="singleBundle" style="border:1px solid #3b998d;background:#173445">
-<h1>競馬研究AI｜全頭比較表</h1>
+</style><style id="tableTopFix">
+body:not(.showLegacy) main > :not(#singleBundle):not(#researchDashboard):not(#legacyToggleWrap){display:none!important}
+#singleBundle{padding:8px 10px!important;margin:4px 0 7px!important;border:1px solid #3c6676!important;background:#122d40!important}
+#singleBundle .compactForm{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:end}
+#singleBundle .compactForm label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:#bdd8e3}
+#singleBundle .compactForm select{width:100%;min-width:0;height:44px;font-size:16px;background:#0e2436;color:#fff;border:1px solid #547688;border-radius:8px}
+#bundleSettings{margin-top:7px;font-size:12px}
+#bundleSettings>summary{font-size:12px;color:#bcd5df;list-style:disclosure-closed;cursor:pointer;padding:3px 0}
+#bundleSettings[open]>summary{margin-bottom:8px}
+#bundleSettings .bundle-settings-inside{display:grid;gap:7px}
+#bundleSettings label{font-size:12px;display:block}
+#bundleSettings input[type=file]{font-size:12px;width:100%}
+#bundleSettings #bundleAnalyze{font-size:12px;padding:8px;margin:0}
+#bundleStatus{font-size:12px;line-height:1.3;overflow-wrap:anywhere}
+#bundleForget{font-size:11px!important;padding:7px!important;margin:0!important}
+#legacyToggleWrap{display:none!important}
+#researchDashboard .rt-header{padding:7px 10px!important;margin-bottom:5px!important}
+#researchDashboard .rt-header h2{font-size:17px!important}
+#researchDashboard .rt-header .rt-sub{font-size:11px!important;margin:2px 0 0!important}
+#researchDashboard .rt-tabs{margin:6px 0!important}
+#researchDashboard .rt-tabs button{padding:7px 0!important;font-size:13px!important}
+#researchDashboard .rt-count{margin:3px 0 5px!important;font-size:11px!important}
+#researchDashboard .rt-table th{padding:6px 3px!important}
+#researchDashboard .rt-table td{padding:7px 3px!important}
+#researchDashboard .rt-table td.rt-horse{font-size:12px!important;line-height:1.3!important}
+#researchDashboard .rt-table td.rt-num{font-size:13px!important}
+</style></head><body><main><section class="card" id="singleBundle">
 <div class="compactForm">
-<label class="selectFile">統合データ <input id="bundleFile" type="file" accept=".json,application/json"></label>
-<label>競馬場 <select id="bundleVenue"></select></label>
-<label>レース <select id="bundleRace"></select></label>
-<button type="button" id="bundleAnalyze" disabled>詳細研究を実行</button>
+<label>競馬場<select id="bundleVenue"></select></label>
+<label>レース<select id="bundleRace"></select></label>
 </div>
-<div class="warn" id="bundleStatus" aria-live="polite">データを読み込むと、全頭比較表が表示されます。前回保存したデータがあれば自動復元します。</div>
+<details id="bundleSettings" open><summary>⚙ データ設定・更新・詳しい分析</summary>
+<div class="bundle-settings-inside">
+<label>統合JSONを変更 <input id="bundleFile" type="file" accept=".json,application/json"></label>
+<button type="button" id="bundleAnalyze" disabled>既存の詳細研究も実行</button>
+<div class="warn" id="bundleStatus" aria-live="polite">初回は統合JSONを選択してください。保存済みデータは自動で復元します。</div>
+</div>
+</details>
 </section><p id="legacyToggleWrap"><button type="button" id="legacyToggle" onclick="document.body.classList.toggle(&quot;showLegacy&quot;);this.textContent=document.body.classList.contains(&quot;showLegacy&quot;)?&quot;旧入力欄・研究詳細を閉じる&quot;:&quot;旧入力欄・研究詳細を開く（必要な場合のみ）&quot;">旧入力欄・研究詳細を開く（必要な場合のみ）</button></p><section class="card" id="liveOdds" style="border:2px solid #9ac9ff;background:#182d46">
 <h2>📈 発走前オッズ｜レース選択から自動照合</h2>
 <p class="muted">統合データから選んだレースの正式IDを自動設定します（確認済みの開催日）。GitHub側で取得できた単複を、全頭一致・原典時刻・発走前の条件で検証し、条件を満たした場合のみメジアンへ反映します。オッズ未取得・発走後は参考表示またはHOLD。予想オッズで代用しません。</p>
@@ -2749,4 +2778,4 @@ $('v88Build').click();$('v88NameBridge').scrollIntoView({behavior:'smooth'});
 }
 $('v90Load').addEventListener('click',load);
 })();
-</script><script src="./training-v91.js"></script><script src="./training-v92-official.js"></script><script src="./ability-training-v93.js"></script><script src="./pace-fatigue-v94.js"></script><script src="./evidence-dashboard-v95.js"></script><script src="./market-median-v96.js"></script><script src="./preflight-v98.js"></script><script src="./shared-import-v99.js"></script><script src="./race-safety-v100.js"></script><script src="./full-career-v102.js"></script><script src="./horse-cards-v103.js"></script><script src="./ability-conditions-v104.js"></script><script src="./condition-recovery-v105.js"></script><script src="./position-turn-v106.js"></script><script src="./cross-evidence-v107.js"></script><script src="./quick-launch.js"></script><script src="./single-bundle-import.js?v=20261122-table2"></script><script src="./race-id-v111.js"></script><script src="./live-odds-v108.js"></script><script src="./wood-scout-v109.js"></script></body></html>
+</script><script src="./training-v91.js"></script><script src="./training-v92-official.js"></script><script src="./ability-training-v93.js"></script><script src="./pace-fatigue-v94.js"></script><script src="./evidence-dashboard-v95.js"></script><script src="./market-median-v96.js"></script><script src="./preflight-v98.js"></script><script src="./shared-import-v99.js"></script><script src="./race-safety-v100.js"></script><script src="./full-career-v102.js"></script><script src="./horse-cards-v103.js"></script><script src="./ability-conditions-v104.js"></script><script src="./condition-recovery-v105.js"></script><script src="./position-turn-v106.js"></script><script src="./cross-evidence-v107.js"></script><script src="./quick-launch.js"></script><script src="./single-bundle-import.js?v=20261122-table3"></script><script src="./race-id-v111.js"></script><script src="./live-odds-v108.js"></script><script src="./wood-scout-v109.js"></script></body></html>
