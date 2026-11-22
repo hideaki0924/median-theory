@@ -98,6 +98,13 @@ const twinInfo=document.createElement('p');twinInfo.textContent='原点式D=√(
 const twins=r.horses.map(h=>({h,t:h[9]?.v37_twin_origin_v010})).filter(x=>x.t?.best_origin?.top5_uploaded_day_research);
 const twinList=document.createElement('p');twinList.textContent=twins.length?twins.map(x=>x.h[0]+'番 '+x.h[1]+'／D='+x.t.best_origin.origin_mean_D.toFixed(3)+'・当日'+x.t.best_origin.full_uploaded_20261121_rank+'位'+(x.t.best_origin.strict_accel?'・連続加速':'・連続加速なし')).join('、'):'該当なし';twinSection.append(twinList);
 facts.append(twinSection);
+/* WOOD SCOUT V0.10: 4 independent confirmed historical SOURCE rules, source-matched horses only. */
+const goldSection=document.createElement('div');goldSection.style.cssText='padding:8px 0;margin-top:10px;border-top:1px solid #58708b';
+const gt=document.createElement('h4');gt.textContent='V38 黄金調教4型（WOOD SCOUT V0.10）';goldSection.append(gt);
+const gp=document.createElement('p');gp.textContent='11/15・17・18・19・21のウッド原票を同日×場所×回りで比較。4F中央値58秒以内のMAIN_WORKDAYに限定し、保存済みの4型条件を適用。馬ID＋馬名一致のみを確定照合。型該当だけで勝負馬認定はしません。';goldSection.append(gp);
+const gMatches=r.horses.map(h=>({h,g:h[9]?.v38_golden_wood_scout_v010})).filter(x=>x.g?.any_golden_v010);
+const gl=document.createElement('p');gl.textContent=gMatches.length?gMatches.map(x=>x.h[0]+'番 '+x.h[1]+'：'+Object.keys(x.g.types).filter(k=>x.g.types[k]).join('＋')+' ['+(x.g.strict_id_match?'ID照合':'ID未検証')+']').join('／'):'このレースの黄金4型該当なし（未取得馬はUNKNOWN）';goldSection.append(gl);
+facts.append(goldSection);
 facts.hidden=!tbl.querySelector('td');
 }
 
