@@ -85,7 +85,13 @@ const obs=m.training_20261121||[];let best=null;for(const w of obs)for(const t o
 const vals=[h[0],h[1],key(a,'過去走件数'),key(a,'同距離走数'),key(a,'直近7走3着以内回数'),key(a,'直近7走着差0.8秒以内回数'),key(a,'前走4角'),key(a,'前走着順'),m.training_status==='ID_VERIFIED_WOOD'?'馬ID検証':m.training_status==='NAME_TRAINER_MATCH_ID_UNVERIFIED'?'馬名＋厩舎':'未取得',best==null?'—':best.toFixed(1)];
 const row=document.createElement('tr');for(const v of vals){const td=document.createElement('td');td.textContent=String(v===''?'—':v);td.style.cssText='border-bottom:1px solid #304157;padding:5px';row.append(td)}tbl.append(row)
 }
-facts.append(tbl);facts.hidden=!tbl.querySelector('td');
+facts.append(tbl);
+const report=item.v36_race_position_fatigue_summary;
+if(report){
+const p=document.createElement('p');p.textContent='V36 位置取り候補：前寄り'+report.front_candidate_n+'頭／中団'+report.middle_candidate_n+'頭／後方'+report.rear_candidate_n+'頭／過去位置情報不足'+report.position_insufficient_n+'頭。休み60日以上'+report.rest_60d_plus_n+'頭。これは過去走からの事実分類であり、正式なペース予測ではありません。';facts.insertBefore(p,tbl);
+const p2=document.createElement('p');p2.textContent='前寄り候補：'+(report.front_candidate_horses.length?report.front_candidate_horses.map(a=>a[0]+'番 '+a[1]).join('、'):'該当なし／情報不足に注意');facts.append(p2);
+}
+facts.hidden=!tbl.querySelector('td');
 }
 
 venue.addEventListener('change',selection);
