@@ -55,6 +55,34 @@ jobs:
               w=csv.writer(f);w.writerow(['date','file','url','status','bytes']);w.writerows(rows)
           print('downloaded',sum(r[3]=='ok' for r in rows),'of',len(rows))
           PY
+      - name: Extract LZH archives and audit program records
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq lhasa
+          mkdir -p extracted
+          python3 - <<'PY'
+          import os,glob,csv,subprocess
+          rows=[]
+          for path in sorted(glob.glob('archives/*.lzh')):
+              date=os.path.basename(path)[1:7]
+              dest='extracted/'+date
+              os.makedirs(dest,exist_ok=True)
+              p=subprocess.run(['lha','x','-w='+dest,path],capture_output=True,text=True)
+              files=[os.path.join(root,n) for root,ds,fs in os.walk(dest) for n in fs]
+              size=sum(os.path.getsize(x) for x in files)
+              status='ok' if p.returncode==0 and files and size>0 else 'failed'
+              rows.append([date,os.path.basename(path),status,len(files),size,p.stderr[-200:]])
+              print(*rows[-1],sep=',',flush=True)
+          with open('extracted/extraction_audit.csv','w',newline='') as f:
+              w=csv.writer(f);w.writerow(['date','archive','status','files','bytes','stderr']);w.writerows(rows)
+          print('EXTRACTED',sum(x[2]=='ok' for x in rows),'/',len(rows))
+          if not rows or any(x[2]!='ok' for x in rows):raise SystemExit('Extraction incomplete: see extraction_audit.csv')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: extracted-B-${{ inputs.start_date }}-${{ inputs.end_date }}
+          path: extracted/
+          retention-days: 30
       - uses: actions/upload-artifact@v4
         with:
           name: official-B-${{ inputs.start_date }}-${{ inputs.end_date }}
