@@ -1,0 +1,62 @@
+name: Fetch historical BOAT RACE B files
+on:
+  workflow_dispatch:
+    inputs:
+      start_date:
+        description: "First date YYYYMMDD"
+        required: true
+        default: "20260101"
+      end_date:
+        description: "Last date YYYYMMDD"
+        required: true
+        default: "20260131"
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Download official program archives and audit status
+        env:
+          START: ${{ inputs.start_date }}
+          END: ${{ inputs.end_date }}
+        run: |
+          mkdir -p archives
+          python3 - <<'PY'
+          import datetime,os,time,urllib.request,urllib.error,csv
+          start=datetime.datetime.strptime(os.environ['START'],'%Y%m%d').date()
+          end=datetime.datetime.strptime(os.environ['END'],'%Y%m%d').date()
+          if end<start or (end-start).days>35: raise SystemExit('Date range must be 1-36 days')
+          rows=[]
+          day=start
+          while day<=end:
+              ymd=day.strftime('%Y%m%d')
+              name='b'+day.strftime('%y%m%d')+'.lzh'
+              url=f'https://www1.mbrace.or.jp/od2/B/{ymd[:6]}/{name}'
+              status='error';size=0
+              try:
+                  req=urllib.request.Request(url,headers={'User-Agent':'BoatRaceResearch/1.0'})
+                  with urllib.request.urlopen(req,timeout=25) as response:
+                      data=response.read()
+                  if len(data)>100 and data[:2]==b'-l':
+                      # LZH normally begins with a header-size byte, then '-lh'
+                      pass
+                  if len(data)>100 and b'-lh' in data[:24]:
+                      with open('archives/'+name+'.part','wb') as f:f.write(data)
+                      os.replace('archives/'+name+'.part','archives/'+name)
+                      status='ok';size=len(data)
+                  else:status='invalid_archive'
+              except urllib.error.HTTPError as e:status='http_'+str(e.code)
+              except Exception as e:status=type(e).__name__+': '+str(e)[:100]
+              rows.append((ymd,name,url,status,size))
+              print(*rows[-1],sep=',',flush=True)
+              day+=datetime.timedelta(days=1)
+              time.sleep(0.8)
+          with open('archives/audit.csv','w',newline='') as f:
+              w=csv.writer(f);w.writerow(['date','file','url','status','bytes']);w.writerows(rows)
+          print('downloaded',sum(r[3]=='ok' for r in rows),'of',len(rows))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: official-B-${{ inputs.start_date }}-${{ inputs.end_date }}
+          path: archives/
+          retention-days: 30
