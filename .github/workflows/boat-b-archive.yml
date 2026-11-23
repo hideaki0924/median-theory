@@ -67,7 +67,7 @@ jobs:
               date=os.path.basename(path)[1:7]
               dest='extracted/'+date
               os.makedirs(dest,exist_ok=True)
-              p=subprocess.run(['lha','x','-w='+dest,path],capture_output=True,text=True)
+              p=subprocess.run(['lha','x',os.path.abspath(path)],cwd=dest,capture_output=True,text=True)
               files=[os.path.join(root,n) for root,ds,fs in os.walk(dest) for n in fs]
               size=sum(os.path.getsize(x) for x in files)
               status='ok' if p.returncode==0 and files and size>0 else 'failed'
