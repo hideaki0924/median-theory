@@ -57,8 +57,21 @@ function all120V27(){
 const originalRunV27=run;
 run=function(){originalRunV27();if(!$('all120-v27'))all120V27()};
 
+
+function exhibitionV27(){
+ const read=(i,j)=>{const s=$('q'+i+'_'+j).value;return s.trim()===''?null:Number(s)};
+ const a=Array.from({length:6},(_,i)=>[read(i,0),read(i,2),read(i,3),read(i,4),read(i,5)]);
+ if(a.some(r=>!(r[0]>0&&r[0]<=10)))return;
+ const valid=(v,j)=>Number.isFinite(v)&&(j===1?v>0&&v<1:j===2?v>=-1&&v<1:j===3?v>0&&v<20:v>0&&v<=100);
+ const rank=(i,j)=>{const v=a[i][j];if(!valid(v,j))return '—';return 1+a.filter(r=>valid(r[j],j)&&(j===4?r[j]>v:r[j]<v)).length};
+ const fmt=(v,j)=>!valid(v,j)?'—':j===2&&v<0?'F'+Math.abs(v).toFixed(2):v.toFixed(2);
+ const d=document.createElement('div');
+ d.innerHTML='<h3>展示・ST・機力｜独立比較</h3><div style="overflow-x:auto"><table><tr><th>艇</th><th>平均ST</th><th>展示ST</th><th>展示秒（順位）</th><th>機力2連%（順位）</th></tr>'+a.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+fmt(r[1],1)+' ('+rank(i,1)+')</td><td>'+fmt(r[2],2)+'</td><td>'+fmt(r[3],3)+' ('+rank(i,3)+')</td><td>'+fmt(r[4],4)+' ('+rank(i,4)+')</td></tr>').join('')+'</table></div><p class="muted">平均ST・展示秒は小さい順、機力は大きい順。同率同順位。展示Fは加点しない。欠測・機力0は順位対象外。参考比較のみ、買い目補正なし。</p>';
+ $('qresult').append(d);
+}
+
 const oldQuickRun=$('qrun').onclick;
-$('qrun').onclick=function(){oldQuickRun.call(this);auditV27()};
+$('qrun').onclick=function(){oldQuickRun.call(this);auditV27();exhibitionV27()};
 
 document.querySelector('#quick').after($('output'));
 </script></body></html>
