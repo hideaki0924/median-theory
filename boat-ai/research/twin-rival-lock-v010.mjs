@@ -1,0 +1,22 @@
+// TWIN-RIVAL LOCK V0.10 — frozen 2026-11-27, RESEARCH/HOLD only.
+// Source blob d0db62dd4cca7cd163a04484bb5fbbc5fa8472c6; original 11119 rows, 11109 valid.
+// Reproduction: Jan -> July; Jan+July -> Nov 1–21. Prior explored periods, NOT fresh validation.
+// Thresholds frozen: min(rate2,rate3)>=6; abs(rate2-rate3)<0.5;
+// max(rate4,rate5,rate6)>=max(rate2,rate3); median payout proxy>=0.8.
+// ONE dynamic six; no THIRD50 for this gate. No odds or outcome used for selection.
+// All stakes simulated 100 yen each, 600 total. Preserve existing app.
+// CLI: node twin-rival-lock-v010.mjs master.csv test.csv
+// Both CSVs must have date,venue,race,order,result,payout,rate1,...,rate6.
+// Train must be strictly earlier than test. Preserve source row order for distance ties.
+// Unseen exact rank or fewer than six observed triples: HOLD. Rate ties: reject input for review.
+// Do not modify thresholds or retrain on test outcomes. Fresh test required.
+import fs from 'node:fs';
+function parseMaster(s){const seen=new Set(),rows=[];for(const l of s.trim().split(/\r?\n/).slice(1)){const [date,venue,race,order,result,pay,...rs]=l.split(",");const a=rs.map(Number);if(a.length!==6||!a.every(v=>v>0&&v<=10))continue;const key=[date,venue,race].join("|");if(seen.has(key))throw Error("duplicate "+key);seen.add(key);if(!/^[1-6]-[1-6]-[1-6]$/.test(result)||new Set(result.split("-")).size!==3||!(+pay>0))throw Error("invalid result");const sorted=a.map((v,i)=>[v,i+1]).sort((x,y)=>y[0]-x[0]);if(sorted.some((v,i)=>i&&v[0]===sorted[i-1][0]))throw Error("tied rates: "+key);if(sorted.map(v=>v[1]).join("-")!==order)throw Error("order mismatch "+key);const avg=a.reduce((s,v)=>s+v,0)/6;rows.push({date,venue,race,order,result,pay:+pay,a,c:a.map(v=>v-avg)})}return rows}
+function frozenGate(train,tests){if(!train.length||!tests.length)throw Error("empty input");if(train.reduce((m,x)=>x.date>m?x.date:m,"")>=tests.reduce((m,x)=>x.date<m?x.date:m,"99999999"))throw Error("chronological leakage");const g=new Map(),cache=new Map(),out=[];let skipped=0;for(const x of train){if(!g.has(x.order))g.set(x.order,[]);g.get(x.order).push(x)}
+for(const q of tests){const ex=g.get(q.order);if(!ex){skipped++;continue}if(!cache.has(q.order)){const k=q.order.split("-");cache.set(q.order,[...ex,...[...g].filter(([o])=>o!==q.order&&o.split("-").filter((v,i)=>v!==k[i]).length<=2).flatMap(([,a])=>a)])}const near=cache.get(q.order).map(x=>({x,d:x.c.reduce((s,v,i)=>s+(v-q.c[i])**2,0)})).sort((a,b)=>a.d-b.d).slice(0,200);const m=new Map();for(const {x} of near){if(!m.has(x.result))m.set(x.result,[]);m.get(x.result).push(x.pay)}if(m.size<6){skipped++;continue}const f=[...m].map(([b,a])=>{a.sort((x,y)=>x-y);return {b,n:a.length,med:(a[Math.floor((a.length-1)/2)]+a[Math.floor(a.length/2)])/2}}).sort((a,b)=>b.n-a.n);const gs=[f.filter(v=>v.med<3000),f.filter(v=>v.med>=3000&&v.med<10000),f.filter(v=>v.med>=10000)];const n=near.length,one=near.filter(v=>v.x.result[0]==="1").length/n;const sp=one<.4?[4,2,0]:one<.6?[5,1,0]:one<.7?[0,0,0]:[3,2,1];const p=new Set();sp.forEach((v,i)=>gs[i].slice(0,v).forEach(x=>p.add(x.b)));for(const x of f){if(p.size===6)break;p.add(x.b)}if(p.size!==6)throw Error("invalid picks");const [a,b,c,d,e,z]=q.a;const chosen=f.filter(x=>p.has(x.b));const proxy=chosen.reduce((s,v)=>s+v.n*v.med,0)/n/600;const dual=Math.min(b,c)>=6&&proxy>=.8;const twin=dual&&Math.abs(b-c)<.5;const rival=dual&&Math.max(d,e,z)>=Math.max(b,c);out.push({date:q.date,venue:q.venue,race:q.race,exact:ex.length,near:n,one,proxy,dual,twin,rival,eligible:twin&&rival,picks:[...p],result:q.result,payout:q.pay,hit:+p.has(q.result),return:p.has(q.result)?q.pay:0})}return {out,skipped}}
+function summarize(a){const n=a.length,stake=n*600,hit=a.reduce((s,x)=>s+x.hit,0),pays=a.map(x=>x.return).sort((a,b)=>b-a),p=pays.reduce((s,v)=>s+v,0);return {n,hit,stake,payout:p,net:p-stake,roi:n?100*p/stake:null,no1:n?100*(p-(pays[0]||0))/stake:null,no3:n?100*(p-pays.slice(0,3).reduce((s,v)=>s+v,0))/stake:null}}
+const [trainPath,testPath]=process.argv.slice(2);
+if(!trainPath||!testPath)throw Error('Provide chronological train and test CSV paths');
+const train=parseMaster(fs.readFileSync(trainPath,'utf8')),tests=parseMaster(fs.readFileSync(testPath,'utf8'));
+const result=frozenGate(train,tests),eligible=result.out.filter(x=>x.eligible);
+console.log(JSON.stringify({train:train.length,test:tests.length,skipped:result.skipped,all:summarize(result.out),eligible:summarize(eligible),details:result.out},null,2));
