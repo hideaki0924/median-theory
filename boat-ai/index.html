@@ -43,6 +43,20 @@ function auditV27(){
  box.innerHTML='<h3>V2.7 比較監査｜四捨五入配列</h3><p>配列 '+akey+' ／ 全国 '+matches.length+'件 ／ 当地 '+local.length+'件</p><p>全国：'+freq(matches)+'</p><p>当地：'+freq(local)+'</p><p class="muted">従来の切り捨て・参考6点は変更なし。四捨五入は比較用であり、購入判断はHOLD。</p>';
  $('qresult').append(box);
 }
+
+function all120V27(){
+ const body=$('ev-result');if(!body)return;
+ const counts=JSON.parse(decodeURIComponent(body.dataset.counts||'%7B%7D')),n=Number(body.dataset.pool);
+ if(!n)return;
+ const rows=[];for(let a=1;a<=6;a++)for(let b=1;b<=6;b++)for(let c=1;c<=6;c++)if(a!==b&&b!==c&&a!==c){const bet=[a,b,c].join('-');rows.push({bet,count:counts[bet]||0})}
+ rows.sort((a,b)=>b.count-a.count||a.bet.localeCompare(b.bet));
+ const d=document.createElement('details');d.id='all120-v27';
+ d.innerHTML='<summary>全120通り｜近傍出現頻度順</summary><p>標本 '+n+'件。未検証の参考頻度。従来6点は変更なし。</p><table><tr><th>順位</th><th>三連単</th><th>件数</th><th>比率</th></tr>'+rows.map((r,i)=>'<tr><td>'+(i+1)+'</td><td>'+r.bet+'</td><td>'+r.count+'</td><td>'+(100*r.count/n).toFixed(2)+'%</td></tr>').join('')+'</table>';
+ $('output').append(d);
+}
+const originalRunV27=run;
+run=function(){originalRunV27();if(!$('all120-v27'))all120V27()};
+
 const oldQuickRun=$('qrun').onclick;
 $('qrun').onclick=function(){oldQuickRun.call(this);auditV27()};
 
