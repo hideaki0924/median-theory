@@ -69,8 +69,23 @@ function exhibitionV27(){
  $('qresult').append(d);
 }
 
+function auditCandidates(counts,n,a,used){const valid=(v)=>Number.isFinite(v)&&v>0;const rank=(i,j,desc=false)=>valid(a[i][j])?1+a.filter(r=>valid(r[j])&&(desc?r[j]>a[i][j]:r[j]<a[i][j])).length:null;return Object.entries(counts).filter(([b,c])=>c>0&&!used.includes(b)&&/^[1-6]-[1-6]-[1-6]$/.test(b)).map(([b,c])=>{const i=Number(b[4])-1;return {b,c,p:c/n*100,i:i+1,nat:rank(i,0,true),ex:rank(i,4),motor:rank(i,5,true),st:rank(i,2)}}).filter(r=>r.ex!==null&&r.motor!==null&&r.nat!==null&&r.ex<r.nat&&r.motor<r.nat).sort((x,y)=>y.c-x.c||x.b.localeCompare(y.b))}
+function omittedV28(){
+ const body=$('ev-result');if(!body)return;
+ const a=Array.from({length:6},(_,i)=>fields.map((_,j)=>{const v=$('q'+i+'_'+j).value;return v.trim()===''?null:Number(v)}));
+ if(a.some((r,i)=>!(r[0]>0&&r[0]<=10)||Number(race?.['rate'+(i+1)])!==r[0])||race.venue!==$('qvenue').value||String(race.race)!==$('qrace').value)return;
+ const n=Number(body.dataset.pool);if(!n)return;
+ const counts=JSON.parse(decodeURIComponent(body.dataset.counts));
+ const used=[...document.querySelectorAll('.bet-label')].map(x=>x.textContent);
+ const rows=auditCandidates(counts,n,a,used);
+ $('omitted-v28')?.remove();
+ const d=document.createElement('div');d.id='omitted-v28';
+ d.innerHTML='<h3>V2.8｜3着候補の取りこぼし監査</h3><p class="warn">研究候補・購入HOLD。従来6点は維持。</p><p>近傍で出現し、3着艇の展示・機力順位が全国勝率順位より良い未選出組を全件表示。暫定仮説であり予測確率ではない。</p>'+(rows.length?'<table><tr><th>組</th><th>件数</th><th>展示順位</th><th>機力順位</th></tr>'+rows.map(r=>'<tr><td>'+r.b+'</td><td>'+r.c+'/'+n+'</td><td>'+r.ex+'</td><td>'+r.motor+'</td></tr>').join('')+'</table>':'<p>該当なし、または展示・機力欠測。</p>');
+ $('output').insertBefore(d,$('output').querySelector('h3'));
+}
+
 const oldQuickRun=$('qrun').onclick;
-$('qrun').onclick=function(){oldQuickRun.call(this);if(Array.from({length:6},(_,i)=>Number($('q'+i+'_0').value)).every(v=>v>0&&v<=10)){auditV27();exhibitionV27()}};
+$('qrun').onclick=function(){oldQuickRun.call(this);if(Array.from({length:6},(_,i)=>Number($('q'+i+'_0').value)).every(v=>v>0&&v<=10)){auditV27();exhibitionV27();omittedV28()}};
 
 
 document.querySelector('#quick').after($('output'));
