@@ -18,6 +18,17 @@ function calculate(x){
  const g=gap!==null&&gap>=0&&valid;
  return {stamina:valid&&(f===1||f===2)&&l1!==null&&c!==undefined&&a!==undefined?rnd(l1+c+a):null,speed:g&&l2!==null?rnd(l2+gap):null,power:g&&l4!==null&&t!==undefined&&d!==undefined?rnd(48+l4+gap-t-d):null};
 }
+function sourceValid(x,p){
+ if(x.source==='YASUI_JRA_V1_0_HISTORY_20260830')return x.date<='2026-08-30';
+ if(x.source!=='JRA_OFFICIAL_RESULT_V123'||x.match_method!=='TARGET_RUNNER_ID+JRA_RACE_KEY+NAME_NUMBER_FINISH+WINNER_TIME')return false;
+ const rid=String(x.race_id),dt=x.date.replace(/-/g,'');
+ if(!/^\d{18}$/.test(rid)||rid.slice(0,8)!==dt)return false;
+ const expected=rid.slice(8,10)+dt.slice(0,4)+rid.slice(10,16)+dt;
+ const urlCode=String(x.source_url||'').match(/^https:\/\/(?:app|sp|own)\.jra\.jp\/JRADB\/accessS\.html\?CNAME=sw01sde(?:01|10)(\d{20})\/[A-Fa-f0-9]{2}$/);
+ if(!urlCode||urlCode[1]!==expected||x.going!==p.going||x.class_name!==p.class_name)return false;
+ const laps=String(x.laps||'').split('-').map(Number),gap=n(p.margin_sec),time=n(p.finish_time_seconds);
+ return n(x.distance_m)>0&&laps.length===Math.ceil(n(x.distance_m)/200)&&laps.every(v=>Number.isFinite(v)&&v>0)&&gap!==null&&time!==null&&Math.abs(laps.reduce((a,b)=>a+b,0)-(time-Math.max(0,gap)))<.051;
+}
 function evaluate(h,fields,r){
  const m=h[9]||{},z=m.yasui_v120,ff=m.full_history_fields||fields,raw=m.full_history||h[8]||[],seen=new Set();
  if(!Array.isArray(ff)||!Array.isArray(raw)||new Set(ff).size!==ff.length)throw Error('全走歴形式不正');
@@ -25,7 +36,7 @@ function evaluate(h,fields,r){
  const s=norm(r.surface),age=n(m.age),map=new Map();
  for(const x of z?.rows||[]){
   const prior=hist.find(p=>p.race_id===x.race_id);
-  if(!prior||map.has(x.race_id)||String(x.horse_id)!==String(h[2])||x.date!==prior.date||x.source_status!=='STRICT_ID_MATCH'||x.surface!==prior.surface||n(x.distance_m)!==n(prior.distance_m)||n(x.finish)!==n(prior.finish_position)||x.source!=='YASUI_JRA_V1_0_HISTORY_20260830'||x.date>'2026-08-30')throw Error('安井ラップ照合不正');
+  if(!prior||map.has(x.race_id)||String(x.horse_id)!==String(h[2])||x.date!==prior.date||x.source_status!=='STRICT_ID_MATCH'||x.surface!==prior.surface||n(x.distance_m)!==n(prior.distance_m)||n(x.finish)!==n(prior.finish_position)||!sourceValid(x,prior))throw Error('安井ラップ照合不正');
   if(n(x.margin)!==n(prior.margin_sec))throw Error('安井着差不一致');
   map.set(x.race_id,{...x,...calculate(x)});
  }
