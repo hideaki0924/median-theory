@@ -40,6 +40,7 @@ const note=[];if(change.startsWith('距離短縮')&&p[0]?.front&&p[0]?.finShift!
 if(earlyFade)note.push('先行後退'+earlyFade+'走');if(deepGain)note.push('後方から4角まで進出'+deepGain+'走');if(top3)note.push('今回同芝ダ同距離3着内'+top3+'走');
 return {rs,raw,change,earlyFade,deepGain,advance,retreat,firstFourth:firstFourth.length,validFinish,exact:exact.length,top3,note,complete:rs.length===10||h[9]?.completeness_confirmed===true};
 }
+window.v106Facts=Object.freeze({evaluate(h,fields,race){const cols=['date','distance_m','finish_position','corner_1','corner_2','corner_3','corner_4','field_size','surface','source_status','race_id'];if(cols.some(c=>!fields.includes(c)))throw Error('TARGET過去走の通過順列が不足');return evaluate(h,fields,race);}});
 $('v106Run').addEventListener('click',()=>{
 out.replaceChildren();try{
 const x=snapshot,r=x?.race;if(!r||key(r)!==selected())throw Error('同一レースのTARGET過去走をV90から転送してください');
