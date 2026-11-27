@@ -14,7 +14,7 @@ function calculate(x){
  const text=String(x.laps??'').trim(),laps=/^\d+(?:\.\d+)?(?:-\d+(?:\.\d+)?)*$/.test(text)?text.split('-').map(Number):[];
  const valid=!!TRACK[s]&&Number.isInteger(f)&&f>=1&&laps.every(v=>v>0);
  const sum=k=>valid&&laps.length>=k?rnd(laps.slice(-k).reduce((a,b)=>a+b,0)):null;
- const l1=sum(1),l2=sum(2),l4=sum(4),c=CLASS[norm(x.class_name)],a=AGE[norm(x.age_limit)],t=TRACK[s]?.[norm(x.going)],d=BASE[s]?.[n(x.distance_m)];
+ const l1=sum(1),l2=sum(2),l4=sum(4),c=CLASS[norm(x.class_name).replace(/^([123]勝)クラス$/,'$1')],a=AGE[norm(x.age_limit)],t=TRACK[s]?.[norm(x.going)],d=BASE[s]?.[n(x.distance_m)];
  const g=gap!==null&&gap>=0&&valid;
  return {stamina:valid&&(f===1||f===2)&&l1!==null&&c!==undefined&&a!==undefined?rnd(l1+c+a):null,speed:g&&l2!==null?rnd(l2+gap):null,power:g&&l4!==null&&t!==undefined&&d!==undefined?rnd(48+l4+gap-t-d):null};
 }
