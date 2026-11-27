@@ -52,6 +52,7 @@ if(faded.length)observations.push('1角→4角で20pt以上後退'+faded.length+
 if(outsider.length)observations.push('過去に単勝10倍以上で3着内'+outsider.length+'回');
 return {top5,sameDist:sameDist.length,goodSame:goodSame.length,sameCourse:sameCourse.length,goodSameCourse:goodSameCourse.length,clearMargin,wins,moved:moved.length,faded:faded.length,outsider:outsider.length,observations};
 }
+window.v103Facts=Object.freeze({evaluate(h,fields,race){if(expectedFields.some(f=>!fields.includes(f)))throw Error('TARGET過去走の必要列が不足');const records=parse(h,fields,race.date);return {runs:records.length,...analyze(records,race)};}});
 $('v103Run').addEventListener('click',()=>{
 root.replaceChildren();
 try{
