@@ -38,7 +38,21 @@ body:not(.showLegacy) main > :not(#singleBundle):not(#researchDashboard):not(#le
 #researchDashboard .rt-table td{padding:7px 3px!important}
 #researchDashboard .rt-table td.rt-horse{font-size:12px!important;line-height:1.3!important}
 #researchDashboard .rt-table td.rt-num{font-size:13px!important}
-</style></head><body><main><section class="card" id="singleBundle">
+</style><style id="v124ModeStyle">
+#v124ModeBar{position:sticky;top:0;z-index:50;max-width:750px;box-sizing:border-box;margin:auto;padding:10px 16px 8px;background:#0c1727;border-bottom:1px solid #33465c}
+#v124ModeBar .v124-title{font-size:17px;font-weight:800;margin:0 0 6px}
+#v124ModeBar .v124-buttons{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+#v124ModeBar button{margin:0;padding:9px 5px;font-size:14px;min-height:40px;background:#263e53;color:#e7f3ff;border:1px solid #527083}
+#v124ModeBar button[aria-pressed="true"]{background:#38c8a7;color:#09251f;border-color:#38c8a7}
+#v124ModeBar p{margin:6px 0 0;font-size:12px;line-height:1.4;color:#b4c5d6}
+#v124ResearchMenu{margin:8px 0 0}
+#v124ResearchMenu select{width:100%;max-width:100%;font-size:16px;padding:8px;background:#14283c;color:#fff;border:1px solid #527083;border-radius:8px}
+#v124ResearchMenu[hidden]{display:none!important}
+body:not(.v124Research) main > :not(#singleBundle):not(#researchDashboard){display:none!important}
+body.v124Research main > #singleBundle,body.v124Research main > #researchDashboard{display:none!important}
+body #legacyToggleWrap{display:none!important}
+body.v124Research main > *{scroll-margin-top:180px}
+</style></head><body><header id="v124ModeBar" aria-label="画面切替"><div class="v124-title">競馬研究AI <small style="color:#b4c5d6;font-size:11px">V124</small></div><div class="v124-buttons"><button type="button" id="v124Practice" aria-pressed="true">実戦画面</button><button type="button" id="v124Research" aria-pressed="false">研究・検証画面</button></div><p id="v124ModeInfo" aria-live="polite">通常はこちら。競馬場とレースを選ぶだけ。</p><div id="v124ResearchMenu" hidden><label for="v124Jump" style="font-size:12px;color:#b4c5d6">研究項目へ移動</label><select id="v124Jump"><option value="">研究項目を選択</option></select></div></header><main><section class="card" id="singleBundle">
 <div class="compactForm">
 <label>競馬場<select id="bundleVenue"></select></label>
 <label>レース<select id="bundleRace"></select></label>
@@ -2778,4 +2792,28 @@ $('v88Build').click();$('v88NameBridge').scrollIntoView({behavior:'smooth'});
 }
 $('v90Load').addEventListener('click',load);
 })();
-</script><script src="./training-v91.js"></script><script src="./training-v92-official.js"></script><script src="./ability-training-v93.js"></script><script src="./pace-fatigue-v94.js?v=20261127-v116"></script><script src="./evidence-dashboard-v95.js"></script><script src="./favorite-gates-v117.js?v=20261127-v117"></script><script src="./market-median-v96.js?v=20261127-v117"></script><script src="./preflight-v98.js"></script><script src="./shared-import-v99.js"></script><script src="./race-safety-v100.js"></script><script src="./full-career-v102.js"></script><script src="./horse-cards-v103.js?v=20261127-v116"></script><script src="./ability-conditions-v104.js"></script><script src="./condition-recovery-v105.js?v=20261127-v116"></script><script src="./position-turn-v106.js?v=20261127-v116"></script><script src="./cross-evidence-v107.js?v=20261127-v116"></script><script src="./quick-launch.js"></script><script src="./independent-models-v118.js?v=20261127-v118"></script><script src="./yasui-v120.js?v=20261128-v123"></script><script src="./single-bundle-import.js?v=20261128-v123"></script><script src="./race-id-v111.js?v=20261127-v114"></script><script src="./live-odds-v108.js?v=20261127-v116"></script><script src="./wood-scout-v109.js"></script></body></html>
+</script><script src="./training-v91.js"></script><script src="./training-v92-official.js"></script><script src="./ability-training-v93.js"></script><script src="./pace-fatigue-v94.js?v=20261127-v116"></script><script src="./evidence-dashboard-v95.js"></script><script src="./favorite-gates-v117.js?v=20261127-v117"></script><script src="./market-median-v96.js?v=20261127-v117"></script><script src="./preflight-v98.js"></script><script src="./shared-import-v99.js"></script><script src="./race-safety-v100.js"></script><script src="./full-career-v102.js"></script><script src="./horse-cards-v103.js?v=20261127-v116"></script><script src="./ability-conditions-v104.js"></script><script src="./condition-recovery-v105.js?v=20261127-v116"></script><script src="./position-turn-v106.js?v=20261127-v116"></script><script src="./cross-evidence-v107.js?v=20261127-v116"></script><script src="./quick-launch.js"></script><script src="./independent-models-v118.js?v=20261127-v118"></script><script src="./yasui-v120.js?v=20261128-v123"></script><script src="./single-bundle-import.js?v=20261128-v123"></script><script src="./race-id-v111.js?v=20261127-v114"></script><script src="./live-odds-v108.js?v=20261127-v116"></script><script src="./wood-scout-v109.js"></script><script id="v124ModeController">(()=>{'use strict';
+const $=id=>document.getElementById(id),body=document.body,main=document.querySelector('main');
+const practice=$('v124Practice'),research=$('v124Research'),info=$('v124ModeInfo'),menu=$('v124ResearchMenu'),jump=$('v124Jump');
+if(!main||!practice||!research||!info||!menu||!jump)return;
+let active='practice',items=[];
+function refreshMenu(){
+ const selected=jump.value;items=Array.from(main.children).filter(e=>!['singleBundle','researchDashboard','legacyToggleWrap'].includes(e.id)&&!['SCRIPT','STYLE','TEMPLATE'].includes(e.tagName)&&e.querySelector('h1,h2,h3')&&getComputedStyle(e).display!=='none');
+ jump.replaceChildren();const first=document.createElement('option');first.value='';first.textContent='研究項目を選択';jump.append(first);
+ items.forEach((e,i)=>{const o=document.createElement('option');o.value=String(i);o.textContent=(e.querySelector('h1,h2,h3').textContent||'研究項目').trim();jump.append(o)});
+ if(selected!==''&&Number(selected)<items.length)jump.value=selected;
+}
+function mode(next,scroll=true){
+ active=next==='research'?'research':'practice';const isResearch=active==='research';
+ body.classList.toggle('v124Research',isResearch);body.classList.toggle('showLegacy',isResearch);
+ practice.setAttribute('aria-pressed',String(!isResearch));research.setAttribute('aria-pressed',String(isResearch));menu.hidden=!isResearch;
+ info.textContent=isResearch?'開発・過去データ検証専用。通常の予想では操作不要。実戦画面へいつでも戻れます。':'通常はこちら。競馬場とレースを選ぶだけ。研究・検証操作は不要です。';
+ if(isResearch)refreshMenu();
+ if(scroll)window.scrollTo(0,0);
+}
+practice.addEventListener('click',()=>mode('practice'));research.addEventListener('click',()=>mode('research'));
+const old=$('legacyToggle');if(old){old.removeAttribute('onclick');old.onclick=()=>mode('research');}
+jump.addEventListener('change',()=>{if(jump.value!=='')items[Number(jump.value)]?.scrollIntoView({block:'start'});});
+if(typeof MutationObserver!=='undefined')new MutationObserver(()=>{if(active==='research')refreshMenu();}).observe(main,{childList:true});
+mode('practice',false);
+})();</script></body></html>
