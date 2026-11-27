@@ -43,6 +43,7 @@ const tips=[];if(poor&&sd.top3)tips.push('近5走凡走多め・今回同距離�
 const prior=last?[last.date,last.racecourse,last.surface,String(ld??'?')+'m',String(last.finish_position||'?')+'着',prev[1]].join(' '):'過去出走なし';
 return {runs:hist.length,prior,movement,clazz,sd,track,grounds:[...grounds].map(([k,v])=>k+':'+v.top3+'/'+v.count).join('、')||'不明',tips,poor,complete:hist.length===10||h[9]?.completeness_confirmed===true};
 }
+window.v105Facts=Object.freeze({evaluate(h,fields,race){const cols=['date','distance_m','finish_position','racecourse','surface','going','class_name','source_status','race_id'];if(cols.some(c=>!fields.includes(c)))throw Error('TARGET必須走歴列不足');return audit(h,fields,race);}});
 $('v105Run').addEventListener('click',()=>{
 out.replaceChildren();
 try{
