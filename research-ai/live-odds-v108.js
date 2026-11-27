@@ -4,7 +4,10 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id),box=$('liveOdds'),input=$('liveOddsUrl'),go=$('liveOddsRefresh'),message=$('liveOddsStatus'),output=$('liveOddsRows');
 if(!box||!input||!go||!message||!output)return;
-let current=null,requestSerial=0;
+let current=null,requestSerial=0,verified151=null;
+window.v151LiveMarket=Object.freeze({get:()=>verified151});
+function notify151(){window.dispatchEvent(new CustomEvent('v151-live-market-change'));}
+function reset151(){if(verified151){verified151=null;notify151();}}
 const venueCodes={'01':'札幌','02':'函館','03':'福島','04':'新潟','05':'東京','06':'中山','07':'中京','08':'京都','09':'阪神','10':'小倉'};
 const nameKey=x=>String(x??'').normalize('NFKC').trim();
 const txt=(tag,value)=>{const e=document.createElement(tag);e.textContent=String(value??'');return e;};
@@ -24,7 +27,7 @@ function validate(feed,id,race){
 if(!feed||feed.schema!=='NETKEIBA_LIVE_ODDS_V1'||feed.race_id!==id||feed.date!==race.date||!matchesRace(id,race))throw Error('レースID・開催日が統合台帳と一致しません');
 if(!Array.isArray(feed.odds)||feed.odds.length!==race.horse_count||feed.horse_count!==race.horse_count)throw Error('オッズが全頭そろっていません（'+(feed.odds?.length||0)+'/'+race.horse_count+'頭）');
 const numbers=new Set(race.horses.map(h=>Number(h[0]))),seen=new Set();
-for(const x of feed.odds){if(!Number.isInteger(x.horse_number)||!numbers.has(x.horse_number)||seen.has(x.horse_number)||!(Number(x.win_odds)>=1)||!(Number(x.place_upper)>=1)||Number(x.place_upper)<Number(x.place_lower)||!Number.isFinite(Number(x.place_upper)))throw Error('馬番・単複上限が不正または欠落');seen.add(x.horse_number);}
+for(const x of feed.odds){if(!Number.isInteger(x.horse_number)||!numbers.has(x.horse_number)||seen.has(x.horse_number)||!Number.isFinite(Number(x.win_odds))||Number(x.win_odds)<1||!Number.isFinite(Number(x.place_lower))||Number(x.place_lower)<1||!Number.isFinite(Number(x.place_upper))||Number(x.place_upper)<Number(x.place_lower))throw Error('馬番・単複上限が不正または欠落');seen.add(x.horse_number);}
 const official=String(feed.official_datetime||'');
 const date=official.match(/^\d{4}-\d\d-\d\d[ T]\d\d:\d\d:\d\d(?:\+09:00)?$/);
 if(!date)throw Error('オッズ取得時刻が不明');
@@ -39,7 +42,7 @@ if(at>=startMs)throw Error('原典オッズ時刻が発走予定以降。発走�
 if(Date.now()>=startMs)throw Error('対象レースは発走予定時刻を過ぎています。今から実戦分析へ混入させません');
 if(age < 0 || age > 30)throw Error('取得時刻が古い／未来です（'+Math.round(age)+'分差）。発走前の最新オッズとは扱えません');
 if(feed.status!=='available')throw Error('単複オッズの一部が未発売・未取得です');
-return {at,official:normalized,age};
+return {at,official:normalized,age,startMs};
 }
 function createOddsFile(feed,race,official){
 const lines=['date,venue,race_no,horse_number,win_odds,place_upper,captured_at'];
@@ -70,7 +73,7 @@ const result=$('v96Results');if(result)result.replaceChildren();
 return cleared;
 }
 function clear(){
-requestSerial++;go.disabled=false;invalidatePreviousLiveOdds();output.replaceChildren();message.textContent='レースのオッズをまだ取得していません。';
+reset151();requestSerial++;go.disabled=false;invalidatePreviousLiveOdds();output.replaceChildren();message.textContent='レースのオッズをまだ取得していません。';
 }
 window.addEventListener('v86-upcoming-import',event=>{
 const r=event.detail?.race;if(!r)return;
@@ -81,7 +84,7 @@ else{input.value='';message.textContent='この開催日の正式レースIDは�
 });
 for(const id of ['v90Date','v90Venue','v90Race'])$(id)?.addEventListener('change',()=>{current=null;clear();input.value='';});
 go.addEventListener('click',async()=>{
-const ticket=++requestSerial;go.disabled=true;output.replaceChildren();
+const ticket=++requestSerial;reset151();go.disabled=true;output.replaceChildren();
 const invalidated=invalidatePreviousLiveOdds();
 if(invalidated){window.v96Market?.run();if(window.v107Cross)window.v107Cross.run();else $('v107Run')?.click();}
 try{
@@ -120,6 +123,7 @@ message.textContent='参考表示のみ：'+source+'、原典のオッズ時刻 
 return;
 }
 createOddsFile(feed,r,verified.official);
+verified151=Object.freeze({key:[r.date,r.venue,String(r.race_no)].join('|'),at:verified.at,startMs:verified.startMs,time:verified.official,rows:Object.freeze(feed.odds.map(x=>Object.freeze({no:Number(x.horse_number),win:Number(x.win_odds),place:Number(x.place_upper),placeLower:Number(x.place_lower)})))});notify151();
 if(window.v96Market)window.v96Market.run();else $('v96Run')?.click();
 if(window.v107Cross)window.v107Cross.run();else $('v107Run')?.click();
 const b=$('v95Run');if(b&&!b.disabled)b.click();
