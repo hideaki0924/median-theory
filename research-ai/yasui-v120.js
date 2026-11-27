@@ -49,8 +49,19 @@ function evaluate(h,fields,r){
  const speedComplete=young?complete:older&&(hist.length>=4||m.completeness_confirmed===true)&&hist.slice(0,4).every(x=>x.surface!==s||map.get(x.race_id)?.speed!=null);
  const sameHist=hist.filter(x=>x.surface===s);
  const reasons={stamina:st?'':!sameHist.length?'同面歴なし':!sameHist.some(x=>[1,2].includes(n(x.finish_position)))?'同面1・2着歴なし（収録内）':'1F・補正未照合',speed:sp?'':!sameHist.length?'同面歴なし':!young&&!older?'年齢未確認':'2F未照合',power:pw?'':!sameHist.length?'同面歴なし':'4F・基準未照合'};
- return {no:Number(h[0]),age,history:hist.length,matched:map.size,stamina:st,speed:sp,power:pw,reasons,staminaOther:st?null:best(pool,'stamina',true),speedOther:sp?null:best(speedPool,'speed',false),complete,speedComplete,missing:hist.length-map.size,source:z?.source||'未入力',status:'HOLD：全戦歴・最新ラップ・コース★・総合印未確定'};
+ // V132: source engine ranks fallback STAMINA/SPEED too; preserve legacy same-surface ranks separately.
+ const sourceValues={stamina:st||best(pool,'stamina',true),speed:sp||best(speedPool,'speed',false),power:pw};
+ const sourceBasis={stamina:st?'同面':sourceValues.stamina?'別面参考':'対象値なし',speed:sp?'同面':sourceValues.speed?'別面参考':'対象値なし',power:pw?'同面':'対象値なし'};
+ const sourceCoverage={stamina:{required:sameHist.filter(x=>[1,2].includes(n(x.finish_position))).length,usable:same.filter(x=>x.stamina!==null).length},speed:{required:(young?hist:older?hist.slice(0,4):[]).filter(x=>x.surface===s&&n(x.finish_position)>0).length,usable:speedPool.filter(x=>x?.surface===s&&x.speed!==null).length},power:{required:sameHist.filter(x=>n(x.finish_position)>0).length,usable:same.filter(x=>x.power!==null).length}};
+ return {sourceValues,sourceBasis,sourceCoverage,sourceCareerConfirmed:m.completeness_confirmed===true,sourceLinkedComplete:m.linked_history_complete===true,sourceRecent4Linked:older&&m.linked_history_complete===true&&hist.length>=4&&hist.slice(0,4).every(x=>x.surface!==s||map.get(x.race_id)?.speed!=null),no:Number(h[0]),age,history:hist.length,matched:map.size,stamina:st,speed:sp,power:pw,reasons,staminaOther:st?null:best(pool,'stamina',true),speedOther:sp?null:best(speedPool,'speed',false),complete,speedComplete,missing:hist.length-map.size,source:z?.source||'未入力',status:'HOLD：全戦歴・最新ラップ・コース★・総合印未確定'};
 }
 function rank(rows){for(const key of ['stamina','speed','power']){const valid=rows.filter(x=>x?.[key]).sort((a,b)=>key==='stamina'?b[key].value-a[key].value:a[key].value-b[key].value);let prev=null,rank=0;valid.forEach((x,i)=>{if(x[key].value!==prev)rank=i+1;prev=x[key].value;x[key+'Rank']=valid.length>=2?rank:null;x[key+'N']=valid.length;});}return rows;}
-window.v120Yasui=Object.freeze({calculate,evaluate,rank});
+function sourceRank132(rows){
+ for(const key of ['stamina','speed','power']){
+ const eligible=rows.filter(x=>Number.isFinite(x?.sourceValues?.[key]?.value)).sort((a,b)=>key==='stamina'?b.sourceValues[key].value-a.sourceValues[key].value:a.sourceValues[key].value-b.sourceValues[key].value);
+ let last=null,rank=0;eligible.forEach((x,i)=>{const val=x.sourceValues[key].value;if(val!==last)rank=i+1;last=val;(x.sourceRanks||={})[key]={rank,n:eligible.length,total:rows.length};});
+ }
+ return rows;
+}
+window.v120Yasui=Object.freeze({calculate,evaluate,rank,sourceRank132});
 })();
