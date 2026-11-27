@@ -2,7 +2,12 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id),state=$('v96Status'),out=$('v96Results');
 if(!state||!out)return;
-let snapshot=null;window.addEventListener('v86-upcoming-import',e=>{if(e.detail?.schema==='TARGET_V86_UPCOMING_RACE_V1')snapshot=e.detail});
+let snapshot=null,serial=0;
+const key=r=>[r.date,r.venue,String(r.race_no)].join('|');
+const publish=detail=>window.dispatchEvent(new CustomEvent('v96-market-summary',{detail}));
+function reset(){serial++;snapshot=null;out.replaceChildren();$('v96Run').disabled=false;publish(null);}
+for(const id of ['v90Date','v90Venue','v90Race'])$(id)?.addEventListener('change',reset);
+window.addEventListener('v86-upcoming-import',e=>{if(e.detail?.schema==='TARGET_V86_UPCOMING_RACE_V1'){reset();snapshot=e.detail;}});
 const norm=v=>String(v??'').normalize('NFKC').replace(/[　\s]+/g,'').trim();
 const n=v=>{const x=String(v??'').trim();return x&&/^\d+(?:\.\d+)?$/.test(x)?Number(x):null;};
 const get=(h,keys)=>{for(const k of keys){const i=h.findIndex(x=>norm(x).toLowerCase()===norm(k).toLowerCase());if(i>=0)return i;}return -1};
@@ -22,7 +27,7 @@ for(const row of src.rows){if(String(row[di]).replace(/\//g,'-')!==r.date||norm(
 const no=n(row[hi]),win=n(row[wi]),place=n(row[pi]),time=String(row[ti]||'').trim();
 if(!Number.isInteger(no)||!win||!place||win<1||place<1||!time||m.has(no))throw Error('同一レースの馬番・単複オッズ・取得時刻が不正／重複');
 m.set(no,{no,win,place});times.add(time)}
-const known=new Set(r.horses.map(x=>x[0]));
+const known=new Set(r.horses.map(x=>Number(x[0])));
 if(m.size!==known.size||[...m.keys()].some(k=>!known.has(k)))throw Error('出走馬全頭の単複オッズが揃っていません');
 if(times.size!==1)throw Error('全頭の単複オッズ取得時刻が一致しません');
 return {a:[...m.values()],time:[...times][0]};
@@ -39,10 +44,12 @@ if(!comb||odds===null||odds<1||!time||m.has(comb))throw Error(type+' のオッ�
 m.set(comb,odds);if(!times.has(type))times.set(type,new Set());times.get(type).add(time)}
 return {maps,times};
 }
-$('v96Run').addEventListener('click',async()=>{
-out.replaceChildren();const b=$('v96Run');b.disabled=true;
+async function run(){
+const ticket=++serial;publish(null);out.replaceChildren();const b=$('v96Run');b.disabled=true;
 try{
-const r=race();const [s,m]=await Promise.all([singles(r),multi(r)]);
+const r=race(),sourceSnapshot=snapshot;const [s,m]=await Promise.all([singles(r),multi(r)]);
+if(ticket!==serial||snapshot!==sourceSnapshot||key(race())!==key(r))return;
+const summary={key:key(r),single:null,multi:[],chaos:'HOLD：実証済み荒れ判定閾値なし'};
 if(!s&&!m)throw Error('単複または7券種オッズCSVを選択してください');
 if(s){
 const win=[...s.a].sort((a,b)=>a.win-b.win||a.no-b.no),place=[...s.a].sort((a,b)=>a.place-b.place||a.no-b.no);
@@ -67,6 +74,7 @@ heading('メジアン重複（独立因子として加点しない）');
 table(['馬番','該当する研究区分'],dup.map(([no,v])=>[no,[...v].join('／')]));
 const fav=win[0],low=win.filter(x=>x.win>=3&&x.win<=5);
 const inv=win.map(x=>1/x.win),sum=inv.reduce((a,b)=>a+b,0),top3=inv.slice(0,3).reduce((a,b)=>a+b,0)/sum*100;
+summary.single={time:s.time,top3,red:win.filter(x=>x.win<10).length,soloFavorite:fav.win<2&&win[1]?.win>=2,cluster:low.length,favorite:{no:fav.no,odds:fav.win},placeFavorite:place[0].no,rows:win.map(x=>({no:x.no,win:x.win,place:x.place,groups:[...(count.get(x.no)||[])],cross:[...(count.get(x.no)||[])].some(k=>k.startsWith('単勝'))&&[...(count.get(x.no)||[])].some(k=>!k.startsWith('単勝'))}))};
 const p=document.createElement('p');p.textContent='単勝市場参考：逆数オッズ正規化の上位3頭占有率 '+top3.toFixed(1)+'％。単独1倍台 '+(fav.win<2&&win[1]?.win>=2?'該当':'非該当')+'／3〜5倍の馬 '+low.length+'頭。時刻 '+s.time+'。これは売上シェアではなく、荒れる確率でもありません。';out.append(p);
 }
 if(m){
@@ -78,11 +86,14 @@ for(const kind of ['単勝','複勝','馬連','馬単','ワイド','三連複','
 const records=m.maps.get(kind),times=m.times.get(kind)||new Set(),complete=records.size===expected[kind]&&times.size===1, odds=[...records.values()].sort((a,b)=>a-b);
 let concentration='未計算';
 if(complete){const inv=odds.map(x=>1/x),total=inv.reduce((a,b)=>a+b,0);concentration=(inv.slice(0,Math.min(3,inv.length)).reduce((a,b)=>a+b,0)/total*100).toFixed(1)+'%';}
+summary.multi.push({kind,count:records.size,expected:expected[kind],complete,concentration,time:times.size===1?[...times][0]:null});
 rows.push([kind,records.size+'/'+expected[kind],times.size===1?[...times][0]:'混在・なし',complete?'件数一致※':'不足・HOLD',concentration]);}
 table(['券種','入力点数/理論点数','取得時刻','件数監査','上位3組逆数占有率'],rows);
 const note=document.createElement('p');note.className='warn';note.textContent='※件数一致は組合せ完全性の保証ではありません。取消、同着、発売条件、複勝・ワイドのレンジオッズ、オッズ刻みは未監査。7券種横断の「荒れる／堅い」の実証済み閾値は未設定。';out.append(note);
 }
 state.textContent='V96のオッズ研究画面を表示。メジアンはオッズ昇順の中央馬（偶数時2頭）、P6とP15は正式壁定義に従います。壁不成立は候補なし。異券種の逆数占有率は売上比率ではなく、荒れ確率・期待値・購入推奨には使用しません。全頭10走・調教・直前情報の最終監査まで買い目HOLD。';
-}catch(e){state.textContent='HOLD：'+e.message;}finally{b.disabled=false}
-});
+publish(summary);
+}catch(e){if(ticket===serial){state.textContent='HOLD：'+e.message;publish(null);}}finally{if(ticket===serial)b.disabled=false}
+}
+window.v96Market={run};$('v96Run').addEventListener('click',run);
 })();
