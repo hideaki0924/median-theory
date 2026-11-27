@@ -29,6 +29,7 @@ const rawTime=past.map(p=>value(p.finish_time_seconds)).filter(v=>v!==null);
 const last3=past.map(p=>value(p.last3f_seconds)).filter(v=>v!==null);
 return {past:past.length,valid:valid.length,front,advance,retreat,avgFirst:avg(pos.map(p=>p.first)),avgFourth:avg(pos.map(p=>p.fourth)),avgMove:avg(pos.map(p=>p.move)),gaps,short,startGap,top3,rawTime:rawTime.length,last3:last3.length, career:h[9]?.basis==='JRA_NEWCOMER_DEBUT_AND_ALL_LINKED_RACES'};
 }
+window.v94Facts=Object.freeze({evaluate(h,fields,race){return calculate(h,fields,race);}});
 $('v94Run').addEventListener('click',()=>{
 output.replaceChildren();
 try{
