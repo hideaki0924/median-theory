@@ -101,6 +101,7 @@ table(['券種','入力点数/理論点数','取得時刻','件数監査','上�
 const note=document.createElement('p');note.className='warn';note.textContent='※全組合せ・重複・時刻一致を検査。取消、同着、発売条件、複勝・ワイドのレンジオッズ、オッズ刻みは未監査。7券種横断の「荒れる／堅い」の実証済み閾値は未設定。';out.append(note);
 }
 state.textContent='V96のオッズ研究画面を表示。メジアンはオッズ昇順の中央馬（偶数時2頭）、P6とP15は正式壁定義に従います。壁不成立は候補なし。異券種の逆数占有率は売上比率ではなく、荒れ確率・期待値・購入推奨には使用しません。全頭10走・調教・直前情報の最終監査まで買い目HOLD。';
+summary.favoriteGate=window.v117Favorite?.evaluate(s,m,r)||{status:'HOLD：司令塔モジュール未接続',gates:[]};
 publish(summary);
 }catch(e){if(ticket===serial){state.textContent='HOLD：'+e.message;publish(null);}}finally{if(ticket===serial)b.disabled=false}
 }
