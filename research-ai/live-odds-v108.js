@@ -7,7 +7,10 @@ if(!box||!input||!go||!message||!output)return;
 let current=null,requestSerial=0,verified151=null;
 window.v151LiveMarket=Object.freeze({get:()=>verified151});
 function notify151(){window.dispatchEvent(new CustomEvent('v151-live-market-change'));}
-function reset151(){if(verified151){verified151=null;notify151();}}
+let expiry151=null;
+function reset151(){if(expiry151!==null){clearTimeout(expiry151);expiry151=null;}if(verified151){verified151=null;notify151();}}
+function scheduleExpiry151(){if(!verified151)return;const expires=Math.min(verified151.startMs,verified151.at+30*60000+1);expiry151=setTimeout(()=>{reset151();},Math.max(0,expires-Date.now()));}
+document.addEventListener('visibilitychange',()=>{if(verified151&&(Date.now()>=verified151.startMs||Date.now()-verified151.at>30*60000))reset151();});
 const venueCodes={'01':'札幌','02':'函館','03':'福島','04':'新潟','05':'東京','06':'中山','07':'中京','08':'京都','09':'阪神','10':'小倉'};
 const nameKey=x=>String(x??'').normalize('NFKC').trim();
 const txt=(tag,value)=>{const e=document.createElement(tag);e.textContent=String(value??'');return e;};
@@ -123,7 +126,7 @@ message.textContent='参考表示のみ：'+source+'、原典のオッズ時刻 
 return;
 }
 createOddsFile(feed,r,verified.official);
-verified151=Object.freeze({key:[r.date,r.venue,String(r.race_no)].join('|'),at:verified.at,startMs:verified.startMs,time:verified.official,rows:Object.freeze(feed.odds.map(x=>Object.freeze({no:Number(x.horse_number),win:Number(x.win_odds),place:Number(x.place_upper),placeLower:Number(x.place_lower)})))});notify151();
+verified151=Object.freeze({key:[r.date,r.venue,String(r.race_no)].join('|'),at:verified.at,startMs:verified.startMs,time:verified.official,rows:Object.freeze(feed.odds.map(x=>Object.freeze({no:Number(x.horse_number),win:Number(x.win_odds),place:Number(x.place_upper),placeLower:Number(x.place_lower)})))});scheduleExpiry151();notify151();
 if(window.v96Market)window.v96Market.run();else $('v96Run')?.click();
 if(window.v107Cross)window.v107Cross.run();else $('v107Run')?.click();
 const b=$('v95Run');if(b&&!b.disabled)b.click();
