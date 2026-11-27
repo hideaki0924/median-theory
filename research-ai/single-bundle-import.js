@@ -18,7 +18,8 @@ async function cacheDelete(){const db=await openCache();try{await new Promise((r
 function flat147(r){return ['芝','ダ','ダート'].includes(r?.surface)&&!String(r?.class_name||'').includes('障害')&&!String(r?.race_name||'').includes('障害');}
 function compare147({race,source,course,training,sourceWin,market,hr}){
  const unknown={ability:'未確認',training:[],pace:'未確認',wins:[],p9:false,warning:'',labels:[],market:'市場HOLD'};
- if(!flat147(race)||race.class_name==='新馬')return {...unknown,state:'別工程',warning:'新馬・障害は既存別工程'};
+ if(!flat147(race))return {...unknown,state:'別工程',warning:'障害は実戦対象外'};
+ if(race.class_name==='新馬')return {...unknown,state:'新馬別工程',ability:'過去走なし／別監査',training:[...new Set(training||[])],market:market&&Number.isFinite(market.win)&&market.win>=1?market.win.toFixed(1)+'倍（入力時点）':'市場HOLD',warning:'新馬専用判定は未確定'};
  if(!source?.ok)return {...unknown,state:'資料HOLD',warning:source?.reason||'保存研究未収録'};
  const f=source.fields||{},q=course;
  const complete=!!q&&q.coverage===1,upper=complete&&q.rank<=3;
@@ -42,7 +43,7 @@ const active=bundle.races.filter(x=>flat147(x.data.race));const venues=[...new S
 if(active.length){venue.value=active[0].data.race.venue;selection();race.value=active[0].data.race.date+'|'+active[0].data.race.race_no;}else{clearVisibleRace();go.disabled=true;busy('平地対象レースなし（元データは保持）');return;}
 go.disabled=false;
 const settings=$('bundleSettings');if(settings)settings.open=false;
-busy(origin+'：'+bundle.races.length+'レースを読み込みました。');
+busy(origin+'：平地'+active.length+'R（対象外'+(bundle.races.length-active.length)+'Rは元データに保持）。');
 go.click();
 
 }
@@ -80,7 +81,7 @@ if(file.size>16e6)throw Error('ファイルが16MBを超えています。分割
 busy('統合データを端末内で読み込んでいます…');
 const json=JSON.parse(await file.text());
 installBundle(json,'統合データ読込完了');
-try{await cacheWrite(json);busy('保存完了：次回からこの端末の同じブラウザで自動復元します。'+bundle.races.length+'レース。');}
+try{await cacheWrite(json);busy('保存完了：次回からこの端末の同じブラウザで自動復元します。平地'+bundle.races.filter(x=>flat147(x.data.race)).length+'R。');}
 catch(e){busy('分析用データは読込済み。ただし自動保存できません：'+e.message+'。次回は再選択が必要です。');}
 }catch(e){busy('HOLD：'+e.message)}
 });
