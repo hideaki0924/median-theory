@@ -25,10 +25,11 @@ if(!feed||feed.schema!=='NETKEIBA_LIVE_ODDS_V1'||feed.race_id!==id||feed.date!==
 if(!Array.isArray(feed.odds)||feed.odds.length!==race.horse_count||feed.horse_count!==race.horse_count)throw Error('オッズが全頭そろっていません（'+(feed.odds?.length||0)+'/'+race.horse_count+'頭）');
 const numbers=new Set(race.horses.map(h=>Number(h[0]))),seen=new Set();
 for(const x of feed.odds){if(!Number.isInteger(x.horse_number)||!numbers.has(x.horse_number)||seen.has(x.horse_number)||!(Number(x.win_odds)>=1)||!(Number(x.place_upper)>=1)||Number(x.place_upper)<Number(x.place_lower)||!Number.isFinite(Number(x.place_upper)))throw Error('馬番・単複上限が不正または欠落');seen.add(x.horse_number);}
-const official=feed.official_datetime||feed.fetched_at||'';
-const date=official.match(/^\d{4}-\d\d-\d\d[ T]\d\d:\d\d:\d\d/);
+const official=String(feed.official_datetime||'');
+const date=official.match(/^\d{4}-\d\d-\d\d[ T]\d\d:\d\d:\d\d(?:\+09:00)?$/);
 if(!date)throw Error('オッズ取得時刻が不明');
-const at=new Date(date[0].replace(' ','T')+'+09:00').getTime();
+const normalized=date[0].replace(' ','T').replace(/\+09:00$/,'');
+const at=Date.parse(normalized+'+09:00');
 if(!Number.isFinite(at))throw Error('取得時刻を読み取れません');
 const age=(Date.now()-at)/60000;
 if(!feed.race_start_at)throw Error('発走予定時刻の正式確認がありません。時刻の前後関係を検証できないため、実戦への反映を保留します');
@@ -36,9 +37,9 @@ const startMs=Date.parse(feed.race_start_at);
 if(!Number.isFinite(startMs))throw Error('発走予定時刻の形式が不正');
 if(at>=startMs)throw Error('原典オッズ時刻が発走予定以降。発走前の情報として利用不可');
 if(Date.now()>=startMs)throw Error('対象レースは発走予定時刻を過ぎています。今から実戦分析へ混入させません');
-if(age < -10 || age > 30)throw Error('取得時刻が古い／未来です（'+Math.round(age)+'分差）。発走前の最新オッズとは扱えません');
+if(age < 0 || age > 30)throw Error('取得時刻が古い／未来です（'+Math.round(age)+'分差）。発走前の最新オッズとは扱えません');
 if(feed.status!=='available')throw Error('単複オッズの一部が未発売・未取得です');
-return {at,official:date[0],age};
+return {at,official:normalized,age};
 }
 function createOddsFile(feed,race,official){
 const lines=['date,venue,race_no,horse_number,win_odds,place_upper,captured_at'];
@@ -69,7 +70,7 @@ const result=$('v96Results');if(result)result.replaceChildren();
 return cleared;
 }
 function clear(){
-requestSerial++;invalidatePreviousLiveOdds();output.replaceChildren();message.textContent='レースのオッズをまだ取得していません。';
+requestSerial++;go.disabled=false;invalidatePreviousLiveOdds();output.replaceChildren();message.textContent='レースのオッズをまだ取得していません。';
 }
 window.addEventListener('v86-upcoming-import',event=>{
 const r=event.detail?.race;if(!r)return;
