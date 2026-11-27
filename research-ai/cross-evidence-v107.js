@@ -1,7 +1,9 @@
 /* V107: Cross-evidence audit for all starters, descriptive only. No fabricated win probability or buy signal. */
 (()=>{'use strict';
 const $=id=>document.getElementById(id),status=$('v107Status'),root=$('v107Results');if(!status||!root)return;
-let audit=null;
+let audit=null,serial=0;
+const publish=detail=>window.dispatchEvent(new CustomEvent('v107-cross-summary',{detail}));
+function invalidate(){serial++;publish(null);$('v107Run').disabled=false;}
 const norm=x=>String(x??'').normalize('NFKC').replace(/[\s　]+/g,'').trim();
 const number=x=>{if(x===null||x===undefined||String(x).trim()==='')return null;const v=Number(x);return Number.isFinite(v)?v:null};
 const nameKey=x=>norm(x).toLowerCase();
@@ -145,17 +147,18 @@ const lastFront=last?frontDropRule(last):false;
 function frontDropRule(x){const size=number(x.field_size),start=number(x.corner_1),end=number(x.corner_4),fin=number(x.finish_position);return size!==null&&size>=2&&start!==null&&end!==null&&fin!==null&&start>=1&&end>=1&&fin>=1&&fin<=size&&start<=size&&end<=size&&start/size<=1/3&&(end-fin)/size<=-.2}
 return {hist:hist.length,top5:recentTop,denom:recent.length,sameTop,sameN:same.length,frontDrop,move,cut,cutFront:cut&&lastFront,complete:hist.length===10||h[9]?.completeness_confirmed===true};
 }
-window.addEventListener('v86-upcoming-import',e=>{const x=e.detail;if(x?.schema==='TARGET_V86_UPCOMING_RACE_V1'&&x.race&&key(x.race)===selected()){audit=x;root.replaceChildren();status.textContent='同一レースの過去走を受信。調教・市場CSVがあれば馬ごとに重ねて表示できます。';}});
-for(const id of ['v90Date','v90Venue','v90Race'])$(id)?.addEventListener('change',()=>{audit=null;root.replaceChildren();status.textContent='HOLD：レース変更。横断監査を消去しました。'});
-$('v107Run').addEventListener('click',async()=>{
-const button=$('v107Run');button.disabled=true;root.replaceChildren();
+window.addEventListener('v86-upcoming-import',e=>{const x=e.detail;if(x?.schema==='TARGET_V86_UPCOMING_RACE_V1'&&x.race&&key(x.race)===selected()){invalidate();audit=x;root.replaceChildren();status.textContent='同一レースの過去走を受信。調教・市場CSVがあれば馬ごとに重ねて表示できます。';}});
+for(const id of ['v90Date','v90Venue','v90Race'])$(id)?.addEventListener('change',()=>{invalidate();audit=null;root.replaceChildren();status.textContent='HOLD：レース変更。横断監査を消去しました。'});
+async function run(){
+const ticket=++serial;publish(null);const button=$('v107Run');button.disabled=true;root.replaceChildren();
 try{
 const x=audit,r=x?.race;if(!r||key(r)!==selected())throw Error('V90から同一レースの過去10走を転送してください');
 if(r.horse_count!==r.horses.length)throw Error('全頭数不一致');
 const required=['date','distance_m','finish_position','surface','corner_1','corner_4','field_size','race_id','source_status'];
 if(required.some(k=>!x.past_fields?.includes(k)))throw Error('過去走の必須列不足');
 const [gold,odds,training,scoutData]=await Promise.all([official(r.date),market(r),rawTraining(r.date),window.v109Scout?window.v109Scout.load(r.date):Promise.resolve({present:false,byId:new Map()})]);
-if(audit!==x||key(r)!==selected())throw Error('CSV読込中にレースが変更されました。旧結果を破棄します');
+if(ticket!==serial||audit!==x||key(r)!==selected())return;
+const crossRows=[];
 const table=element('table');
 const mobileCards=element('div');mobileCards.className='v107MobileCards';
 addRow(table,['馬番・馬名','走歴・直近5走3着内','今回同距離3着内','過去の位置変化','前走失速×今回短縮','過去黄金SOURCE','メジアン重複（参考）','単勝','資料状態'],true);
@@ -177,6 +180,7 @@ if(!z.complete)sources.push('全キャリア未確定');
 if(!gold.available)sources.push('調教SOURCE未入力');else if(!flag)sources.push('10/31〜11/13のSOURCE該当なし・11/14以降未監査');else sources.push('11/14以降の正式黄金SOURCE未監査');
 if(!odds.available)sources.push('単複市場未入力');
 if(sources.length)missing++;
+crossRows.push({no:Number(horse[0]),history:z.hist,complete:z.complete,observations:evidence,rawTraining:raw.has,rawText:raw.text,scoutLabel:scout.label,scoutMatched:scout.matched,scoutPositive:scout.positive,goldLabel,goldFlags:matched,missing:sources});
 addRow(table,[horse[0]+' '+horse[1],z.hist+'走・'+z.top5+'/'+z.denom,z.sameTop+'/'+z.sameN,'先行→後退'+z.frontDrop+'／道中進出'+z.move,z.cutFront?'観測あり':z.cut?'短縮のみ':'該当なし',goldLabel,m.length?m.join('／'):'該当なし',price?price.win.toFixed(1)+'倍':'未入力',sources.join('／')||'情報あり・期待値HOLD']);
 const card=element('details');card.className='v107MobileHorse';
 const summary=element('summary',horse[0]+'番 '+horse[1]+'｜過去'+z.hist+'走｜同距離3着内'+z.sameTop+'回');
@@ -198,6 +202,8 @@ mobileCards.append(card);
 }
 const scroll=element('div');scroll.className='scroll v107WideTable';scroll.append(table);root.append(scroll);root.append(mobileCards);
 status.textContent=r.date+' '+r.venue+r.race_no+'R 全'+r.horse_count+'頭を横断表示。10/31〜11/13の過去黄金SOURCEフラグ該当'+goldYes+'頭／過去走・位置変化・過去黄金SOURCEのうち2領域以上で観測'+overlap+'頭／生調教照合'+trainingCovered+'頭／WOOD SCOUT固定式再計算'+scoutCovered+'頭・該当'+scoutPositive+'頭／資料不足'+missing+'頭。単勝市場：'+(odds.available?odds.time:'未入力')+'。過去黄金SOURCEは10/31〜11/13の記録で11/14以降の最新正式判定ではありません。生調教の前回1F差は、4F全体の時計・コースの回り・追い切り負荷が一致するか未確認の参考値です。重複の独立加点はせず、能力勝率・期待値・馬体重/直前オッズ未照合のため馬券HOLD。';
-}catch(e){status.textContent='HOLD：'+e.message}finally{button.disabled=false}
-});
+publish({key:key(r),rows:crossRows});
+}catch(e){if(ticket===serial){status.textContent='HOLD：'+e.message;publish(null);}}finally{if(ticket===serial)button.disabled=false}
+}
+window.v107Cross={run};$('v107Run').addEventListener('click',run);
 })();
