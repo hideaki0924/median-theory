@@ -91,6 +91,42 @@ document.head.append(viewStyle);
 function cell(tag,text,cls){const v=document.createElement(tag);v.textContent=text==null||text===''?'—':String(text);if(cls)v.className=cls;return v;}
 const valid=x=>x!==null&&x!==undefined&&x!==''&&x!=='—';
 const fmt=x=>valid(x)?String(x):'—';
+// Restored from yasui_course_weights_v1_0_v030.csv (2026-09-02 archive).
+// Columns: venue,surface,distance,shape,SPEED,STAMINA,POWER,formal,source.
+const COURSE146=[
+['中京','芝',1200,'',4,2,3,true,'p146'],['中京','芝',1400,'',4,2,3,true,'p146'],['中京','芝',1600,'',4,3,3,true,'p146'],['中京','芝',2000,'',3,3,4,true,'p148–149'],['中京','芝',2200,'',3,3,4,true,'p148–149'],
+['中山','ダ',1200,'',3,4,2,true,'p133–134'],['中山','ダ',1800,'',1,5,3,true,'p134'],['中山','ダ',2400,'',0,5,3,true,'p134'],['中山','ダ',2500,'',0,5,3,true,'p134'],
+['中山','芝',1200,'外',4,null,null,false,'部分回収'],['中山','芝',1600,'外',3,3,2,true,'p132'],['中山','芝',1800,'内',3,3,2,true,'p132'],['中山','芝',2000,'内',2,4,3,true,'p132'],['中山','芝',2200,'外',3,4,3,true,'p133'],['中山','芝',2500,'内',2,4,3,true,'p133'],['中山','芝',3600,'内',1,5,3,true,'p133'],
+['京都','ダ',1400,'',4,2,4,true,'p144'],['京都','ダ',1800,'',4,3,5,true,'p144'],['京都','ダ',1900,'',3,3,5,true,'p144'],['京都','芝',1200,'内',5,0,4,true,'p141'],['京都','芝',1400,'内',5,0,null,false,'p141 POWER未確認'],['京都','芝',3000,'外',3,3,5,true,'p144'],['京都','芝',3200,'外',3,3,5,true,'p144'],
+['札幌','ダ',1700,'',4,3,4,true,'既存正式仕様'],
+['東京','ダ',1300,'',4,2,5,true,'p128'],['東京','ダ',1400,'',4,2,5,true,'p128'],['東京','ダ',1600,'',4,2,5,true,'p128'],['東京','ダ',2100,'',4,2,5,true,'p130'],
+['東京','芝',1400,'',5,0,5,true,'p128–130'],['東京','芝',1600,'',5,1,5,true,'p128–130'],['東京','芝',1800,'',5,1,5,true,'p128–130'],['東京','芝',2000,'',5,2,5,true,'p128'],['東京','芝',2300,'',5,2,5,true,'p128'],['東京','芝',2400,'',5,2,5,true,'p128'],['東京','芝',2500,'',5,3,5,true,'p128'],['東京','芝',3400,'',5,3,5,true,'p128'],
+['阪神','芝',1200,'内',5,2,3,true,'p136'],['阪神','芝',1400,'内',4,2,3,true,'p136'],['阪神','芝',1600,'外',5,2,5,true,'p137'],['阪神','芝',1800,'外',5,2,5,true,'p137'],['阪神','芝',2000,'内',3,3,3,true,'p137'],['阪神','芝',2200,'内',3,4,null,false,'p137 POWER未回収']
+];
+function course146(r){
+ const v=r.venue,s=r.surface==='ダート'?'ダ':r.surface,d=Number(r.distance_m);
+ let shape=String(r.course_shape??'').trim().replace(/回り$/,'');
+ let shapeSource=shape?'入力': '';
+ // JRA Kyoto official course distance table: 1200 inner; 3000/3200 outer.
+ const fixed=v==='京都'&&s==='芝'?({1200:'内',3000:'外',3200:'外'}[d]||''):'';
+ if(!shape&&fixed){shape=fixed;shapeSource='JRA京都コースデータ';}
+ if(shape&&fixed&&shape!==fixed)return {ok:false,reason:'入力コース形態とJRA固定形態が不一致'};
+ const candidates=COURSE146.filter(x=>x[0]===v&&x[1]===s&&x[2]===d);
+ const exact=candidates.find(x=>x[3]===shape);
+ if(!exact)return {ok:false,reason:candidates.length?'コース形態未指定／不一致':'V0.30未登録',row:candidates.length===1?candidates[0]:null};
+ const w={speed:exact[4],stamina:exact[5],power:exact[6]};
+ return {ok:exact[7]&&Object.values(w).every(x=>Number.isInteger(x)&&x>=0&&x<=5)&&Object.values(w).some(x=>x>0),w,row:exact,shape,shapeSource,reason:exact[7]?'原本★登録済':'部分回収・正式不可'};
+}
+function courseRank146(rows,r){
+ const course=course146(r),out=new Map();
+ if(!course.ok||r.class_name==='新馬'||!['芝','ダ','ダート'].includes(r.surface))return {course,out};
+ const w=course.w,total=Object.values(w).reduce((a,b)=>a+b,0);
+ for(const y of rows){if(!y||y.error)continue;let num=0,den=0;for(const k of ['speed','stamina','power']){const q=y.sourceRanks?.[k]?.rank;if(Number.isInteger(q)&&q>=1&&w[k]>0){num+=q*w[k];den+=w[k];}}
+ if(den>0)out.set(y.no,{score:Math.round(num/den*10000)/10000,coverage:Math.round(den/total*1000)/1000,rank:null,formal:false});}
+ const sorted=[...out.values()].sort((a,b)=>a.score-b.score);let last=null,rank=0;sorted.forEach((x,i)=>{if(x.score!==last)rank=i+1;last=x.score;x.rank=rank;});
+ return {course,out};
+}
+
 function renderFacts(item){
 const r=item.data.race,hh=r.horses.slice().sort((a,b)=>Number(a[0])-Number(b[0]));
 const ix=Object.fromEntries(item.data.past_fields.map((f,i)=>[f,i]));
@@ -225,41 +261,6 @@ function preserve130(input){
  const validRank=Number.isInteger(rank)&&rank>0,validOdds=typeof odds==='number'&&Number.isFinite(odds)&&odds>=1;
  const deep=validRank&&rank>=8||validOdds&&odds>=30?'DEEP（8人気以下／30倍以上）':validRank&&rank>=6||validOdds&&odds>=15?'6人気以下／15倍以上':validRank&&validOdds?'通常市場帯':'市場HOLD';
  return {state:active?'PRESERVED-WATCH':saved?'通常監査継続':'資料HOLD',ability,other,route,deep:active?deep:'—',warning:f['V10_反証留保']||'',h2:'当日勝ち筋未確定',h3:'独立強信号の正式照合待ち',recency:'公式最新走・母艦上限の突合待ち'};
-}
-// Restored from yasui_course_weights_v1_0_v030.csv (2026-09-02 archive).
-// Columns: venue,surface,distance,shape,SPEED,STAMINA,POWER,formal,source.
-const COURSE146=[
-['中京','芝',1200,'',4,2,3,true,'p146'],['中京','芝',1400,'',4,2,3,true,'p146'],['中京','芝',1600,'',4,3,3,true,'p146'],['中京','芝',2000,'',3,3,4,true,'p148–149'],['中京','芝',2200,'',3,3,4,true,'p148–149'],
-['中山','ダ',1200,'',3,4,2,true,'p133–134'],['中山','ダ',1800,'',1,5,3,true,'p134'],['中山','ダ',2400,'',0,5,3,true,'p134'],['中山','ダ',2500,'',0,5,3,true,'p134'],
-['中山','芝',1200,'外',4,null,null,false,'部分回収'],['中山','芝',1600,'外',3,3,2,true,'p132'],['中山','芝',1800,'内',3,3,2,true,'p132'],['中山','芝',2000,'内',2,4,3,true,'p132'],['中山','芝',2200,'外',3,4,3,true,'p133'],['中山','芝',2500,'内',2,4,3,true,'p133'],['中山','芝',3600,'内',1,5,3,true,'p133'],
-['京都','ダ',1400,'',4,2,4,true,'p144'],['京都','ダ',1800,'',4,3,5,true,'p144'],['京都','ダ',1900,'',3,3,5,true,'p144'],['京都','芝',1200,'内',5,0,4,true,'p141'],['京都','芝',1400,'内',5,0,null,false,'p141 POWER未確認'],['京都','芝',3000,'外',3,3,5,true,'p144'],['京都','芝',3200,'外',3,3,5,true,'p144'],
-['札幌','ダ',1700,'',4,3,4,true,'既存正式仕様'],
-['東京','ダ',1300,'',4,2,5,true,'p128'],['東京','ダ',1400,'',4,2,5,true,'p128'],['東京','ダ',1600,'',4,2,5,true,'p128'],['東京','ダ',2100,'',4,2,5,true,'p130'],
-['東京','芝',1400,'',5,0,5,true,'p128–130'],['東京','芝',1600,'',5,1,5,true,'p128–130'],['東京','芝',1800,'',5,1,5,true,'p128–130'],['東京','芝',2000,'',5,2,5,true,'p128'],['東京','芝',2300,'',5,2,5,true,'p128'],['東京','芝',2400,'',5,2,5,true,'p128'],['東京','芝',2500,'',5,3,5,true,'p128'],['東京','芝',3400,'',5,3,5,true,'p128'],
-['阪神','芝',1200,'内',5,2,3,true,'p136'],['阪神','芝',1400,'内',4,2,3,true,'p136'],['阪神','芝',1600,'外',5,2,5,true,'p137'],['阪神','芝',1800,'外',5,2,5,true,'p137'],['阪神','芝',2000,'内',3,3,3,true,'p137'],['阪神','芝',2200,'内',3,4,null,false,'p137 POWER未回収']
-];
-function course146(r){
- const v=r.venue,s=r.surface==='ダート'?'ダ':r.surface,d=Number(r.distance_m);
- let shape=String(r.course_shape??'').trim().replace(/回り$/,'');
- let shapeSource=shape?'入力': '';
- // JRA Kyoto official course distance table: 1200 inner; 3000/3200 outer.
- const fixed=v==='京都'&&s==='芝'?({1200:'内',3000:'外',3200:'外'}[d]||''):'';
- if(!shape&&fixed){shape=fixed;shapeSource='JRA京都コースデータ';}
- if(shape&&fixed&&shape!==fixed)return {ok:false,reason:'入力コース形態とJRA固定形態が不一致'};
- const candidates=COURSE146.filter(x=>x[0]===v&&x[1]===s&&x[2]===d);
- const exact=candidates.find(x=>x[3]===shape);
- if(!exact)return {ok:false,reason:candidates.length?'コース形態未指定／不一致':'V0.30未登録',row:candidates.length===1?candidates[0]:null};
- const w={speed:exact[4],stamina:exact[5],power:exact[6]};
- return {ok:exact[7]&&Object.values(w).every(x=>Number.isInteger(x)&&x>=0&&x<=5)&&Object.values(w).some(x=>x>0),w,row:exact,shape,shapeSource,reason:exact[7]?'原本★登録済':'部分回収・正式不可'};
-}
-function courseRank146(rows,r){
- const course=course146(r),out=new Map();
- if(!course.ok||r.class_name==='新馬'||!['芝','ダ','ダート'].includes(r.surface))return {course,out};
- const w=course.w,total=Object.values(w).reduce((a,b)=>a+b,0);
- for(const y of rows){if(!y||y.error)continue;let num=0,den=0;for(const k of ['speed','stamina','power']){const q=y.sourceRanks?.[k]?.rank;if(Number.isInteger(q)&&q>=1&&w[k]>0){num+=q*w[k];den+=w[k];}}
- if(den>0)out.set(y.no,{score:Math.round(num/den*10000)/10000,coverage:Math.round(den/total*1000)/1000,rank:null,formal:false});}
- const sorted=[...out.values()].sort((a,b)=>a.score-b.score);let last=null,rank=0;sorted.forEach((x,i)=>{if(x.score!==last)rank=i+1;last=x.score;x.rank=rank;});
- return {course,out};
 }
 function sourceWin132(y,market,form){
  const ranks=['stamina','speed','power'].map(k=>y?.sourceRanks?.[k]?.rank??null);
