@@ -32,17 +32,26 @@ if(m.size!==known.size||[...m.keys()].some(k=>!known.has(k)))throw Error('出走
 if(times.size!==1)throw Error('全頭の単複オッズ取得時刻が一致しません');
 return {a:[...m.values()],time:[...times][0]};
 }
+function combinationKey(raw,type,known){
+const text=String(raw??'').normalize('NFKC').trim();
+const length=type==='単勝'||type==='複勝'?1:type==='三連複'||type==='三連単'?3:2;
+if(!/^\d{1,2}(?:\s*[-→>＝=\/]\s*\d{1,2})*$/.test(text))return null;
+const nums=text.split(/\s*[-→>＝=\/]\s*/).map(Number);
+if(nums.length!==length||new Set(nums).size!==length||nums.some(n=>!known.has(n)))return null;
+if(['馬連','ワイド','三連複'].includes(type))nums.sort((a,b)=>a-b);
+return nums.join('-');
+}
 async function multi(r){
 const src=await csv($('v96Multi').files[0]);if(!src)return null;
 const h=src.h,di=get(h,['date']),vi=get(h,['venue']),ri=get(h,['race_no']),ki=get(h,['bet_type']),ci=get(h,['combination']),oi=get(h,['odds']),ti=get(h,['captured_at']);
 if([di,vi,ri,ki,ci,oi,ti].some(x=>x<0))throw Error('7券種CSVにはdate,venue,race_no,bet_type,combination,odds,captured_at が必要');
-const types=['単勝','複勝','馬連','馬単','ワイド','三連複','三連単'],maps=new Map(types.map(k=>[k,new Map()])),times=new Map();
+const types=['単勝','複勝','馬連','馬単','ワイド','三連複','三連単'],maps=new Map(types.map(k=>[k,new Map()])),times=new Map(),invalid=new Set(),known=new Set(r.horses.map(x=>Number(x[0])));
 for(const row of src.rows){if(String(row[di]).replace(/\//g,'-')!==r.date||norm(row[vi])!==norm(r.venue)||Number(row[ri])!==Number(r.race_no))continue;
 const type=String(row[ki]).trim(),m=maps.get(type);if(!m)continue;
-const comb=String(row[ci]||'').trim(),odds=n(row[oi]),time=String(row[ti]||'').trim();
-if(!comb||odds===null||odds<1||!time||m.has(comb))throw Error(type+' のオッズ行に不正値・重複が存在します');
+const comb=combinationKey(row[ci],type,known),odds=n(row[oi]),time=String(row[ti]||'').trim();
+if(!comb||odds===null||odds<1||!time||m.has(comb)){invalid.add(type);continue;}
 m.set(comb,odds);if(!times.has(type))times.set(type,new Set());times.get(type).add(time)}
-return {maps,times};
+return {maps,times,invalid};
 }
 async function run(){
 const ticket=++serial;publish(null);out.replaceChildren();const b=$('v96Run');b.disabled=true;
@@ -83,13 +92,13 @@ const N=r.horse_count,comb2=N*(N-1)/2,comb3=N*(N-1)*(N-2)/6;
 const expected={'単勝':N,'複勝':N,'馬連':comb2,'馬単':N*(N-1),'ワイド':comb2,'三連複':comb3,'三連単':N*(N-1)*(N-2)};
 const rows=[];
 for(const kind of ['単勝','複勝','馬連','馬単','ワイド','三連複','三連単']){
-const records=m.maps.get(kind),times=m.times.get(kind)||new Set(),complete=records.size===expected[kind]&&times.size===1, odds=[...records.values()].sort((a,b)=>a-b);
+const records=m.maps.get(kind),times=m.times.get(kind)||new Set(),complete=expected[kind]>0&&records.size===expected[kind]&&times.size===1&&!m.invalid.has(kind), odds=[...records.values()].sort((a,b)=>a-b);
 let concentration='未計算';
 if(complete){const inv=odds.map(x=>1/x),total=inv.reduce((a,b)=>a+b,0);concentration=(inv.slice(0,Math.min(3,inv.length)).reduce((a,b)=>a+b,0)/total*100).toFixed(1)+'%';}
 summary.multi.push({kind,count:records.size,expected:expected[kind],complete,concentration,time:times.size===1?[...times][0]:null});
-rows.push([kind,records.size+'/'+expected[kind],times.size===1?[...times][0]:'混在・なし',complete?'件数一致※':'不足・HOLD',concentration]);}
+rows.push([kind,records.size+'/'+expected[kind],times.size===1?[...times][0]:'混在・なし',complete?'組合せ一致※':m.invalid.has(kind)?'不正・重複 HOLD':'不足・HOLD',concentration]);}
 table(['券種','入力点数/理論点数','取得時刻','件数監査','上位3組逆数占有率'],rows);
-const note=document.createElement('p');note.className='warn';note.textContent='※件数一致は組合せ完全性の保証ではありません。取消、同着、発売条件、複勝・ワイドのレンジオッズ、オッズ刻みは未監査。7券種横断の「荒れる／堅い」の実証済み閾値は未設定。';out.append(note);
+const note=document.createElement('p');note.className='warn';note.textContent='※全組合せ・重複・時刻一致を検査。取消、同着、発売条件、複勝・ワイドのレンジオッズ、オッズ刻みは未監査。7券種横断の「荒れる／堅い」の実証済み閾値は未設定。';out.append(note);
 }
 state.textContent='V96のオッズ研究画面を表示。メジアンはオッズ昇順の中央馬（偶数時2頭）、P6とP15は正式壁定義に従います。壁不成立は候補なし。異券種の逆数占有率は売上比率ではなく、荒れ確率・期待値・購入推奨には使用しません。全頭10走・調教・直前情報の最終監査まで買い目HOLD。';
 publish(summary);
