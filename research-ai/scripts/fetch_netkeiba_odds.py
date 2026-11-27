@@ -99,7 +99,8 @@ def fetch(race_id, action="init"):
 def main():
     config = json.loads((FEED/"targets.json").read_text(encoding="utf8"))
     targets = config.get("race_ids", [])
-    if not isinstance(targets,list) or len(targets)>36:
+    # Historical target IDs are retained; date and 45-minute gates limit actual network requests.
+    if not isinstance(targets,list) or len(targets)>120:
         raise ValueError("invalid target list")
     any_good = False
     for race_id in targets:
