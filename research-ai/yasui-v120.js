@@ -47,8 +47,10 @@ function evaluate(h,fields,r){
  const st=best(same,'stamina',true),sp=best(speedPool.filter(x=>x?.surface===s),'speed',false),pw=best(same,'power',false);
  const complete=m.completeness_confirmed===true&&hist.length===map.size;
  const speedComplete=young?complete:older&&(hist.length>=4||m.completeness_confirmed===true)&&hist.slice(0,4).every(x=>x.surface!==s||map.get(x.race_id)?.speed!=null);
- return {no:Number(h[0]),age,history:hist.length,matched:map.size,stamina:st,speed:sp,power:pw,staminaOther:st?null:best(pool,'stamina',true),speedOther:sp?null:best(speedPool,'speed',false),complete,speedComplete,missing:hist.length-map.size,source:z?.source||'未入力',status:'HOLD：全戦歴・最新ラップ・コース★・総合印未確定'};
+ const sameHist=hist.filter(x=>x.surface===s);
+ const reasons={stamina:st?'':!sameHist.length?'同面歴なし':!sameHist.some(x=>[1,2].includes(n(x.finish_position)))?'同面1・2着歴なし（収録内）':'1F・補正未照合',speed:sp?'':!sameHist.length?'同面歴なし':!young&&!older?'年齢未確認':'2F未照合',power:pw?'':!sameHist.length?'同面歴なし':'4F・基準未照合'};
+ return {no:Number(h[0]),age,history:hist.length,matched:map.size,stamina:st,speed:sp,power:pw,reasons,staminaOther:st?null:best(pool,'stamina',true),speedOther:sp?null:best(speedPool,'speed',false),complete,speedComplete,missing:hist.length-map.size,source:z?.source||'未入力',status:'HOLD：全戦歴・最新ラップ・コース★・総合印未確定'};
 }
-function rank(rows){for(const key of ['stamina','speed','power']){const valid=rows.filter(x=>x?.[key]).sort((a,b)=>key==='stamina'?b[key].value-a[key].value:a[key].value-b[key].value);let prev=null,rank=0;valid.forEach((x,i)=>{if(x[key].value!==prev)rank=i+1;prev=x[key].value;x[key+'Rank']=rank;x[key+'N']=valid.length;});}return rows;}
+function rank(rows){for(const key of ['stamina','speed','power']){const valid=rows.filter(x=>x?.[key]).sort((a,b)=>key==='stamina'?b[key].value-a[key].value:a[key].value-b[key].value);let prev=null,rank=0;valid.forEach((x,i)=>{if(x[key].value!==prev)rank=i+1;prev=x[key].value;x[key+'Rank']=valid.length>=2?rank:null;x[key+'N']=valid.length;});}return rows;}
 window.v120Yasui=Object.freeze({calculate,evaluate,rank});
 })();
