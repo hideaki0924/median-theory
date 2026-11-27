@@ -83,7 +83,7 @@ for(const id of ['v90Date','v90Venue','v90Race'])$(id)?.addEventListener('change
 go.addEventListener('click',async()=>{
 const ticket=++requestSerial;go.disabled=true;output.replaceChildren();
 const invalidated=invalidatePreviousLiveOdds();
-if(invalidated){window.v96Market?.run();const b=$('v107Run');if(b&&!b.disabled)b.click();}
+if(invalidated){window.v96Market?.run();if(window.v107Cross)window.v107Cross.run();else $('v107Run')?.click();}
 try{
 const r=current,id=window.v111RaceId?.resolve(r)||raceId(input.value);
 if(!r)throw Error('先に統合ファイルを選び、対象のレースを一括分析してください');
@@ -121,7 +121,8 @@ return;
 }
 createOddsFile(feed,r,verified.official);
 if(window.v96Market)window.v96Market.run();else $('v96Run')?.click();
-for(const target of ['v95Run','v107Run']){const b=$(target);if(b&&!b.disabled)b.click()}
+if(window.v107Cross)window.v107Cross.run();else $('v107Run')?.click();
+const b=$('v95Run');if(b&&!b.disabled)b.click();
 message.textContent='取得成功：'+source+'の単勝・複勝'+feed.odds.length+'頭を照合。原典時刻 '+verified.official+'（'+Math.round(verified.age)+'分前）。メジアンとV107を更新。JRA公式確定値ではありません。';
 }catch(error){if(ticket===requestSerial)fail(error.message)}finally{if(ticket===requestSerial)go.disabled=false}
 });
