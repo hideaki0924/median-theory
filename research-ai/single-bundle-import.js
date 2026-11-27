@@ -20,6 +20,7 @@ if(bundle.races.length){venue.value=bundle.races[0].data.race.venue;selection();
 go.disabled=false;
 const settings=$('bundleSettings');if(settings)settings.open=false;
 busy(origin+'：'+bundle.races.length+'レースを読み込みました。');
+go.click();
 
 }
 function clearSelect(select){select.replaceChildren();}
@@ -49,7 +50,7 @@ for(const f of accepted)if(item[f]!=null&&typeof item[f]!=='string')throw Error(
 }return value;
 }
 input.addEventListener('change',async()=>{
-go.disabled=true;bundle=null;clearSelect(venue);clearSelect(race);
+go.disabled=true;bundle=null;clearSelect(venue);clearSelect(race);clearVisibleRace();
 try{
 const file=input.files?.[0];if(!file)throw Error('統合データファイルを選択してください');
 if(file.size>16e6)throw Error('ファイルが16MBを超えています。分割が必要です');
@@ -66,7 +67,7 @@ try{const value=await cacheRead();if(!value||input.files?.length||bundle)return;
 catch(e){busy('端末保存データを復元できません：'+e.message+'。統合JSONを選択してください。');}
 })();
 const clearButton=document.createElement('button');clearButton.type='button';clearButton.id='bundleForget';clearButton.textContent='この端末の保存データを消去';clearButton.style.background='#33465c';clearButton.style.color='#edf5ff';clearButton.style.fontSize='13px';
-clearButton.addEventListener('click',async()=>{if(!window.confirm('この端末に保存した統合データを消去しますか？ 公開GitHub上のデータには影響しません。'))return;try{await cacheDelete();bundle=null;go.disabled=true;input.value='';clearSelect(venue);clearSelect(race);busy('端末保存データを消去しました。次回利用時は統合JSONを読み込んでください。');}catch(e){busy('削除できません：'+e.message)}});
+clearButton.addEventListener('click',async()=>{if(!window.confirm('この端末に保存した統合データを消去しますか？ 公開GitHub上のデータには影響しません。'))return;try{await cacheDelete();bundle=null;go.disabled=true;input.value='';clearSelect(venue);clearSelect(race);clearVisibleRace();busy('端末保存データを消去しました。次回利用時は統合JSONを読み込んでください。');}catch(e){busy('削除できません：'+e.message)}});
 $('bundleSettings')?.querySelector('.bundle-settings-inside')?.append(clearButton);
 const advanced=$('legacyToggleWrap');if(advanced)$('bundleSettings')?.querySelector('.bundle-settings-inside')?.append(advanced);
 
@@ -74,6 +75,12 @@ const advanced=$('legacyToggleWrap');if(advanced)$('bundleSettings')?.querySelec
 /* Mobile race table V40 — presentation only; all historical research and calculation modules retained. */
 const dashboard=document.createElement('section');dashboard.id='researchDashboard';dashboard.hidden=true;
 $('singleBundle').insertAdjacentElement('afterend',dashboard);
+function clearVisibleRace(){dashboard.replaceChildren();dashboard.hidden=true;for(const id of ['v90Date','v90Venue','v90Race'])$(id)?.dispatchEvent(new Event('change',{bubbles:true}));}
+const marketPanel=document.createElement('div');marketPanel.id='compactMarketStatus';marketPanel.style.cssText='font-size:12px;padding:9px;margin:7px 0;border:1px solid #456879;border-radius:8px;background:#122d40;overflow-wrap:anywhere';
+const marketText=document.createElement('div');marketText.setAttribute('aria-live','polite');marketPanel.append(marketText);
+const marketRefresh=document.createElement('button');marketRefresh.type='button';marketRefresh.textContent='単複オッズ更新';marketRefresh.style.cssText='font-size:12px;padding:7px;margin:5px 0 0';marketRefresh.addEventListener('click',()=>{if(bundle)$('liveOddsRefresh')?.click()});marketPanel.append(marketRefresh);
+const syncMarket=()=>{marketText.textContent='市場｜'+($('liveOddsStatus')?.textContent||'未取得');marketRefresh.disabled=!!$('liveOddsRefresh')?.disabled;};
+const liveMessage=$('liveOddsStatus');if(liveMessage&&typeof MutationObserver!=='undefined'){new MutationObserver(syncMarket).observe(liveMessage,{childList:true,characterData:true,subtree:true});const liveButton=$('liveOddsRefresh');if(liveButton)new MutationObserver(syncMarket).observe(liveButton,{attributes:true,attributeFilter:['disabled']});}
 const intro=$('singleBundle');if(intro){const h=intro.querySelector('h1');if(h)h.textContent='競馬研究AI｜全頭比較表';const x=intro.querySelector('p strong');if(x)x.textContent='競馬場とRを選ぶと、全頭を表で比較できます。行をタップすると詳細を表示。';}
 const legacy=$('legacyToggle');if(legacy){legacy.textContent='その他の詳細研究・オッズを表示';legacy.style.cssText='font-size:13px;background:#263f54;color:#c6dfeb;border:1px solid #587189;padding:9px;margin:0 0 8px';}
 const viewStyle=document.createElement('style');viewStyle.textContent="\n#researchDashboard{margin:12px 0 16px;color:#eef7ff;max-width:100%}\n#researchDashboard .rt-header{padding:11px 12px;background:#17374c;border:1px solid #42697c;border-radius:12px;margin-bottom:9px}\n#researchDashboard h2{font-size:19px;margin:0;color:#fff}#researchDashboard .rt-sub{font-size:12px;color:#c3d8e7;margin:4px 0 0}\n#researchDashboard .rt-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:9px 0}\n#researchDashboard .rt-tabs button{margin:0;padding:10px 0;font-size:14px;background:#213d53;color:#d6e6f2;border:1px solid #496980;border-radius:8px}\n#researchDashboard .rt-tabs button[aria-pressed=true]{background:#38c8a7;color:#07231d;border-color:#38c8a7}\n#researchDashboard .rt-count{font-size:12px;color:#c2d8e3;margin:5px 0 9px}\n#researchDashboard .rt-scroll{border:1px solid #506f83;border-radius:10px;overflow-x:auto;max-width:100%;background:#13273a;-webkit-overflow-scrolling:touch}\n#researchDashboard .rt-table{border-collapse:separate;border-spacing:0;width:100%;min-width:0;font-size:12px;table-layout:fixed}\n#researchDashboard .rt-table th{background:#24445a;color:#b2eddf;font-size:12px;padding:10px 4px;white-space:nowrap;border-bottom:1px solid #587a8b;text-align:center}\n#researchDashboard .rt-table td{border-bottom:1px solid #355168;padding:10px 4px;vertical-align:middle;text-align:center;overflow-wrap:anywhere;line-height:1.4}\n#researchDashboard .rt-table tbody tr.rt-row{cursor:pointer}\n#researchDashboard .rt-table tbody tr.rt-row:active{background:#31556b}\n#researchDashboard .rt-table td.rt-horse{text-align:left;font-weight:700;color:#f6fbff;font-size:13px}\n#researchDashboard .rt-table td.rt-num{font-size:14px;font-weight:900}\n#researchDashboard .rt-table .rt-empty{color:#879dae}\n#researchDashboard .rt-table .rt-tag{display:inline-block;border-radius:5px;background:#2f4c62;color:#e7f4ff;font-size:11px;padding:2px 4px;line-height:1.4}\n#researchDashboard .rt-table .rt-gold{background:#655023;color:#ffe49f}\n#researchDashboard .rt-table .rt-twin{background:#245260;color:#9ceff1}\n#researchDashboard .rt-table tr.rt-detailrow td{text-align:left;background:#0e2030;padding:12px 10px;border-bottom:2px solid #38c8a7}\n#researchDashboard .rt-detailrow .rt-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}\n#researchDashboard .rt-detailrow .rt-box{background:#1d3447;border-radius:6px;padding:7px;min-width:0}\n#researchDashboard .rt-detailrow small{display:block;color:#acc7d9}\n#researchDashboard .rt-detailrow strong{font-size:14px}\n#researchDashboard .rt-detailrow h4{color:#8fe3d7;margin:12px 0 5px;font-size:14px}\n#researchDashboard .rt-detailrow .rt-note{font-size:12px;white-space:pre-line;overflow-wrap:anywhere}\n#researchDashboard .rt-past{max-width:100%;overflow-x:auto}\n#researchDashboard .rt-past table{min-width:500px;width:100%;font-size:12px}\n#researchDashboard .rt-past th,#researchDashboard .rt-past td{padding:6px 4px;white-space:nowrap}\n#researchDashboard .rt-foot{font-size:12px;color:#a8c2d5;margin-top:9px}\n@media(max-width:400px){#researchDashboard .rt-table th,#researchDashboard .rt-table td{padding-left:3px;padding-right:3px}#researchDashboard .rt-table td.rt-horse{font-size:12px}}\n";document.head.append(viewStyle);
@@ -94,7 +101,7 @@ if(absentFeatures){
 const header=document.createElement('div');header.className='rt-header';
 header.append(cell('h2',r.venue+' '+r.race_no+'R｜全'+hh.length+'頭'));
 header.append(cell('p',(r.race_name||r.class_name||'')+'　'+(r.surface||'')+(r.distance_m||'')+'m','rt-sub'));
-dashboard.append(header);
+dashboard.append(header,marketPanel);syncMarket();
 let mode='総合',openHorse=null;
 const tabs=document.createElement('nav');tabs.className='rt-tabs';tabs.setAttribute('aria-label','表示項目を切り替える');
 const modes=['総合','能力','調教','展開'];
@@ -135,7 +142,7 @@ const details=woodDetail+'\n黄金：'+(v.goldFlag?(v.gold.length?v.gold.join('�
 td.append(cell('p',details,'rt-note'));
 if(v.c.positive_evidence?.length)td.append(cell('p','好材料：'+v.c.positive_evidence.join('、'),'rt-note'));
 if(v.c.cautions?.length)td.append(cell('p','注意：'+v.c.cautions.join('、'),'rt-note'));
-td.append(cell('h4','過去7走'));
+td.append(cell('h4','過去走（収録 '+v.history+'走／最大10走）'));
 if(!h[8]?.length)td.append(cell('p','過去走なし／新馬も含む','rt-note'));
 else{const wrap=document.createElement('div');wrap.className='rt-past';const t=document.createElement('table');const head=document.createElement('tr');
 for(const x of ['日付','距離','着順','時計','4角','上がり'])head.append(cell('th',x));t.append(head);
@@ -165,8 +172,8 @@ for(const m of modes){const b=cell('button',m);b.type='button';b.addEventListene
 dashboard.append(tabs,status,scroll,cell('p','ウッド4F・終い1Fは同一の主追い日から抽出（馬ID・馬名照合済）。黄金は保存済み4型の一致数。双子※は原点研究の当日上位5%のみで正式V0.21判定ではありません。未取得は「—」。','rt-foot'));
 dashboard.hidden=false;draw();
 }
-venue.addEventListener('change',selection);
-race.addEventListener('change',()=>{const item=bundle?.races.find(x=>x.data.race.venue===venue.value&&x.data.race.date+'|'+x.data.race.race_no===race.value);if(item)renderFacts(item);});
+venue.addEventListener('change',()=>{selection();if(bundle)go.click();});
+race.addEventListener('change',()=>{const item=bundle?.races.find(x=>x.data.race.venue===venue.value&&x.data.race.date+'|'+x.data.race.race_no===race.value);if(item)go.click();});
 go.addEventListener('click',()=>{
 if(!bundle){$('bundleSettings').open=true;return busy('HOLD：統合データ未選択');}
 go.disabled=true;
@@ -185,7 +192,7 @@ for(const id of study){const b=$(id);if(b&&!b.disabled)b.click()}
 // Only attempt when verified race-ID mapping exists; URL input remains fallback.
 if(window.v111RaceId?.resolve(r))$('liveOddsRefresh')?.click();
 busy(r.date+' '+r.venue+r.race_no+'R／'+r.horse_count+'頭の研究監査を起動しました。不足SOURCE：'+([...new Set(missing)].join('、')||'なし')+'。分析結果を下のV107・V103で確認。直前情報・勝率・期待値が未検証なら馬券HOLD。');
-$('v107Cross')?.scrollIntoView({behavior:'smooth'});
+/* Keep the mobile comparison table in view; detailed panels remain accessible via settings. */
 }catch(e){busy('HOLD：'+e.message)}finally{go.disabled=false}
 });
 })();
