@@ -124,8 +124,9 @@ const gold=Object.keys(g.types||{}).filter(k=>g.types[k]),tw=t.best_origin||{};
 /* Select the fastest 1F among verified MAIN_WORKDAY wood sessions; keep the 4F from the same session. */
 const woodMain=(g.source_records||[]).filter(x=>x.main_workday===true&&x.match_method==='STRICT_BLOODLINE_ID_AND_NAME'&&Number.isFinite(Number(x['1F']))&&Number.isFinite(Number(x['4F'])));
 woodMain.sort((x,y)=>Number(x['1F'])-Number(y['1F'])||Number(x['4F'])-Number(y['4F']));
+const raw119=m.target_training_observed_v119||null;
 const wood=woodMain[0]||null;
-return{m,a,b,g,t,c,gold,tw,wood,woodMainCount:woodMain.length,
+return{m,a,b,g,t,c,gold,tw,wood,raw119,woodMainCount:woodMain.length,
 history:h[8]?.length||0,
 top3:a['直近7走3着以内回数'],
 same:a['同距離走数'],
@@ -156,13 +157,15 @@ const factLines=[['過去10走の好材料',a?a.observations.join('／')||'観�
 for(const [label,val] of factLines)td.append(cell('p',label+'：'+val,'rt-note'));
 const independent=v.independent,im=independentMarket(v);td.append(cell('h4','独自研究｜候補監査（正式総合印とは別）'),cell('p',independent?'CLASS05 '+flagText(independent.CLASS05)+'／TIMEHOLD2 '+flagText(independent.TIMEHOLD2)+'／NEAR10 '+flagText(independent.NEAR10)+'／EVIDENCE-3 '+flagText(independent.E3)+'\n市場照合（入力時点）：E3穴 '+flagText(im?.E3hole)+'／LATE-A '+flagText(im?.LATEA)+'／LATE-7R '+flagText(im?.LATE7R)+'／前走上がり順位 '+(independent.hasRank?'収録':'未収録'):'HOLD：独自研究に必要な走歴未照合','rt-note'));td.append(cell('p','E3は見える男V1.0本体とは別の候補。LATEはSECOND／THIRD／RESCUE監査。現時点の入力データからの観測で、勝率・最終印・買い目は未確定。','rt-note'));
 const market=currentMarket()?.single?.rows.find(x=>x.no===Number(h[0]));if(market){td.append(cell('h4','市場（入力時点）'),cell('p','単勝 '+market.win.toFixed(1)+'倍／複勝上限 '+market.place.toFixed(1)+'倍｜'+(market.groups.join('・')||'メジアン該当なし'),'rt-note'));}
+const rawWood=v.raw119?.wood_fastest_4f,rawHill=v.raw119?.hill_fastest_4f;
+if(v.raw119){td.append(cell('p','今週調教原票（正式黄金・双子判定とは別）：ウッド '+v.raw119.wood_rows+'件（ID＋馬名照合）／坂路 '+v.raw119.hill_rows+'件（馬名・厩舎・性齢照合、ID未確認）','rt-note'));if(rawWood)td.append(cell('p','ウッド最速4F原票 '+rawWood['年月日']+' '+rawWood['場所']+'／4F '+rawWood['4F']+'秒・終い '+rawWood['1F']+'秒','rt-note'));if(rawHill)td.append(cell('p','坂路最速4F原票 '+rawHill['年月日']+' '+rawHill['場所']+'／4F '+rawHill['Time1']+'秒・終い '+rawHill['Time4']+'秒（仮照合）','rt-note'));}
 const woodDetail=v.wood?('代表追い切り：'+v.wood.date+' '+v.wood.place+' '+v.wood.turn+'回り／4F '+Number(v.wood['4F']).toFixed(1)+'秒・終い1F '+Number(v.wood['1F']).toFixed(1)+'秒／ID照合済み'):'ウッド：有効な主追い日の馬ID照合データなし';
 const details=woodDetail+'\n黄金：'+(v.goldFlag?(v.gold.length?v.gold.join('＋'):'該当'):'非該当／未確認')+'\n双子原点：'+(Number.isFinite(Number(v.tw.origin_mean_D))&&valid(v.tw.origin_mean_D)?'D='+Number(v.tw.origin_mean_D).toFixed(3):'未取得')+'\n位置取り：'+fmt(v.position)+'／休み：'+fmt(v.rest)+'日\n調教照合：'+fmt(v.train);
 td.append(cell('p',details,'rt-note'));
 if(v.c.positive_evidence?.length)td.append(cell('p','好材料：'+v.c.positive_evidence.join('、'),'rt-note'));
 if(v.c.cautions?.length)td.append(cell('p','注意：'+v.c.cautions.join('、'),'rt-note'));
 td.append(cell('h4','過去走（収録 '+v.history+'走／最大10走）'));
-if(!h[8]?.length)td.append(cell('p','過去走なし／新馬も含む','rt-note'));
+if(!h[8]?.length)td.append(cell('p',v.m.entry_newcomer?'出馬表は新馬戦・TARGET過去走なし':'過去走なし／新馬も含む','rt-note'));
 else{const wrap=document.createElement('div');wrap.className='rt-past';const t=document.createElement('table');const head=document.createElement('tr');
 const columns=[['日付','date'],['場','racecourse'],['芝ダ','surface'],['距離','distance_m'],['級','class_name'],['馬場','going'],['着','finish_position'],['着差秒','margin_sec'],['時計秒','finish_time_seconds'],['上り3F','last3f_seconds'],['1角','corner_1'],['2角','corner_2'],['3角','corner_3'],['4角','corner_4'],['頭数','field_size'],['斤量','weight_kg'],['騎手','jockey'],['厩舎','trainer'],['馬体重','body_weight_kg'],['当時単勝','past_win_odds'],['SOURCE','source_status']];for(const [label] of columns)head.append(cell('th',label));t.append(head);
 for(const p of h[8].slice().sort((a,b)=>String(b[ix.date]).localeCompare(String(a[ix.date])))){const row=document.createElement('tr');for(const [,field] of columns)row.append(cell('td',fmt(p[ix[field]])));t.append(row);}
@@ -179,9 +182,9 @@ const nb=appendData(row,h[0]);nb.className='rt-num';
 const name=appendData(row,h[1]+' ▾');name.className='rt-horse';
 if(mode==='総合'){appendData(row,v.f103.data&&v.history?v.f103.data.top5+'回':valid(v.last5)?v.last5+'回':'—');appendData(row,v.goldFlag?tag('黄金','rt-gold'):'—');appendData(row,v.twinFlag?tag('双子','rt-twin'):'—');}
 if(mode==='能力'){appendData(row,valid(v.top3)?v.top3+'回':'—');appendData(row,valid(v.same)?v.same+'走':'—');appendData(row,valid(v.near)?v.near+'回':'—');}
-if(mode==='調教'){appendData(row,v.wood?Number(v.wood['4F']).toFixed(1):'—');appendData(row,v.wood?Number(v.wood['1F']).toFixed(1):'—');const tags=document.createElement('span');if(v.goldFlag)tags.append(tag(v.gold.length+'型','rt-gold'));if(v.twinFlag){if(tags.childNodes.length)tags.append(' ');tags.append(tag('双子※','rt-twin'));}appendData(row,tags.childNodes.length?tags:'—');}
+if(mode==='調教'){const raw=v.raw119?.wood_fastest_4f;appendData(row,v.wood?Number(v.wood['4F']).toFixed(1):raw?raw['4F']+'※':'—');appendData(row,v.wood?Number(v.wood['1F']).toFixed(1):raw?raw['1F']+'※':'—');const tags=document.createElement('span');if(v.goldFlag)tags.append(tag(v.gold.length+'型','rt-gold'));if(v.twinFlag){if(tags.childNodes.length)tags.append(' ');tags.append(tag('双子※','rt-twin'));}appendData(row,tags.childNodes.length?tags:'—');}
 if(mode==='独自研究'){const z=v.independent,q=independentMarket(v);appendData(row,flagText(z?.E3));appendData(row,flagText(q?.E3hole));appendData(row,flagText(q?.LATE7R));}
-if(mode==='見直し'){const a=v.f103.data,b=v.f105.data,p=v.f106.data;appendData(row,a&&v.history?a.goodSame+'/'+a.sameDist:'未確認');const flags=recovery(v);appendData(row,flags.length?flags.join('・'):b&&p&&v.history?'なし':'未確認');appendData(row,a&&v.history?a.outsider+'回':'未確認');}
+if(mode==='見直し'){const a=v.f103.data,b=v.f105.data,p=v.f106.data;appendData(row,a&&v.history?a.goodSame+'/'+a.sameDist:'未確認');const flags=recovery(v);appendData(row,flags.length?flags.join('・'):b&&p&&v.history?'なし':'未確認');appendData(row,a&&v.history&&h[8].some(p=>valid(p[ix.past_win_odds]))?a.outsider+'回':'未確認');}
 if(mode==='市場'){const a=currentMarket()?.single?.rows.find(x=>x.no===Number(h[0]));appendData(row,a?a.win.toFixed(1):'—');appendData(row,a?a.place.toFixed(1):'—');appendData(row,a?(a.cross?tag('重複','rt-gold'):'—'):'未取得');}
 if(mode==='展開'){appendData(row,fmt(v.position));appendData(row,valid(v.rest)?v.rest+'日':'—');appendData(row,valid(v.prior)?v.prior+'着':'—');}
 row.addEventListener('click',()=>{openHorse=openHorse===h[0]?null:h[0];draw();});body.append(row);
@@ -191,7 +194,7 @@ table.append(body);status.textContent='全'+hh.length+'頭を1頭1行で表示�
 btns.forEach((b,i)=>b.setAttribute('aria-pressed',String(modes[i]===mode)));
 }
 for(const m of modes){const b=cell('button',m);b.type='button';b.addEventListener('click',()=>{mode=m;draw();});tabs.append(b);btns.push(b);}
-dashboard.append(tabs,status,scroll,cell('p','ウッド4F・終い1Fは同一の主追い日から抽出（馬ID・馬名照合済）。黄金は保存済み4型の一致数。双子※は原点研究の当日上位5%のみで正式V0.21判定ではありません。未取得は「—」。','rt-foot'));
+dashboard.append(tabs,status,scroll,cell('p','ウッド4F・終い1Fは同一の主追い日から抽出（馬ID・馬名照合済）。黄金は保存済み4型の一致数。双子※は原点研究の当日上位5%のみで正式V0.21判定ではありません。未取得は「—」。※付きの時計は今週原票の最速4F（正式主追い日判定とは別）。坂路の仮照合は馬の詳細に表示。','rt-foot'));
 dashboard.hidden=false;marketRedraw=()=>{marketOverview();auditOverview();draw();};marketRedraw();
 }
 venue.addEventListener('change',()=>{selection();if(bundle)go.click();});
