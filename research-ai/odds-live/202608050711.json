@@ -1,0 +1,85 @@
+{
+  "schema": "NETKEIBA_LIVE_ODDS_V1",
+  "race_id": "202608050711",
+  "source": "sports_yahoo_co_jp",
+  "source_url": "https://sports.yahoo.co.jp/keiba/race/odds/tfw/2608050711",
+  "fetched_at": "2026-11-28T15:18:01+09:00",
+  "official_datetime": "2026-11-28 15:17:00",
+  "odds": [
+    {
+      "horse_number": 1,
+      "horse_name": "アーケントレイル",
+      "win_odds": 21.8,
+      "place_lower": 3.5,
+      "place_upper": 5.2
+    },
+    {
+      "horse_number": 2,
+      "horse_name": "シャローチャンプ",
+      "win_odds": 11.5,
+      "place_lower": 2.6,
+      "place_upper": 3.9
+    },
+    {
+      "horse_number": 3,
+      "horse_name": "ショウナンバトレニ",
+      "win_odds": 6.8,
+      "place_lower": 1.7,
+      "place_upper": 2.4
+    },
+    {
+      "horse_number": 4,
+      "horse_name": "フェイマスジャズ",
+      "win_odds": 33.5,
+      "place_lower": 4.3,
+      "place_upper": 6.4
+    },
+    {
+      "horse_number": 5,
+      "horse_name": "エトワールハマー",
+      "win_odds": 6.4,
+      "place_lower": 1.8,
+      "place_upper": 2.6
+    },
+    {
+      "horse_number": 6,
+      "horse_name": "ゴールデンプロミス",
+      "win_odds": 6.9,
+      "place_lower": 1.9,
+      "place_upper": 2.6
+    },
+    {
+      "horse_number": 7,
+      "horse_name": "ポルトブルー",
+      "win_odds": 41.1,
+      "place_lower": 5.1,
+      "place_upper": 7.7
+    },
+    {
+      "horse_number": 8,
+      "horse_name": "ノヴァヴェローチェ",
+      "win_odds": 3.4,
+      "place_lower": 1.5,
+      "place_upper": 2.0
+    },
+    {
+      "horse_number": 10,
+      "horse_name": "ドラゴンバルド",
+      "win_odds": 3.2,
+      "place_lower": 1.3,
+      "place_upper": 1.5
+    },
+    {
+      "horse_number": 11,
+      "horse_name": "サノノキセキ",
+      "win_odds": 45.7,
+      "place_lower": 5.5,
+      "place_upper": 8.3
+    }
+  ],
+  "horse_count": 10,
+  "status": "available",
+  "note": "SportsNavi intermediate odds (not JRA final). Source timestamp may be old.",
+  "date": "2026-11-28",
+  "race_start_at": "2026-11-28T15:40:00+09:00"
+}

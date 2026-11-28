@@ -1,0 +1,141 @@
+{
+  "schema": "NETKEIBA_LIVE_ODDS_V1",
+  "race_id": "202605050711",
+  "source": "sports_yahoo_co_jp",
+  "source_url": "https://sports.yahoo.co.jp/keiba/race/odds/tfw/2605050711",
+  "fetched_at": "2026-11-28T15:17:59+09:00",
+  "official_datetime": "2026-11-28 15:17:00",
+  "odds": [
+    {
+      "horse_number": 1,
+      "horse_name": "シンフォーエバー",
+      "win_odds": 106.4,
+      "place_lower": 19.4,
+      "place_upper": 29.2
+    },
+    {
+      "horse_number": 2,
+      "horse_name": "レッドシュヴェルト",
+      "win_odds": 21.1,
+      "place_lower": 3.7,
+      "place_upper": 5.4
+    },
+    {
+      "horse_number": 3,
+      "horse_name": "アドマイヤクワッズ",
+      "win_odds": 5.5,
+      "place_lower": 1.9,
+      "place_upper": 2.7
+    },
+    {
+      "horse_number": 4,
+      "horse_name": "マジックサンズ",
+      "win_odds": 4.0,
+      "place_lower": 1.5,
+      "place_upper": 1.9
+    },
+    {
+      "horse_number": 5,
+      "horse_name": "シャンパンカラー",
+      "win_odds": 22.2,
+      "place_lower": 5.1,
+      "place_upper": 7.5
+    },
+    {
+      "horse_number": 6,
+      "horse_name": "キョウエイブリッサ",
+      "win_odds": 30.8,
+      "place_lower": 5.0,
+      "place_upper": 7.3
+    },
+    {
+      "horse_number": 7,
+      "horse_name": "ウイントワイライト",
+      "win_odds": 21.4,
+      "place_lower": 4.2,
+      "place_upper": 6.1
+    },
+    {
+      "horse_number": 8,
+      "horse_name": "クルゼイロドスル",
+      "win_odds": 70.5,
+      "place_lower": 8.7,
+      "place_upper": 12.9
+    },
+    {
+      "horse_number": 9,
+      "horse_name": "ファインライン",
+      "win_odds": 90.9,
+      "place_lower": 10.5,
+      "place_upper": 15.6
+    },
+    {
+      "horse_number": 10,
+      "horse_name": "シュトラウス",
+      "win_odds": 15.2,
+      "place_lower": 4.3,
+      "place_upper": 6.3
+    },
+    {
+      "horse_number": 11,
+      "horse_name": "ディアナザール",
+      "win_odds": 7.4,
+      "place_lower": 2.1,
+      "place_upper": 3.0
+    },
+    {
+      "horse_number": 12,
+      "horse_name": "レディマリオン",
+      "win_odds": 283.1,
+      "place_lower": 44.9,
+      "place_upper": 67.7
+    },
+    {
+      "horse_number": 13,
+      "horse_name": "ブルーミンデザイン",
+      "win_odds": 106.5,
+      "place_lower": 15.9,
+      "place_upper": 23.9
+    },
+    {
+      "horse_number": 14,
+      "horse_name": "エンペラーズソード",
+      "win_odds": 36.5,
+      "place_lower": 7.4,
+      "place_upper": 11.0
+    },
+    {
+      "horse_number": 15,
+      "horse_name": "ダノンセンチュリー",
+      "win_odds": 4.4,
+      "place_lower": 1.6,
+      "place_upper": 2.1
+    },
+    {
+      "horse_number": 16,
+      "horse_name": "カヴァレリッツォ",
+      "win_odds": 8.3,
+      "place_lower": 3.0,
+      "place_upper": 4.3
+    },
+    {
+      "horse_number": 17,
+      "horse_name": "ガロンヌ",
+      "win_odds": 33.2,
+      "place_lower": 5.0,
+      "place_upper": 7.4
+    },
+    {
+      "horse_number": 18,
+      "horse_name": "レディントン",
+      "win_odds": 213.3,
+      "place_lower": 35.3,
+      "place_upper": 53.1
+    }
+  ],
+  "horse_count": 18,
+  "status": "available",
+  "note": "SportsNavi intermediate odds (not JRA final). Source timestamp may be old.",
+  "date": "2026-11-28",
+  "race_start_at": "2026-11-28T15:25:00+09:00"
+}

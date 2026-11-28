@@ -1,0 +1,141 @@
+{
+  "schema": "NETKEIBA_LIVE_ODDS_V1",
+  "race_id": "202605050712",
+  "source": "sports_yahoo_co_jp",
+  "source_url": "https://sports.yahoo.co.jp/keiba/race/odds/tfw/2605050712",
+  "fetched_at": "2026-11-28T15:18:00+09:00",
+  "official_datetime": "2026-11-28 15:17:00",
+  "odds": [
+    {
+      "horse_number": 1,
+      "horse_name": "レイナエヴィータ",
+      "win_odds": 69.4,
+      "place_lower": 13.5,
+      "place_upper": 21.1
+    },
+    {
+      "horse_number": 2,
+      "horse_name": "ウルフマン",
+      "win_odds": 29.2,
+      "place_lower": 4.7,
+      "place_upper": 7.1
+    },
+    {
+      "horse_number": 3,
+      "horse_name": "ポッポノフェスタ",
+      "win_odds": 52.3,
+      "place_lower": 9.6,
+      "place_upper": 15.0
+    },
+    {
+      "horse_number": 4,
+      "horse_name": "マイネルアウルム",
+      "win_odds": 19.5,
+      "place_lower": 3.7,
+      "place_upper": 5.5
+    },
+    {
+      "horse_number": 5,
+      "horse_name": "コレクテイニア",
+      "win_odds": 22.9,
+      "place_lower": 5.7,
+      "place_upper": 8.8
+    },
+    {
+      "horse_number": 6,
+      "horse_name": "ビリングス",
+      "win_odds": 49.0,
+      "place_lower": 11.6,
+      "place_upper": 18.1
+    },
+    {
+      "horse_number": 7,
+      "horse_name": "ピースフルマインド",
+      "win_odds": 67.8,
+      "place_lower": 13.5,
+      "place_upper": 21.2
+    },
+    {
+      "horse_number": 8,
+      "horse_name": "ヴォートセレスト",
+      "win_odds": 6.6,
+      "place_lower": 1.9,
+      "place_upper": 2.8
+    },
+    {
+      "horse_number": 9,
+      "horse_name": "トラストモアリズム",
+      "win_odds": 72.5,
+      "place_lower": 13.9,
+      "place_upper": 21.8
+    },
+    {
+      "horse_number": 10,
+      "horse_name": "エーデルゼーレ",
+      "win_odds": 3.8,
+      "place_lower": 1.6,
+      "place_upper": 2.1
+    },
+    {
+      "horse_number": 11,
+      "horse_name": "ボンボンベイビー",
+      "win_odds": 14.0,
+      "place_lower": 2.7,
+      "place_upper": 4.0
+    },
+    {
+      "horse_number": 12,
+      "horse_name": "デリシュー",
+      "win_odds": 55.3,
+      "place_lower": 16.6,
+      "place_upper": 26.0
+    },
+    {
+      "horse_number": 13,
+      "horse_name": "クレアノア",
+      "win_odds": 28.0,
+      "place_lower": 4.5,
+      "place_upper": 6.9
+    },
+    {
+      "horse_number": 14,
+      "horse_name": "ウップヘリーア",
+      "win_odds": 3.5,
+      "place_lower": 1.4,
+      "place_upper": 1.7
+    },
+    {
+      "horse_number": 15,
+      "horse_name": "ガローファノ",
+      "win_odds": 20.4,
+      "place_lower": 4.7,
+      "place_upper": 7.3
+    },
+    {
+      "horse_number": 16,
+      "horse_name": "ジワタネホ",
+      "win_odds": 9.3,
+      "place_lower": 2.5,
+      "place_upper": 3.7
+    },
+    {
+      "horse_number": 17,
+      "horse_name": "エテルニータ",
+      "win_odds": 59.2,
+      "place_lower": 11.1,
+      "place_upper": 17.3
+    },
+    {
+      "horse_number": 18,
+      "horse_name": "ディヒターリーベ",
+      "win_odds": 21.1,
+      "place_lower": 4.0,
+      "place_upper": 6.1
+    }
+  ],
+  "horse_count": 18,
+  "status": "available",
+  "note": "SportsNavi intermediate odds (not JRA final). Source timestamp may be old.",
+  "date": "2026-11-28",
+  "race_start_at": "2026-11-28T16:00:00+09:00"
+}
